@@ -1,0 +1,221 @@
+// const vscode = require('vscode');
+const vscode = require("vscode");
+const fs = require("fs");
+const { treeProvider } = require("./tree");
+const LangCheckRobot = require("./langCheckRobot");
+const { getPossibleLangDirList } = require("./utils/fs");
+const util = require("./util");
+let isProcessing = false;
+let treeInstance;
+/**
+ * 插件被激活时触发，所有代码总入口
+ * @param {*} context 插件上下文
+ */
+exports.activate = async function (context) {
+  const rootPath = vscode.workspace.workspaceFolders?.length > 0 ? vscode.workspace.workspaceFolders[0].uri.fsPath : undefined;
+  const config = vscode.workspace.getConfiguration("i18n-mage");
+  const robot = LangCheckRobot.getInstance();
+  robot.setOptions({
+    // checkAimList,
+    // excludedLangList,
+    // includedLangList,
+    referredLang: config.defaultReferredLang,
+    langFileMinLength: config.langFileMinLength,
+    ignoreEmptyLangFile: config.ignoreEmptyLangFile,
+    sortWithTrim: config.sortWithTrim,
+    credentials: {
+      baiduAppId: config.baiduAppId,
+      baiduSecretKey: config.baiduSecretKey,
+      tencentSecretId: config.tencentSecretId,
+      tencentSecretKey: config.tencentSecretKey,
+      translateApiPriority: config.translateApiPriority
+    },
+    syncBasedOnReferredEntries: config.syncBasedOnReferredEntries,
+  });
+  const possibleLangDirs = getPossibleLangDirList(rootPath);
+  for (const langDir of possibleLangDirs) {
+    robot.setOptions({ langDir: langDir, task: "check", globalFlag: true, clearCache: false });
+    await robot.check();
+    if (robot.detectedLangList.length > 0) {
+      break;
+    }
+  }
+  if (robot.detectedLangList.length === 0) {
+    vscode.window.showInformationMessage("No lang dir in workspace");
+    return;
+  }
+  treeInstance = new treeProvider();
+  vscode.window.registerTreeDataProvider("treeProvider", treeInstance);
+  vscode.commands.registerCommand("i18nMage.setReferredLang", lang => {
+    startProgress({
+      title: "",
+      callback: async () => {
+        robot.setOptions({ referredLang: lang.key, task: "check", globalFlag: false, clearCache: false });
+        await robot.check();
+      }
+    });
+  });
+  vscode.commands.registerCommand("i18nMage.checkUsage", () => {
+    startProgress({
+      title: "检查中...",
+      callback: async () => {
+        robot.setOptions({ task: "check", globalFlag: true, clearCache: true });
+        await robot.check();
+      }
+    });
+  });
+  vscode.commands.registerCommand("i18nMage.sort", () => {
+    startProgress({
+      title: "排序中...",
+      callback: async () => {
+        robot.setOptions({ task: "sort", globalFlag: true, rewriteFlag: true });
+        const success = await robot.check();
+        if (success) {
+          vscode.window.showInformationMessage("Sort success");
+        }
+      }
+    });
+  });
+  vscode.commands.registerCommand("i18nMage.fix", () => {
+    startProgress({
+      title: "修复中...",
+      callback: async () => {
+        robot.setOptions({ task: "fix", globalFlag: true, rewriteFlag: true });
+        const success = await robot.check();
+        if (success) {
+          vscode.window.showInformationMessage("Fix success");
+        }
+      }
+    });
+  });
+  vscode.commands.registerCommand("i18nMage.export", async () => {
+    const options = {
+      saveLabel: "Save Excel file",
+      filters: {
+        "Excel files": ["xlsx", "xls"]
+      }
+    };
+    const fileUri = await vscode.window.showSaveDialog(options);
+    if (fileUri) {
+      startProgress({
+        title: "导出中...",
+        callback: async () => {
+          const filePath = fileUri.fsPath;
+          robot.setOptions({ task: "export", exportExcelTo: filePath });
+          const success = await robot.check();
+          if (success) {
+            vscode.window.showInformationMessage("Export success");
+          }
+        }
+      });
+    }
+  });
+
+  vscode.commands.registerCommand("i18nMage.import", async () => {
+    const options = {
+      canSelectMany: false,
+      openLabel: "Select Excel file",
+      filters: {
+        "Excel files": ["xlsx", "xls"]
+      }
+    };
+    const fileUri = await vscode.window.showOpenDialog(options);
+    if (fileUri && fileUri[0]) {
+      startProgress({
+        title: "导入中...",
+        callback: async () => {
+          const filePath = fileUri[0].fsPath;
+          robot.setOptions({ task: "import", importExcelFrom: filePath });
+          const success = await robot.check();
+          if (success) {
+            vscode.window.showInformationMessage("Import success");
+          }
+        }
+      });
+    }
+    // const panel = vscode.window.createWebviewPanel("excelUpload", "Excel Upload", vscode.ViewColumn.One, {
+    //   enableScripts: true
+    // });
+
+    // panel.webview.html = getWebviewContent(context, "src/view/handle-excel.html");
+
+    // panel.webview.onDidReceiveMessage(
+    //   async message => {
+    //     switch (message.command) {
+    //       case "upload":
+    //         // const workbook = xlsx.read(new Uint8Array(message.data), { type: "array" });
+    //         // 处理读取的 Excel 数据
+    //         vscode.window.showInformationMessage("Excel 文件已上传");
+    //         break;
+    //       case "export":
+    //         // const wb = xlsx.utils.book_new();
+    //         // const ws = xlsx.utils.aoa_to_sheet([
+    //         //   ["Header1", "Header2"],
+    //         //   ["Data1", "Data2"]
+    //         // ]);
+    //         // xlsx.utils.book_append_sheet(wb, ws, "Sheet1");
+    //         // const buffer = xlsx.write(wb, { bookType: "xlsx", type: "buffer" });
+    //         // const filePath = vscode.Uri.file(`${vscode.workspace.rootPath}/export.xlsx`);
+    //         // await fs.promises.writeFile(filePath.fsPath, buffer);
+    //         vscode.window.showInformationMessage("Excel 文件已导出");
+    //         break;
+    //     }
+    //   },
+    //   undefined,
+    //   context.subscriptions
+    // );
+  });
+
+  vscode.workspace.onDidChangeConfiguration(event => {
+    if (!event.affectsConfiguration("i18n-mage")) return;
+    const config = vscode.workspace.getConfiguration("i18n-mage")
+    if (event.affectsConfiguration("i18n-mage.syncBasedOnReferredEntries")) {
+      robot.setOptions({ syncBasedOnReferredEntries: config.syncBasedOnReferredEntries });
+      vscode.commands.executeCommand("i18nMage.setReferredLang", robot.referredLang);
+    }
+  });
+
+  // require('./helloword')(context); // helloworld
+  // require('./test-command-params')(context); // 测试命令参数
+  // require('./test-menu-when')(context); // 测试菜单 when 命令
+  // require('./jump-to-definition')(context); // 跳转到定义
+  // require('./completion')(context); // 自动补全
+  // require('./hover')(context); // 悬停提示
+  require("./webview")(context); // Webview
+  // require('./welcome')(context); // 欢迎提示
+  // require('./other')(context); // 其它杂七杂八演示代码
+
+  // const testFn = require('./test-require-function');
+  // console.log(testFn); // vscode 的日志输出不可靠，这里竟然会打印 null？！
+  // testFn(1, 2);
+
+  // 自动提示演示，在 dependencies 后面输入。会自动带出依赖
+  // this.dependencies.
+};
+
+function startProgress({ title, callback }) {
+  if (isProcessing) {
+    vscode.window.showWarningMessage("Already processing. Please wait.");
+    return;
+  }
+  vscode.window.withProgress({ location: vscode.ProgressLocation.Notification, title }, async () => {
+    isProcessing = true;
+    await callback();
+    isProcessing = false;
+    treeInstance.refresh();
+  });
+}
+
+function getWebviewContent(context, templatePath) {
+  const resourcePath = util.getExtensionFileAbsolutePath(context, templatePath);
+  // const dirPath = path.dirname(resourcePath);
+  let html = fs.readFileSync(resourcePath, "utf-8");
+  return html;
+}
+
+/**
+ * 插件被释放时触发
+ */
+// exports.deactivate = function() {
+//     console.log('您的扩展“vscode-plugin-demo”已被释放！')
+// };

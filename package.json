@@ -1,0 +1,354 @@
+{
+  "name": "i18n-checker",
+  "displayName": "i18n Mage",
+  "description": "Detect, repair and sort i18n",
+  "keywords": [
+    "i18n",
+    "translate",
+    "language"
+  ],
+  "version": "0.0.1",
+  "engines": {
+    "vscode": "^1.89.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [
+    "onLanguage:vue"
+  ],
+  "main": "./src/extension",
+  "contributes": {
+    "configuration": [
+      {
+        "type": "object",
+        "title": "通用",
+        "properties": {
+          "i18n-mage.defaultReferredLang": {
+            "type": "string",
+            "default": "cn",
+            "description": "默认参考语言"
+          },
+          "i18n-mage.syncBasedOnReferredEntries": {
+            "type": "boolean",
+            "default": false,
+            "description": "在统计词条同步信息时，是否以参考语言文件中定义的词条为基准。若不是，则以所有语言文件中定义的词条为准"
+          },
+          "i18n-mage.ignoreEmptyLangFile": {
+            "type": "boolean",
+            "default": true,
+            "description": "忽略疑似空白的语言文件"
+          },
+          "i18n-mage.langFileMinLength": {
+            "type": "integer",
+            "default": 30,
+            "description": "小于该字符数的多语言文件将被视作空白文件"
+          },
+          "i18n-mage.showTip": {
+            "type": "boolean",
+            "default": true,
+            "description": "启动时显示自定义欢迎页"
+          }
+        }
+      },
+      {
+        "type": "object",
+        "title": "翻译平台",
+        "properties": {
+          "i18n-mage.baiduAppId": {
+            "type": "string",
+            "default": "",
+            "description": "百度翻译开放平台开发者 APP ID"
+          },
+          "i18n-mage.baiduSecretKey": {
+            "type": "string",
+            "default": "",
+            "description": "百度翻译开放平台开发者密钥"
+          },
+          "i18n-mage.tencentSecretId": {
+            "type": "string",
+            "default": "",
+            "description": "腾讯云平台账号 SecretId"
+          },
+          "i18n-mage.tencentSecretKey": {
+            "type": "string",
+            "default": "",
+            "description": "腾讯云平台账号 SecretKey"
+          },
+          "i18n-mage.translateApiPriority": {
+            "type": "array",
+            "default": ["google", "baidu", "tencent"],
+            "description": "翻译调用优先级"
+          }
+        }
+      },
+      {
+        "type": "object",
+        "title": "检查",
+        "properties": {
+          "i18n-mage.defaultCheckedItems": {
+            "type": "string",
+            "default": "unity",
+            "description": "默认检测项目 (unity|repeat|style)"
+          }
+        }
+      },
+      {
+        "type": "object",
+        "title": "排序",
+        "properties": {
+          "i18n-mage.keepSortGlobal": {
+            "type": "boolean",
+            "default": true,
+            "description": "按全局使用范围进行排序"
+          },
+          "i18n-mage.sortWithTrim": {
+            "type": "boolean",
+            "default": false,
+            "description": "排序时是否移除疑似未使用翻译"
+          }
+        }
+      },
+      {
+        "type": "object",
+        "title": "修复",
+        "properties": {
+          "i18n-mage.fixWithTrim": {
+            "type": "boolean",
+            "default": false,
+            "description": "修复时是否移除疑似未使用翻译"
+          }
+        }
+      }
+    ],
+    "commands": [
+      {
+        "command": "i18nMage.setReferredLang",
+        "title": "设为参考语言"
+      },
+      {
+        "command": "i18nMage.checkUsage",
+        "title": "刷新",
+        "icon": {
+          "light": "./images/refresh-light.svg",
+          "dark": "./images/refresh-dark.svg"
+        }
+      },
+      {
+        "command": "i18nMage.sort",
+        "title": "排序",
+        "icon": {
+          "light": "./images/sort-light.svg",
+          "dark": "./images/sort-dark.svg"
+        }
+      },
+      {
+        "command": "i18nMage.fix",
+        "title": "修复",
+        "icon": {
+          "light": "./images/translate-light.svg",
+          "dark": "./images/translate-dark.svg"
+        }
+      },
+      {
+        "command": "i18nMage.export",
+        "title": "导出为 Excel",
+        "icon": {
+          "light": "./images/share-light.svg",
+          "dark": "./images/share-dark.svg"
+        }
+      },
+      {
+        "command": "i18nMage.import",
+        "title": "从 Excel 导入",
+        "icon": {
+          "light": "./images/import-light.svg",
+          "dark": "./images/import-dark.svg"
+        }
+      },
+      {
+        "command": "extension.sayHello",
+        "title": "Hello，小茗同学"
+      },
+      {
+        "command": "extension.demo.getCurrentFilePath",
+        "title": "获取当前文件 (夹) 路径"
+      },
+      {
+        "command": "extension.demo.testMenuShow",
+        "title": "这个菜单仅在 JS 文件中出现",
+        "icon": {
+          "light": "./images/tool-light.svg",
+          "dark": "./images/tool-light.svg"
+        }
+      },
+      {
+        "command": "extension.demo.openWebview",
+        "title": "打开 WebView"
+      },
+      {
+        "command": "extension.demo.showWelcome",
+        "title": "显示自定义欢迎页"
+      }
+    ],
+    "keybindings": [
+      {
+        "command": "extension.sayHello",
+        "key": "ctrl+f10",
+        "mac": "cmd+f10",
+        "when": "editorTextFocus"
+      },
+      {
+        "command": "extension.demo.openWebview",
+        "key": "ctrl+f9",
+        "mac": "cmd+f9",
+        "when": "editorTextFocus"
+      }
+    ],
+    "menus": {
+      "view/title": [
+        {
+          "command": "i18nMage.checkUsage",
+          "when": "view == treeProvider",
+          "group": "navigation@1"
+        },
+        {
+          "command": "i18nMage.sort",
+          "when": "view == treeProvider",
+          "group": "navigation@2"
+        },
+        {
+          "command": "i18nMage.export",
+          "when": "view == treeProvider",
+          "group": "navigation@3"
+        },
+        {
+          "command": "i18nMage.import",
+          "when": "view == treeProvider",
+          "group": "navigation@4"
+        },
+        {
+          "command": "i18nMage.fix",
+          "when": "view == treeProvider",
+          "group": "navigation@5"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "i18nMage.setReferredLang",
+          "when": "viewItem == checkSyncInfo"
+        },
+        {
+          "command": "i18nMage.checkUsage",
+          "when": "viewItem == checkUsage",
+          "group": "inline"
+        }
+      ],
+      "editor/context": [
+        {
+          "when": "editorFocus",
+          "command": "extension.sayHello",
+          "group": "navigation@6"
+        },
+        {
+          "when": "editorFocus",
+          "command": "extension.demo.getCurrentFilePath",
+          "group": "navigation@5"
+        },
+        {
+          "when": "editorFocus && resourceLangId == javascript",
+          "command": "extension.demo.testMenuShow",
+          "group": "z_commands"
+        },
+        {
+          "command": "extension.demo.openWebview",
+          "group": "navigation"
+        }
+      ],
+      "editor/title": [
+        {
+          "when": "editorFocus && resourceLangId == javascript",
+          "command": "extension.demo.testMenuShow",
+          "group": "navigation"
+        }
+      ],
+      "editor/title/context": [
+        {
+          "when": "resourceLangId == javascript",
+          "command": "extension.demo.testMenuShow",
+          "group": "navigation"
+        }
+      ],
+      "explorer/context": [
+        {
+          "command": "extension.demo.getCurrentFilePath",
+          "group": "navigation"
+        },
+        {
+          "command": "extension.demo.openWebview",
+          "group": "navigation"
+        }
+      ]
+    },
+    "snippets": [
+      {
+        "language": "javascript",
+        "path": "./snippets/javascript.json"
+      },
+      {
+        "language": "html",
+        "path": "./snippets/html.json"
+      }
+    ],
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "i18nMage",
+          "title": "i18n Mage",
+          "icon": "images/i18nMage.png"
+        }
+      ]
+    },
+    "views": {
+      "i18nMage": [
+        {
+          "id": "treeProvider",
+          "name": ""
+        }
+      ]
+    },
+    "iconThemes": [
+      {
+        "id": "testIconTheme",
+        "label": "测试图标主题",
+        "path": "./theme/icon-theme.json"
+      }
+    ]
+  },
+  "scripts": {
+    "lint": "eslint .",
+    "pretest": "npm run lint",
+    "test": "vscode-test"
+  },
+  "dependencies": {
+    "@vitalets/google-translate-api": "^9.2.0",
+    "axios": "^0.27.2",
+    "js-md5": "^0.7.3",
+    "node-xlsx": "^0.24.0",
+    "tencentcloud-sdk-nodejs-tmt": "^4.0.791",
+    "tunnel": "^0.0.6",
+    "xlsx": "^0.20.2"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.24.8",
+    "@babel/eslint-parser": "^7.24.8",
+    "@babel/preset-env": "^7.24.8",
+    "@types/mocha": "^10.0.6",
+    "@types/node": "^18",
+    "@types/vscode": "^1.89.0",
+    "@vscode/test-cli": "^0.0.9",
+    "@vscode/test-electron": "^2.3.9",
+    "eslint": "^8.57.0",
+    "typescript": "^5.4.5"
+  }
+}

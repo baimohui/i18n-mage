@@ -1,0 +1,338 @@
+const vscode = require("vscode");
+const LangCheckRobot = require("./langCheckRobot");
+const { catchTEntries } = require("./utils/regex");
+const { isPathInsideDirectory } = require("./utils/fs");
+class treeProvider {
+  #robot;
+  constructor() {
+    this.#robot = LangCheckRobot.getInstance();
+    this.usedEntries = [];
+    this.definedEntriesInCurrentFile = [];
+    this.undefinedEntriesInCurrentFile = [];
+    this.usedEntryMap = this.#robot.langDetail.used || {};
+    this._onDidChangeTreeData = new vscode.EventEmitter();
+    this.onDidChangeTreeData = this._onDidChangeTreeData.event;
+    vscode.window.onDidChangeActiveTextEditor(() => this.onActiveEditorChanged());
+    vscode.workspace.onDidSaveTextDocument(e => this.onDocumentChanged(e));
+    // vscode.workspace.onDidChangeTextDocument(e => this.onDocumentChanged(e));
+    this.onActiveEditorChanged();
+  }
+  get langInfo() {
+    return this.#robot.langDetail;
+  }
+  get dictionary() {
+    return this.langInfo.dictionary;
+  }
+  get entryReferredTextMap() {
+    return this.langInfo.countryMap[this.#robot.referredLang] || {};
+  }
+  get entryUsageInfo() {
+    const dictionary = this.langInfo.dictionary;
+    const unusedEntries = [],
+      usedEntries = [];
+    for (const entry in dictionary) {
+      if (!this.langInfo.used[entry]) {
+        unusedEntries.push(entry);
+      } else {
+        usedEntries.push(entry);
+      }
+    }
+    return { used: usedEntries, unused: unusedEntries };
+  }
+  get undefinedEntries() {
+    return this.langInfo.undefined;
+  }
+  refresh() {
+    this._onDidChangeTreeData.fire(undefined);
+  }
+  getTreeItem(element) {
+    return element;
+  }
+  getChildren(element) {
+    if (!element) {
+      return this.getRootChildren();
+    }
+    switch (element.root) {
+      case "CURRENT_FILE":
+        return this.getCurrentFileChildren(element);
+      case "SYNC_INFO":
+        return this.getSyncInfoChildren(element);
+      case "USAGE_INFO":
+        return this.getUsageInfoChildren(element);
+      case "DICTIONARY":
+        return this.getDictionaryChildren(element);
+      default:
+        return [];
+    }
+  }
+  getRootChildren() {
+    return [
+      {
+        level: 0,
+        label: "当前文件",
+        id: "CURRENT_FILE",
+        root: "CURRENT_FILE",
+        collapsibleState: vscode.TreeItemCollapsibleState.Expanded,
+        description: String(this.definedEntriesInCurrentFile.length + this.undefinedEntriesInCurrentFile.length)
+      },
+      {
+        level: 0,
+        label: "同步情况",
+        id: "SYNC_INFO",
+        root: "SYNC_INFO",
+        collapsibleState: vscode.TreeItemCollapsibleState.Expanded,
+        description: this.getSyncPercent()
+      },
+      {
+        level: 0,
+        label: "使用情况",
+        id: "USAGE_INFO",
+        root: "USAGE_INFO",
+        contextValue: "checkUsage",
+        collapsibleState: vscode.TreeItemCollapsibleState.Expanded,
+        description: this.getUsagePercent()
+      },
+      {
+        level: 0,
+        label: "词条汇总",
+        id: "DICTIONARY",
+        root: "DICTIONARY",
+        collapsibleState: vscode.TreeItemCollapsibleState.Collapsed,
+        description: String(Object.keys(this.langInfo.dictionary).length)
+      }
+    ];
+  }
+  getCurrentFileChildren(element) {
+    if (element.level === 0) {
+      return [
+        {
+          label: "已定义",
+          description: String(this.definedEntriesInCurrentFile.length),
+          collapsibleState: vscode.TreeItemCollapsibleState[this.definedEntriesInCurrentFile.length === 0 ? "None" : "Collapsed"],
+          level: 1,
+          type: "defined",
+          id: this.genId(element, "defined"),
+          root: element.root
+        },
+        {
+          label: "未定义",
+          description: String(this.undefinedEntriesInCurrentFile.length),
+          collapsibleState: vscode.TreeItemCollapsibleState[this.undefinedEntriesInCurrentFile.length === 0 ? "None" : "Collapsed"],
+          level: 1,
+          type: "undefined",
+          id: this.genId(element, "undefined"),
+          root: element.root
+        }
+      ];
+    } else if (element.level === 1) {
+      return this[element.type === "defined" ? "definedEntriesInCurrentFile" : "undefinedEntriesInCurrentFile"].map(entry => ({
+        label: entry.text,
+        description: this.entryReferredTextMap[entry.text] ?? false,
+        collapsibleState: vscode.TreeItemCollapsibleState[element.type === "defined" ? "Collapsed" : "None"],
+        level: 2,
+        id: this.genId(element, entry.id),
+        root: element.root
+      }));
+    } else if (element.level === 2) {
+      const entryInfo = this.dictionary[element.label];
+      return this.langInfo.langList.map(lang => ({
+        label: lang,
+        description: entryInfo[lang] ?? false,
+        collapsibleState: vscode.TreeItemCollapsibleState.None,
+        level: 3,
+        id: this.genId(element, lang)
+      }));
+    }
+    return [];
+  }
+  getSyncInfoChildren(element) {
+    if (element.level === 0) {
+      return this.langInfo.langList.map(lang => ({
+        level: 1,
+        key: lang,
+        label: lang,
+        root: element.root,
+        id: this.genId(element, lang),
+        contextValue: "checkSyncInfo",
+        description: this.checkLangSyncInfo(lang),
+        collapsibleState: vscode.TreeItemCollapsibleState.Collapsed
+      }));
+    } else if (element.level === 1) {
+      return this.getSyncInfo(element.key).map(item => ({
+        ...item,
+        level: 2,
+        key: element.key,
+        root: element.root,
+        id: this.genId(element, item.type),
+        description: String(item.num),
+        collapsibleState: vscode.TreeItemCollapsibleState[item.num === 0 ? "None" : item.type === "common" ? "Collapsed" : "Expanded"]
+      }));
+    } else if (element.level === 2) {
+      return element.data.map(item => ({
+        label: item[0],
+        description: item[1],
+        level: 3,
+        key: element.key,
+        id: this.genId(element, item[0]),
+        collapsibleState: vscode.TreeItemCollapsibleState.None
+      }));
+    }
+    return [];
+  }
+  getUsageInfoChildren(element) {
+    if (element.level === 0) {
+      return [
+        { type: "used", label: "已使用", num: this.entryUsageInfo.used.length },
+        { type: "unused", label: "未使用", num: this.entryUsageInfo.unused.length },
+        { type: "undefined", label: "未定义", num: this.undefinedEntries.length }
+      ].map(item => ({
+        ...item,
+        level: 1,
+        root: element.root,
+        description: String(item.num),
+        id: this.genId(element, item.type),
+        collapsibleState: vscode.TreeItemCollapsibleState[item.num === 0 ? "None" : "Collapsed"]
+      }));
+    } else if (element.level === 1) {
+      if (element.type === "undefined") {
+        return this.undefinedEntries.sort().map(item => ({
+          label: item,
+          level: 2,
+          id: this.genId(element, item),
+          collapsibleState: vscode.TreeItemCollapsibleState.None
+        }));
+      } else if (element.type === "used") {
+        return this.entryUsageInfo.used.sort().map(item => ({
+          label: item,
+          description: this.entryReferredTextMap[item],
+          level: 2,
+          id: this.genId(element, item),
+          collapsibleState: vscode.TreeItemCollapsibleState.None
+        }));
+      } else {
+        return this.entryUsageInfo.unused.sort().map(item => ({
+          label: item,
+          description: this.entryReferredTextMap[item],
+          level: 2,
+          id: this.genId(element, item),
+          collapsibleState: vscode.TreeItemCollapsibleState.None
+        }));
+      }
+    }
+    return [];
+  }
+  getDictionaryChildren(element) {
+    if (element.level === 0) {
+      return Object.keys(this.dictionary)
+        .sort()
+        .map(entry => ({
+          label: entry,
+          description: this.entryReferredTextMap[entry] || false,
+          level: 1,
+          id: this.genId(element, entry),
+          root: element.root,
+          collapsibleState: vscode.TreeItemCollapsibleState.Collapsed
+        }));
+    } else if (element.level === 1) {
+      return Object.entries(this.dictionary[element.label]).map(item => ({
+        label: item[0],
+        description: item[1],
+        level: 2,
+        id: this.genId(element, item[0]),
+        collapsibleState: vscode.TreeItemCollapsibleState.None
+      }));
+    }
+    return [];
+  }
+  onActiveEditorChanged() {
+    this.definedEntriesInCurrentFile = [];
+    this.undefinedEntriesInCurrentFile = [];
+    const editor = vscode.window.activeTextEditor;
+    if (editor) {
+      const text = editor.document.getText();
+      this.usedEntries = catchTEntries(text);
+      const usedEntryMap = this.#robot.langDetail.used || {};
+      this.usedEntries.forEach(entry => {
+        if (usedEntryMap[entry.text]) {
+          if (this.definedEntriesInCurrentFile.every(item => item.text !== entry.text)) {
+            this.definedEntriesInCurrentFile.push(entry);
+          }
+        } else {
+          this.undefinedEntriesInCurrentFile.push(entry);
+        }
+      });
+      this.refresh();
+    }
+  }
+  async onDocumentChanged(content) {
+    if (isPathInsideDirectory(this.#robot.langDir, content.fileName)) {
+      this.#robot.setOptions({ task: "check", globalFlag: false, clearCache: false });
+      await this.#robot.check();
+      this.refresh();
+    }
+  }
+  checkLangSyncInfo(lang) {
+    let str = "";
+    const lackNum = this.langInfo.lack[lang].length;
+    const extraNum = this.langInfo.extra[lang].length;
+    const nullNum = this.langInfo.null[lang].length;
+    if (lackNum > 0) {
+      str += `-${lackNum + nullNum} `;
+    }
+    if (extraNum > 0) {
+      str += `+${extraNum} `;
+    }
+    // if (lackNum === 0 && extraNum === 0) {
+    //   str += "✓ ";
+    // }
+    if (lang === this.#robot.referredLang) {
+      str += "🚩";
+    }
+    return str;
+  }
+  getSyncInfo(lang) {
+    const totalEntries = Object.entries(this.langInfo.countryMap?.[lang] || {});
+    totalEntries.sort((a, b) => a[0] > b[0] ? 1 : -1);
+    const commonEntries = [];
+    const extraEntries = [];
+    const extraEntryNameList = this.langInfo.extra?.[lang] || [];
+    const nullEntryNameList = this.langInfo.null?.[lang] || [];
+    totalEntries.forEach(item => {
+      if (extraEntryNameList.includes(item[0])) {
+        extraEntries.push(item);
+      } else if (!nullEntryNameList.includes(item[0])) {
+        commonEntries.push(item);
+      }
+    });
+    const lackEntries = (this.langInfo.lack?.[lang] || []).map(item => [item, this.entryReferredTextMap[item]]);
+    const nullEntries = nullEntryNameList.map(item => [item, this.entryReferredTextMap[item]]);
+    const res = [
+      { label: "正常", num: commonEntries.length, data: commonEntries, type: "common" },
+      { label: "空值", num: nullEntries.length, data: nullEntries, type: "null" },
+      { label: "缺失", num: lackEntries.length, data: lackEntries, type: "lack" }
+    ];
+    if (this.#robot.syncBasedOnReferredEntries) {
+      res.push({ label: "多余", num: extraEntries.length, data: extraEntries, type: "extra" });
+    }
+    return res;
+  }
+  getSyncPercent() {
+    const lackList = Object.values(this.langInfo.lack);
+    const lackNum = lackList.reduce((pre, cur) => pre + cur.length, 0);
+    const nullList = Object.values(this.langInfo.null);
+    const nullNum = nullList.reduce((pre, cur) => pre + cur.length, 0);
+    let total = this.#robot.syncBasedOnReferredEntries ? this.langInfo.refer.length : Object.keys(this.dictionary).length;
+    total = total * lackList.length;
+    return (Math.floor(((total - lackNum - nullNum) / total) * 10000) / 100).toFixed(2) + "%";
+  }
+  getUsagePercent() {
+    const total = Object.keys(this.dictionary).length;
+    if (total === 0) return "";
+    return Math.floor(Number(((this.entryUsageInfo.used.length / total) * 10000).toFixed(0))) / 100 + "%";
+  }
+  genId(element, name) {
+    return `${element.id},${name}`;
+  }
+}
+
+module.exports = { treeProvider };

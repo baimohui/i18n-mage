@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Excel Upload</title>
+  </head>
+  <body>
+    <input type="file" id="upload" />
+    <!-- <button id="export">Export Excel</button> -->
+    <script>
+      const vscode = acquireVsCodeApi();
+
+      document.getElementById("upload").addEventListener("change", handleFileSelect, false);
+
+      function handleFileSelect(event) {
+        const file = event.target.files[0];
+        if (file) {
+          const reader = new FileReader();
+          reader.onload = function (e) {
+            const data = new Uint8Array(e.target.result);
+            vscode.postMessage({ command: "upload", data: Array.from(data) });
+          };
+          reader.readAsArrayBuffer(file);
+        }
+      }
+
+      document.getElementById("export").addEventListener("click", () => {
+        vscode.postMessage({ command: "export" });
+      });
+    </script>
+  </body>
+</html>
