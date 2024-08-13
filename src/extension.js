@@ -19,6 +19,7 @@ exports.activate = async function (context) {
     // checkAimList,
     // excludedLangList,
     // includedLangList,
+    rootPath,
     referredLang: config.defaultReferredLang,
     langFileMinLength: config.langFileMinLength,
     ignoreEmptyLangFile: config.ignoreEmptyLangFile,

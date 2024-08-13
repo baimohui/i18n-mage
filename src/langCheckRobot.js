@@ -4,7 +4,6 @@ const xlsx = require("node-xlsx");
 const translateTo = require("./translator/index");
 const { deleteFolderRecursive, createFolderRecursive } = require("./utils/fs");
 const { printInfo, printTitle } = require("./utils/print");
-const { hasOwn } = require("./utils/common");
 const { LANG_FORMAT_TYPE, LANG_ENTRY_SPLIT_SYMBOL, getLangText, getLangCode, getLangIntro } = require("./utils/const");
 const {
   getCaseType,
@@ -44,6 +43,7 @@ class LangCheckRobot {
   constructor(options) {
     this.task = ""; // 当前执行任务
     this.langDir = ""; // 多语言文件所在的目录
+    this.rootPath = ""; // 项目根目录
     this.checkUnityFlag = true; // 是否检查各个语种的翻译条目完全一致
     this.checkRepeatFlag = false; // 是否检查条目重复
     this.checkStyleFlag = false; // 是否检查条目命名风格
@@ -85,7 +85,7 @@ class LangCheckRobot {
           this.checkUnityFlag = value.includes("unity");
           this.checkRepeatFlag = value.includes("repeat");
           this.checkStyleFlag = value.includes("style");
-        } else if (hasOwn(this, key)) {
+        } else if (Object.hasOwn(this, key)) {
           this[key] = value;
         }
       }
@@ -258,7 +258,7 @@ class LangCheckRobot {
       const nullTranslations = [];
       const pivotEntryList = this.syncBasedOnReferredEntries ? this.#referredEntryList : Object.keys(this.#langDictionary);
       pivotEntryList.forEach(entry => {
-        if (!hasOwn(translation, entry)) {
+        if (!Object.hasOwn(translation, entry)) {
           missingTranslations.push(entry);
         } else if (!translation[entry]) {
           nullTranslations.push(entry);
@@ -394,12 +394,13 @@ class LangCheckRobot {
     printTitle(`对条目按${this.globalFlag ? "使用范围" : "首字母"}进行排序`);
     const pathMap = {};
     const allCommonEntryList = [];
+    let usedEntryMap = this.#usedEntryMap;
     if (this.#langFormatType === LANG_FORMAT_TYPE.nestedObj && this.globalFlag) {
       printInfo("嵌套对象形式的多语言不支持按使用范围排序", "brain");
-      this.#usedEntryMap = {};
+      usedEntryMap = {};
     }
-    for (let entry in this.#usedEntryMap) {
-      const detectedPaths = this.#usedEntryMap[entry];
+    for (let entry in usedEntryMap) {
+      const detectedPaths = [...new Set(this.#usedEntryMap[entry].map(item => item.split("\\").slice(0, -1).join("\\")))];
       let pathKey = detectedPaths[0];
       if (detectedPaths.length > 1) {
         const commonPathBlockList = [];
@@ -418,7 +419,7 @@ class LangCheckRobot {
           if (backupPath && !isAllPrimary) {
             pathKey = backupPath;
           } else if (isAllPrimary) {
-            pathKey = detectedPaths[0] === this.#roguePath ? detectedPaths[1] : detectedPaths[0];
+            pathKey = detectedPaths[this.#roguePath.startsWith(detectedPaths[0]) ? 1 : 0];
           } else {
             allCommonEntryList.push(entry);
             continue;
@@ -438,25 +439,25 @@ class LangCheckRobot {
       const langObj = this.#langCountryMap[lang];
       const langObjKeys = Object.keys(langObj);
       const pageData = [];
-      const commonEntryList = allCommonEntryList.filter(entry => hasOwn(langObj, entry));
+      const commonEntryList = allCommonEntryList.filter(entry => Object.hasOwn(langObj, entry));
       if (commonEntryList.length > 0) {
         pageData.push({
           desc: "COMMON",
-          value: commonEntryList.map(entry => ({ name: entry, value: this.#langDictionary[entry][lang] }))
+          value: commonEntryList.map(entry => ({ name: entry, value: langObj[entry] }))
         });
       }
       pathClassList.forEach(pathClass => {
         const relativePath = this._getRelativePath(pathClass);
-        const entryList = pathMap[pathClass].filter(entry => hasOwn(langObj, entry)).sort();
+        const entryList = pathMap[pathClass].filter(entry => Object.hasOwn(langObj, entry)).sort();
         if (entryList.length > 0) {
-          pageData.push({ desc: relativePath, value: entryList.map(entry => ({ name: entry, value: this.#langDictionary[entry][lang] })) });
+          pageData.push({ desc: relativePath, value: entryList.map(entry => ({ name: entry, value: langObj[entry] })) });
         }
       });
-      const unusedEntryList = langObjKeys.filter(entry => !hasOwn(this.#usedEntryMap, entry)).sort();
+      const unusedEntryList = langObjKeys.filter(entry => !Object.hasOwn(this.#usedEntryMap, entry)).sort();
       if (unusedEntryList.length > 0 && !this.sortWithTrim) {
         pageData.push({
           desc: this.#langFormatType !== LANG_FORMAT_TYPE.nestedObj && this.globalFlag ? "UNUSED?" : "",
-          value: unusedEntryList.map(entry => ({ name: entry, value: this.#langDictionary[entry][lang] }))
+          value: unusedEntryList.map(entry => ({ name: entry, value: langObj[entry] }))
         });
       }
       writeList.push({
@@ -539,7 +540,7 @@ class LangCheckRobot {
       const labelIndex = headInfo.findIndex(item => item && item.toLowerCase() === "label");
       sheetData.forEach(item => {
         const entryName = item[labelIndex]?.trim() ?? "";
-        if (hasOwn(this.#langDictionary, entryName)) {
+        if (Object.hasOwn(this.#langDictionary, entryName)) {
           const entry = this.#langDictionary[entryName];
           const langList = Array.isArray(sheetNeeds[sheetIndex]) ? sheetNeeds[sheetIndex] : this.detectedLangList;
           langList.forEach(lang => {
@@ -792,7 +793,7 @@ class LangCheckRobot {
     const structure = entry.split(splitSymbol);
     const structureLayer = structure.length;
     const primaryClass = structure[0];
-    if (hasOwn(this.#entryClassInfo, primaryClass)) {
+    if (Object.hasOwn(this.#entryClassInfo, primaryClass)) {
       const classInfo = this.#entryClassInfo[primaryClass];
       classInfo.num++;
       !classInfo.layer.includes(structureLayer) && classInfo.layer.push(structureLayer);
@@ -852,40 +853,37 @@ class LangCheckRobot {
 
   async _startCensus() {
     this.showPreInfo && printInfo("正在对条目进行全局捕获，这可能需要一点时间...", "brain");
-    const detectedDir = path.resolve(this.langDir, "../..");
-    const filePaths = await this._readAllFiles(detectedDir);
+    const filePaths = await this._readAllFiles(this.rootPath);
     const pathLevelCountMap = {};
     let maxNum = 0;
     const totalEntryList = Object.keys(this.#langDictionary);
-    for (let i = 0; i < filePaths.length; i++) {
-      const fileContent = await fs.readFileSync(filePaths[i], "utf8");
+    for (const filePath of filePaths) {
+      const fileContent = await fs.readFileSync(filePath, "utf8");
       // if (fileContent.length >= 100000) continue; // 大文件跳过检测
-      const tempDir = filePaths[i].split("\\").slice(0, -1).join("\\");
       const getLayerLen = str => str.split(LANG_ENTRY_SPLIT_SYMBOL[this.#langFormatType]).length;
       const isSameLayer = (str0, str1) => getLayerLen(str0) === getLayerLen(str1);
       const { tItems, existedItems } = catchAllEntries(fileContent, this.#langFormatType, this.#entryClassTree);
       let usedEntryList = existedItems.slice();
       if (usedEntryList.length > maxNum) {
         maxNum = usedEntryList.length;
-        this.#roguePath = tempDir;
+        this.#roguePath = filePath;
       }
       for (const item of tItems) {
-        // const filterList = this.#referredEntryList.filter(entry => item.regex.test(entry) && isSameLayer(item.text, entry));
         const filterList = totalEntryList.filter(entry => item.regex.test(entry) && isSameLayer(item.text, entry));
         if (filterList.length === 0) {
-          this.#undefinedEntryList.push({ ...item, path: filePaths[i] });
+          this.#undefinedEntryList.push({ ...item, path: filePath });
         } else {
           usedEntryList.push(...filterList);
         }
       }
       usedEntryList = [...new Set(usedEntryList)];
       if (usedEntryList.length > 0) {
-        const count = tempDir.split("\\").length;
+        const count = filePath.split("\\").length - 1;
         pathLevelCountMap[count] ??= 0;
         pathLevelCountMap[count]++;
         usedEntryList.forEach(entry => {
           this.#usedEntryMap[entry] ??= [];
-          !this.#usedEntryMap[entry].includes(tempDir) && this.#usedEntryMap[entry].push(tempDir);
+          !this.#usedEntryMap[entry].includes(filePath) && this.#usedEntryMap[entry].push(filePath);
         });
       }
     }
