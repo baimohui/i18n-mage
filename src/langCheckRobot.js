@@ -394,13 +394,16 @@ class LangCheckRobot {
     printTitle(`对条目按${this.globalFlag ? "使用范围" : "首字母"}进行排序`);
     const pathMap = {};
     const allCommonEntryList = [];
-    let usedEntryMap = this.#usedEntryMap;
+    let usedEntryMap = Object.entries(this.#usedEntryMap).reduce((entryMap, [key, value]) => {
+      entryMap[key] = Object.keys(value);
+      return entryMap;
+    }, {});
     if (this.#langFormatType === LANG_FORMAT_TYPE.nestedObj && this.globalFlag) {
       printInfo("嵌套对象形式的多语言不支持按使用范围排序", "brain");
       usedEntryMap = {};
     }
     for (let entry in usedEntryMap) {
-      const detectedPaths = [...new Set(this.#usedEntryMap[entry].map(item => item.split("\\").slice(0, -1).join("\\")))];
+      const detectedPaths = [...new Set(usedEntryMap[entry].map(item => item.split("\\").slice(0, -1).join("\\")))];
       let pathKey = detectedPaths[0];
       if (detectedPaths.length > 1) {
         const commonPathBlockList = [];
@@ -432,7 +435,7 @@ class LangCheckRobot {
       pathMap[pathKey] ??= [];
       pathMap[pathKey].push(entry);
     }
-    allCommonEntryList.sort().sort((a, b) => (this.#usedEntryMap[a].length > this.#usedEntryMap[b].length ? -1 : 1));
+    allCommonEntryList.sort().sort((a, b) => (usedEntryMap[a].length > usedEntryMap[b].length ? -1 : 1));
     const pathClassList = Object.keys(pathMap).sort();
     const writeList = [];
     for (let lang in this.#langCountryMap) {
@@ -453,7 +456,7 @@ class LangCheckRobot {
           pageData.push({ desc: relativePath, value: entryList.map(entry => ({ name: entry, value: langObj[entry] })) });
         }
       });
-      const unusedEntryList = langObjKeys.filter(entry => !Object.hasOwn(this.#usedEntryMap, entry)).sort();
+      const unusedEntryList = langObjKeys.filter(entry => !Object.hasOwn(usedEntryMap, entry)).sort();
       if (unusedEntryList.length > 0 && !this.sortWithTrim) {
         pageData.push({
           desc: this.#langFormatType !== LANG_FORMAT_TYPE.nestedObj && this.globalFlag ? "UNUSED?" : "",
@@ -873,7 +876,7 @@ class LangCheckRobot {
         if (filterList.length === 0) {
           this.#undefinedEntryList.push({ ...item, path: filePath });
         } else {
-          usedEntryList.push(...filterList);
+          usedEntryList.push(...filterList.map(entryName => ({ name: entryName, pos: item.pos })));
         }
       }
       usedEntryList = [...new Set(usedEntryList)];
@@ -882,8 +885,11 @@ class LangCheckRobot {
         pathLevelCountMap[count] ??= 0;
         pathLevelCountMap[count]++;
         usedEntryList.forEach(entry => {
-          this.#usedEntryMap[entry] ??= [];
-          !this.#usedEntryMap[entry].includes(filePath) && this.#usedEntryMap[entry].push(filePath);
+          this.#usedEntryMap[entry.name] ??= {};
+          this.#usedEntryMap[entry.name][filePath] ??= [];
+          if (!this.#usedEntryMap[entry.name][filePath].includes(entry.pos)) {
+            this.#usedEntryMap[entry.name][filePath].push(entry.pos);
+          }
         });
       }
     }
@@ -939,7 +945,7 @@ class LangCheckRobot {
         tableInfo["异语同文"] = this._genOverviewTableRow(lang => mtList.filter(item => item.includes(lang)).length);
       }
       if (this.globalFlag) {
-        tableInfo["闲置条目"] = this._genOverviewTableRow(lang => getEntryTotal(lang).filter(entry => !this.#usedEntryMap[entry]).length);
+        tableInfo["闲置条目"] = this._genOverviewTableRow(lang => getEntryTotal(lang).filter(entry => !this.#usedEntryMap[entry]));
       }
     }
     console.table(tableInfo);

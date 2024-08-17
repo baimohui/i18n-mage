@@ -1,7 +1,5 @@
 const { LANG_FORMAT_TYPE, LANG_ENTRY_SPLIT_SYMBOL, getLangCode } = require("./const");
 const { hasOwn } = require("./common");
-const fs = require("fs");
-const path = require("path");
 
 const newlineCharacter = "\r\n";
 
@@ -172,7 +170,7 @@ const createSingleEntryLine = ({ name, value, indents, langType }) => {
   let res = "";
   if (typeof value !== "string") {
     console.log("value is not a string", name, value);
-    return {}
+    return {};
   }
   if (langType === LANG_FORMAT_TYPE.nonObj) {
     res = `${indents}${name} = "${formatEntryValue(value)}";`;
@@ -335,6 +333,7 @@ const catchPossibleEntries = (fileContent, langType, entryTree) => {
   let primaryClassRes = undefined;
   const entryInfoList = [];
   while ((primaryClassRes = primaryClassReg.exec(fileContent)) !== null) {
+    const startPos = primaryClassRes.index;
     const entryName = primaryClassRes[0];
     const entryFormList = entryName.split(LANG_ENTRY_SPLIT_SYMBOL[langType]);
     let curItem = "";
@@ -356,7 +355,7 @@ const catchPossibleEntries = (fileContent, langType, entryTree) => {
       }
     }
     if (isValid) {
-      entryInfoList.push(entryName);
+      entryInfoList.push({ name: entryName, pos: startPos });
     } else {
       let matchItems = [];
       const entryPrefixList = entryFormList.slice(0, -1);
@@ -367,14 +366,15 @@ const catchPossibleEntries = (fileContent, langType, entryTree) => {
         entryPrefixList.push(curItem);
         matchItems = catchPossibleEntries(fileContent, langType, curTree);
       } else {
-        entryInfoList.push(entryName);
+        entryInfoList.push({ name: entryName, pos: startPos });
       }
       matchItems.forEach(item => {
-        entryInfoList.push([...entryPrefixList, item].join(LANG_ENTRY_SPLIT_SYMBOL[langType]));
+        entryInfoList.push({ name: [...entryPrefixList, item].join(LANG_ENTRY_SPLIT_SYMBOL[langType]), pos: startPos });
       });
     }
   }
-  return [...new Set(entryInfoList)];
+  return entryInfoList;
+  // return [...new Set(entryInfoList)];
 };
 
 const catchTEntries = fileContent => {
@@ -506,7 +506,8 @@ const catchTEntries = fileContent => {
         regex: new RegExp(entryReg),
         id: getIdByStr(entryText),
         class: entryClass,
-        name: entryName
+        name: entryName,
+        pos: tStartPos + (tRes ? entryRaw.indexOf(tRes[1]) : 0)
       });
     }
   }
@@ -543,7 +544,8 @@ const catchCustomTEntries = fileContent => {
       regex: new RegExp(entryRegex),
       id: getIdByStr(entryText),
       class: entryClass,
-      name: entryName
+      name: entryName,
+      pos: tStartPos
     });
   }
   return entryInfoList;
@@ -556,7 +558,6 @@ const isStringInUncommentedRange = (code, searchString) => {
   return uncommentedCode.includes(searchString);
 };
 
-
 module.exports = {
   getCaseType,
   escapeRegExp,
@@ -568,5 +569,5 @@ module.exports = {
   addEntries,
   deleteEntries,
   catchAllEntries,
-  catchTEntries,
+  catchTEntries
 };
