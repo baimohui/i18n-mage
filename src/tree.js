@@ -2,6 +2,7 @@ const vscode = require("vscode");
 const LangCheckRobot = require("./langCheckRobot");
 const { catchTEntries } = require("./utils/regex");
 const { isPathInsideDirectory } = require("./utils/fs");
+const { getLangText } = require("./utils/const");
 class treeProvider {
   #robot;
   constructor() {
@@ -140,7 +141,8 @@ class treeProvider {
         description: entryInfo[lang] ?? false,
         collapsibleState: vscode.TreeItemCollapsibleState.None,
         level: 3,
-        id: this.genId(element, lang)
+        id: this.genId(element, lang),
+        tooltip: getLangText(lang)
       }));
     }
     return [];
@@ -152,6 +154,7 @@ class treeProvider {
         key: lang,
         label: lang,
         root: element.root,
+        tooltip: getLangText(lang),
         id: this.genId(element, lang),
         contextValue: "checkSyncInfo",
         description: this.checkLangSyncInfo(lang),
@@ -238,6 +241,7 @@ class treeProvider {
         label: item[0],
         description: item[1],
         level: 2,
+        tooltip: getLangText(item[0]),
         id: this.genId(element, item[0]),
         collapsibleState: vscode.TreeItemCollapsibleState.None
       }));
@@ -272,27 +276,29 @@ class treeProvider {
     }
   }
   checkLangSyncInfo(lang) {
-    let str = "";
+    const list = [];
     const lackNum = this.langInfo.lack[lang].length;
     const extraNum = this.langInfo.extra[lang].length;
     const nullNum = this.langInfo.null[lang].length;
     if (lackNum > 0) {
-      str += `-${lackNum + nullNum} `;
+      list.push(`-${lackNum + nullNum}`);
     }
     if (extraNum > 0) {
-      str += `+${extraNum} `;
+      list.push(`+${extraNum}`);
     }
-    // if (lackNum === 0 && extraNum === 0) {
-    //   str += "✓ ";
-    // }
+    if (lackNum === 0 && extraNum === 0) {
+      // str += "✓";
+      list.push("已同步");
+    }
     if (lang === this.#robot.referredLang) {
-      str += "🚩";
+      // str += "🚩";
+      list.push("参考");
     }
-    return str;
+    return list.join(" ");
   }
   getSyncInfo(lang) {
     const totalEntries = Object.entries(this.langInfo.countryMap?.[lang] || {});
-    totalEntries.sort((a, b) => a[0] > b[0] ? 1 : -1);
+    totalEntries.sort((a, b) => (a[0] > b[0] ? 1 : -1));
     const commonEntries = [];
     const extraEntries = [];
     const extraEntryNameList = this.langInfo.extra?.[lang] || [];

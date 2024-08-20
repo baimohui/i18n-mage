@@ -945,7 +945,7 @@ class LangCheckRobot {
         tableInfo["异语同文"] = this._genOverviewTableRow(lang => mtList.filter(item => item.includes(lang)).length);
       }
       if (this.globalFlag) {
-        tableInfo["闲置条目"] = this._genOverviewTableRow(lang => getEntryTotal(lang).filter(entry => !this.#usedEntryMap[entry]));
+        tableInfo["闲置条目"] = this._genOverviewTableRow(lang => getEntryTotal(lang).filter(entry => !this.#usedEntryMap[entry]).length);
       }
     }
     console.table(tableInfo);
