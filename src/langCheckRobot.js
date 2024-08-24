@@ -33,6 +33,7 @@ class LangCheckRobot {
   #entryClassInfo;
   #styleScore;
   #undefinedEntryList;
+  #undefinedEntryMap;
   #usedEntryMap;
   #langIndents;
   #langFileExtraInfo;
@@ -166,7 +167,7 @@ class LangCheckRobot {
       refer: this.#referredEntryList,
       countryMap: this.#langCountryMap,
       used: this.#usedEntryMap,
-      undefined: [...new Set(this.#undefinedEntryList.map(item => item.text))]
+      undefined: this.#undefinedEntryMap
     };
   }
 
@@ -185,6 +186,7 @@ class LangCheckRobot {
     this.#entryClassInfo = {};
     this.#styleScore = 0;
     this.#undefinedEntryList = [];
+    this.#undefinedEntryMap = {};
     this.#usedEntryMap = {};
     this.#langIndents = {};
     this.#langFileExtraInfo = {};
@@ -875,6 +877,9 @@ class LangCheckRobot {
         const filterList = totalEntryList.filter(entry => item.regex.test(entry) && isSameLayer(item.text, entry));
         if (filterList.length === 0) {
           this.#undefinedEntryList.push({ ...item, path: filePath });
+          this.#undefinedEntryMap[item.text] ??= {};
+          this.#undefinedEntryMap[item.text][filePath] ??= [];
+          this.#undefinedEntryMap[item.text][filePath].push(item.pos);
         } else {
           usedEntryList.push(...filterList.map(entryName => ({ name: entryName, pos: item.pos })));
         }

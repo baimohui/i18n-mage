@@ -25,6 +25,7 @@ class treeProvider {
     this.definedEntriesInCurrentFile = [];
     this.undefinedEntriesInCurrentFile = [];
     this.usedEntryMap = this.#robot.langDetail.used || {};
+    this.undefinedEntryMap = this.#robot.langDetail.undefined || {};
     this._onDidChangeTreeData = new vscode.EventEmitter();
     this.onDidChangeTreeData = this._onDidChangeTreeData.event;
     vscode.window.onDidChangeActiveTextEditor(() => this.onActiveEditorChanged());
@@ -53,9 +54,6 @@ class treeProvider {
       }
     }
     return { used: usedEntries, unused: unusedEntries };
-  }
-  get undefinedEntries() {
-    return this.langInfo.undefined;
   }
   refresh() {
     this._onDidChangeTreeData.fire(undefined);
@@ -201,7 +199,7 @@ class treeProvider {
       return [
         { type: "used", label: "已使用", num: this.entryUsageInfo.used.length },
         { type: "unused", label: "未使用", num: this.entryUsageInfo.unused.length },
-        { type: "undefined", label: "未定义", num: this.undefinedEntries.length }
+        { type: "undefined", label: "未定义", num: Object.keys(this.undefinedEntryMap).length }
       ].map(item => ({
         ...item,
         level: 1,
@@ -212,13 +210,17 @@ class treeProvider {
       }));
     } else if (element.level === 1) {
       if (element.type === "undefined") {
-        return this.undefinedEntries.sort().map(item => ({
-          label: item,
-          level: 2,
-          root: element.root,
-          id: this.genId(element, item),
-          collapsibleState: vscode.TreeItemCollapsibleState.None
-        }));
+        return Object.keys(this.undefinedEntryMap)
+          .sort()
+          .map(item => ({
+            key: item,
+            label: item,
+            level: 2,
+            type: element.type,
+            root: element.root,
+            id: this.genId(element, item),
+            collapsibleState: vscode.TreeItemCollapsibleState.Collapsed
+          }));
       } else if (element.type === "used") {
         return this.entryUsageInfo.used.sort().map(item => {
           const usedNum = Object.values(this.usedEntryMap[item]).flat().length;
@@ -227,6 +229,7 @@ class treeProvider {
             label: `${item} (${usedNum})`,
             description: this.entryReferredTextMap[item],
             level: 2,
+            type: element.type,
             root: element.root,
             id: this.genId(element, item),
             collapsibleState: vscode.TreeItemCollapsibleState.Collapsed
@@ -243,7 +246,7 @@ class treeProvider {
         }));
       }
     } else if (element.level === 2) {
-      const entryUsedInfo = this.usedEntryMap[element.key];
+      const entryUsedInfo = this[element.type === "used" ? "usedEntryMap" : "undefinedEntryMap"][element.key];
       if (entryUsedInfo) {
         const list = [];
         for (const filePath in entryUsedInfo) {
