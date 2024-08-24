@@ -3,6 +3,20 @@ const LangCheckRobot = require("./langCheckRobot");
 const { catchTEntries } = require("./utils/regex");
 const { isPathInsideDirectory } = require("./utils/fs");
 const { getLangText } = require("./utils/const");
+
+class FileItem extends vscode.TreeItem {
+  constructor(resourceUri, pos, label) {
+    super(resourceUri, vscode.TreeItemCollapsibleState.None);
+    this.tooltip = `${resourceUri.fsPath}`;
+    this.description = `${pos.c + 1}:${pos.e + 1}`;
+    this.command = {
+      command: "vscode.open",
+      title: "Open File",
+      arguments: [resourceUri, { selection: new vscode.Range(pos, pos.translate(0, label.length)) }]
+    };
+  }
+}
+
 class treeProvider {
   #robot;
   constructor() {
@@ -182,7 +196,7 @@ class treeProvider {
     }
     return [];
   }
-  getUsageInfoChildren(element) {
+  async getUsageInfoChildren(element) {
     if (element.level === 0) {
       return [
         { type: "used", label: "已使用", num: this.entryUsageInfo.used.length },
@@ -201,26 +215,48 @@ class treeProvider {
         return this.undefinedEntries.sort().map(item => ({
           label: item,
           level: 2,
+          root: element.root,
           id: this.genId(element, item),
           collapsibleState: vscode.TreeItemCollapsibleState.None
         }));
       } else if (element.type === "used") {
-        return this.entryUsageInfo.used.sort().map(item => ({
-          label: item,
-          description: this.entryReferredTextMap[item],
-          level: 2,
-          id: this.genId(element, item),
-          collapsibleState: vscode.TreeItemCollapsibleState.None
-        }));
+        return this.entryUsageInfo.used.sort().map(item => {
+          const usedNum = Object.values(this.usedEntryMap[item]).flat().length;
+          return {
+            key: item,
+            label: `${item} (${usedNum})`,
+            description: this.entryReferredTextMap[item],
+            level: 2,
+            root: element.root,
+            id: this.genId(element, item),
+            collapsibleState: vscode.TreeItemCollapsibleState.Collapsed
+          };
+        });
       } else {
         return this.entryUsageInfo.unused.sort().map(item => ({
           label: item,
           description: this.entryReferredTextMap[item],
           level: 2,
+          root: element.root,
           id: this.genId(element, item),
           collapsibleState: vscode.TreeItemCollapsibleState.None
         }));
       }
+    } else if (element.level === 2) {
+      const entryUsedInfo = this.usedEntryMap[element.key];
+      if (entryUsedInfo) {
+        const list = [];
+        for (const filePath in entryUsedInfo) {
+          const fileUri = vscode.Uri.file(filePath);
+          const document = await vscode.workspace.openTextDocument(fileUri);
+          entryUsedInfo[filePath].sort().forEach(offset => {
+            const pos = document.positionAt(offset);
+            list.push(new FileItem(fileUri, pos, element.key));
+          });
+        }
+        return list;
+      }
+      return [];
     }
     return [];
   }

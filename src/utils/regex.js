@@ -369,12 +369,11 @@ const catchPossibleEntries = (fileContent, langType, entryTree) => {
         entryInfoList.push({ name: entryName, pos: startPos });
       }
       matchItems.forEach(item => {
-        entryInfoList.push({ name: [...entryPrefixList, item].join(LANG_ENTRY_SPLIT_SYMBOL[langType]), pos: startPos });
+        entryInfoList.push({ name: [...entryPrefixList, item].join(LANG_ENTRY_SPLIT_SYMBOL[langType]), pos: startPos + 1 });
       });
     }
   }
   return entryInfoList;
-  // return [...new Set(entryInfoList)];
 };
 
 const catchTEntries = fileContent => {
@@ -507,7 +506,7 @@ const catchTEntries = fileContent => {
         id: getIdByStr(entryText),
         class: entryClass,
         name: entryName,
-        pos: tStartPos + (tRes ? entryRaw.indexOf(tRes[1]) : 0)
+        pos: tStartPos + (tRes ? entryRaw.indexOf(tRes[1]) + 1 : 0)
       });
     }
   }
