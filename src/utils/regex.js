@@ -433,6 +433,7 @@ const catchTEntries = fileContent => {
     let entryText = "";
     let entryVar = {};
     let entryReg = "";
+    let tempRes = undefined;
     let tempReg = undefined;
     let tempHelper = undefined;
     isValid = isValid && tFormList.some(item => !["var", "obj"].includes(item.type));
@@ -446,9 +447,9 @@ const catchTEntries = fileContent => {
           case "varText":
             tempHelper = item.value;
             tempReg = /\${\s*([^]*?)\s*}/g;
-            while ((tRes = tempReg.exec(item.value)) !== null) {
-              tempHelper = tempHelper.replace(tRes[0], `{t${entryIndex}}`);
-              entryVar[`t${entryIndex++}`] = tRes[1];
+            while ((tempRes = tempReg.exec(item.value)) !== null) {
+              tempHelper = tempHelper.replace(tempRes[0], `{t${entryIndex}}`);
+              entryVar[`t${entryIndex++}`] = tempRes[1];
             }
             entryText += tempHelper;
             entryReg = escapeRegExp(entryText.replace(/\s/g, "")).replace(/\{.*?\}/g, ".*");
@@ -462,14 +463,14 @@ const catchTEntries = fileContent => {
           case "obj":
             tempHelper = [];
             tempReg = /{(\w*?)}/g;
-            while ((tRes = tempReg.exec(entryText)) !== null) {
-              tempHelper.push(tRes[1]);
+            while ((tempRes = tempReg.exec(entryText)) !== null) {
+              tempHelper.push(tempRes[1]);
             }
             tempReg = new RegExp(`{\\s*${("(" + tempHelper.join("|") + ")\\s*:\\s*([^]*?),?\\s*").repeat(tempHelper.length)}}`, "g");
-            while ((tRes = tempReg.exec(item.value)) !== null) {
+            while ((tempRes = tempReg.exec(item.value)) !== null) {
               tempHelper = 1;
-              while (tRes[tempHelper]) {
-                entryVar[tRes[tempHelper]] = tRes[tempHelper + 1];
+              while (tempRes[tempHelper]) {
+                entryVar[tempRes[tempHelper]] = tempRes[tempHelper + 1];
                 tempHelper = tempHelper + 2;
               }
             }
