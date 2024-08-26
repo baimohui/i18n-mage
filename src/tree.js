@@ -319,18 +319,16 @@ class treeProvider {
     const lackNum = this.langInfo.lack[lang].length;
     const extraNum = this.langInfo.extra[lang].length;
     const nullNum = this.langInfo.null[lang].length;
-    if (lackNum > 0) {
+    if (lackNum > 0 || nullNum > 0) {
       list.push(`-${lackNum + nullNum}`);
     }
     if (extraNum > 0) {
       list.push(`+${extraNum}`);
     }
-    if (lackNum === 0 && extraNum === 0) {
-      // str += "✓";
+    if (lackNum === 0 && extraNum === 0 && nullNum === 0) {
       list.push("已同步");
     }
     if (lang === this.#robot.referredLang) {
-      // str += "🚩";
       list.push("参考");
     }
     return list.join(" ");
