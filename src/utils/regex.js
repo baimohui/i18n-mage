@@ -369,7 +369,7 @@ const catchPossibleEntries = (fileContent, langType, entryTree) => {
         entryInfoList.push({ name: entryName, pos: startPos });
       }
       matchItems.forEach(item => {
-        entryInfoList.push({ name: [...entryPrefixList, item].join(LANG_ENTRY_SPLIT_SYMBOL[langType]), pos: startPos + 1 });
+        entryInfoList.push({ name: [...entryPrefixList, item].join(LANG_ENTRY_SPLIT_SYMBOL[langType]), pos: startPos });
       });
     }
   }

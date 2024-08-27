@@ -212,15 +212,18 @@ class treeProvider {
       if (element.type === "undefined") {
         return Object.keys(this.undefinedEntryMap)
           .sort()
-          .map(item => ({
-            key: item,
-            label: item,
-            level: 2,
-            type: element.type,
-            root: element.root,
-            id: this.genId(element, item),
-            collapsibleState: vscode.TreeItemCollapsibleState.Collapsed
-          }));
+          .map(item => {
+            const undefinedNum = Object.values(this.undefinedEntryMap[item]).flat().length;
+            return {
+              key: item,
+              label: `${item} (${undefinedNum})`,
+              level: 2,
+              type: element.type,
+              root: element.root,
+              id: this.genId(element, item),
+              collapsibleState: vscode.TreeItemCollapsibleState.Collapsed
+            };
+          });
       } else if (element.type === "used") {
         return this.entryUsageInfo.used.sort().map(item => {
           const usedNum = Object.values(this.usedEntryMap[item]).flat().length;
