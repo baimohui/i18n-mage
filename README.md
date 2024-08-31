@@ -1,6 +1,6 @@
 # i18n-checker README
 
-This is the README for your extension "i18n-checker". After writing up a brief description, we recommend including the following sections.
+"i18n-checker". After writing up a brief description, we recommend including the following sections.
 
 ## Features
 

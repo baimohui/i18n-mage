@@ -2,6 +2,10 @@
   "name": "i18n-checker",
   "displayName": "i18n Mage",
   "description": "Detect, repair and sort i18n",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/baimohui/i18n-checker.git"
+  },
   "keywords": [
     "i18n",
     "translate",
