@@ -216,8 +216,10 @@ class treeProvider {
             const undefinedNum = Object.values(this.undefinedEntryMap[item]).flat().length;
             return {
               key: item,
-              label: `${item} (${undefinedNum})`,
+              label: item,
+              // label: `${item} (${undefinedNum})`,
               level: 2,
+              description: `<${undefinedNum}>`,
               type: element.type,
               root: element.root,
               id: this.genId(element, item),
@@ -229,8 +231,9 @@ class treeProvider {
           const usedNum = Object.values(this.usedEntryMap[item]).flat().length;
           return {
             key: item,
-            label: `${item} (${usedNum})`,
-            description: this.entryReferredTextMap[item],
+            // label: `${item} (${usedNum})`,
+            label: item,
+            description: `<${usedNum}>${this.entryReferredTextMap[item]}`,
             level: 2,
             type: element.type,
             root: element.root,

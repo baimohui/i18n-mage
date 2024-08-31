@@ -101,6 +101,7 @@ const getLangFileInfo = str => {
       }
       langObj = eval(`(${str})`);
     }
+    if (getNestedValues(langObj).some(item => typeof item !== "string")) return null;
     content = formatType === LANG_FORMAT_TYPE.obj ? langObj : flattenNestedObj(langObj);
     return {
       formatType,
@@ -113,6 +114,18 @@ const getLangFileInfo = str => {
   } catch (e) {
     return null;
   }
+};
+
+const getNestedValues = obj => {
+  let values = [];
+  for (let key in obj) {
+    if (typeof obj[key] === "object" && obj[key] !== null) {
+      values = values.concat(getNestedValues(obj[key]));
+    } else {
+      values.push(obj[key]);
+    }
+  }
+  return values;
 };
 
 const flattenNestedObj = (obj, res = {}, className = "") => {
