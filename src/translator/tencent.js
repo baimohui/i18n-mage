@@ -1,4 +1,3 @@
-const { tencentSecretId, tencentSecretKey } = require("../config.js");
 // const fs = require("fs");
 // const { globalSetting } = require("../common/collect");
 // const { translate: globalSettingTranslate } = globalSetting;
@@ -8,18 +7,8 @@ const { tencentSecretId, tencentSecretKey } = require("../config.js");
 const tencentCloud = require("tencentcloud-sdk-nodejs-tmt");
 const TmtClient = tencentCloud.tmt.v20180321.Client;
 
-const clientConfig = {
-  credential: {
-    secretId: tencentSecretId,
-    secretKey: tencentSecretKey
-  },
-  region: "ap-guangzhou",
-  profile: {
-    httpProfile: {
-      endpoint: "tmt.tencentcloudapi.com"
-    }
-  }
-};
+let tencentSecretId = "",
+  tencentSecretKey = "";
 
 const supportLangMap = {
   zh: ["en", "ja", "ko", "fr", "es", "it", "de", "tr", "ru", "pt", "vi", "id", "th", "ms"],
@@ -42,7 +31,7 @@ const supportLangMap = {
   "zh-TW": ["en", "ja", "ko", "fr", "es", "it", "de", "tr", "ru", "pt", "vi", "id", "th", "ms"]
 };
 
-const translateTo = async ({ source, target, sourceTextList }) => {
+const translateTo = async ({ source, target, sourceTextList, apiId, apiKey }) => {
   if (supportLangMap[source] === "undefined") {
     return {
       success: false,
@@ -57,6 +46,8 @@ const translateTo = async ({ source, target, sourceTextList }) => {
       message: `${source} 支持的目标语言不包含 ${target}，无法翻译！`
     };
   }
+  tencentSecretId = apiId;
+  tencentSecretKey = apiKey;
   const translateLenLimit = 2000; // a request content max length
   const secondRequestLimit = 5; // the max times per second to request
   let sum = 0;
@@ -120,7 +111,18 @@ const send = (source, target, sourceTextList) => {
       ProjectId: 0,
       SourceTextList: sourceTextList
     };
-    const client = new TmtClient(clientConfig);
+    const client = new TmtClient({
+      credential: {
+        secretId: tencentSecretId,
+        secretKey: tencentSecretKey
+      },
+      region: "ap-guangzhou",
+      profile: {
+        httpProfile: {
+          endpoint: "tmt.tencentcloudapi.com"
+        }
+      }
+    });
     client.TextTranslateBatch(params).then(
       data => {
         resolve(data.TargetTextList);

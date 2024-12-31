@@ -1,5 +1,4 @@
 // const fs = require("fs");
-// const { baiduAppId, baiduSecretKey, tencentSecretId, tencentSecretKey, translateApiPriority, cachePath } = require("../config.js");
 const { getLangCode } = require("../utils/const");
 const { printInfo } = require("../utils/print");
 const tcTranslateTo = require("./tencent");
@@ -37,7 +36,13 @@ const translateTo = async ({ source, target, sourceTextList, credentials }) => {
   let res;
   const sourceLangCode = getLangCode(source, availableApi);
   const targetLangCode = getLangCode(target, availableApi);
-  const params = { source: sourceLangCode, target: targetLangCode, sourceTextList };
+  const params = {
+    source: sourceLangCode,
+    target: targetLangCode,
+    sourceTextList,
+    apiId: apiMap[availableApi][0],
+    apiKey: apiMap[availableApi][1]
+  };
   switch (availableApi) {
     case "tencent":
       res = await tcTranslateTo(params);

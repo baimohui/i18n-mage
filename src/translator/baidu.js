@@ -1,6 +1,5 @@
 const md5 = require("js-md5");
 const axios = require("axios");
-const { baiduAppId, baiduSecretKey } = require("../config.js");
 
 const baseUrl = "https://fanyi-api.baidu.com/api/trans/vip/translate";
 
@@ -22,8 +21,11 @@ const errorCodeMap = {
 const langList0 = ["zh", "en", "yue", "wyw", "jp", "kor", "fra", "spa", "th", "ara", "ru", "pt", "de", "it"];
 const langList1 = ["el", "nl", "pl", "bul", "est", "dan", "fin", "cs", "rom", "slo", "swe", "hu", "cht", "vie"];
 const supportLangList = langList0.concat(langList1);
+let baiduAppId = "", baiduSecretKey = "";
 
-const translateTo = async ({ source, target, sourceTextList }) => {
+const translateTo = async ({ source, target, sourceTextList, apiId, apiKey }) => {
+  baiduAppId = apiId;
+  baiduSecretKey = apiKey;
   const translateLenLimit = 2000; // a request content max length
   const secondRequestLimit = 10; // the max times per second to request
   let sum = 0;
