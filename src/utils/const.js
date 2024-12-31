@@ -2,6 +2,7 @@ const { hasOwn } = require("./common");
 
 // 多语言文件名/翻译平台语言码映射表
 const LANG_INTRO_MAP = {
+  am: { cnName: "阿姆哈拉语", enName: "Amharic", ggCode: "am", tcCode: "", bdCode: "amh" },
   ara: { cnName: "阿拉伯语", enName: "Arabic", ggCode: "ar", tcCode: "ar", bdCode: "ara" },
   cs: { cnName: "捷克语", enName: "Czech", ggCode: "cs", tcCode: "", bdCode: "cs" },
   da: { cnName: "丹麦语", enName: "Danish", ggCode: "da", tcCode: "", bdCode: "dan" },
@@ -23,6 +24,7 @@ const LANG_INTRO_MAP = {
   rom: { cnName: "罗马尼亚语", enName: "Romanian", ggCode: "ro", tcCode: "", bdCode: "rom" },
   ru: { cnName: "俄语", enName: "Russian", ggCode: "ru", tcCode: "ru", bdCode: "ru" },
   sk: { cnName: "斯洛伐克语", enName: "Slovak", ggCode: "sk", tcCode: "", bdCode: "sk" },
+  sl: { cnName: "斯洛文尼亚语", enName: "Slovenian", ggCode: "sl", tcCode: "", bdCode: "slo" },
   sv: { cnName: "瑞典语", enName: "Swedish", ggCode: "sv", tcCode: "", bdCode: "swe" },
   th: { cnName: "泰语", enName: "Thai", ggCode: "th", tcCode: "th", bdCode: "th" },
   tr: { cnName: "土耳其语", enName: "Turkish", ggCode: "tr", tcCode: "tr", bdCode: "tr" },
@@ -33,8 +35,9 @@ const LANG_INTRO_MAP = {
 
 // 多语言文件别名映射表
 const LANG_ALIAS_MAP = {
-  en: ["en-US"],
-  id: ["in", "id-ID"],
+  am: ["ah"],
+  id: ["in"],
+  jp: ["ja"],
   pt: ["po", "por"],
   tr: ["tr-TR"],
   zh: ["cn", "zh-cn", "zh-CN"],
