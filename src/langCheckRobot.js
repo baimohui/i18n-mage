@@ -26,7 +26,6 @@ class LangCheckRobot {
   #extraInfo;
   #nullInfo;
   #referredEntryList;
-  // #repeatEntryNameInfo;
   #singleLangRepeatTextInfo;
   #multiLangRepeatTextInfo;
   #entryClassTree;
@@ -40,6 +39,7 @@ class LangCheckRobot {
   #primaryPathLevel;
   #roguePath;
   #isVacant;
+  #langRawCountryMap;
 
   constructor(options) {
     this.task = ""; // 当前执行任务
@@ -167,7 +167,8 @@ class LangCheckRobot {
       refer: this.#referredEntryList,
       countryMap: this.#langCountryMap,
       used: this.#usedEntryMap,
-      undefined: this.#undefinedEntryMap
+      undefined: this.#undefinedEntryMap,
+      raw: this.#langRawCountryMap
     };
   }
 
@@ -193,7 +194,7 @@ class LangCheckRobot {
     this.#primaryPathLevel = 0;
     this.#roguePath = "";
     this.#isVacant = true;
-    // this.#repeatEntryNameInfo = { autocorrect: false };
+    this.#langRawCountryMap = {};
   }
 
   async _readLangFiles() {
@@ -222,16 +223,14 @@ class LangCheckRobot {
         this.showPreInfo && printInfo(`文件 ${file} 格式不符合规范，跳过检测！`, "ghost");
         return;
       }
-      const { formatType, content: langObj, indents, prefix, suffix, innerVar } = fileInfo;
+      const { formatType, content: langObj, indents, prefix, suffix, innerVar, raw } = fileInfo;
       const [fileName, fileType] = file.split(".");
       this.#langFileType = fileType;
       this.#langFormatType = formatType;
       this.#langIndents[fileName] = indents;
       this.#langCountryMap[fileName] = langObj;
       this.#langFileExtraInfo[fileName] = { prefix, suffix, innerVar };
-      // if (this.checkRepeatFlag) {
-      //   this.#repeatEntryNameInfo[fileName] = repeatKeyMap;
-      // }
+      this.#langRawCountryMap[fileName] = raw;
       for (let entry in langObj) {
         if (this.#langDictionary[entry] === undefined) {
           this.#langDictionary[entry] = {};
@@ -242,12 +241,13 @@ class LangCheckRobot {
     if (this.detectedLangList.length > 0) {
       this.referredLang = this.detectedLangList.find(item => item.includes(this.referredLang));
       if (!this.referredLang) {
+        // TODO 中英文判定逻辑待优化
         const cnName = this.detectedLangList.find(a => ["cn", "zh"].some(b => a.startsWith(b)));
         const enName = this.detectedLangList.find(a => a.startsWith("en"));
         this.referredLang = cnName || enName || this.detectedLangList[0];
       }
       this.#referredEntryList = [...new Set(this.#referredEntryList.concat(Object.keys(this.#langCountryMap[this.referredLang])))];
-      this.#referredEntryList.forEach(entry => this._genEntryClassTree(entry));
+      Object.keys(this.#langDictionary).forEach(entry => this._genEntryClassTree(entry));
     }
   }
 
@@ -345,16 +345,6 @@ class LangCheckRobot {
         isReferredLang && printInfo(`参考文件 ${langName} 条目译文独一无二`, "success");
       }
     });
-
-    // printTitle("检测同一语种是否存在名称相同的条目");
-    // this.detectedLangList.forEach(lang => {
-    //   const repeatNameList = Object.keys(this.#repeatEntryNameInfo[lang]);
-    //   if (repeatNameList.length > 0) {
-    //     printInfo(`文件 ${lang} 存在同名条目: ${repeatNameList.join(", ")}`, "puzzle");
-    //   } else {
-    //     printInfo(`文件 ${lang} 条目名称独一无二！`, "success");
-    //   }
-    // });
   }
 
   _checkStyle() {
@@ -389,7 +379,6 @@ class LangCheckRobot {
     printInfo("建议在条目命名上按功能或模块进行清晰简要的分类", this._getScore(layerScore));
     console.table(layerTable);
     this.#styleScore = layerScore;
-    // printTitle("检测条目命名风格与结构");
   }
 
   _handleSort() {
