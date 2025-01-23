@@ -14,57 +14,6 @@ const escapeRegExp = str => {
   return str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"); //$&表示整个被匹配的字符串
 };
 
-const getLangFileInfoByRegex = str => {
-  let formatType = "";
-  if ([/\w+\s*\(.*\)\s*{[^]*}/, /\s*=>\s*/].every(reg => !reg.test(str))) {
-    if (str.includes("export default")) {
-      formatType = /\s*"\w+"\s*:\s*{/.test(str) ? LANG_FORMAT_TYPE.nestedObj : LANG_FORMAT_TYPE.obj;
-    }
-    if (/\n[\w.]+\s*=\s*".*";+\s/.test(str)) {
-      formatType = LANG_FORMAT_TYPE.nonObj;
-    }
-  }
-  if (formatType === "") return null;
-  const indents = formatType === LANG_FORMAT_TYPE.nonObj ? "" : str.match(/{\s*\n(\s*)\S/)[1];
-  let nameValueReg = undefined;
-  let tempStr = "";
-  let tempResult = [];
-  const tempReg = /\s*"?(\S+?)"?:\s*({[^]*?}),?\s*/g;
-  switch (formatType) {
-    case LANG_FORMAT_TYPE.nonObj:
-      nameValueReg = /(\S+)\s*=\s*["|']([^\n]+)["|'];?/g;
-      break;
-    case LANG_FORMAT_TYPE.obj:
-      nameValueReg = /\s*"?(\S+?)"?\s*:\s*["'`]{1}([^]*?)["'`]{1}\s*,?\s*(\/\/[^]*?)?\r?\n/g;
-      break;
-    case LANG_FORMAT_TYPE.nestedObj:
-      while ((tempResult = tempReg.exec(str)) !== null) {
-        tempStr += tempResult[2].replace(/(\s*")(\w+"\s*:\s*".*")/g, (match, p1, p2) => {
-          return p1 + tempResult[1] + "." + p2;
-        });
-      }
-      str = tempStr;
-      nameValueReg = /\s*"(\S+?)"\s*:\s*"(.*)"/g;
-      break;
-  }
-  let content = {};
-  let regExecResult = [];
-  const repeatKeyMap = {};
-  while ((regExecResult = nameValueReg.exec(str)) !== null) {
-    if (regExecResult[1].trim() === "") continue;
-    if (hasOwn(content, regExecResult[1])) {
-      repeatKeyMap[regExecResult[1]] = (repeatKeyMap[regExecResult[1]] || [content[regExecResult[1]]]).concat(regExecResult[2]);
-    }
-    content[regExecResult[1]] = regExecResult[2];
-  }
-  return {
-    formatType,
-    indents,
-    content,
-    repeatKeyMap
-  };
-};
-
 const getLangFileInfo = str => {
   try {
     let formatType = "";
@@ -107,6 +56,7 @@ const getLangFileInfo = str => {
       formatType,
       indents,
       content,
+      raw: langObj,
       prefix,
       suffix,
       innerVar
@@ -571,16 +521,78 @@ const isStringInUncommentedRange = (code, searchString) => {
   return uncommentedCode.includes(searchString);
 };
 
+const genLangTree = (tree = {}, content = {}, type = "") => {
+  for (const key in content) {
+    if (typeof content[key] === "object") {
+      tree[key] = {};
+      genLangTree(tree[key], content[key], type);
+    } else {
+      tree[key] = type === "string" ? content[key] : content[key].replace(/\s/g, "");
+    }
+  }
+}
+
+const traverseLangTree = (langTree, callback, prefix = "") => {
+  for (const key in langTree) {
+    if (typeof langTree[key] === "object") {
+      traverseLangTree(langTree[key], callback, prefix ? `${prefix}.${key}` : key);
+    } else {
+      callback(prefix + key, langTree[key]);
+    }
+  }
+};
+
+const getLangObjType = obj => {
+  if (typeof obj !== "object") return "";
+  return Object.keys(obj).some(key => typeof obj[key] === "object") ? "object" : "string";
+};
+
+const getEntryFromLangTree = (langTree, key) => {
+  let res = "";
+  const blockList = key.split(".");
+  for (let i = 0; i < blockList.length; i++) {
+    const prefix = blockList.slice(0, i + 1).join(".");
+    if (getLangObjType(langTree[prefix]) === "object") {
+      res = getEntryFromLangTree(langTree[prefix], blockList.slice(i + 1).join("."));
+      if (res) break;
+    } else if (getLangObjType(langTree[prefix]) === "string") {
+      res = langTree[prefix];
+      break;
+    }
+  }
+  return res;
+};
+
+const setEntryToLangTree = (langTree, key, value) => {
+  let res = false;
+  const blockList = key.split(".");
+  for (let i = 0; i < blockList.length; i++) {
+    const prefix = blockList.slice(0, i + 1).join(".");
+    if (getLangObjType(langTree[prefix]) === "object") {
+      res = setEntryToLangTree(langTree[prefix], blockList.slice(i + 1).join("."), value);
+      if (res) break;
+    } else if (getLangObjType(langTree[prefix]) === "string") {
+      langTree[prefix] = value;
+      res = true;
+      break;
+    }
+  }
+  return res;
+};
+
 module.exports = {
   getCaseType,
   escapeRegExp,
   getLangFileInfo,
-  getLangFileInfoByRegex,
   validateLang,
   getIdByStr,
   replaceAllEntries,
   addEntries,
   deleteEntries,
   catchAllEntries,
-  catchTEntries
+  catchTEntries,
+  genLangTree,
+  traverseLangTree,
+  getEntryFromLangTree,
+  setEntryToLangTree
 };

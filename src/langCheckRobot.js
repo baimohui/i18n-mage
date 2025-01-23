@@ -13,7 +13,10 @@ const {
   replaceAllEntries,
   addEntries,
   catchAllEntries,
-  deleteEntries
+  deleteEntries,
+  traverseLangTree,
+  getEntryFromLangTree,
+  setEntryToLangTree
 } = require("./utils/regex");
 
 class LangCheckRobot {
@@ -39,7 +42,7 @@ class LangCheckRobot {
   #primaryPathLevel;
   #roguePath;
   #isVacant;
-  #langRawCountryMap;
+  #langTree;
 
   constructor(options) {
     this.task = ""; // 当前执行任务
@@ -168,7 +171,7 @@ class LangCheckRobot {
       countryMap: this.#langCountryMap,
       used: this.#usedEntryMap,
       undefined: this.#undefinedEntryMap,
-      raw: this.#langRawCountryMap
+      tree: this.#langTree
     };
   }
 
@@ -194,7 +197,7 @@ class LangCheckRobot {
     this.#primaryPathLevel = 0;
     this.#roguePath = "";
     this.#isVacant = true;
-    this.#langRawCountryMap = {};
+    this.#langTree = {};
   }
 
   async _readLangFiles() {
@@ -230,7 +233,7 @@ class LangCheckRobot {
       this.#langIndents[fileName] = indents;
       this.#langCountryMap[fileName] = langObj;
       this.#langFileExtraInfo[fileName] = { prefix, suffix, innerVar };
-      this.#langRawCountryMap[fileName] = raw;
+      this.#langTree[fileName] = raw;
       for (let entry in langObj) {
         if (this.#langDictionary[entry] === undefined) {
           this.#langDictionary[entry] = {};

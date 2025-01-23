@@ -39,6 +39,9 @@ class treeProvider {
   get dictionary() {
     return this.langInfo.dictionary;
   }
+  get raw() {
+    return this.langInfo.raw;
+  }
   get entryReferredTextMap() {
     return this.langInfo.countryMap[this.#robot.referredLang] || {};
   }
@@ -268,6 +271,19 @@ class treeProvider {
       return [];
     }
     return [];
+  }
+  getDictionaryInfoChildren(element) {
+    if (element.level === 0) {
+      return Object.keys(this.raw).sort().map(item => {
+        return {
+          label: item,
+          level: element.level + 1,
+          id: this.genId(element, item),
+          root: element.root,
+          collapsibleState: vscode.TreeItemCollapsibleState.Collapsed
+        }
+      })
+    }
   }
   getDictionaryChildren(element) {
     if (element.level === 0) {
