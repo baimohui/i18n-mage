@@ -14,7 +14,7 @@ let treeInstance;
 exports.activate = async function (context) {
   const rootPath = vscode.workspace.workspaceFolders?.length > 0 ? vscode.workspace.workspaceFolders[0].uri.fsPath : undefined;
   const config = vscode.workspace.getConfiguration("i18n-mage");
-  const globalConfig = vscode.workspace.getConfiguration()
+  const globalConfig = vscode.workspace.getConfiguration();
   const robot = LangCheckRobot.getInstance();
   robot.setOptions({
     // checkAimList,
@@ -32,27 +32,31 @@ exports.activate = async function (context) {
       tencentSecretKey: config.tencentSecretKey,
       translateApiPriority: config.translateApiPriority
     },
-    syncBasedOnReferredEntries: config.syncBasedOnReferredEntries,
+    syncBasedOnReferredEntries: config.syncBasedOnReferredEntries
   });
-  const possibleLangDirs = getPossibleLangDirList(rootPath);
-  for (const langDir of possibleLangDirs) {
-    robot.setOptions({ langDir: langDir, task: "check", globalFlag: true, clearCache: false });
-    await robot.check();
-    if (robot.detectedLangList.length > 0) {
-      break;
+  async function getLangDir() {
+    const possibleLangDirs = getPossibleLangDirList(rootPath);
+    for (const langDir of possibleLangDirs) {
+      robot.setOptions({ langDir: langDir, task: "check", globalFlag: true, clearCache: false });
+      await robot.check();
+      if (robot.detectedLangList.length > 0) {
+        break;
+      }
     }
+    if (robot.detectedLangList.length === 0) {
+      vscode.window.showInformationMessage("No lang dir in workspace");
+      return false;
+    }
+    return true;
   }
-  if (robot.detectedLangList.length === 0) {
-    vscode.window.showInformationMessage("No lang dir in workspace");
-    return;
-  }
+  if (!getLangDir()) return;
   treeInstance = new treeProvider();
   vscode.window.registerTreeDataProvider("treeProvider", treeInstance);
   vscode.commands.registerCommand("i18nMage.setReferredLang", lang => {
     startProgress({
       title: "",
       callback: async () => {
-        globalConfig.update('i18n-mage.referenceLanguage', lang.key, vscode.ConfigurationTarget.Workspace);
+        globalConfig.update("i18n-mage.referenceLanguage", lang.key, vscode.ConfigurationTarget.Workspace);
         robot.setOptions({ referredLang: lang.key, task: "check", globalFlag: false, clearCache: false });
         await robot.check();
       }
@@ -63,7 +67,8 @@ exports.activate = async function (context) {
       title: "检查中...",
       callback: async () => {
         robot.setOptions({ task: "check", globalFlag: true, clearCache: true });
-        await robot.check();
+        const res = await robot.check();
+        !res && await getLangDir()
       }
     });
   });
@@ -171,7 +176,7 @@ exports.activate = async function (context) {
 
   vscode.workspace.onDidChangeConfiguration(event => {
     if (!event.affectsConfiguration("i18n-mage")) return;
-    const config = vscode.workspace.getConfiguration("i18n-mage")
+    const config = vscode.workspace.getConfiguration("i18n-mage");
     if (event.affectsConfiguration("i18n-mage.syncBasedOnReferredEntries")) {
       robot.setOptions({ syncBasedOnReferredEntries: config.syncBasedOnReferredEntries });
       vscode.commands.executeCommand("i18nMage.setReferredLang", robot.referredLang);

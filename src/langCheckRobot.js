@@ -104,7 +104,7 @@ class LangCheckRobot {
       await this._readLangFiles();
       if (this.detectedLangList.length === 0) {
         printInfo("请确认检测路径是否为多语言文件所在的目录！", "brain");
-        return;
+        return false;
       }
       if (this.globalFlag) {
         await this._startCensus();
@@ -281,7 +281,7 @@ class LangCheckRobot {
         this.referredLang = cnName || enName || this.detectedLangList[0];
       }
       this.#referredEntryList = [...new Set(this.#referredEntryList.concat(Object.keys(this.#langCountryMap[this.referredLang])))];
-      Object.keys(this.#langDictionary).forEach(entry => this._genEntryClassTree(entry.replace("\\.", ".")));
+      Object.keys(this.#langDictionary).forEach(entry => this._genEntryClassTree(entry.replaceAll("\\.", ".")));
     }
   }
 
