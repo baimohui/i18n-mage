@@ -28,10 +28,10 @@
         "type": "object",
         "title": "通用",
         "properties": {
-          "i18n-mage.defaultReferredLang": {
+          "i18n-mage.referenceLanguage": {
             "type": "string",
             "default": "cn",
-            "description": "默认参考语言"
+            "description": "参考语言"
           },
           "i18n-mage.syncBasedOnReferredEntries": {
             "type": "boolean",

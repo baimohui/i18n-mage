@@ -14,13 +14,14 @@ let treeInstance;
 exports.activate = async function (context) {
   const rootPath = vscode.workspace.workspaceFolders?.length > 0 ? vscode.workspace.workspaceFolders[0].uri.fsPath : undefined;
   const config = vscode.workspace.getConfiguration("i18n-mage");
+  const globalConfig = vscode.workspace.getConfiguration()
   const robot = LangCheckRobot.getInstance();
   robot.setOptions({
     // checkAimList,
     // excludedLangList,
     // includedLangList,
     rootPath,
-    referredLang: config.defaultReferredLang,
+    referredLang: config.referenceLanguage,
     langFileMinLength: config.langFileMinLength,
     ignoreEmptyLangFile: config.ignoreEmptyLangFile,
     sortWithTrim: config.sortWithTrim,
@@ -51,6 +52,7 @@ exports.activate = async function (context) {
     startProgress({
       title: "",
       callback: async () => {
+        globalConfig.update('i18n-mage.referenceLanguage', lang.key, vscode.ConfigurationTarget.Workspace);
         robot.setOptions({ referredLang: lang.key, task: "check", globalFlag: false, clearCache: false });
         await robot.check();
       }
