@@ -14,9 +14,6 @@ const {
   addEntries,
   catchAllEntries,
   deleteEntries,
-  traverseLangTree,
-  getEntryFromLangTree,
-  setEntryToLangTree
 } = require("./utils/regex");
 
 class LangCheckRobot {
@@ -203,6 +200,7 @@ class LangCheckRobot {
   async _readLangFiles() {
     this.#langFormatType = "";
     const files = await fs.readdirSync(this.langDir);
+    const langTree = {};
     files.forEach(file => {
       if (![".js", ".json", ".ts"].includes(path.extname(file))) {
         this.showPreInfo && printInfo(`文件 ${file} 类型不符合规范，跳过检测！`, "ghost");
@@ -233,16 +231,49 @@ class LangCheckRobot {
       this.#langIndents[fileName] = indents;
       this.#langCountryMap[fileName] = langObj;
       this.#langFileExtraInfo[fileName] = { prefix, suffix, innerVar };
-      this.#langTree[fileName] = raw;
-      for (let entry in langObj) {
-        if (this.#langDictionary[entry] === undefined) {
-          this.#langDictionary[entry] = {};
-        }
-        this.#langDictionary[entry][fileName] = langObj[entry];
-      }
+      langTree[fileName] = raw;
     });
+    function mergeTreesToTwoObjectsSemantic(trees, labels) {
+      const structure = {}; // 对象A
+      const lookup = {}; // 对象B
+      // 将路径数组编码为语义化 id，转义键中的 "\" 和 "."
+      function encodePath(path) {
+        return path.map(key => key.replace(/\\/g, "\\\\").replace(/\./g, "\\.")).join(".");
+      }
+      // 在 structure 中按路径设置值
+      function setAtPath(obj, path, value) {
+        let cur = obj;
+        for (let i = 0; i < path.length - 1; i++) {
+          const key = path[i];
+          if (!cur[key] || typeof cur[key] !== "object") {
+            cur[key] = {};
+          }
+          cur = cur[key];
+        }
+        cur[path[path.length - 1]] = value;
+      }
+      function traverse(node, path, label) {
+        if (typeof node === "string") {
+          const id = encodePath(path);
+          setAtPath(structure, path, id);
+          if (!Object.hasOwn(lookup, id)) {
+            lookup[id] = {};
+          }
+          lookup[id][label] = node;
+        } else {
+          for (const key in node) {
+            traverse(node[key], path.concat(key), label);
+          }
+        }
+      }
+      trees.forEach((tree, i) => traverse(tree, [], labels[i]));
+      return { structure, lookup };
+    }
     if (this.detectedLangList.length > 0) {
       this.referredLang = this.detectedLangList.find(item => item.includes(this.referredLang));
+      const { structure, lookup } = mergeTreesToTwoObjectsSemantic(Object.values(langTree), Object.keys(langTree));
+      this.#langTree = structure;
+      this.#langDictionary = lookup;
       if (!this.referredLang) {
         // TODO 中英文判定逻辑待优化
         const cnName = this.detectedLangList.find(a => ["cn", "zh"].some(b => a.startsWith(b)));
@@ -250,7 +281,7 @@ class LangCheckRobot {
         this.referredLang = cnName || enName || this.detectedLangList[0];
       }
       this.#referredEntryList = [...new Set(this.#referredEntryList.concat(Object.keys(this.#langCountryMap[this.referredLang])))];
-      Object.keys(this.#langDictionary).forEach(entry => this._genEntryClassTree(entry));
+      Object.keys(this.#langDictionary).forEach(entry => this._genEntryClassTree(entry.replace("\\.", ".")));
     }
   }
 

@@ -39,8 +39,8 @@ class treeProvider {
   get dictionary() {
     return this.langInfo.dictionary;
   }
-  get raw() {
-    return this.langInfo.raw;
+  get tree() {
+    return this.langInfo.tree;
   }
   get entryReferredTextMap() {
     return this.langInfo.countryMap[this.#robot.referredLang] || {};
@@ -274,40 +274,49 @@ class treeProvider {
   }
   getDictionaryInfoChildren(element) {
     if (element.level === 0) {
-      return Object.keys(this.raw).sort().map(item => {
-        return {
-          label: item,
-          level: element.level + 1,
-          id: this.genId(element, item),
-          root: element.root,
-          collapsibleState: vscode.TreeItemCollapsibleState.Collapsed
-        }
-      })
+      return Object.keys(this.tree)
+        .sort()
+        .map(item => {
+          return {
+            label: item,
+            level: element.level + 1,
+            id: this.genId(element, item),
+            root: element.root,
+            collapsibleState: vscode.TreeItemCollapsibleState.Collapsed
+          };
+        });
     }
   }
   getDictionaryChildren(element) {
-    if (element.level === 0) {
-      return Object.keys(this.dictionary)
-        .sort()
-        .map(entry => ({
-          label: entry,
-          description: this.entryReferredTextMap[entry] || false,
-          level: 1,
-          id: this.genId(element, entry),
-          root: element.root,
-          collapsibleState: vscode.TreeItemCollapsibleState.Collapsed
-        }));
-    } else if (element.level === 1) {
-      return Object.entries(this.dictionary[element.label]).map(item => ({
+    const res = (element.stack || []).reduce((acc, item) => acc[item], this.tree);
+    if (typeof res === "string") {
+      return Object.entries(this.dictionary[res]).map(item => ({
         label: item[0],
         description: item[1],
-        level: 2,
         tooltip: getLangText(item[0]),
         id: this.genId(element, item[0]),
         collapsibleState: vscode.TreeItemCollapsibleState.None
       }));
+    } else {
+      return Object.entries(res).sort((a, b) => {
+        if (typeof a[1] !== typeof b[1]) {
+          return typeof a[1] === "string" ? 1 : -1;
+        } else {
+          return a[0] > b[0] ? 1 : -1
+        }
+      }).map(item => {
+        const stack = (element.stack || []).concat(item[0])
+        return {
+          label: item[0],
+          description: typeof item[1] === "string" ? this.entryReferredTextMap[item[1]] : false,
+          root: element.root,
+          id: this.genId(element, item[0]),
+          stack,
+          tooltip: stack.join("."),
+          collapsibleState: vscode.TreeItemCollapsibleState.Collapsed
+        }
+      });
     }
-    return [];
   }
   onActiveEditorChanged() {
     this.definedEntriesInCurrentFile = [];
