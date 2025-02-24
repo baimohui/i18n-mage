@@ -49,7 +49,8 @@ class treeProvider {
     const dictionary = this.langInfo.dictionary;
     const unusedEntries = [],
       usedEntries = [];
-    for (const entry in dictionary) {
+    for (let entry in dictionary) {
+      entry = entry.replaceAll("\\.", ".")
       if (!this.langInfo.used[entry]) {
         unusedEntries.push(entry);
       } else {
