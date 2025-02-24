@@ -13,7 +13,7 @@ const {
   replaceAllEntries,
   addEntries,
   catchAllEntries,
-  deleteEntries,
+  deleteEntries
 } = require("./utils/regex");
 
 class LangCheckRobot {
@@ -292,7 +292,9 @@ class LangCheckRobot {
       const translation = this.#langCountryMap[lang];
       const missingTranslations = [];
       const nullTranslations = [];
-      const pivotEntryList = this.syncBasedOnReferredEntries ? this.#referredEntryList : Object.keys(this.#langDictionary);
+      const pivotEntryList = this.syncBasedOnReferredEntries
+        ? this.#referredEntryList
+        : Object.keys(this.#langDictionary).map(entry => entry.replaceAll("\\.", "."));
       pivotEntryList.forEach(entry => {
         if (!Object.hasOwn(translation, entry)) {
           missingTranslations.push(entry);
@@ -302,7 +304,7 @@ class LangCheckRobot {
       });
       const langName = this._getLangFileName(lang);
       if (missingTranslations.length > 0 && !needFixFlag) {
-        printInfo(`文件 ${langName} 缺少条目: ${this._formatEntriesInTerminal(missingTranslations)}`, "error");
+        printInfo(`文件 ${langName} 缺少条目：${this._formatEntriesInTerminal(missingTranslations)}`, "error");
       }
       this.#lackInfo[lang] = missingTranslations;
       this.#nullInfo[lang] = nullTranslations;
@@ -314,7 +316,7 @@ class LangCheckRobot {
         }
       }
       if (extraTranslations.length > 0 && !needFixFlag) {
-        printInfo(`文件 ${langName} 多出条目: ${this._formatEntriesInTerminal(extraTranslations)}`, "puzzle");
+        printInfo(`文件 ${langName} 多出条目：${this._formatEntriesInTerminal(extraTranslations)}`, "puzzle");
       }
       this.#extraInfo[lang] = extraTranslations;
 
@@ -334,7 +336,7 @@ class LangCheckRobot {
         isTextRepeatedInEntriesInLangs = true;
         this.#multiLangRepeatTextInfo[entry] = [];
         if (list.length > 1 && filterList.length === 1) {
-          // printInfo(`${entry} 在所有语种的译文完全相同: ${filterList[0]}`, "shock");
+          // printInfo(`${entry} 在所有语种的译文完全相同：${filterList[0]}`, "shock");
           this.#multiLangRepeatTextInfo[entry].push(this.detectedLangList.join(","));
         } else {
           filterList.forEach(filterItem => {
@@ -344,7 +346,7 @@ class LangCheckRobot {
             const isElWithPor = repeatLangList.every(lang => ["el", "por", "po"].some(langKey => lang.includes(langKey)));
             if (repeatLangList.length > 1 && !isElWithPor) {
               this.#multiLangRepeatTextInfo[entry].push(repeatLangList.join(","));
-              printInfo(`${entry} 在 ${repeatLangList.join("、")} 的译文相同: ${filterItem}`, "puzzle");
+              printInfo(`${entry} 在 ${repeatLangList.join("、")} 的译文相同：${filterItem}`, "puzzle");
             }
           });
         }
@@ -372,7 +374,7 @@ class LangCheckRobot {
         if (value.length > 1) {
           isTextRepeatedInEntries = true;
           this.#singleLangRepeatTextInfo[lang][key] = value;
-          isReferredLang && printInfo(`参考文件 ${langName} 中 ${value.join(", ")} 的译文相同: ${key}`, "puzzle");
+          isReferredLang && printInfo(`参考文件 ${langName} 中 ${value.join(", ")} 的译文相同：${key}`, "puzzle");
         }
       }
       if (!isTextRepeatedInEntries) {
@@ -578,7 +580,7 @@ class LangCheckRobot {
             const langText = item[headInfo.findIndex(item => langAlias.some(alias => alias.toLowerCase() === item.toLowerCase()))];
             if (langText && langInfo[entryName] !== langText) {
               printInfo(
-                `条目 ${entryName} ${getLangText(lang)}更改: \x1b[31m${langInfo[entryName]}\x1b[0m -> \x1b[32m${langText}\x1b[0m`,
+                `条目 ${entryName} ${getLangText(lang)}更改：\x1b[31m${langInfo[entryName]}\x1b[0m -> \x1b[32m${langText}\x1b[0m`,
                 "mage"
               );
               entry[lang] = langText;
@@ -629,7 +631,7 @@ class LangCheckRobot {
     };
     const printAddedText = (lang, textList, api) => {
       printInfo(
-        `文件 ${this._getLangFileName(lang)} 补充${api ? " " + api + " " : ""}翻译: ${textList
+        `文件 ${this._getLangFileName(lang)} 补充${api ? " " + api + " " : ""}翻译：${textList
           .map(item => `\x1b[36m${item.replaceAll(/\n/g, "\\n")}\x1b[0m`)
           .join(", ")}`,
         "mage"
@@ -778,7 +780,7 @@ class LangCheckRobot {
           fixList.map(item => `\x1b[31m${item.text}\x1b[0m -> \x1b[32m${item.name}\x1b[0m`),
           false
         );
-        printInfo(`文件 ${this._getRelativePath(fixPath)} 修正条目: ${fixedEntries}`, "mage");
+        printInfo(`文件 ${this._getRelativePath(fixPath)} 修正条目：${fixedEntries}`, "mage");
       }
     }
     if (writeList.length > 0) {
@@ -868,11 +870,11 @@ class LangCheckRobot {
     printTitle("检测条目是否使用");
     const unusedEntryList = this.#referredEntryList.filter(entry => !this.#usedEntryMap[entry]);
     if (unusedEntryList.length > 0) {
-      printInfo(`存在疑似未使用条目: ${this._formatEntriesInTerminal(unusedEntryList)}`, "puzzle");
+      printInfo(`存在疑似未使用条目：${this._formatEntriesInTerminal(unusedEntryList)}`, "puzzle");
     }
     if (this.#undefinedEntryList.length > 0) {
       const undefinedEntryList = [...new Set(this.#undefinedEntryList.map(item => item.text))];
-      printInfo(`存在疑似未定义条目: ${this._formatEntriesInTerminal(undefinedEntryList)}`, "puzzle");
+      printInfo(`存在疑似未定义条目：${this._formatEntriesInTerminal(undefinedEntryList)}`, "puzzle");
     }
     if (unusedEntryList.length === 0 && this.#undefinedEntryList.length === 0) {
       printInfo("不存在疑似未定义或未使用的条目！", "success");
@@ -956,7 +958,7 @@ class LangCheckRobot {
 
   _genOverviewTable() {
     printTitle("生成概览");
-    printInfo(`共成功检测 ${this.detectedLangList.length} 个语言文件，结果概览如下: `, "brain");
+    printInfo(`共成功检测 ${this.detectedLangList.length} 个语言文件，结果概览如下：`, "brain");
     const tableInfo = {};
     const getEntryTotal = lang => Object.keys(this.#langCountryMap[lang]);
     tableInfo["所属语种"] = this._genOverviewTableRow(lang => getLangText(lang));

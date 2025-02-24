@@ -308,7 +308,7 @@ class treeProvider {
         const stack = (element.stack || []).concat(item[0])
         return {
           label: item[0],
-          description: typeof item[1] === "string" ? this.entryReferredTextMap[item[1]] : false,
+          description: typeof item[1] === "string" ? this.entryReferredTextMap[item[1].replaceAll("\\.", ".")] : false,
           root: element.root,
           id: this.genId(element, item[0]),
           stack,
