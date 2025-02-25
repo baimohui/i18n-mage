@@ -52,6 +52,11 @@
             "type": "boolean",
             "default": true,
             "description": "启动时显示自定义欢迎页"
+          },
+          "i18n-mage.ignoredFileList": {
+            "type": "array",
+            "default": [],
+            "description": "忽略的文件列表"
           }
         }
       },
@@ -171,6 +176,14 @@
         }
       },
       {
+        "command": "i18nMage.ignoreFile",
+        "title": "忽略该文件",
+        "icon": {
+          "light": "./images/remove-light.svg",
+          "dark": "./images/remove-dark.svg"
+        }
+      },
+      {
         "command": "extension.sayHello",
         "title": "Hello，小茗同学"
       },
@@ -245,6 +258,11 @@
         {
           "command": "i18nMage.checkUsage",
           "when": "viewItem == checkUsage",
+          "group": "inline"
+        },
+        {
+          "command": "i18nMage.ignoreFile",
+          "when": "viewItem == fileItem",
           "group": "inline"
         }
       ],

@@ -50,6 +50,7 @@ class LangCheckRobot {
     this.checkStyleFlag = false; // 是否检查条目命名风格
     this.excludedLangList = []; // 不参与检查的语种列表
     this.includedLangList = []; // 参与检查的语种列表
+    this.ignoredFileList = []; // 忽略的文件列表
     this.referredLang = ""; // 用于参考的语种
     this.globalFlag = false; // 是否在项目全局检测修复
     this.rewriteFlag = false; // 排序和修复结果是否写入原文件
@@ -888,8 +889,8 @@ class LangCheckRobot {
     let maxNum = 0;
     const totalEntryList = Object.keys(this.#langDictionary);
     for (const filePath of filePaths) {
+      if (this.ignoredFileList.some(ifp => path.resolve(filePath) === path.resolve(path.join(this.rootPath, ifp)))) continue;
       const fileContent = await fs.readFileSync(filePath, "utf8");
-      // if (fileContent.length >= 100000) continue; // 大文件跳过检测
       const getLayerLen = str => str.split(LANG_ENTRY_SPLIT_SYMBOL[this.#langFormatType]).length;
       const isSameLayer = (str0, str1) => getLayerLen(str0) === getLayerLen(str1);
       const { tItems, existedItems } = catchAllEntries(fileContent, this.#langFormatType, this.#entryClassTree);
@@ -975,7 +976,9 @@ class LangCheckRobot {
         tableInfo["异语同文"] = this._genOverviewTableRow(lang => mtList.filter(item => item.includes(lang)).length);
       }
       if (this.globalFlag) {
-        tableInfo["闲置条目"] = this._genOverviewTableRow(lang => getEntryTotal(lang).filter(entry => !this.#usedEntryMap[entry.replaceAll("\\.", ".")]).length);
+        tableInfo["闲置条目"] = this._genOverviewTableRow(
+          lang => getEntryTotal(lang).filter(entry => !this.#usedEntryMap[entry.replaceAll("\\.", ".")]).length
+        );
       }
     }
     console.table(tableInfo);

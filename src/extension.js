@@ -1,5 +1,6 @@
 // const vscode = require('vscode');
 const vscode = require("vscode");
+const path = require("path");
 const fs = require("fs");
 const { treeProvider } = require("./tree");
 const LangCheckRobot = require("./langCheckRobot");
@@ -22,6 +23,7 @@ exports.activate = async function (context) {
     // includedLangList,
     rootPath,
     referredLang: config.referenceLanguage,
+    ignoredFileList: config.ignoredFileList,
     langFileMinLength: config.langFileMinLength,
     ignoreEmptyLangFile: config.ignoreEmptyLangFile,
     sortWithTrim: config.sortWithTrim,
@@ -37,7 +39,7 @@ exports.activate = async function (context) {
   async function getLangDir() {
     const possibleLangDirs = getPossibleLangDirList(rootPath);
     for (const langDir of possibleLangDirs) {
-      robot.setOptions({ langDir: langDir, task: "check", globalFlag: true, clearCache: false });
+      robot.setOptions({ langDir, task: "check", globalFlag: true, clearCache: false });
       await robot.check();
       if (robot.detectedLangList.length > 0) {
         break;
@@ -66,9 +68,23 @@ exports.activate = async function (context) {
     startProgress({
       title: "检查中...",
       callback: async () => {
-        robot.setOptions({ task: "check", globalFlag: true, clearCache: true });
+        const config = vscode.workspace.getConfiguration("i18n-mage");
+        robot.setOptions({ task: "check", globalFlag: true, clearCache: true, ignoredFileList: config.ignoredFileList });
         const res = await robot.check();
-        !res && await getLangDir()
+        !res && (await getLangDir());
+      }
+    });
+  });
+  vscode.commands.registerCommand("i18nMage.ignoreFile", e => {
+    startProgress({
+      title: "刷新中...",
+      callback: async () => {
+        const config = vscode.workspace.getConfiguration("i18n-mage");
+        const ignoredFileList = (config.ignoredFileList || []).concat(path.relative(rootPath, e.resourceUri.fsPath));
+        await globalConfig.update("i18n-mage.ignoredFileList", ignoredFileList, vscode.ConfigurationTarget.Workspace);
+        robot.setOptions({ task: "check", globalFlag: true, clearCache: true, ignoredFileList });
+        const res = await robot.check();
+        !res && (await getLangDir());
       }
     });
   });

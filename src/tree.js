@@ -7,6 +7,7 @@ const { getLangText } = require("./utils/const");
 class FileItem extends vscode.TreeItem {
   constructor(resourceUri, pos, label) {
     super(resourceUri, vscode.TreeItemCollapsibleState.None);
+    this.contextValue = "fileItem";
     this.tooltip = `${resourceUri.fsPath}`;
     this.description = `${pos.c + 1}:${pos.e + 1}`;
     this.command = {
@@ -25,7 +26,6 @@ class treeProvider {
     this.definedEntriesInCurrentFile = [];
     this.undefinedEntriesInCurrentFile = [];
     this.usedEntryMap = this.#robot.langDetail.used || {};
-    this.undefinedEntryMap = this.#robot.langDetail.undefined || {};
     this._onDidChangeTreeData = new vscode.EventEmitter();
     this.onDidChangeTreeData = this._onDidChangeTreeData.event;
     vscode.window.onDidChangeActiveTextEditor(() => this.onActiveEditorChanged());
@@ -41,6 +41,9 @@ class treeProvider {
   }
   get tree() {
     return this.langInfo.tree;
+  }
+  get undefinedEntryMap() {
+    return this.langInfo.undefined || {};
   }
   get entryReferredTextMap() {
     return this.langInfo.countryMap[this.#robot.referredLang] || {};
