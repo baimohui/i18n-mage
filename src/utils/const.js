@@ -54,6 +54,12 @@ const LANG_ALIAS_MAP = {
 const getLangIntro = str => {
   str = str.split(".")[0];
   if (!hasOwn(LANG_INTRO_MAP, str)) {
+    for (const key in LANG_INTRO_MAP) {
+      if (str && Object.values(LANG_INTRO_MAP[key]).includes(str)) {
+        str = key;
+        break;
+      }
+    }
     for (const key in LANG_ALIAS_MAP) {
       if (LANG_ALIAS_MAP[key].includes(str)) {
         str = key;

@@ -566,8 +566,19 @@ class LangCheckRobot {
       for (let i = 0; i <= headLen; i++) {
         if (typeof headInfo[i] !== "string") {
           headInfo[i] = "NULL";
+        } else {
+          headInfo[i] = headInfo[i].trim();
         }
       }
+      printInfo(
+        `检测到表格内有效的语言列为：${
+          headInfo
+            .map(item => getLangIntro(item).cnName)
+            .filter(item => !!item)
+            .join("、") || "无"
+        }`,
+        "brain"
+      );
       const labelIndex = headInfo.findIndex(item => item && item.toLowerCase() === "label");
       sheetData.forEach(item => {
         const entryName = item[labelIndex]?.trim() ?? "";
