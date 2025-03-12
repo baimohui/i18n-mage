@@ -335,7 +335,7 @@ class treeProvider {
           if (this.definedEntriesInCurrentFile.every(item => item.text !== entry.text)) {
             this.definedEntriesInCurrentFile.push(entry);
           }
-        } else {
+        } else if (this.undefinedEntriesInCurrentFile.every(item => item.text !== entry.text)) {
           this.undefinedEntriesInCurrentFile.push(entry);
         }
       });
