@@ -53,7 +53,7 @@ class treeProvider {
     const unusedEntries = [],
       usedEntries = [];
     for (let entry in dictionary) {
-      entry = entry.replaceAll("\\.", ".")
+      entry = entry.replaceAll("\\.", ".");
       if (!this.langInfo.used[entry]) {
         unusedEntries.push(entry);
       } else {
@@ -150,6 +150,8 @@ class treeProvider {
         description: this.entryReferredTextMap[entry.text] ?? false,
         collapsibleState: vscode.TreeItemCollapsibleState[element.type === "defined" ? "Collapsed" : "None"],
         level: 2,
+        contextValue: element.type === "defined" ? "definedEntryInCurFile" : "undefinedEntryInCurFile",
+        usedInfo: this[element.type === "defined" ? "usedEntryMap" : "undefinedEntryMap"][entry.text],
         id: this.genId(element, entry.id),
         root: element.root
       }));
@@ -302,24 +304,26 @@ class treeProvider {
         collapsibleState: vscode.TreeItemCollapsibleState.None
       }));
     } else {
-      return Object.entries(res).sort((a, b) => {
-        if (typeof a[1] !== typeof b[1]) {
-          return typeof a[1] === "string" ? 1 : -1;
-        } else {
-          return a[0] > b[0] ? 1 : -1
-        }
-      }).map(item => {
-        const stack = (element.stack || []).concat(item[0])
-        return {
-          label: item[0],
-          description: typeof item[1] === "string" ? this.entryReferredTextMap[item[1].replaceAll("\\.", ".")] : false,
-          root: element.root,
-          id: this.genId(element, item[0]),
-          stack,
-          tooltip: stack.join("."),
-          collapsibleState: vscode.TreeItemCollapsibleState.Collapsed
-        }
-      });
+      return Object.entries(res)
+        .sort((a, b) => {
+          if (typeof a[1] !== typeof b[1]) {
+            return typeof a[1] === "string" ? 1 : -1;
+          } else {
+            return a[0] > b[0] ? 1 : -1;
+          }
+        })
+        .map(item => {
+          const stack = (element.stack || []).concat(item[0]);
+          return {
+            label: item[0],
+            description: typeof item[1] === "string" ? this.entryReferredTextMap[item[1].replaceAll("\\.", ".")] : false,
+            root: element.root,
+            id: this.genId(element, item[0]),
+            stack,
+            tooltip: stack.join("."),
+            collapsibleState: vscode.TreeItemCollapsibleState.Collapsed
+          };
+        });
     }
   }
   onActiveEditorChanged() {

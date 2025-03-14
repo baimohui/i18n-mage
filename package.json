@@ -184,6 +184,14 @@
         }
       },
       {
+        "command": "i18nMage.openFileAtPosition",
+        "title": "定位",
+        "icon": {
+          "light": "./images/source-light.svg",
+          "dark": "./images/source-dark.svg"
+        }
+      },
+      {
         "command": "extension.sayHello",
         "title": "Hello，小茗同学"
       },
@@ -263,6 +271,11 @@
         {
           "command": "i18nMage.ignoreFile",
           "when": "viewItem == fileItem",
+          "group": "inline"
+        },
+        {
+          "command": "i18nMage.openFileAtPosition",
+          "when": "viewItem == definedEntryInCurFile || viewItem == undefinedEntryInCurFile",
           "group": "inline"
         }
       ],

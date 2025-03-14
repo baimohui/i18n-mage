@@ -117,7 +117,7 @@ class LangCheckRobot {
           this.checkStyleFlag && this._checkStyle();
           this.globalFlag && this._checkUsage();
           this._genOverviewTable();
-          this._genCheckResultFiles();
+          // this._getPopularClassList();
           break;
         case "fix":
           this._checkUnity();
@@ -1006,102 +1006,6 @@ class LangCheckRobot {
       name = this.referredLang === cur ? `${name} ${referFlagIcon}` : name;
       return { ...prev, [name]: func(cur) };
     }, {});
-  }
-
-  _genCheckResultFiles() {
-    const writeList = [];
-    const referredLang = this.referredLang;
-    this.detectedLangList.forEach(lang => {
-      const resultBlockList = [];
-      // 缺失条目诊断
-      const lackEntryList = this.#lackInfo[lang] || [];
-      if (lackEntryList.length > 0 && referredLang !== lang) {
-        let title = `下为缺失条目的${getLangText(referredLang)}翻译`;
-        resultBlockList.push({
-          desc: title,
-          value: lackEntryList.map(entry => ({ name: entry, value: this.#langDictionary[entry][referredLang] }))
-        });
-        // const slCode = getLangCode(referredLang);
-        // const tlCode = getLangCode(lang);
-        // const encodedContent = encodeURIComponent(content);
-        // if (content.length <= 5000 && encodedContent.length <= 8100) {
-        //   title += `，${getLangText(lang)}参考翻译可访问 ${this._genGoogleTranslateUrl(slCode, tlCode, encodedContent)}`;
-        // }
-      }
-      // 多余条目诊断
-      const extraEntryList = this.#extraInfo[lang] || [];
-      if (extraEntryList.length > 0) {
-        resultBlockList.push({
-          // desc: `下为可能多余的条目，批量匹配正则表达式为 ${this._genRemoveRegex(extraEntryList)}`,
-          desc: "下为可能多余的条目",
-          value: extraEntryList.map(entry => ({ name: entry, value: this.#langDictionary[entry][lang] }))
-        });
-      }
-      // 同名条目诊断
-      // const repeatNameEntryList = Object.keys(this.#repeatEntryNameInfo?.[lang] ?? {});
-      // if (repeatNameEntryList.length > 0) {
-      //   const repeatNameMap = this.#repeatEntryNameInfo[lang];
-      //   resultBlockList.push({
-      //     desc: "下为名称相同的条目",
-      //     value: repeatNameEntryList.map(entry => repeatNameMap[entry].map(value => ({ name: entry, value }))).flat()
-      //   });
-      // }
-      // 同文条目诊断
-      const stList = Object.values(this.#singleLangRepeatTextInfo?.[lang] ?? {}).flat();
-      if (stList.length > 0) {
-        resultBlockList.push({
-          desc: "下为译文相同的条目",
-          value: stList.map(entry => ({ name: entry, value: this.#langDictionary[entry][lang] }))
-        });
-      }
-      // 异语同文诊断
-      const mtList = Object.keys(this.#multiLangRepeatTextInfo);
-      if (mtList.length > 0) {
-        const classMap = [];
-        mtList.forEach(entry => {
-          this.#multiLangRepeatTextInfo[entry].forEach(item => {
-            if (item.includes(lang)) {
-              classMap[item] ??= [];
-              classMap[item].push(entry);
-            }
-          });
-        });
-        const classList = Object.keys(classMap).sort((a, b) => (a.length > b.length ? -1 : 1));
-        classList.forEach(className => {
-          const repeatLangList = className.split(",");
-          const desc =
-            repeatLangList.length === this.detectedLangList.length
-              ? "在所有语种的译文都相同，请确认是否为专用词汇"
-              : `在 ${repeatLangList.join("、")} 下的译文相同，请确认译文与所属语种是否匹配`;
-          resultBlockList.push({
-            desc,
-            value: classMap[className].map(name => ({ name, value: this.#langDictionary[name][lang] || "" }))
-          });
-        });
-      }
-      if (resultBlockList.length > 0) {
-        writeList.push({
-          name: lang,
-          value: replaceAllEntries({
-            data: resultBlockList,
-            langType: this.#langFormatType,
-            indents: this.#langIndents[lang],
-            extraInfo: this.#langFileExtraInfo[lang]
-          })
-        });
-      }
-    });
-    // const outputPath = path.join(this.exportDir, "checkResult");
-    // deleteFolderRecursive(outputPath);
-    // if (writeList.length > 0) {
-    //   createFolderRecursive(outputPath);
-    //   writeList.forEach(item => {
-    //     const filePath = path.join(outputPath, this._getLangFileName(item.name));
-    //     fs.writeFileSync(filePath, item.value);
-    //   });
-    //   printInfo(`检测详情已导出到 ${outputPath} 目录`, "rocket");
-    // }
-    this._getPopularClassList();
   }
 
   _formatEntriesInTerminal(list, showColor = true) {

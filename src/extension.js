@@ -88,6 +88,21 @@ exports.activate = async function (context) {
       }
     });
   });
+  vscode.commands.registerCommand("i18nMage.openFileAtPosition", async e => {
+    const editor = vscode.window.activeTextEditor;
+    if (!editor) {
+      vscode.window.showErrorMessage("没有活动的编辑器");
+      return;
+    }
+    const resourceUri = editor.document.uri;
+    if (e.usedInfo) {
+      const matchedPath = Object.keys(e.usedInfo).find(filePath => vscode.Uri.file(filePath).fsPath === resourceUri.fsPath)
+      const document = await vscode.workspace.openTextDocument(resourceUri);
+      const pos = document.positionAt(e.usedInfo[matchedPath][0])
+      const selection = new vscode.Range(pos, pos.translate(0, e.label.length));
+      vscode.window.showTextDocument(resourceUri, { selection });
+    }
+  });
   vscode.commands.registerCommand("i18nMage.sort", () => {
     startProgress({
       title: "排序中...",
