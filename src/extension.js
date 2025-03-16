@@ -88,6 +88,11 @@ exports.activate = async function (context) {
       }
     });
   });
+  vscode.commands.registerCommand("i18nMage.copyName", async e => {
+    if (!e || !e.label) return;
+    await vscode.env.clipboard.writeText(String(e.label));
+    vscode.window.showInformationMessage(`已复制：${e.label}`);
+  });
   vscode.commands.registerCommand("i18nMage.openFileAtPosition", async e => {
     const editor = vscode.window.activeTextEditor;
     if (!editor) {

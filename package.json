@@ -184,6 +184,14 @@
         }
       },
       {
+        "command": "i18nMage.copyName",
+        "title": "复制词条名",
+        "icon": {
+          "light": "./images/copy-light.svg",
+          "dark": "./images/copy-dark.svg"
+        }
+      },
+      {
         "command": "i18nMage.openFileAtPosition",
         "title": "定位",
         "icon": {
@@ -274,9 +282,14 @@
           "group": "inline"
         },
         {
+          "command": "i18nMage.copyName",
+          "when": "viewItem == definedEntryInCurFile || viewItem == undefinedEntryInCurFile",
+          "group": "inline@1"
+        },
+        {
           "command": "i18nMage.openFileAtPosition",
           "when": "viewItem == definedEntryInCurFile || viewItem == undefinedEntryInCurFile",
-          "group": "inline"
+          "group": "inline@2"
         }
       ],
       "editor/context": [
