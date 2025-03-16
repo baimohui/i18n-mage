@@ -96,6 +96,7 @@ class treeProvider {
         label: "当前文件",
         id: "CURRENT_FILE",
         root: "CURRENT_FILE",
+        iconPath: new vscode.ThemeIcon("file"),
         collapsibleState: vscode.TreeItemCollapsibleState.Expanded,
         description: String(this.definedEntriesInCurrentFile.length + this.undefinedEntriesInCurrentFile.length)
       },
@@ -104,6 +105,7 @@ class treeProvider {
         label: "同步情况",
         id: "SYNC_INFO",
         root: "SYNC_INFO",
+        iconPath: new vscode.ThemeIcon("sync"),
         collapsibleState: vscode.TreeItemCollapsibleState.Expanded,
         description: this.getSyncPercent()
       },
@@ -113,6 +115,7 @@ class treeProvider {
         id: "USAGE_INFO",
         root: "USAGE_INFO",
         contextValue: "checkUsage",
+        iconPath: new vscode.ThemeIcon("graph"),
         collapsibleState: vscode.TreeItemCollapsibleState.Expanded,
         description: this.getUsagePercent()
       },
@@ -121,6 +124,7 @@ class treeProvider {
         label: "词条汇总",
         id: "DICTIONARY",
         root: "DICTIONARY",
+        iconPath: new vscode.ThemeIcon("notebook"),
         collapsibleState: vscode.TreeItemCollapsibleState.Collapsed,
         description: String(Object.keys(this.langInfo.dictionary).length)
       }
