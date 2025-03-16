@@ -162,6 +162,7 @@ class treeProvider {
         description: entryInfo[lang] ?? false,
         collapsibleState: vscode.TreeItemCollapsibleState.None,
         level: 3,
+        contextValue: "entryTranslationInCurFile",
         id: this.genId(element, lang),
         tooltip: getLangText(lang)
       }));

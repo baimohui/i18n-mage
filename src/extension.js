@@ -93,6 +93,11 @@ exports.activate = async function (context) {
     await vscode.env.clipboard.writeText(String(e.label));
     vscode.window.showInformationMessage(`已复制：${e.label}`);
   });
+  vscode.commands.registerCommand("i18nMage.copyValue", async e => {
+    if (!e || !e.description) return;
+    await vscode.env.clipboard.writeText(String(e.description));
+    vscode.window.showInformationMessage(`已复制：${e.description}`);
+  });
   vscode.commands.registerCommand("i18nMage.openFileAtPosition", async e => {
     const editor = vscode.window.activeTextEditor;
     if (!editor) {
