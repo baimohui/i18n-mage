@@ -20,6 +20,7 @@ class FileItem extends vscode.TreeItem {
 
 class treeProvider {
   #robot;
+  isInitialized = false; // 标志位：是否已完成初始化
   constructor() {
     this.#robot = LangCheckRobot.getInstance();
     this.usedEntries = [];
@@ -28,10 +29,13 @@ class treeProvider {
     this.usedEntryMap = this.#robot.langDetail.used || {};
     this._onDidChangeTreeData = new vscode.EventEmitter();
     this.onDidChangeTreeData = this._onDidChangeTreeData.event;
-    vscode.window.onDidChangeActiveTextEditor(() => this.onActiveEditorChanged());
+    vscode.window.onDidChangeActiveTextEditor(() => {
+      if (this.isInitialized) {
+        this.onActiveEditorChanged();
+      }
+    });
     vscode.workspace.onDidSaveTextDocument(e => this.onDocumentChanged(e));
     // vscode.workspace.onDidChangeTextDocument(e => this.onDocumentChanged(e));
-    this.onActiveEditorChanged();
   }
   get langInfo() {
     return this.#robot.langDetail;

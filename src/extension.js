@@ -51,9 +51,13 @@ exports.activate = async function (context) {
     }
     return true;
   }
-  if (!getLangDir()) return;
+  if (!(await getLangDir())) return;
   treeInstance = new treeProvider();
   vscode.window.registerTreeDataProvider("treeProvider", treeInstance);
+  // 等待数据初始化完成后设置标志位
+  treeInstance.isInitialized = true;
+  treeInstance.onActiveEditorChanged(); // 手动触发一次更新
+
   vscode.commands.registerCommand("i18nMage.setReferredLang", lang => {
     startProgress({
       title: "",
