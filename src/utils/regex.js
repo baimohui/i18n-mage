@@ -3,15 +3,26 @@ const { hasOwn } = require("./common");
 
 const newlineCharacter = "\r\n";
 
+/**
+ * 获取字符串的命名类型
+ * @param {string} str - 输入字符串
+ * @returns {string} 命名类型
+ */
 const getCaseType = str => {
   if (!/^[a-zA-Z][a-zA-Z0-9]*$/.test(str)) return "wc"; // weird-case
   if (str === str.toUpperCase()) return "au"; // Uppercase
-  if (str.match(/^[a-z][A-Za-z0-9]*$/)) return "cc"; // camelCase
-  if (str.match(/^[A-Z][A-Za-z0-9]*$/)) return "pc"; // PascalCase
+  if (/^[a-z][A-Za-z0-9]*$/.test(str)) return "cc"; // camelCase
+  if (/^[A-Z][A-Za-z0-9]*$/.test(str)) return "pc"; // PascalCase
+  return "unknown";
 };
 
+/**
+ * 转义正则表达式中的特殊字符
+ * @param {string} str - 输入字符串
+ * @returns {string} 转义后的字符串
+ */
 const escapeRegExp = str => {
-  return str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"); //$&表示整个被匹配的字符串
+  return str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 };
 
 const getLangFileInfo = str => {
@@ -118,29 +129,40 @@ const validateLang = (str, lang) => {
   return res;
 };
 
+/**
+ * 根据字符串生成唯一 ID
+ * @param {string} str - 输入字符串
+ * @param {boolean} [usedForEntryName=false] - 是否用于条目名称
+ * @returns {string} 生成的 ID
+ */
 const getIdByStr = (str, usedForEntryName = false) => {
   let id = str.toLowerCase();
   if (usedForEntryName) {
-    id = id.split("");
-    id = id.filter(item => /[a-zA-Z0-9\s-]{1}/.test(item)).join("");
-    id = id.replace(/[\s-]{1}(\S{1})/g, match => match.toUpperCase()).replaceAll("-", "");
+    id = id
+      .split("")
+      .filter(item => /[a-zA-Z0-9\s-]/.test(item))
+      .join("");
+    id = id.replace(/[\s-](\S)/g, (_, char) => char.toUpperCase()).replace(/-/g, "");
   }
   id = id.replace(/\s/g, "");
   return id;
 };
 
+/**
+ * 创建单个条目行
+ * @param {Object} params - 参数对象
+ * @param {string} params.name - 条目名称
+ * @param {string} params.value - 条目值
+ * @param {string} params.indents - 缩进
+ * @param {string} params.langType - 语言类型
+ * @returns {string} 条目行
+ */
 const createSingleEntryLine = ({ name, value, indents, langType }) => {
-  let res = "";
   if (typeof value !== "string") {
-    console.log("value is not a string", name, value);
-    return {};
+    throw new Error(`Value is not a string: ${name}, ${value}`);
   }
-  if (langType === LANG_FORMAT_TYPE.nonObj) {
-    res = `${indents}${name} = "${formatEntryValue(value)}";`;
-  } else {
-    res = `${indents}"${name}": "${formatEntryValue(value)}",`;
-  }
-  return res;
+  const formattedValue = formatEntryValue(value);
+  return langType === LANG_FORMAT_TYPE.nonObj ? `${indents}${name} = "${formattedValue}";` : `${indents}"${name}": "${formattedValue}",`;
 };
 
 const createSingleEntryObj = ({ name, value, indents, langType }) => {
@@ -158,10 +180,19 @@ const createSingleEntryObj = ({ name, value, indents, langType }) => {
   return blockContent;
 };
 
-// { data: [ { desc: "块描述", value: [ { name: "条目名", value: "条目值" } ] } ], langType: "obj", indents: "  " }
+/**
+ * 替换所有条目
+ * @param {Object} params - 参数对象
+ * @param {Array} params.data - 数据块数组，每个块包含描述和值
+ * @param {string} params.langType - 语言文件的格式类型
+ * @param {string} [params.indents="  "] - 缩进字符串
+ * @param {Object} [params.extraInfo={}] - 附加信息，包括前缀、后缀等
+ * @returns {string} 生成的语言文件内容
+ */
 const replaceAllEntries = ({ data, langType, indents = "  ", extraInfo = { prefix: "", innerVar: "", suffix: "" } }) => {
   let pageContent = "";
   const blockNum = data.length;
+  // 处理嵌套对象格式
   if (langType === LANG_FORMAT_TYPE.nestedObj) {
     const list = [];
     for (let i = 0; i < blockNum; i++) {
@@ -180,11 +211,13 @@ const replaceAllEntries = ({ data, langType, indents = "  ", extraInfo = { prefi
     }
     data = list;
   }
+  // 遍历每个数据块
   for (let blockIndex = 0; blockIndex < blockNum; blockIndex++) {
     let { desc, value = [] } = data[blockIndex];
     let blockContent = "";
     const isLastBlock = blockIndex === blockNum - 1;
     const itemNum = value.length;
+    // 遍历每个条目
     value.forEach((item, itemIndex) => {
       if (langType === LANG_FORMAT_TYPE.nestedObj) {
         blockContent += createSingleEntryObj({ ...item, langType, indents });
@@ -195,6 +228,7 @@ const replaceAllEntries = ({ data, langType, indents = "  ", extraInfo = { prefi
         blockContent += newlineCharacter;
       }
     });
+    // 添加描述块
     if (desc) {
       blockContent = `${indents}// ${desc}${newlineCharacter}${blockContent}`;
       if (!isLastBlock) {
@@ -203,20 +237,30 @@ const replaceAllEntries = ({ data, langType, indents = "  ", extraInfo = { prefi
     }
     pageContent += blockContent;
   }
+  // 添加前缀和后缀
   if (langType !== LANG_FORMAT_TYPE.nonObj) {
     pageContent = `${extraInfo.prefix}{${extraInfo.innerVar}${newlineCharacter}${pageContent}${newlineCharacter}}${extraInfo.suffix}`;
   }
   return pageContent;
 };
 
+/**
+ * 添加条目
+ * @param {Object} params - 参数对象
+ * @param {Array} params.data - 条目数据
+ * @param {string} params.raw - 原始内容
+ * @param {string} params.langType - 语言类型
+ * @param {string} [params.indents=""] - 缩进
+ * @param {number} [params.skipLineNum=0] - 跳过的行数
+ * @returns {string} 更新后的内容
+ */
 const addEntries = ({ data, raw, langType, indents = "", skipLineNum = 0 }) => {
-  let content = "";
-  let match = undefined;
+  let content = raw;
   let startPos = 0;
+
   if (langType === LANG_FORMAT_TYPE.nestedObj) {
     const obj = {};
     const list = [];
-    content = raw;
     data.forEach(item => {
       const [className, id] = item.name.split(LANG_ENTRY_SPLIT_SYMBOL[langType]);
       if (id) {
@@ -226,38 +270,49 @@ const addEntries = ({ data, raw, langType, indents = "", skipLineNum = 0 }) => {
         list.push({ name: className, value: item.value });
       }
     });
+
+    // 添加无分类条目
     const noClassEntryContent = list
       .map(item => createSingleEntryLine({ name: item.name, value: item.value, langType, indents }) + newlineCharacter)
       .join("");
-    match = content.match(/{([^]*?)\n/);
-    startPos = match.index + match[0].length;
-    content = content.slice(0, startPos) + noClassEntryContent + content.slice(startPos);
+    const match = content.match(/{([^]*?)\n/);
+    if (match) {
+      startPos = match.index + match[0].length;
+      content = content.slice(0, startPos) + noClassEntryContent + content.slice(startPos);
+    }
+
+    // 添加分类条目
     for (const key in obj) {
       let itemContent = obj[key]
         .map(item => createSingleEntryLine({ name: item.name, value: item.value, langType, indents: indents.repeat(2) }) + newlineCharacter)
         .join("");
-      match = content.match(new RegExp(`(${key}["'\`]?\\s*:\\s*{[^]*?)\\n`));
-      if (match) {
-        startPos = match.index + match[0].length;
+      const keyMatch = content.match(new RegExp(`(${key}["'\`]?\\s*:\\s*{[^]*?)\\n`));
+      if (keyMatch) {
+        startPos = keyMatch.index + keyMatch[0].length;
         content = content.slice(0, startPos) + itemContent + content.slice(startPos);
       } else {
         itemContent = `${indents}"${key}": {${newlineCharacter}${itemContent}${indents}},${newlineCharacter}`;
-        match = content.match(/{([^]*?)\n/);
-        startPos = match.index + match[0].length;
-        content = content.slice(0, startPos) + itemContent + content.slice(startPos);
+        const match = content.match(/{([^]*?)\n/);
+        if (match) {
+          startPos = match.index + match[0].length;
+          content = content.slice(0, startPos) + itemContent + content.slice(startPos);
+        }
       }
     }
   } else {
-    content = data
+    const entryContent = data
       .map(item => createSingleEntryLine({ name: item.name, value: item.value, langType, indents }) + newlineCharacter)
       .join("");
     if (langType === LANG_FORMAT_TYPE.obj) {
       const insertPosReg = new RegExp(`{(${"[^]*?\\n".repeat(skipLineNum + 1)})`);
-      match = raw.match(insertPosReg);
-      startPos = match.index + match[0].length;
+      const match = raw.match(insertPosReg);
+      if (match) {
+        startPos = match.index + match[0].length;
+      }
     }
-    content = raw.slice(0, startPos) + content + raw.slice(startPos);
+    content = raw.slice(0, startPos) + entryContent + raw.slice(startPos);
   }
+
   return content;
 };
 
@@ -266,9 +321,14 @@ const deleteEntries = ({ data, raw }) => {
   return raw.replace(entryLineReg, "");
 };
 
+/**
+ * 格式化条目值
+ * @param {string} str - 输入字符串
+ * @returns {string} 格式化后的字符串
+ */
 const formatEntryValue = str => {
   return str
-    .replace(/\\("'`){1}/g, "$1")
+    .replace(/\\(["'`])/g, "$1")
     .replace(/\\/g, "\\\\")
     .replace(/\n/g, "\\n")
     .replace(/\r/g, "\\r")
@@ -339,142 +399,188 @@ const catchPossibleEntries = (fileContent, langType, entryTree) => {
   return entryInfoList;
 };
 
+/**
+ * 捕获文件内容中的 t() 函数调用条目
+ * @param {string} fileContent - 文件内容
+ * @returns {Array} 提取的条目信息列表
+ */
 const catchTEntries = fileContent => {
-  const tReg = /(?<=[$\s.[({:="']{1})t\s*\(\s*(\S)/g;
+  const tReg = /(?<=[$\s.[({:=]{1})t\s*\(\s*(\S)/g;
   const entryInfoList = [];
-  let tRes = undefined;
-  let tStartPos = 0;
+  let tRes;
   while ((tRes = tReg.exec(fileContent)) !== null) {
-    tStartPos = tRes.index - 1;
-    let tCurPos = tStartPos + tRes[0].length;
-    let symbolStr = tRes[1];
-    let isValid = true;
-    const tFormList = [];
-    let match = [];
-    let type = "";
-    while (symbolStr !== ")") {
-      if (/["'`]{1}/.test(symbolStr)) {
-        type = symbolStr === "`" ? "varText" : "text";
-        match = fileContent.slice(tCurPos).match(new RegExp(`${symbolStr}([^]*?)(?<!\\\\)${symbolStr}[\\s+,]*(\\S)`));
-      } else if (/[\w(]{1}/.test(symbolStr)) {
-        type = "var";
-        if (symbolStr === "(") {
-          match = fileContent.slice(tCurPos).match(/(\([^]*?\))\s*(\))/);
-          const checkMatchLen = (str, match) => match[1].split("").filter(item => item === str).length;
-          let leftBracketLen = checkMatchLen("(", match);
-          let rightBracketLen = checkMatchLen(")", match);
-          while (leftBracketLen !== rightBracketLen) {
-            const bracketReg = new RegExp(`({${"[^]*?\\)".repeat(leftBracketLen)})[\\s+,]*(\\S)`);
-            match = fileContent.slice(tCurPos).match(bracketReg);
-            leftBracketLen = checkMatchLen("(", match);
-            rightBracketLen = checkMatchLen(")", match);
-          }
-        } else {
-          match = fileContent.slice(tCurPos).match(new RegExp(`(${symbolStr}[\\w.]*)[\\s+,]*(\\S)`));
-        }
-      } else if (symbolStr === "{") {
-        type = "obj";
-        match = fileContent.slice(tCurPos).match(/({[^]*?})\s*(\))/);
-        const checkMatchLen = (str, match) => match[1].split("").filter(item => item === str).length;
-        let leftBracketLen = checkMatchLen("{", match);
-        let rightBracketLen = checkMatchLen("}", match);
-        while (leftBracketLen !== rightBracketLen) {
-          const bracketReg = new RegExp(`({${"[^]*?}".repeat(leftBracketLen)})(\\))`);
-          match = fileContent.slice(tCurPos).match(bracketReg);
-          leftBracketLen = checkMatchLen("{", match);
-          rightBracketLen = checkMatchLen("}", match);
-        }
-      } else {
-        isValid = false;
-        break;
-      }
-      tFormList.push({ type, value: match[1] });
-      tCurPos += match[0].length - 1;
-      symbolStr = match[2];
-    }
-    let entryIndex = 0;
-    let entryText = "";
-    let entryVar = {};
-    let entryReg = "";
-    let tempRes = undefined;
-    let tempReg = undefined;
-    let tempHelper = undefined;
-    isValid = isValid && tFormList.some(item => !["var", "obj"].includes(item.type));
-    if (isValid) {
-      tFormList.forEach(item => {
-        switch (item.type) {
-          case "text":
-            entryText += item.value;
-            entryReg += escapeRegExp(item.value.replace(/\s/g, ""));
-            break;
-          case "varText":
-            tempHelper = item.value;
-            tempReg = /\${\s*([^]*?)\s*}/g;
-            while ((tempRes = tempReg.exec(item.value)) !== null) {
-              tempHelper = tempHelper.replace(tempRes[0], `{t${entryIndex}}`);
-              entryVar[`t${entryIndex++}`] = tempRes[1];
-            }
-            entryText += tempHelper;
-            entryReg = escapeRegExp(entryText.replace(/\s/g, "")).replace(/\{.*?\}/g, ".*");
-            isValid = isValid && entryText.replace(/\{\w*?\}/g, "") !== "";
-            break;
-          case "var":
-            entryText += `{t${entryIndex}}`;
-            entryVar[`t${entryIndex++}`] = item.value;
-            entryReg += ".*";
-            break;
-          case "obj":
-            tempHelper = [];
-            tempReg = /{(\w*?)}/g;
-            while ((tempRes = tempReg.exec(entryText)) !== null) {
-              tempHelper.push(tempRes[1]);
-            }
-            tempReg = new RegExp(`{\\s*${("(" + tempHelper.join("|") + ")\\s*:\\s*([^]*?),?\\s*").repeat(tempHelper.length)}}`, "g");
-            while ((tempRes = tempReg.exec(item.value)) !== null) {
-              tempHelper = 1;
-              while (tempRes[tempHelper]) {
-                entryVar[tempRes[tempHelper]] = tempRes[tempHelper + 1];
-                tempHelper = tempHelper + 2;
-              }
-            }
-            if (String(tempHelper).length > 0 && Object.keys(entryVar).length === 0) {
-              isValid = false;
-            }
-            break;
-        }
-      });
-    }
-    const entryRaw = fileContent.slice(tStartPos, tCurPos + 1);
-    let entryClass = "";
-    let entryName = "";
-    const nameRes = entryText.match(/%(\S*?)%([^]*)/);
-    if (nameRes) {
-      entryName = nameRes[1];
-      entryText = nameRes[2];
-    }
-    const classRes = entryText.match(/#(\S*?)#([^]*)/);
-    if (classRes) {
-      entryClass = classRes[1];
-      entryText = classRes[2];
-    }
-    if (Object.keys(entryVar).length === 0) {
-      entryReg = `^${entryReg}\\d*$`;
-    }
-    isValid = isValid && isStringInUncommentedRange(fileContent, entryRaw);
-    if (isValid) {
-      entryInfoList.push({
-        raw: entryRaw,
-        text: entryText,
-        var: entryVar,
-        regex: new RegExp(entryReg),
-        id: getIdByStr(entryText),
-        class: entryClass,
-        name: entryName,
-        pos: tStartPos + (tRes ? entryRaw.indexOf(tRes[1]) + 1 : 0)
-      });
+    const tStartPos = tRes.index - 1;
+    const tCurPos = tStartPos + tRes[0].length;
+    const symbolStr = tRes[1];
+    const entry = parseTEntry(fileContent, tStartPos, tCurPos, symbolStr);
+    if (entry && entry.isValid) {
+      entryInfoList.push(entry);
     }
   }
   return entryInfoList;
+};
+
+/**
+ * 解析单个 t() 函数调用
+ * @param {string} fileContent - 文件内容
+ * @param {number} startPos - 起始位置
+ * @param {string} symbolStr - 当前符号
+ * @returns {Object|null} 解析的条目信息
+ */
+const parseTEntry = (fileContent, startPos, curPos, symbolStr) => {
+  let isValid = true;
+  const tFormList = [];
+  let entryIndex = 0;
+  let entryText = "";
+  let entryVar = {};
+  let entryReg = "";
+  let tRes = undefined;
+  let tempReg = undefined;
+  let tempHelper = undefined;
+  const initSymbolStr = symbolStr;
+  while (symbolStr !== ")") {
+    const matchResult = matchTEntryPart(fileContent, curPos, symbolStr);
+    if (!matchResult) {
+      isValid = false;
+      break;
+    }
+    const { type, value, nextSymbol, matchLength } = matchResult;
+    tFormList.push({ type, value });
+    curPos += matchLength;
+    symbolStr = nextSymbol;
+  }
+  if (!isValid || tFormList.every(item => !["text", "varText"].includes(item.type))) {
+    return null;
+  }
+
+  // 构建条目信息
+  tFormList.forEach(item => {
+    switch (item.type) {
+      case "text":
+        entryText += item.value;
+        entryReg += escapeRegExp(item.value.replace(/\s/g, ""));
+        break;
+      case "varText":
+        tempHelper = item.value;
+        tempReg = /\${\s*([^]*?)\s*}/g;
+        while ((tRes = tempReg.exec(item.value)) !== null) {
+          tempHelper = tempHelper.replace(tRes[0], `{t${entryIndex}}`);
+          entryVar[`t${entryIndex++}`] = tRes[1];
+        }
+        entryText += tempHelper;
+        entryReg = escapeRegExp(entryText.replace(/\s/g, "")).replace(/\{.*?\}/g, ".*");
+        isValid = isValid && entryText.replace(/\{\w*?\}/g, "") !== "";
+
+        break;
+      case "var":
+        entryText += `{t${entryIndex}}`;
+        entryVar[`t${entryIndex++}`] = item.value;
+        entryReg += ".*";
+        break;
+      case "obj":
+        tempHelper = [];
+        tempReg = /{(\w*?)}/g;
+        while ((tRes = tempReg.exec(entryText)) !== null) {
+          tempHelper.push(tRes[1]);
+        }
+        tempReg = new RegExp(`{\\s*${("(" + tempHelper.join("|") + ")\\s*:\\s*([^]*?),?\\s*").repeat(tempHelper.length)}}`, "g");
+        while ((tRes = tempReg.exec(item.value)) !== null) {
+          let num = 1;
+          while (tRes[num]) {
+            entryVar[tRes[num]] = tRes[num + 1];
+            num = num + 2;
+          }
+        }
+        if (tempHelper.length > 0 && Object.keys(entryVar).length === 0) {
+          isValid = false;
+        }
+        break;
+    }
+  });
+
+  const entryRaw = fileContent.slice(startPos, curPos + 1);
+  let entryClass = "";
+  let entryName = "";
+  const nameRes = entryText.match(/%(\S*?)%([^]*)/);
+  if (nameRes) {
+    entryName = nameRes[1];
+    entryText = nameRes[2];
+  }
+  const classRes = entryText.match(/#(\S*?)#([^]*)/);
+  if (classRes) {
+    entryClass = classRes[1];
+    entryText = classRes[2];
+  }
+  if (Object.keys(entryVar).length === 0) {
+    entryReg = `^${entryReg}\\d*$`;
+  }
+  isValid = isValid && isStringInUncommentedRange(fileContent, entryRaw);
+  return {
+    raw: entryRaw,
+    text: entryText,
+    var: entryVar,
+    regex: new RegExp(entryReg),
+    id: getIdByStr(entryText),
+    class: entryClass,
+    name: entryName,
+    pos: startPos + (entryRaw.indexOf(initSymbolStr) + 1),
+    isValid
+  };
+};
+
+/**
+ * 匹配 t() 函数的单个部分
+ * @param {string} fileContent - 文件内容
+ * @param {number} startPos - 起始位置
+ * @param {string} symbolStr - 当前符号
+ * @returns {Object|null} 匹配结果
+ */
+const matchTEntryPart = (fileContent, startPos, symbolStr) => {
+  let match;
+  let type = "";
+  let nextSymbol = "";
+  let matchLength = 0;
+  if (/["'`]/.test(symbolStr)) {
+    type = symbolStr === "`" ? "varText" : "text";
+    match = fileContent.slice(startPos).match(new RegExp(`${symbolStr}([^]*?)(?<!\\\\)${symbolStr}[\\s+,]*(\\S)`));
+  } else if (/[\w(]/.test(symbolStr)) {
+    type = "var";
+    if (symbolStr === "(") {
+      match = matchBrackets(fileContent, startPos, "(", ")");
+    } else {
+      match = fileContent.slice(startPos).match(new RegExp(`(${symbolStr}[\\w.]*)[\\s+,]*(\\S)`));
+    }
+  } else if (symbolStr === "{") {
+    type = "obj";
+    match = matchBrackets(fileContent, startPos, "{", "}");
+  }
+  if (match) {
+    nextSymbol = match[2];
+    matchLength = match[0].length - 1;
+    return { type, value: match[1], nextSymbol, matchLength };
+  }
+  return null;
+};
+
+/**
+ * 匹配括号内容
+ * @param {string} fileContent - 文件内容
+ * @param {number} startPos - 起始位置
+ * @param {string} open - 开括号
+ * @param {string} close - 闭括号
+ * @returns {Array|null} 匹配结果
+ */
+const matchBrackets = (fileContent, startPos, open, close) => {
+  const regex = new RegExp(`\\${open}([^]*?)\\${close}[\\s+,]*(\\S)`);
+  const match = fileContent.slice(startPos).match(regex);
+  if (match) {
+    const leftCount = (match[1].match(new RegExp(`\\${open}`, "g")) || []).length;
+    const rightCount = (match[1].match(new RegExp(`\\${close}`, "g")) || []).length;
+    if (leftCount !== rightCount) {
+      return null; // 不匹配的括号
+    }
+  }
+  return match;
 };
 
 const catchCustomTEntries = fileContent => {
@@ -530,7 +636,7 @@ const genLangTree = (tree = {}, content = {}, type = "") => {
       tree[key] = type === "string" ? content[key] : content[key].replace(/\s/g, "");
     }
   }
-}
+};
 
 const traverseLangTree = (langTree, callback, prefix = "") => {
   for (const key in langTree) {
