@@ -625,124 +625,126 @@ class LangCheckRobot {
 
   async _handleFix() {
     printTitle(`补充翻译${this.globalFlag ? "与修正条目" : ""}`);
-    const writeList = [];
-    const needGlobalFixList = [];
-    const referredLang = this.referredLang;
-    const referredLangCode = getLangCode(referredLang);
-    const referredLangMap = this.#langCountryMap[referredLang];
-    const getFixedRaw = (entry, name) => {
-      if (this.#langFormatType === LANG_FORMAT_TYPE.nonObj) {
-        return name;
-      } else {
-        const tempVar = entry.var || {};
-        let varStr = Object.entries(tempVar).map(item => `${item[0]}: ${item[1]}`);
-        varStr = varStr.length > 0 ? `, { ${varStr.join(", ")} }` : "";
-        const quote = entry.raw.match(/["'`]{1}/)[0];
-        return `${entry.raw[0]}t(${quote}${name}${quote}${varStr})`;
-      }
-    };
-    const printAddedText = (lang, textList, api) => {
-      printInfo(
-        `文件 ${this._getLangFileName(lang)} 补充${api ? " " + api + " " : ""}翻译：${textList
-          .map(item => `\x1b[36m${item.replaceAll(/\n/g, "\\n")}\x1b[0m`)
-          .join(", ")}`,
-        "mage"
-      );
-    };
+    const writeList = []; // 需要写入的翻译文件列表
+    const needGlobalFixList = []; // 需要修正的全局条目列表
+    // 处理未定义的翻译条目
     if (this.#undefinedEntryList.length > 0) {
-      const valueKeyMap = Object.keys(referredLangMap).reduce((prev, cur) => ({ ...prev, [getIdByStr(referredLangMap[cur])]: cur }), {});
-      const newEntryInfo = { [referredLang]: {} };
-      const needTranslateList = [];
-      this.#undefinedEntryList.forEach(entry => {
-        if (valueKeyMap[entry.id]) {
-          const isFixed = needTranslateList.every(item => item.id !== entry.id);
-          if (isFixed) {
-            entry.name = valueKeyMap[entry.id];
-            entry.fixedRaw = getFixedRaw(entry, entry.name);
-          }
-          needGlobalFixList.push(entry);
-        } else if (validateLang(entry.text, getLangCode(referredLang))) {
-          valueKeyMap[entry.id] = entry.text;
-          needTranslateList.push(entry);
+      await this._processUndefinedEntries(writeList, needGlobalFixList);
+    }
+    // 补充缺失的翻译
+    const needTranslate = await this._fillMissingTranslations(writeList);
+    if (!needTranslate) {
+      printInfo("翻译齐全，无需补充！", "success");
+    }
+    // 修正全局条目
+    if (needGlobalFixList.length > 0 && this.rewriteFlag) {
+      this._applyGlobalFixes(needGlobalFixList);
+    }
+    // 写入翻译文件
+    if (writeList.length > 0) {
+      this._writeTranslationFiles(writeList);
+    }
+  }
+
+  async _processUndefinedEntries(writeList = [], needGlobalFixList = []) {
+    const referredLangCode = getLangCode(this.referredLang);
+    const referredLangMap = this.#langCountryMap[this.referredLang];
+    const valueKeyMap = Object.keys(referredLangMap).reduce((prev, cur) => ({ ...prev, [getIdByStr(referredLangMap[cur])]: cur }), {});
+    const newEntryInfo = { [this.referredLang]: {} };
+    const needTranslateList = [];
+    this.#undefinedEntryList.forEach(entry => {
+      if (valueKeyMap[entry.id]) {
+        const isFixed = needTranslateList.every(item => item.id !== entry.id);
+        if (isFixed) {
+          entry.name = valueKeyMap[entry.id];
+          entry.fixedRaw = this._getFixedRaw(entry, entry.name);
         }
-      });
-      let enNameList = needTranslateList.map(entry => entry.text);
-      const enLang = this.detectedLangList.find(item => getLangCode(item) === "en");
-      if (enNameList.length > 0) {
-        if (referredLangCode !== "en") {
-          newEntryInfo[enLang] = {};
-          const res = await translateTo({
-            source: referredLang,
-            target: "en",
-            sourceTextList: enNameList,
-            credentials: this.credentials
-          });
-          if (res.success) {
-            printAddedText(referredLang, enNameList);
-            printAddedText(enLang, res.data, res.api);
-            enNameList = res.data;
-          } else {
-            printInfo(res.message, "error");
-            return;
-          }
-        } else {
-          printAddedText(referredLang, enNameList);
-        }
-      }
-      const pcList = this._getPopularClassList();
-      const namePrefix = pcList[0]?.name ?? "";
-      needTranslateList.forEach((entry, index) => {
-        let id = getIdByStr(enNameList[index], true);
-        let entryName = "";
-        if (entry.name && !this.#referredEntryList.includes(entry.name)) {
-          entryName = entry.name;
-        } else {
-          if (entry.class && !entry.class.endsWith(LANG_ENTRY_SPLIT_SYMBOL[this.#langFormatType])) {
-            entry.class += LANG_ENTRY_SPLIT_SYMBOL[this.#langFormatType];
-          }
-          const entryPrefix = entry.class || namePrefix;
-          if (id.length > 40) {
-            let index = 0;
-            id = `${entry.path.match(/([a-zA-Z0-9]+)\./)[1]}Text`;
-            while (referredLangMap[entryPrefix + id + String(index).padStart(2, "0")]) {
-              index++;
-            }
-            id = id + String(index).padStart(2, "0");
-          }
-          entryName = entryPrefix + id;
-        }
-        entry.name = entryName;
-        entry.fixedRaw = getFixedRaw(entry, entryName);
         needGlobalFixList.push(entry);
-        referredLangMap[entryName] = entry.text;
-        this.detectedLangList.forEach(item => {
-          if (item === referredLang) {
-            newEntryInfo[item][entryName] = entry.text;
-          } else if (item === enLang) {
-            newEntryInfo[item][entryName] = enNameList[index];
-          } else {
-            this.#lackInfo[item] ??= [];
-            this.#lackInfo[item].push(entryName);
-          }
+      } else if (validateLang(entry.text, getLangCode(this.referredLang))) {
+        valueKeyMap[entry.id] = entry.text;
+        needTranslateList.push(entry);
+      }
+    });
+    let enNameList = needTranslateList.map(entry => entry.text);
+    const enLang = this.detectedLangList.find(item => getLangCode(item) === "en");
+    if (enNameList.length > 0) {
+      if (referredLangCode !== "en") {
+        newEntryInfo[enLang] = {};
+        const res = await translateTo({
+          source: this.referredLang,
+          target: "en",
+          sourceTextList: enNameList,
+          credentials: this.credentials
         });
-      });
-      for (const lang in newEntryInfo) {
-        const lackEntries = Object.keys(newEntryInfo[lang]);
-        if (lackEntries.length > 0) {
-          writeList.push({
-            name: lang,
-            value: lackEntries.map(entry => {
-              this.#langDictionary[entry] ??= {};
-              this.#langDictionary[entry][lang] = newEntryInfo[lang][entry];
-              return { name: entry, value: newEntryInfo[lang][entry] };
-            }),
-            lackEntries
-          });
+        if (res.success) {
+          this._printAddedText(this.referredLang, enNameList);
+          this._printAddedText(enLang, res.data, res.api);
+          enNameList = res.data;
+        } else {
+          printInfo(res.message, "error");
+          return;
         }
+      } else {
+        this._printAddedText(this.referredLang, enNameList);
       }
     }
+    const pcList = this._getPopularClassList();
+    const namePrefix = pcList[0]?.name ?? "";
+    needTranslateList.forEach((entry, index) => {
+      let id = getIdByStr(enNameList[index], true);
+      let entryName = "";
+      if (entry.name && !this.#referredEntryList.includes(entry.name)) {
+        entryName = entry.name;
+      } else {
+        if (entry.class && !entry.class.endsWith(LANG_ENTRY_SPLIT_SYMBOL[this.#langFormatType])) {
+          entry.class += LANG_ENTRY_SPLIT_SYMBOL[this.#langFormatType];
+        }
+        const entryPrefix = entry.class || namePrefix;
+        if (id.length > 40) {
+          let index = 0;
+          id = `${entry.path.match(/([a-zA-Z0-9]+)\./)[1]}Text`;
+          while (referredLangMap[entryPrefix + id + String(index).padStart(2, "0")]) {
+            index++;
+          }
+          id = id + String(index).padStart(2, "0");
+        }
+        entryName = entryPrefix + id;
+      }
+      entry.name = entryName;
+      entry.fixedRaw = this._getFixedRaw(entry, entryName);
+      needGlobalFixList.push(entry);
+      referredLangMap[entryName] = entry.text;
+      this.detectedLangList.forEach(item => {
+        if (item === this.referredLang) {
+          newEntryInfo[item][entryName] = entry.text;
+        } else if (item === enLang) {
+          newEntryInfo[item][entryName] = enNameList[index];
+        } else {
+          this.#lackInfo[item] ??= [];
+          this.#lackInfo[item].push(entryName);
+        }
+      });
+    });
+    for (const lang in newEntryInfo) {
+      const lackEntries = Object.keys(newEntryInfo[lang]);
+      if (lackEntries.length > 0) {
+        writeList.push({
+          name: lang,
+          value: lackEntries.map(entry => {
+            this.#langDictionary[entry] ??= {};
+            this.#langDictionary[entry][lang] = newEntryInfo[lang][entry];
+            return { name: entry, value: newEntryInfo[lang][entry] };
+          }),
+          lackEntries
+        });
+      }
+    }
+  }
+
+  async _fillMissingTranslations(writeList = []) {
     let needTranslate = false;
     for (const lang in this.#lackInfo) {
+      const referredLangMap = this.#langCountryMap[this.referredLang];
       const lackEntries = this.#lackInfo[lang].filter(entry => referredLangMap[entry]);
       if (lackEntries.length > 0) {
         needTranslate = true;
@@ -754,7 +756,7 @@ class LangCheckRobot {
           credentials: this.credentials
         });
         if (res.success) {
-          printAddedText(lang, res.data, res.api);
+          this._printAddedText(lang, res.data, res.api);
           writeList.push({
             name: lang,
             value: lackEntries.map((entry, index) => {
@@ -768,66 +770,90 @@ class LangCheckRobot {
         }
       }
     }
-    !needTranslate && printInfo("翻译齐全，无需补充！", "success");
-    if (needGlobalFixList.length > 0 && this.rewriteFlag) {
-      const globalFixMap = {};
-      needGlobalFixList.forEach(entry => {
-        if (!entry.fixedRaw) {
-          const fixedEntryId = needGlobalFixList.filter(item => item.id === entry.id && item.fixedRaw)[0]?.name || entry.text;
-          entry.name = fixedEntryId;
-          entry.fixedRaw = getFixedRaw(entry, fixedEntryId);
-          // entry.fixedRaw = needGlobalFixList.filter(item => item.id === entry.id && item.fixedRaw)[0]?.fixedRaw || entry.raw;
-        }
-        globalFixMap[entry.path] ??= [];
-        globalFixMap[entry.path].push(entry);
+
+    return needTranslate;
+  }
+
+  _applyGlobalFixes(needGlobalFixList = []) {
+    const globalFixMap = {};
+    needGlobalFixList.forEach(entry => {
+      if (!entry.fixedRaw) {
+        const fixedEntryId = needGlobalFixList.filter(item => item.id === entry.id && item.fixedRaw)[0]?.name || entry.text;
+        entry.name = fixedEntryId;
+        entry.fixedRaw = this._getFixedRaw(entry, fixedEntryId);
+        // entry.fixedRaw = needGlobalFixList.filter(item => item.id === entry.id && item.fixedRaw)[0]?.fixedRaw || entry.raw;
+      }
+      globalFixMap[entry.path] ??= [];
+      globalFixMap[entry.path].push(entry);
+    });
+    for (const fixPath in globalFixMap) {
+      let fileContent = fs.readFileSync(fixPath, "utf8");
+      const fixList = globalFixMap[fixPath];
+      fixList.forEach(item => {
+        fileContent = fileContent.replaceAll(item.raw, item.fixedRaw);
       });
-      for (const fixPath in globalFixMap) {
-        let fileContent = fs.readFileSync(fixPath, "utf8");
-        const fixList = globalFixMap[fixPath];
-        fixList.forEach(item => {
-          fileContent = fileContent.replaceAll(item.raw, item.fixedRaw);
+      fs.writeFileSync(fixPath, fileContent);
+      const fixedEntries = this._formatEntriesInTerminal(
+        fixList.map(item => `\x1b[31m${item.text}\x1b[0m -> \x1b[32m${item.name}\x1b[0m`),
+        false
+      );
+      printInfo(`文件 ${this._getRelativePath(fixPath)} 修正条目：${fixedEntries}`, "mage");
+    }
+  }
+
+  _writeTranslationFiles(writeList = []) {
+    let outputPath = path.join(this.exportDir, "fixResult");
+    deleteFolderRecursive(outputPath);
+    if (this.rewriteFlag) {
+      outputPath = this.langDir;
+    } else {
+      createFolderRecursive(outputPath);
+    }
+    writeList.forEach(item => {
+      let raw = "";
+      const filePath = path.join(outputPath, this._getLangFileName(item.name));
+      if (fs.existsSync(filePath)) {
+        raw = fs.readFileSync(filePath, "utf8");
+        raw = deleteEntries({ data: item.lackEntries, raw });
+        raw = addEntries({
+          raw,
+          data: item.value,
+          langType: this.#langFormatType,
+          indents: raw.length >= this.langFileMinLength ? this.#langIndents[item.name] : this.#langIndents[this.referredLang],
+          skipLineNum: this.#langFileExtraInfo[item.name]?.innerVar?.match(/\n/g)?.length ?? 0
         });
-        fs.writeFileSync(fixPath, fileContent);
-        const fixedEntries = this._formatEntriesInTerminal(
-          fixList.map(item => `\x1b[31m${item.text}\x1b[0m -> \x1b[32m${item.name}\x1b[0m`),
-          false
-        );
-        printInfo(`文件 ${this._getRelativePath(fixPath)} 修正条目：${fixedEntries}`, "mage");
-      }
-    }
-    if (writeList.length > 0) {
-      let outputPath = path.join(this.exportDir, "fixResult");
-      deleteFolderRecursive(outputPath);
-      if (this.rewriteFlag) {
-        outputPath = this.langDir;
       } else {
-        createFolderRecursive(outputPath);
+        raw = replaceAllEntries({
+          data: [{ value: item.value }],
+          langType: this.#langFormatType,
+          indents: this.#langIndents[item.name] || this.#langIndents[this.referredLang],
+          extraInfo: this.#langFileExtraInfo[item.name]
+        });
       }
-      writeList.forEach(item => {
-        let raw = "";
-        const filePath = path.join(outputPath, this._getLangFileName(item.name));
-        if (fs.existsSync(filePath)) {
-          raw = fs.readFileSync(filePath, "utf8");
-          raw = deleteEntries({ data: item.lackEntries, raw });
-          raw = addEntries({
-            raw,
-            data: item.value,
-            langType: this.#langFormatType,
-            indents: raw.length >= this.langFileMinLength ? this.#langIndents[item.name] : this.#langIndents[referredLang],
-            skipLineNum: this.#langFileExtraInfo[item.name]?.innerVar?.match(/\n/g)?.length ?? 0
-          });
-        } else {
-          raw = replaceAllEntries({
-            data: [{ value: item.value }],
-            langType: this.#langFormatType,
-            indents: this.#langIndents[item.name] || this.#langIndents[referredLang],
-            extraInfo: this.#langFileExtraInfo[item.name]
-          });
-        }
-        fs.writeFileSync(filePath, raw);
-      });
-      printInfo(`修复结果已导出到 ${outputPath} 目录`, "rocket");
+      fs.writeFileSync(filePath, raw);
+    });
+    printInfo(`修复结果已导出到 ${outputPath} 目录`, "rocket");
+  }
+
+  _getFixedRaw(entry, name) {
+    if (this.#langFormatType === LANG_FORMAT_TYPE.nonObj) {
+      return name;
+    } else {
+      const tempVar = entry.var || {};
+      const varList = Object.entries(tempVar).map(item => `${item[0]}: ${item[1]}`);
+      const varStr = varList.length > 0 ? `, { ${varList.join(", ")} }` : "";
+      const quote = entry.raw.match(/["'`]{1}/)[0];
+      return `${entry.raw[0]}t(${quote}${name}${quote}${varStr})`;
     }
+  }
+
+  _printAddedText(lang, textList, api) {
+    printInfo(
+      `文件 ${this._getLangFileName(lang)} 补充${api ? " " + api + " " : ""}翻译：${textList
+        .map(item => `\x1b[36m${item.replaceAll(/\n/g, "\\n")}\x1b[0m`)
+        .join(", ")}`,
+      "mage"
+    );
   }
 
   _genEntryClassTree(entry = "") {
