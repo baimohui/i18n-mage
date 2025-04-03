@@ -636,13 +636,13 @@ class LangCheckRobot {
     if (!needTranslate) {
       printInfo("翻译齐全，无需补充！", "success");
     }
-    // 修正全局条目
-    if (needGlobalFixList.length > 0 && this.rewriteFlag) {
-      this._applyGlobalFixes(needGlobalFixList);
-    }
     // 写入翻译文件
     if (writeList.length > 0) {
       this._writeTranslationFiles(writeList);
+    }
+    // 修正全局条目
+    if (needGlobalFixList.length > 0 && this.rewriteFlag) {
+      this._applyGlobalFixes(needGlobalFixList);
     }
   }
 
@@ -781,7 +781,6 @@ class LangCheckRobot {
         const fixedEntryId = needGlobalFixList.filter(item => item.id === entry.id && item.fixedRaw)[0]?.name || entry.text;
         entry.name = fixedEntryId;
         entry.fixedRaw = this._getFixedRaw(entry, fixedEntryId);
-        // entry.fixedRaw = needGlobalFixList.filter(item => item.id === entry.id && item.fixedRaw)[0]?.fixedRaw || entry.raw;
       }
       globalFixMap[entry.path] ??= [];
       globalFixMap[entry.path].push(entry);

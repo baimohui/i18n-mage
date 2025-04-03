@@ -208,6 +208,14 @@
         }
       },
       {
+        "command": "i18nMage.editValue",
+        "title": "编辑词条值",
+        "icon": {
+          "light": "./images/edit-light.svg",
+          "dark": "./images/edit-dark.svg"
+        }
+      },
+      {
         "command": "extension.sayHello",
         "title": "Hello，小茗同学"
       },
@@ -302,7 +310,12 @@
         {
           "command": "i18nMage.copyValue",
           "when": "viewItem == entryTranslationInCurFile",
-          "group": "inline"
+          "group": "inline@1"
+        },
+        {
+          "command": "i18nMage.editValue",
+          "when": "viewItem == entryTranslationInCurFile",
+          "group": "inline@2"
         }
       ],
       "editor/context": [

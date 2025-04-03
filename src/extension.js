@@ -102,6 +102,19 @@ exports.activate = async function (context) {
     await vscode.env.clipboard.writeText(String(e.description));
     vscode.window.showInformationMessage(`已复制：${e.description}`);
   });
+  vscode.commands.registerCommand("i18nMage.editValue", async e => {
+    if (!e || !e.description) return;
+    const newLabel = await vscode.window.showInputBox({
+      prompt: "编辑文本",
+      value: e.description // 默认值为当前文本
+    });
+    if (newLabel) {
+      e.description = newLabel; // 更新 TreeItem 文本
+      treeInstance.refresh(); // 刷新 TreeView
+      // await vscode.env.clipboard.writeText(String(e.description));
+      vscode.window.showInformationMessage(`已写入：${newLabel}`);
+    }
+  });
   vscode.commands.registerCommand("i18nMage.openFileAtPosition", async e => {
     const editor = vscode.window.activeTextEditor;
     if (!editor) {
@@ -110,9 +123,9 @@ exports.activate = async function (context) {
     }
     const resourceUri = editor.document.uri;
     if (e.usedInfo) {
-      const matchedPath = Object.keys(e.usedInfo).find(filePath => vscode.Uri.file(filePath).fsPath === resourceUri.fsPath)
+      const matchedPath = Object.keys(e.usedInfo).find(filePath => vscode.Uri.file(filePath).fsPath === resourceUri.fsPath);
       const document = await vscode.workspace.openTextDocument(resourceUri);
-      const pos = document.positionAt(e.usedInfo[matchedPath][0])
+      const pos = document.positionAt(e.usedInfo[matchedPath][0]);
       const selection = new vscode.Range(pos, pos.translate(0, e.label.length));
       vscode.window.showTextDocument(resourceUri, { selection });
     }
