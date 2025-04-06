@@ -1,6 +1,6 @@
 const vscode = require("vscode");
 const LangCheckRobot = require("./langCheckRobot");
-const { catchTEntries } = require("./utils/regex");
+const { catchTEntries, unescapeEntryName } = require("./utils/regex");
 const { isPathInsideDirectory } = require("./utils/fs");
 const { getLangText } = require("./utils/const");
 
@@ -57,7 +57,7 @@ class treeProvider {
     const unusedEntries = [],
       usedEntries = [];
     for (let entry in dictionary) {
-      entry = entry.replaceAll("\\.", ".");
+      entry = unescapeEntryName(entry);
       if (!this.langInfo.used[entry]) {
         unusedEntries.push(entry);
       } else {
@@ -202,7 +202,7 @@ class treeProvider {
       }));
     } else if (element.level === 2) {
       return element.data.map(item => ({
-        label: item[0],
+        label: unescapeEntryName(item[0]),
         description: item[1],
         level: 3,
         key: element.key,
@@ -325,7 +325,7 @@ class treeProvider {
           const stack = (element.stack || []).concat(item[0]);
           return {
             label: item[0],
-            description: typeof item[1] === "string" ? this.entryReferredTextMap[item[1].replaceAll("\\.", ".")] : false,
+            description: typeof item[1] === "string" ? this.entryReferredTextMap[unescapeEntryName(item[1])] : false,
             root: element.root,
             id: this.genId(element, item[0]),
             stack,

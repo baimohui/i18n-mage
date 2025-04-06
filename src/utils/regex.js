@@ -62,7 +62,8 @@ const getLangFileInfo = str => {
       langObj = eval(`(${str})`);
     }
     if (getNestedValues(langObj).some(item => typeof item !== "string")) return null;
-    content = formatType === LANG_FORMAT_TYPE.obj ? langObj : flattenNestedObj(langObj);
+    // content = formatType === LANG_FORMAT_TYPE.obj ? langObj : flattenNestedObj(langObj);
+    content = flattenNestedObj(langObj);
     return {
       formatType,
       indents,
@@ -93,7 +94,7 @@ const flattenNestedObj = (obj, res = {}, className = "") => {
   for (const key in obj) {
     if (key.trim() === "") break;
     const value = obj[key];
-    const keyName = className ? `${className}${LANG_ENTRY_SPLIT_SYMBOL[LANG_FORMAT_TYPE.nestedObj]}${key}` : key;
+    const keyName = className ? `${className}.${escapeEntryName(key)}` : escapeEntryName(key);
     if (typeof obj[key] === "object") {
       flattenNestedObj(value, res, keyName);
     } else {
@@ -686,6 +687,130 @@ const setEntryToLangTree = (langTree, key, value) => {
   return res;
 };
 
+const escapeEntryName = str => {
+  return str
+    .replace(/\\/g, "\\\\") // 先转义反斜杠（\ -> \\）
+    .replace(/\./g, "\\."); // 再转义点（. -> \.）
+};
+
+const unescapeEntryName = str => {
+  return str
+    .replace(/\\\./g, ".") // 先还原点（\. -> .）
+    .replace(/\\\\/g, "\\"); // 再还原反斜杠（\\ -> \）
+};
+
+const parseEscapedPath = path => {
+  const result = [];
+  let current = "";
+  let escaping = false;
+
+  for (let i = 0; i < path.length; i++) {
+    const char = path[i];
+
+    if (escaping) {
+      // 处理转义字符
+      current += char;
+      escaping = false;
+    } else if (char === "\\") {
+      escaping = true;
+    } else if (char === ".") {
+      // 遇到点，表示分隔（如果没有被转义）
+      result.push(current);
+      current = "";
+    } else {
+      current += char;
+    }
+  }
+
+  if (escaping) {
+    throw new Error("Invalid escape sequence at end of string");
+  }
+
+  if (current.length > 0) {
+    result.push(current);
+  }
+
+  return result;
+};
+
+const getValueByEscapedEntryName = (langTree, escapedPath) => {
+  const pathParts = parseEscapedPath(escapedPath);
+  let current = langTree;
+  for (const part of pathParts) {
+    if (current && Object.prototype.hasOwnProperty.call(current, part)) {
+      current = current[part];
+    } else {
+      return undefined;
+    }
+  }
+  return current;
+};
+
+function getValueByAmbiguousEntryName(obj, str) {
+  // 输入验证：确保 obj 是对象且不为 null
+  if (typeof obj !== 'object' || obj === null) {
+      return undefined;
+  }
+
+  // 将字符串按 '.' 分割成数组
+  const parts = str.split('.');
+  const m = parts.length;
+
+  // 处理空字符串或无 '.' 的情况
+  if (m === 0) {
+      return undefined;
+  }
+
+  // 计算所有可能的分割组合数（2^(m-1)）
+  const numCombinations = 1 << (m - 1);
+
+  // 遍历所有可能的分割方式
+  for (let i = 0; i < numCombinations; i++) {
+      const split = buildSplit(parts, i, m);
+      const value = accessPath(obj, split);
+      if (value !== undefined) {
+          return value; // 返回第一个找到的有效值
+      }
+  }
+
+  // 如果没有找到有效值，返回 undefined
+  return undefined;
+}
+
+// 辅助函数：根据二进制掩码生成分割方式
+function buildSplit(parts, i, m) {
+  const split = [];
+  let current = parts[0]; // 从第一个部分开始
+
+  // 遍历每个 '.' 的位置
+  for (let j = 0; j < m - 1; j++) {
+      if ((i & (1 << j)) !== 0) {
+          // 如果当前位为 1，合并当前部分和下一个部分
+          current += '.' + parts[j + 1];
+      } else {
+          // 如果当前位为 0，分隔当前部分，开启新部分
+          split.push(current);
+          current = parts[j + 1];
+      }
+  }
+  split.push(current); // 添加最后一个部分
+  return split;
+}
+
+// 辅助函数：按照属性路径访问对象
+function accessPath(obj, path) {
+  let current = obj;
+  for (const key of path) {
+      // 检查当前节点是否为对象且包含该属性
+      if (current && typeof current === 'object' && key in current) {
+          current = current[key];
+      } else {
+          return undefined; // 路径无效，返回 undefined
+      }
+  }
+  return current; // 返回最终值
+}
+
 module.exports = {
   getCaseType,
   escapeRegExp,
@@ -700,5 +825,9 @@ module.exports = {
   genLangTree,
   traverseLangTree,
   getEntryFromLangTree,
-  setEntryToLangTree
+  setEntryToLangTree,
+  escapeEntryName,
+  unescapeEntryName,
+  getValueByEscapedEntryName,
+  getValueByAmbiguousEntryName
 };

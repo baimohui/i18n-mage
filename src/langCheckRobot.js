@@ -11,6 +11,8 @@ const {
   getIdByStr,
   validateLang,
   replaceAllEntries,
+  escapeEntryName,
+  unescapeEntryName,
   addEntries,
   catchAllEntries,
   deleteEntries
@@ -237,10 +239,6 @@ class LangCheckRobot {
     function mergeTreesToTwoObjectsSemantic(trees, labels) {
       const structure = {}; // 对象A
       const lookup = {}; // 对象B
-      // 将路径数组编码为语义化 id，转义键中的 "\" 和 "."
-      function encodePath(path) {
-        return path.map(key => key.replace(/\\/g, "\\\\").replace(/\./g, "\\.")).join(".");
-      }
       // 在 structure 中按路径设置值
       function setAtPath(obj, path, value) {
         let cur = obj;
@@ -255,7 +253,8 @@ class LangCheckRobot {
       }
       function traverse(node, path, label) {
         if (typeof node === "string") {
-          const id = encodePath(path);
+          // 将路径数组编码为语义化 id，转义键中的 "\" 和 "."
+          const id = path.map(key => escapeEntryName(key)).join(".");
           setAtPath(structure, path, id);
           if (!Object.hasOwn(lookup, id)) {
             lookup[id] = {};
@@ -282,7 +281,7 @@ class LangCheckRobot {
         this.referredLang = cnName || enName || this.detectedLangList[0];
       }
       this.#referredEntryList = [...new Set(this.#referredEntryList.concat(Object.keys(this.#langCountryMap[this.referredLang])))];
-      Object.keys(this.#langDictionary).forEach(entry => this._genEntryClassTree(entry.replaceAll("\\.", ".")));
+      Object.keys(this.#langDictionary).forEach(entry => this._genEntryClassTree(unescapeEntryName(entry)));
     }
   }
 
@@ -293,9 +292,7 @@ class LangCheckRobot {
       const translation = this.#langCountryMap[lang];
       const missingTranslations = [];
       const nullTranslations = [];
-      const pivotEntryList = this.syncBasedOnReferredEntries
-        ? this.#referredEntryList
-        : Object.keys(this.#langDictionary).map(entry => entry.replaceAll("\\.", "."));
+      const pivotEntryList = this.syncBasedOnReferredEntries ? this.#referredEntryList : Object.keys(this.#langDictionary);
       pivotEntryList.forEach(entry => {
         if (!Object.hasOwn(translation, entry)) {
           missingTranslations.push(entry);
@@ -800,6 +797,15 @@ class LangCheckRobot {
     }
   }
 
+  _updateEntryValue(name, lang, value) {
+    if (this.#langDictionary[name]) {
+      this.#langDictionary[name][lang] = value;
+    } else {
+      this.#langDictionary[name] = { [lang]: value };
+    }
+    this.#langCountryMap[lang][name] = value;
+  }
+
   _writeTranslationFiles(writeList = []) {
     let outputPath = path.join(this.exportDir, "fixResult");
     deleteFolderRecursive(outputPath);
@@ -905,7 +911,7 @@ class LangCheckRobot {
 
   _checkUsage() {
     printTitle("检测条目是否使用");
-    const unusedEntryList = this.#referredEntryList.filter(entry => !this.#usedEntryMap[entry]);
+    const unusedEntryList = this.#referredEntryList.map(name => unescapeEntryName(name)).filter(entry => !this.#usedEntryMap[entry]);
     if (unusedEntryList.length > 0) {
       printInfo(`存在疑似未使用条目：${this._formatEntriesInTerminal(unusedEntryList)}`, "puzzle");
     }
@@ -923,7 +929,7 @@ class LangCheckRobot {
     const filePaths = await this._readAllFiles(this.rootPath);
     const pathLevelCountMap = {};
     let maxNum = 0;
-    const totalEntryList = Object.keys(this.#langDictionary);
+    const totalEntryList = Object.keys(this.#langDictionary).map(key => unescapeEntryName(key));
     for (const filePath of filePaths) {
       if (this.ignoredFileList.some(ifp => path.resolve(filePath) === path.resolve(path.join(this.rootPath, ifp)))) continue;
       const fileContent = await fs.readFileSync(filePath, "utf8");
@@ -1013,7 +1019,7 @@ class LangCheckRobot {
       }
       if (this.globalFlag) {
         tableInfo["闲置条目"] = this._genOverviewTableRow(
-          lang => getEntryTotal(lang).filter(entry => !this.#usedEntryMap[entry.replaceAll("\\.", ".")]).length
+          lang => getEntryTotal(lang).filter(entry => !this.#usedEntryMap[unescapeEntryName(entry)]).length
         );
       }
     }
