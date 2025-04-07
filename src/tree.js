@@ -1,6 +1,6 @@
 const vscode = require("vscode");
 const LangCheckRobot = require("./langCheckRobot");
-const { catchTEntries, unescapeEntryName } = require("./utils/regex");
+const { catchTEntries, unescapeEntryName, getValueByAmbiguousEntryName } = require("./utils/regex");
 const { isPathInsideDirectory } = require("./utils/fs");
 const { getLangText } = require("./utils/const");
 
@@ -153,18 +153,21 @@ class treeProvider {
         }
       ];
     } else if (element.level === 1) {
-      return this[element.type === "defined" ? "definedEntriesInCurrentFile" : "undefinedEntriesInCurrentFile"].map(entry => ({
-        label: entry.text,
-        description: this.entryReferredTextMap[entry.text] ?? false,
-        collapsibleState: vscode.TreeItemCollapsibleState[element.type === "defined" ? "Collapsed" : "None"],
-        level: 2,
-        contextValue: element.type === "defined" ? "definedEntryInCurFile" : "undefinedEntryInCurFile",
-        usedInfo: this[element.type === "defined" ? "usedEntryMap" : "undefinedEntryMap"][entry.text],
-        id: this.genId(element, entry.id),
-        root: element.root
-      }));
+      return this[element.type === "defined" ? "definedEntriesInCurrentFile" : "undefinedEntriesInCurrentFile"].map(entry => {
+        const entryInfo = this.dictionary[getValueByAmbiguousEntryName(this.tree, entry.text)];
+        return {
+          label: entry.text,
+          description: entryInfo && entryInfo[this.#robot.referredLang],
+          collapsibleState: vscode.TreeItemCollapsibleState[element.type === "defined" ? "Collapsed" : "None"],
+          level: 2,
+          contextValue: element.type === "defined" ? "definedEntryInCurFile" : "undefinedEntryInCurFile",
+          usedInfo: this[element.type === "defined" ? "usedEntryMap" : "undefinedEntryMap"][entry.text],
+          id: this.genId(element, entry.id),
+          root: element.root
+        };
+      });
     } else if (element.level === 2) {
-      const entryInfo = this.dictionary[element.label];
+      const entryInfo = this.dictionary[getValueByAmbiguousEntryName(this.tree, element.label)];
       return this.langInfo.langList.map(lang => ({
         label: lang,
         description: entryInfo[lang] ?? false,
@@ -247,11 +250,12 @@ class treeProvider {
       } else if (element.type === "used") {
         return this.entryUsageInfo.used.sort().map(item => {
           const usedNum = Object.values(this.usedEntryMap[item]).flat().length;
+          const entryInfo = this.dictionary[getValueByAmbiguousEntryName(this.tree, item)];
           return {
             key: item,
             // label: `${item} (${usedNum})`,
             label: item,
-            description: `<${usedNum}>${this.entryReferredTextMap[item]}`,
+            description: `<${usedNum}>${entryInfo[this.#robot.referredLang]}`,
             level: 2,
             type: element.type,
             root: element.root,
@@ -260,14 +264,17 @@ class treeProvider {
           };
         });
       } else {
-        return this.entryUsageInfo.unused.sort().map(item => ({
-          label: item,
-          description: this.entryReferredTextMap[item],
-          level: 2,
-          root: element.root,
-          id: this.genId(element, item),
-          collapsibleState: vscode.TreeItemCollapsibleState.None
-        }));
+        return this.entryUsageInfo.unused.sort().map(item => {
+          const entryInfo = this.dictionary[getValueByAmbiguousEntryName(this.tree, item)];
+          return {
+            label: item,
+            description: entryInfo[this.#robot.referredLang],
+            level: 2,
+            root: element.root,
+            id: this.genId(element, item),
+            collapsibleState: vscode.TreeItemCollapsibleState.None
+          }
+        });
       }
     } else if (element.level === 2) {
       const entryUsedInfo = this[element.type === "used" ? "usedEntryMap" : "undefinedEntryMap"][element.key];
@@ -336,6 +343,19 @@ class treeProvider {
     }
   }
   onActiveEditorChanged() {
+    this.checkUsedInfo();
+  }
+  async onDocumentChanged(content) {
+    if (isPathInsideDirectory(this.#robot.langDir, content.fileName)) {
+      console.log("isPathInsideDirectory");
+    }
+    // TODO 添加防抖处理
+    this.#robot.setOptions({ task: "check", globalFlag: true, clearCache: false });
+    await this.#robot.check();
+    this.checkUsedInfo();
+    this.refresh();
+  }
+  checkUsedInfo() {
     this.definedEntriesInCurrentFile = [];
     this.undefinedEntriesInCurrentFile = [];
     const editor = vscode.window.activeTextEditor;
@@ -344,21 +364,23 @@ class treeProvider {
       this.usedEntries = catchTEntries(text);
       const usedEntryMap = this.#robot.langDetail.used || {};
       this.usedEntries.forEach(entry => {
-        if (usedEntryMap[entry.text]) {
+        if (this.undefinedEntryMap[entry.text]) {
+          if (this.undefinedEntriesInCurrentFile.every(item => item.text !== entry.text)) {
+            this.undefinedEntriesInCurrentFile.push(entry);
+          }
+        } else if (usedEntryMap[entry.text]) {
           if (this.definedEntriesInCurrentFile.every(item => item.text !== entry.text)) {
             this.definedEntriesInCurrentFile.push(entry);
           }
-        } else if (this.undefinedEntriesInCurrentFile.every(item => item.text !== entry.text)) {
-          this.undefinedEntriesInCurrentFile.push(entry);
+        } else {
+          const matchList = Object.keys(usedEntryMap).filter(item => entry.regex.test(item));
+          matchList.forEach(matchItem => {
+            if (this.definedEntriesInCurrentFile.every(item => item.text !== matchItem)) {
+              this.definedEntriesInCurrentFile.push({ ...entry, text: matchItem, id: matchItem });
+            }
+          });
         }
       });
-      this.refresh();
-    }
-  }
-  async onDocumentChanged(content) {
-    if (isPathInsideDirectory(this.#robot.langDir, content.fileName)) {
-      this.#robot.setOptions({ task: "check", globalFlag: false, clearCache: false });
-      await this.#robot.check();
       this.refresh();
     }
   }

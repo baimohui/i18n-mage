@@ -746,19 +746,19 @@ const getValueByEscapedEntryName = (langTree, escapedPath) => {
   return current;
 };
 
-function getValueByAmbiguousEntryName(obj, str) {
+function getValueByAmbiguousEntryName(langTree, ambiguousPath) {
   // 输入验证：确保 obj 是对象且不为 null
-  if (typeof obj !== 'object' || obj === null) {
-      return undefined;
+  if (typeof langTree !== "object" || langTree === null) {
+    return undefined;
   }
 
   // 将字符串按 '.' 分割成数组
-  const parts = str.split('.');
+  const parts = ambiguousPath.split(".");
   const m = parts.length;
 
   // 处理空字符串或无 '.' 的情况
   if (m === 0) {
-      return undefined;
+    return undefined;
   }
 
   // 计算所有可能的分割组合数（2^(m-1)）
@@ -766,11 +766,11 @@ function getValueByAmbiguousEntryName(obj, str) {
 
   // 遍历所有可能的分割方式
   for (let i = 0; i < numCombinations; i++) {
-      const split = buildSplit(parts, i, m);
-      const value = accessPath(obj, split);
-      if (value !== undefined) {
-          return value; // 返回第一个找到的有效值
-      }
+    const split = buildSplit(parts, i, m);
+    const value = accessPath(langTree, split);
+    if (value !== undefined) {
+      return value; // 返回第一个找到的有效值
+    }
   }
 
   // 如果没有找到有效值，返回 undefined
@@ -784,14 +784,14 @@ function buildSplit(parts, i, m) {
 
   // 遍历每个 '.' 的位置
   for (let j = 0; j < m - 1; j++) {
-      if ((i & (1 << j)) !== 0) {
-          // 如果当前位为 1，合并当前部分和下一个部分
-          current += '.' + parts[j + 1];
-      } else {
-          // 如果当前位为 0，分隔当前部分，开启新部分
-          split.push(current);
-          current = parts[j + 1];
-      }
+    if ((i & (1 << j)) !== 0) {
+      // 如果当前位为 1，合并当前部分和下一个部分
+      current += "." + parts[j + 1];
+    } else {
+      // 如果当前位为 0，分隔当前部分，开启新部分
+      split.push(current);
+      current = parts[j + 1];
+    }
   }
   split.push(current); // 添加最后一个部分
   return split;
@@ -801,12 +801,12 @@ function buildSplit(parts, i, m) {
 function accessPath(obj, path) {
   let current = obj;
   for (const key of path) {
-      // 检查当前节点是否为对象且包含该属性
-      if (current && typeof current === 'object' && key in current) {
-          current = current[key];
-      } else {
-          return undefined; // 路径无效，返回 undefined
-      }
+    // 检查当前节点是否为对象且包含该属性
+    if (current && typeof current === "object" && key in current) {
+      current = current[key];
+    } else {
+      return undefined; // 路径无效，返回 undefined
+    }
   }
   return current; // 返回最终值
 }
