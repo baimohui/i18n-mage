@@ -49,9 +49,6 @@ class treeProvider {
   get undefinedEntryMap() {
     return this.langInfo.undefined || {};
   }
-  get entryReferredTextMap() {
-    return this.langInfo.countryMap[this.#robot.referredLang] || {};
-  }
   get entryUsageInfo() {
     const dictionary = this.langInfo.dictionary;
     const unusedEntries = [],
@@ -332,7 +329,7 @@ class treeProvider {
           const stack = (element.stack || []).concat(item[0]);
           return {
             label: item[0],
-            description: typeof item[1] === "string" ? this.entryReferredTextMap[unescapeEntryName(item[1])] : false,
+            description: typeof item[1] === "string" ? this.dictionary[item[1]][this.#robot.referredLang] : false,
             root: element.root,
             id: this.genId(element, item[0]),
             stack,
@@ -417,8 +414,8 @@ class treeProvider {
         commonEntries.push(item);
       }
     });
-    const lackEntries = (this.langInfo.lack?.[lang] || []).map(item => [item, this.entryReferredTextMap[item]]);
-    const nullEntries = nullEntryNameList.map(item => [item, this.entryReferredTextMap[item]]);
+    const lackEntries = (this.langInfo.lack?.[lang] || []).map(item => [item, this.dictionary[item][this.#robot.referredLang]]);
+    const nullEntries = nullEntryNameList.map(item => [item, this.dictionary[item][this.#robot.referredLang]]);
     const res = [
       { label: "正常", num: commonEntries.length, data: commonEntries, type: "common" },
       { label: "空值", num: nullEntries.length, data: nullEntries, type: "null" },
