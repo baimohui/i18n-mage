@@ -612,15 +612,25 @@ const matchTEntryPart = (fileContent, startPos, symbolStr) => {
  * @param {string} close - 闭括号
  * @returns {Array|null} 匹配结果
  */
-const matchBrackets = (fileContent, startPos, open, close) => {
-  const regex = new RegExp(`\\${open}([^]*?)\\${close}[\\s+,]*(\\S)`);
-  const match = fileContent.slice(startPos).match(regex);
-  if (match) {
-    const leftCount = (match[1].match(new RegExp(`\\${open}`, "g")) || []).length;
-    const rightCount = (match[1].match(new RegExp(`\\${close}`, "g")) || []).length;
-    if (leftCount !== rightCount) {
-      return null; // 不匹配的括号
+const matchBrackets = (fileContent, startPos, open = "{", close = "}") => {
+  let match = fileContent.slice(startPos).match(new RegExp(`(${open}[^]*?${close})\\s*(\\))`));
+  if (!match) return null;
+  const countBrackets = (str, char) => {
+    let count = 0;
+    for (let i = 0; i < str.length; i++) {
+      if (str[i] === char) count++;
     }
+    return count;
+  };
+  let leftBracketLen = countBrackets(match[1], open);
+  let rightBracketLen = countBrackets(match[1], close);
+  // 只在括号不匹配的情况下进入循环
+  while (leftBracketLen !== rightBracketLen) {
+    const bracketReg = new RegExp(`(${open}[^]*?{${open.repeat(leftBracketLen)}}[^]*?${close})\\s*(\\))`);
+    match = fileContent.slice(startPos).match(bracketReg);
+    if (!match) return null;
+    leftBracketLen = countBrackets(match[1], open);
+    rightBracketLen = countBrackets(match[1], close);
   }
   return match;
 };
