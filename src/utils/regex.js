@@ -181,6 +181,47 @@ const createSingleEntryObj = ({ name, value, indents, langType }) => {
   return blockContent;
 };
 
+function formatObjectToString(obj, fileType = "json", indent = "  ", extraInfo = {}) {
+  const { prefix = "", suffix = "", middleVar = "" } = extraInfo;
+  // 检查属性名是否需要加引号（JS 格式下）
+  function needsQuotes(key) {
+    // 合法的 JS 标识符正则表达式
+    const validIdentifier = /^[a-zA-Z_$][a-zA-Z0-9_$]*$/;
+    return !validIdentifier.test(key);
+  }
+  // 格式化单层对象
+  function formatObject(obj, level = 0) {
+    let result = [];
+    const currentIndent = indent.repeat(level);
+    for (const [key, value] of Object.entries(obj)) {
+      // 根据文件类型和 key 的合法性决定是否加引号
+      const keyStr = fileType === "json" || (fileType === "js" && needsQuotes(key)) ? `"${key}"` : key;
+      if (typeof value === "string") {
+        result.push(`${currentIndent}${keyStr}: "${formatEntryValue(value)}"`);
+      } else if (typeof value === "object" && value !== null) {
+        result.push(`${currentIndent}${keyStr}: {${newlineCharacter}${formatObject(value, level + 1)}${newlineCharacter}${currentIndent}}`);
+      }
+    }
+    return result.join(`,${newlineCharacter}`);
+  }
+
+  // 构建最终字符串
+  let output = [];
+  output.push(prefix ? `${prefix}{` : "{");
+  if (fileType === "js" && middleVar) {
+    output.push(`${indent}${middleVar}`);
+  }
+  const formattedObj = formatObject(obj, 1);
+  if (formattedObj) {
+    output.push(formattedObj);
+  }
+  output.push("}");
+  if (suffix) {
+    output.push(suffix);
+  }
+  return output.join("\n");
+}
+
 /**
  * 替换所有条目
  * @param {Object} params - 参数对象
@@ -746,6 +787,19 @@ const getValueByEscapedEntryName = (langTree, escapedPath) => {
   return current;
 };
 
+const setValueByEscapedEntryName = (langTree, escapedPath, value) => {
+  const pathParts = parseEscapedPath(escapedPath);
+  let current = langTree;
+  for (let i = 0; i < pathParts.length - 1; i++) {
+    const part = pathParts[i];
+    if (!current[part]) {
+      current[part] = {}; // 创建嵌套对象
+    }
+    current = current[part];
+  }
+  current[pathParts[pathParts.length - 1]] = value; // 设置最终值
+};
+
 function getValueByAmbiguousEntryName(langTree, ambiguousPath) {
   // 输入验证：确保 obj 是对象且不为 null
   if (typeof langTree !== "object" || langTree === null) {
@@ -828,6 +882,8 @@ module.exports = {
   setEntryToLangTree,
   escapeEntryName,
   unescapeEntryName,
+  formatObjectToString,
   getValueByEscapedEntryName,
+  setValueByEscapedEntryName,
   getValueByAmbiguousEntryName
 };

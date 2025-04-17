@@ -13,6 +13,8 @@ const {
   replaceAllEntries,
   escapeEntryName,
   unescapeEntryName,
+  setValueByEscapedEntryName,
+  formatObjectToString,
   addEntries,
   catchAllEntries,
   deleteEntries
@@ -622,32 +624,31 @@ class LangCheckRobot {
 
   async _handleFix() {
     printTitle(`补充翻译${this.globalFlag ? "与修正条目" : ""}`);
-    const writeList = []; // 需要写入的翻译文件列表
     const needGlobalFixList = []; // 需要修正的全局条目列表
     // 处理未定义的翻译条目
     if (this.#undefinedEntryList.length > 0) {
-      await this._processUndefinedEntries(writeList, needGlobalFixList);
+      await this._processUndefinedEntries(needGlobalFixList);
     }
     // 补充缺失的翻译
-    const needTranslate = await this._fillMissingTranslations(writeList);
+    const needTranslate = await this._fillMissingTranslations();
     if (!needTranslate) {
       printInfo("翻译齐全，无需补充！", "success");
     }
     // 写入翻译文件
-    if (writeList.length > 0) {
-      this._writeTranslationFiles(writeList);
-    }
+    Object.keys(this.#lackInfo).forEach(lang => {
+      // this._rewriteTranslationFile(lang, this.#langCountryMap[lang], this.#langFormatType, this.#langIndents[lang], this.#langFileExtraInfo[lang]);
+      this._rewriteTranslationFile(lang, this.#langCountryMap[lang], "js", this.#langIndents[lang], this.#langFileExtraInfo[lang]);
+    });
     // 修正全局条目
     if (needGlobalFixList.length > 0 && this.rewriteFlag) {
       this._applyGlobalFixes(needGlobalFixList);
     }
   }
 
-  async _processUndefinedEntries(writeList = [], needGlobalFixList = []) {
+  async _processUndefinedEntries(needGlobalFixList = []) {
     const referredLangCode = getLangCode(this.referredLang);
     const referredLangMap = this.#langCountryMap[this.referredLang];
     const valueKeyMap = Object.keys(referredLangMap).reduce((prev, cur) => ({ ...prev, [getIdByStr(referredLangMap[cur])]: cur }), {});
-    const newEntryInfo = { [this.referredLang]: {} };
     const needTranslateList = [];
     this.#undefinedEntryList.forEach(entry => {
       if (valueKeyMap[entry.id]) {
@@ -666,7 +667,6 @@ class LangCheckRobot {
     const enLang = this.detectedLangList.find(item => getLangCode(item) === "en");
     if (enNameList.length > 0) {
       if (referredLangCode !== "en") {
-        newEntryInfo[enLang] = {};
         const res = await translateTo({
           source: this.referredLang,
           target: "en",
@@ -713,32 +713,18 @@ class LangCheckRobot {
       referredLangMap[entryName] = entry.text;
       this.detectedLangList.forEach(item => {
         if (item === this.referredLang) {
-          newEntryInfo[item][entryName] = entry.text;
+          this._updateEntryValue(entryName, entry.text, item);
         } else if (item === enLang) {
-          newEntryInfo[item][entryName] = enNameList[index];
+          this._updateEntryValue(entryName, enNameList[index], item);
         } else {
           this.#lackInfo[item] ??= [];
           this.#lackInfo[item].push(entryName);
         }
       });
     });
-    for (const lang in newEntryInfo) {
-      const lackEntries = Object.keys(newEntryInfo[lang]);
-      if (lackEntries.length > 0) {
-        writeList.push({
-          name: lang,
-          value: lackEntries.map(entry => {
-            this.#langDictionary[entry] ??= {};
-            this.#langDictionary[entry][lang] = newEntryInfo[lang][entry];
-            return { name: entry, value: newEntryInfo[lang][entry] };
-          }),
-          lackEntries
-        });
-      }
-    }
   }
 
-  async _fillMissingTranslations(writeList = []) {
+  async _fillMissingTranslations() {
     let needTranslate = false;
     for (const lang in this.#lackInfo) {
       const referredLangMap = this.#langCountryMap[this.referredLang];
@@ -754,13 +740,8 @@ class LangCheckRobot {
         });
         if (res.success) {
           this._printAddedText(lang, res.data, res.api);
-          writeList.push({
-            name: lang,
-            value: lackEntries.map((entry, index) => {
-              this.#langDictionary[entry][lang] = res.data[index];
-              return { name: entry, value: res.data[index] };
-            }),
-            lackEntries
+          lackEntries.forEach((entry, index) => {
+            this._updateEntryValue(entry, res.data[index], lang);
           });
         } else {
           printInfo(res.message, "error");
@@ -797,13 +778,21 @@ class LangCheckRobot {
     }
   }
 
-  _updateEntryValue(name, lang, value) {
+  _updateEntryValue(name, value, lang) {
     if (this.#langDictionary[name]) {
       this.#langDictionary[name][lang] = value;
     } else {
       this.#langDictionary[name] = { [lang]: value };
     }
     this.#langCountryMap[lang][name] = value;
+    setValueByEscapedEntryName(this.#langTree, name, name);
+  }
+
+  _rewriteTranslationFile(lang, content, type, indents, extraInfo) {
+    const filePath = path.join(this.langDir, this._getLangFileName(lang));
+    const fileContent = formatObjectToString(content, type, indents, extraInfo);
+    fs.writeFileSync(filePath, fileContent);
+    printInfo(`文件 ${this._getLangFileName(lang)} 翻译已写入`, "rocket");
   }
 
   _writeTranslationFiles(writeList = []) {
@@ -854,7 +843,7 @@ class LangCheckRobot {
 
   _printAddedText(lang, textList, api) {
     printInfo(
-      `文件 ${this._getLangFileName(lang)} 补充${api ? " " + api + " " : ""}翻译：${textList
+      `文件 ${this._getLangFileName(lang)} 补充${api ? ` ${api} ` : ""}翻译：${textList
         .map(item => `\x1b[36m${item.replaceAll(/\n/g, "\\n")}\x1b[0m`)
         .join(", ")}`,
       "mage"
