@@ -635,10 +635,11 @@ class LangCheckRobot {
       printInfo("翻译齐全，无需补充！", "success");
     }
     // 写入翻译文件
-    Object.keys(this.#lackInfo).forEach(lang => {
-      // this._rewriteTranslationFile(lang, this.#langCountryMap[lang], this.#langFormatType, this.#langIndents[lang], this.#langFileExtraInfo[lang]);
-      this._rewriteTranslationFile(lang, this.#langCountryMap[lang], "js", this.#langIndents[lang], this.#langFileExtraInfo[lang]);
-    });
+    for (const [lang, list] of Object.entries(this.#lackInfo)) {
+      if (list.length > 0) {
+        this._rewriteTranslationFile(lang, this.#langCountryMap[lang], this.#langFileType, this.#langIndents[lang], this.#langFileExtraInfo[lang]);
+      }
+    }
     // 修正全局条目
     if (needGlobalFixList.length > 0 && this.rewriteFlag) {
       this._applyGlobalFixes(needGlobalFixList);
