@@ -348,7 +348,7 @@ class treeProvider {
     }
     // TODO 添加防抖处理
     this.#robot.setOptions({ task: "check", globalFlag: true, clearCache: false });
-    await this.#robot.check();
+    await this.#robot.execute();
     this.checkUsedInfo();
     this.refresh();
   }

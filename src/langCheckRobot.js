@@ -98,7 +98,7 @@ class LangCheckRobot {
     }
   }
 
-  async check() {
+  async execute() {
     if (!this.#isVacant) {
       printInfo("检测器正忙，请稍后再试！", "brain");
     }
@@ -717,10 +717,9 @@ class LangCheckRobot {
           this._updateEntryValue(entryName, entry.text, item);
         } else if (item === enLang) {
           this._updateEntryValue(entryName, enNameList[index], item);
-        } else {
-          this.#lackInfo[item] ??= [];
-          this.#lackInfo[item].push(entryName);
         }
+        this.#lackInfo[item] ??= [];
+        this.#lackInfo[item].push(entryName);
       });
     });
   }
@@ -977,6 +976,7 @@ class LangCheckRobot {
         const tempPathList = await this._readAllFiles(tempPath);
         pathList.push(...tempPathList);
       }
+      // TODO 忽略名称列表待完善
       const ignoredNameList = ["jquery", "element", "qrcode", "underscore", "vant", "language", "vue.js"];
       if (
         !results[i].isDirectory() &&

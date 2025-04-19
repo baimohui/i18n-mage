@@ -195,7 +195,7 @@ function formatObjectToString(obj, fileType = "json", indent = "  ", extraInfo =
     const currentIndent = indent.repeat(level);
     for (const [key, value] of Object.entries(obj)) {
       // 根据文件类型和 key 的合法性决定是否加引号
-      const keyStr = fileType === "json" || (fileType === "js" && needsQuotes(key)) ? `"${key}"` : key;
+      const keyStr = unescapeEntryName(fileType === "json" || needsQuotes(key) ? `"${key}"` : key);
       if (typeof value === "string") {
         result.push(`${currentIndent}${keyStr}: "${formatEntryValue(value)}"`);
       } else if (typeof value === "object" && value !== null) {

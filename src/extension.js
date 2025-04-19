@@ -40,7 +40,7 @@ exports.activate = async function (context) {
     const possibleLangDirs = getPossibleLangDirList(rootPath);
     for (const langDir of possibleLangDirs) {
       robot.setOptions({ langDir, task: "check", globalFlag: true, clearCache: false });
-      await robot.check();
+      await robot.execute();
       if (robot.detectedLangList.length > 0) {
         break;
       }
@@ -64,7 +64,7 @@ exports.activate = async function (context) {
       callback: async () => {
         globalConfig.update("i18n-mage.referenceLanguage", lang.key, vscode.ConfigurationTarget.Workspace);
         robot.setOptions({ referredLang: lang.key, task: "check", globalFlag: false, clearCache: false });
-        await robot.check();
+        await robot.execute();
       }
     });
   });
@@ -74,7 +74,7 @@ exports.activate = async function (context) {
       callback: async () => {
         const config = vscode.workspace.getConfiguration("i18n-mage");
         robot.setOptions({ task: "check", globalFlag: true, clearCache: true, ignoredFileList: config.ignoredFileList });
-        const res = await robot.check();
+        const res = await robot.execute();
         !res && (await getLangDir());
       }
     });
@@ -87,7 +87,7 @@ exports.activate = async function (context) {
         const ignoredFileList = (config.ignoredFileList || []).concat(path.relative(rootPath, e.resourceUri.fsPath));
         await globalConfig.update("i18n-mage.ignoredFileList", ignoredFileList, vscode.ConfigurationTarget.Workspace);
         robot.setOptions({ task: "check", globalFlag: true, clearCache: true, ignoredFileList });
-        const res = await robot.check();
+        const res = await robot.execute();
         !res && (await getLangDir());
       }
     });
@@ -135,7 +135,7 @@ exports.activate = async function (context) {
       title: "排序中...",
       callback: async () => {
         robot.setOptions({ task: "sort", globalFlag: true, rewriteFlag: true });
-        const success = await robot.check();
+        const success = await robot.execute();
         if (success) {
           vscode.window.showInformationMessage("Sort success");
         }
@@ -147,8 +147,10 @@ exports.activate = async function (context) {
       title: "修复中...",
       callback: async () => {
         robot.setOptions({ task: "fix", globalFlag: true, rewriteFlag: true });
-        const success = await robot.check();
+        const success = await robot.execute();
         if (success) {
+          robot.setOptions({ task: "check", globalFlag: true, clearCache: true, ignoredFileList: config.ignoredFileList });
+          await robot.execute();
           vscode.window.showInformationMessage("Fix success");
         }
       }
@@ -168,7 +170,7 @@ exports.activate = async function (context) {
         callback: async () => {
           const filePath = fileUri.fsPath;
           robot.setOptions({ task: "export", exportExcelTo: filePath });
-          const success = await robot.check();
+          const success = await robot.execute();
           if (success) {
             vscode.window.showInformationMessage("Export success");
           }
@@ -192,7 +194,7 @@ exports.activate = async function (context) {
         callback: async () => {
           const filePath = fileUri[0].fsPath;
           robot.setOptions({ task: "import", importExcelFrom: filePath });
-          const success = await robot.check();
+          const success = await robot.execute();
           if (success) {
             vscode.window.showInformationMessage("Import success");
           }
