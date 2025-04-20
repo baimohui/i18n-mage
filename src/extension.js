@@ -112,7 +112,9 @@ exports.activate = async function (context) {
       e.description = newLabel; // 更新 TreeItem 文本
       treeInstance.refresh(); // 刷新 TreeView
       // await vscode.env.clipboard.writeText(String(e.description));
-      vscode.window.showInformationMessage(`已写入：${newLabel}`);
+      robot.setOptions({ task: "modify", modifyList: [{ name: e.name, value: newLabel, lang: e.label }] });
+      const success = robot.execute();
+      !success && vscode.window.showInformationMessage(`已写入：${newLabel}`);
     }
   });
   vscode.commands.registerCommand("i18nMage.openFileAtPosition", async e => {

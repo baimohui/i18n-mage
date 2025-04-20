@@ -70,6 +70,7 @@ class LangCheckRobot {
     this.clearCache = true; // 是否清空缓存
     this.credentials = {}; // 翻译服务账号信息
     this.syncBasedOnReferredEntries = false; // 是否根据参考语种同步其他语种
+    this.modifyList = []; // 需要修改的条目列表
 
     this._reset();
     this.setOptions(options);
@@ -135,6 +136,9 @@ class LangCheckRobot {
           break;
         case "import":
           this._handleImport();
+          break;
+        case "modify":
+          this._handleModify();
           break;
         default:
           this._genOverviewTable();
@@ -622,6 +626,24 @@ class LangCheckRobot {
     }
   }
 
+  async _handleModify() {
+    printTitle("修改翻译条目");
+    let modifiedLangList = [];
+    this.modifyList.forEach(item => {
+      const { name, value, lang } = item;
+      if (!lang) {
+        modifiedLangList = Object.keys(this.#langCountryMap);
+      } else if (!modifiedLangList.includes(lang)) {
+        modifiedLangList.push(lang);
+      }
+      // TODO name 没有做转义，需要考虑转义问题
+      this._updateEntryValue(name, value, lang);
+    });
+    modifiedLangList.forEach(lang => {
+      this._rewriteTranslationFile(lang);
+    });
+  }
+
   async _handleFix() {
     printTitle(`补充翻译${this.globalFlag ? "与修正条目" : ""}`);
     const needGlobalFixList = []; // 需要修正的全局条目列表
@@ -637,7 +659,7 @@ class LangCheckRobot {
     // 写入翻译文件
     for (const [lang, list] of Object.entries(this.#lackInfo)) {
       if (list.length > 0) {
-        this._rewriteTranslationFile(lang, this.#langCountryMap[lang], this.#langFileType, this.#langIndents[lang], this.#langFileExtraInfo[lang]);
+        this._rewriteTranslationFile(lang);
       }
     }
     // 修正全局条目
@@ -779,18 +801,32 @@ class LangCheckRobot {
   }
 
   _updateEntryValue(name, value, lang) {
-    if (this.#langDictionary[name]) {
-      this.#langDictionary[name][lang] = value;
-    } else {
-      this.#langDictionary[name] = { [lang]: value };
-    }
-    this.#langCountryMap[lang][name] = value;
-    setValueByEscapedEntryName(this.#langTree, name, name);
+    const langList = Object.keys(this.#langCountryMap).filter(item => !lang || item === lang);
+    langList.forEach(item => {
+      if (typeof value === "string") {
+        if (this.#langDictionary[name]) {
+          this.#langDictionary[name][item] = value;
+        } else {
+          this.#langDictionary[name] = { [item]: value };
+        }
+        this.#langCountryMap[item][name] = value;
+        setValueByEscapedEntryName(this.#langTree, name, name);
+      } else {
+        delete this.#langDictionary[name][item];
+        delete this.#langCountryMap[item][name];
+        setValueByEscapedEntryName(this.#langTree, name, undefined);
+      }
+    });
   }
 
-  _rewriteTranslationFile(lang, content, type, indents, extraInfo) {
+  _rewriteTranslationFile(lang) {
     const filePath = path.join(this.langDir, this._getLangFileName(lang));
-    const fileContent = formatObjectToString(content, type, indents, extraInfo);
+    const fileContent = formatObjectToString(
+      this.#langCountryMap[lang],
+      this.#langFileType,
+      this.#langIndents[lang],
+      this.#langFileExtraInfo[lang]
+    );
     fs.writeFileSync(filePath, fileContent);
     printInfo(`文件 ${this._getLangFileName(lang)} 翻译已写入`, "rocket");
   }

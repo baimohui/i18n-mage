@@ -167,6 +167,7 @@ class treeProvider {
       const entryInfo = this.dictionary[getValueByAmbiguousEntryName(this.tree, element.label)];
       return this.langInfo.langList.map(lang => ({
         label: lang,
+        name: element.label,
         description: entryInfo[lang] ?? false,
         collapsibleState: vscode.TreeItemCollapsibleState.None,
         level: 3,
