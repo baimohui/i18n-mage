@@ -14,6 +14,7 @@ const {
   escapeEntryName,
   unescapeEntryName,
   setValueByEscapedEntryName,
+  getValueByAmbiguousEntryName,
   formatObjectToString,
   addEntries,
   catchAllEntries,
@@ -636,8 +637,8 @@ class LangCheckRobot {
       } else if (!modifiedLangList.includes(lang)) {
         modifiedLangList.push(lang);
       }
-      // TODO name 没有做转义，需要考虑转义问题
-      this._updateEntryValue(name, value, lang);
+      const entryName = getValueByAmbiguousEntryName(this.#langTree, name);
+      entryName && this._updateEntryValue(entryName, value, lang);
     });
     modifiedLangList.forEach(lang => {
       this._rewriteTranslationFile(lang);
