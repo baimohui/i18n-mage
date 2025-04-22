@@ -956,6 +956,8 @@ class LangCheckRobot {
     const pathLevelCountMap = {};
     let maxNum = 0;
     const totalEntryList = Object.keys(this.#langDictionary).map(key => unescapeEntryName(key));
+    this.#undefinedEntryList = [];
+    this.#undefinedEntryMap = {};
     for (const filePath of filePaths) {
       if (this.ignoredFileList.some(ifp => path.resolve(filePath) === path.resolve(path.join(this.rootPath, ifp)))) continue;
       const fileContent = await fs.readFileSync(filePath, "utf8");
