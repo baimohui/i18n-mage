@@ -271,7 +271,7 @@ class treeProvider {
             root: element.root,
             id: this.genId(element, item),
             collapsibleState: vscode.TreeItemCollapsibleState.None
-          }
+          };
         });
       }
     } else if (element.level === 2) {
@@ -433,8 +433,9 @@ class treeProvider {
     const nullList = Object.values(this.langInfo.null);
     const nullNum = nullList.reduce((pre, cur) => pre + cur.length, 0);
     let total = this.#robot.syncBasedOnReferredEntries ? this.langInfo.refer.length : Object.keys(this.dictionary).length;
-    total = total * lackList.length;
-    return (Math.floor(((total - lackNum - nullNum) / total) * 10000) / 100).toFixed(2) + "%";
+    total = lackList.length ? total * lackList.length : total;
+    const res = (Math.floor(((total - lackNum - nullNum) / total) * 10000) / 100).toFixed(2);
+    return res + "%";
   }
   getUsagePercent() {
     const total = Object.keys(this.dictionary).length;

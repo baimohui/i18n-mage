@@ -109,7 +109,7 @@ exports.activate = async function (context) {
       value: e.description // 默认值为当前文本
     });
     if (newLabel) {
-      robot.setOptions({ task: "modify", modifyList: [{ name: e.name, value: newLabel, lang: e.label }], globalFlag: false });
+      robot.setOptions({ task: "modify", modifyList: [{ name: e.name, value: newLabel, lang: e.label }], globalFlag: false, clearCache: false });
       const success = robot.execute();
       if (success) {
         e.description = newLabel; // 更新 TreeItem 文本
