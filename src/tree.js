@@ -54,11 +54,11 @@ class treeProvider {
     const unusedEntries = [],
       usedEntries = [];
     for (let entry in dictionary) {
-      entry = unescapeEntryName(entry);
-      if (!this.langInfo.used[entry]) {
-        unusedEntries.push(entry);
+      const unescapedEntryName = unescapeEntryName(entry);
+      if (!this.langInfo.used[unescapedEntryName]) {
+        unusedEntries.push({ unescaped: unescapedEntryName, escaped: entry });
       } else {
-        usedEntries.push(entry);
+        usedEntries.push({ unescaped: unescapedEntryName, escaped: entry });
       }
     }
     return { used: usedEntries, unused: unusedEntries };
@@ -225,6 +225,8 @@ class treeProvider {
         root: element.root,
         description: String(item.num),
         id: this.genId(element, item.type),
+        data: this.entryUsageInfo[item.type],
+        contextValue: `${item.type}GroupHeader`,
         collapsibleState: vscode.TreeItemCollapsibleState[item.num === 0 ? "None" : "Collapsed"]
       }));
     } else if (element.level === 1) {
@@ -247,29 +249,29 @@ class treeProvider {
           });
       } else if (element.type === "used") {
         return this.entryUsageInfo.used.sort().map(item => {
-          const usedNum = Object.values(this.usedEntryMap[item]).flat().length;
-          const entryInfo = this.dictionary[getValueByAmbiguousEntryName(this.tree, item)];
+          const usedNum = Object.values(this.usedEntryMap[item.unescaped]).flat().length;
+          const entryInfo = this.dictionary[item.escaped];
           return {
-            key: item,
+            key: item.escaped,
             // label: `${item} (${usedNum})`,
-            label: item,
+            label: item.unescaped,
             description: `<${usedNum}>${entryInfo[this.#robot.referredLang]}`,
             level: 2,
             type: element.type,
             root: element.root,
-            id: this.genId(element, item),
+            id: this.genId(element, item.unescaped),
             collapsibleState: vscode.TreeItemCollapsibleState.Collapsed
           };
         });
       } else {
         return this.entryUsageInfo.unused.sort().map(item => {
-          const entryInfo = this.dictionary[getValueByAmbiguousEntryName(this.tree, item)];
+          const entryInfo = this.dictionary[item.escaped];
           return {
-            label: item,
+            label: item.unescaped,
             description: entryInfo[this.#robot.referredLang],
             level: 2,
             root: element.root,
-            id: this.genId(element, item),
+            id: this.genId(element, item.unescaped),
             collapsibleState: vscode.TreeItemCollapsibleState.None
           };
         });

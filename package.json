@@ -216,6 +216,14 @@
         }
       },
       {
+        "command": "i18nMage.deleteUnusedEntries",
+        "title": "移除全部",
+        "icon": {
+          "light": "./images/delete-light.svg",
+          "dark": "./images/delete-dark.svg"
+        }
+      },
+      {
         "command": "extension.sayHello",
         "title": "Hello，小茗同学"
       },
@@ -316,6 +324,11 @@
           "command": "i18nMage.editValue",
           "when": "viewItem == entryTranslationInCurFile",
           "group": "inline@2"
+        },
+        {
+          "command": "i18nMage.deleteUnusedEntries",
+          "when": "viewItem == unusedGroupHeader",
+          "group": "inline@1" 
         }
       ],
       "editor/context": [

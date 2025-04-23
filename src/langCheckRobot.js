@@ -72,6 +72,7 @@ class LangCheckRobot {
     this.credentials = {}; // 翻译服务账号信息
     this.syncBasedOnReferredEntries = false; // 是否根据参考语种同步其他语种
     this.modifyList = []; // 需要修改的条目列表
+    this.trimNameList = []; // 需要清理的条目列表
 
     this._reset();
     this.setOptions(options);
@@ -140,6 +141,9 @@ class LangCheckRobot {
           break;
         case "modify":
           this._handleModify();
+          break;
+        case "trim":
+          this._handleTrim();
           break;
         default:
           this._genOverviewTable();
@@ -643,6 +647,21 @@ class LangCheckRobot {
     modifiedLangList.forEach(lang => {
       this._rewriteTranslationFile(lang);
     });
+  }
+
+  async _handleTrim() {
+    printTitle("清理翻译条目");
+    if (this.trimNameList.length > 0) {
+      this.trimNameList.forEach(name => {
+        this._updateEntryValue(name, undefined)
+      });
+      this.detectedLangList.forEach(lang => {
+        this._rewriteTranslationFile(lang);
+      })
+      printInfo("翻译条目已清理完成！", "success");
+    } else {
+      printInfo("未检测到需要清理的翻译条目！", "success");
+    }
   }
 
   async _handleFix() {

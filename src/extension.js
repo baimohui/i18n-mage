@@ -109,13 +109,37 @@ exports.activate = async function (context) {
       value: e.description // 默认值为当前文本
     });
     if (newLabel) {
-      robot.setOptions({ task: "modify", modifyList: [{ name: e.name, value: newLabel, lang: e.label }], globalFlag: false, clearCache: false });
+      robot.setOptions({
+        task: "modify",
+        modifyList: [{ name: e.name, value: newLabel, lang: e.label }],
+        globalFlag: false,
+        clearCache: false
+      });
       const success = robot.execute();
       if (success) {
         e.description = newLabel; // 更新 TreeItem 文本
         treeInstance.refresh(); // 刷新 TreeView
         // await vscode.env.clipboard.writeText(String(e.description));
         vscode.window.showInformationMessage(`已写入：${newLabel}`);
+      }
+    }
+  });
+  vscode.commands.registerCommand("i18nMage.deleteUnusedEntries", async e => {
+    if (!e || !e.label) return;
+    const confirmDelete = await vscode.window.showWarningMessage(
+      "确定删除吗？",
+      { modal: true, detail: "删除后无法恢复" },
+      { title: "确定" },
+      { title: "取消" }
+    );
+    if (confirmDelete?.title === "确定") {
+      robot.setOptions({ task: "trim", trimNameList: e.data.map(item => item.escaped), globalFlag: false, clearCache: false });
+      const success = await robot.execute();
+      if (success) {
+        robot.setOptions({ task: "check", globalFlag: true, clearCache: true, ignoredFileList: config.ignoredFileList });
+        await robot.execute();
+        treeInstance.refresh(); // 刷新 TreeView
+        vscode.window.showInformationMessage(`已删除`);
       }
     }
   });
