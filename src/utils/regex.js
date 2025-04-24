@@ -43,6 +43,7 @@ const getLangFileInfo = str => {
     let prefix = "";
     let suffix = "";
     let innerVar = "";
+    let keyQuotes = false;
     if (formatType === LANG_FORMAT_TYPE.nonObj) {
       str = str
         .replace(/\/\*[^]*?\*\/|(?<=["'`;\n]{1}\s*)\/\/[^\n]*|<!--[^]*?-->/g, "")
@@ -59,10 +60,10 @@ const getLangFileInfo = str => {
         const spreadVarReg = new RegExp(`${spreadVarMatch.join("|")}`, "g");
         str = str.replace(spreadVarReg, "");
       }
+      keyQuotes = /^{\s*["'`]/.test(str);
       langObj = eval(`(${str})`);
     }
     if (getNestedValues(langObj).some(item => typeof item !== "string")) return null;
-    // content = formatType === LANG_FORMAT_TYPE.obj ? langObj : flattenNestedObj(langObj);
     content = flattenNestedObj(langObj);
     return {
       formatType,
@@ -71,7 +72,8 @@ const getLangFileInfo = str => {
       raw: langObj,
       prefix,
       suffix,
-      innerVar
+      innerVar,
+      keyQuotes
     };
   } catch (e) {
     return null;
@@ -182,7 +184,7 @@ const createSingleEntryObj = ({ name, value, indents, langType }) => {
 };
 
 function formatObjectToString(obj, fileType = "json", indent = "  ", extraInfo = {}) {
-  const { prefix = "", suffix = "", middleVar = "" } = extraInfo;
+  const { prefix = "", suffix = "", middleVar = "", keyQuotes = true } = extraInfo;
   // 检查属性名是否需要加引号（JS 格式下）
   function needsQuotes(key) {
     // 合法的 JS 标识符正则表达式
@@ -195,7 +197,7 @@ function formatObjectToString(obj, fileType = "json", indent = "  ", extraInfo =
     const currentIndent = indent.repeat(level);
     for (const [key, value] of Object.entries(obj)) {
       // 根据文件类型和 key 的合法性决定是否加引号
-      const keyStr = unescapeEntryName(fileType === "json" || needsQuotes(key) ? `"${key}"` : key);
+      const keyStr = unescapeEntryName(keyQuotes || fileType === "json" || needsQuotes(key) ? `"${key}"` : key);
       if (typeof value === "string") {
         result.push(`${currentIndent}${keyStr}: "${formatEntryValue(value)}"`);
       } else if (typeof value === "object" && value !== null) {

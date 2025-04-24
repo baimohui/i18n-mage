@@ -238,13 +238,13 @@ class LangCheckRobot {
         this.showPreInfo && printInfo(`文件 ${file} 格式不符合规范，跳过检测！`, "ghost");
         return;
       }
-      const { formatType, content: langObj, indents, prefix, suffix, innerVar, raw } = fileInfo;
+      const { formatType, content: langObj, indents, prefix, suffix, innerVar, keyQuotes, raw } = fileInfo;
       const [fileName, fileType] = file.split(".");
       this.#langFileType = fileType;
       this.#langFormatType = formatType;
       this.#langIndents[fileName] = indents;
       this.#langCountryMap[fileName] = langObj;
-      this.#langFileExtraInfo[fileName] = { prefix, suffix, innerVar };
+      this.#langFileExtraInfo[fileName] = { prefix, suffix, innerVar, keyQuotes };
       langTree[fileName] = raw;
     });
     function mergeTreesToTwoObjectsSemantic(trees, labels) {
