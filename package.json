@@ -217,7 +217,7 @@
       },
       {
         "command": "i18nMage.deleteUnusedEntries",
-        "title": "移除全部",
+        "title": "移除",
         "icon": {
           "light": "./images/delete-light.svg",
           "dark": "./images/delete-dark.svg"
@@ -327,7 +327,7 @@
         },
         {
           "command": "i18nMage.deleteUnusedEntries",
-          "when": "viewItem == unusedGroupHeader",
+          "when": "viewItem == unusedGroupHeader || viewItem == unusedGroupItem",
           "group": "inline@1" 
         }
       ],

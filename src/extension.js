@@ -125,10 +125,10 @@ exports.activate = async function (context) {
     }
   });
   vscode.commands.registerCommand("i18nMage.deleteUnusedEntries", async e => {
-    if (!e || !e.label) return;
+    if (!e || !e.label || !e.data || e.data.length === 0) return;
     const confirmDelete = await vscode.window.showWarningMessage(
       "确定删除吗？",
-      { modal: true, detail: "删除后无法恢复" },
+      { modal: true, detail: `将删除词条：${e.data.map(item => item.unescaped).join(", ")}` },
       { title: "确定" },
       { title: "取消" }
     );

@@ -226,7 +226,7 @@ class treeProvider {
         description: String(item.num),
         id: this.genId(element, item.type),
         data: this.entryUsageInfo[item.type],
-        contextValue: `${item.type}GroupHeader`,
+        contextValue: item.num === 0 ? `${item.type}GroupHeader-None` : `${item.type}GroupHeader`,
         collapsibleState: vscode.TreeItemCollapsibleState[item.num === 0 ? "None" : "Collapsed"]
       }));
     } else if (element.level === 1) {
@@ -271,6 +271,8 @@ class treeProvider {
             description: entryInfo[this.#robot.referredLang],
             level: 2,
             root: element.root,
+            data: [item],
+            contextValue: "unusedGroupItem",
             id: this.genId(element, item.unescaped),
             collapsibleState: vscode.TreeItemCollapsibleState.None
           };
