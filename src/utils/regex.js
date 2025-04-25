@@ -164,8 +164,8 @@ const createSingleEntryLine = ({ name, value, indents, langType }) => {
   if (typeof value !== "string") {
     throw new Error(`Value is not a string: ${name}, ${value}`);
   }
-  const formattedValue = formatEntryValue(value);
-  return langType === LANG_FORMAT_TYPE.nonObj ? `${indents}${name} = "${formattedValue}";` : `${indents}"${name}": "${formattedValue}",`;
+  const formattedValue = formatForFile(value);
+  return langType === LANG_FORMAT_TYPE.nonObj ? `${indents}${name} = ${formattedValue};` : `${indents}"${name}": ${formattedValue},`;
 };
 
 const createSingleEntryObj = ({ name, value, indents, langType }) => {
@@ -199,7 +199,7 @@ function formatObjectToString(obj, fileType = "json", indent = "  ", extraInfo =
       // 根据文件类型和 key 的合法性决定是否加引号
       const keyStr = unescapeEntryName(keyQuotes || fileType === "json" || needsQuotes(key) ? `"${key}"` : key);
       if (typeof value === "string") {
-        result.push(`${currentIndent}${keyStr}: "${formatEntryValue(value)}"`);
+        result.push(`${currentIndent}${keyStr}: ${formatForFile(value)}`);
       } else if (typeof value === "object" && value !== null) {
         result.push(`${currentIndent}${keyStr}: {${newlineCharacter}${formatObject(value, level + 1)}${newlineCharacter}${currentIndent}}`);
       }
@@ -366,17 +366,21 @@ const deleteEntries = ({ data, raw }) => {
 };
 
 /**
- * 格式化条目值
- * @param {string} str - 输入字符串
- * @returns {string} 格式化后的字符串
+ * 将输入文本转为带双引号的、已转义的字符串字面量
+ * @param {string} str 原始文本
+ * @returns {string} 转义并包裹双引号后的字符串
  */
-const formatEntryValue = str => {
-  return str
-    .replace(/\\/g, "\\\\") // 先转义反斜杠
-    .replace(/"/g, '\\"')   // 转义双引号
-    .replace(/\r/g, "\\r")  // 转义回车
-    .replace(/\n/g, "\\n")  // 转义换行
-    .replace(/\t/g, "\\t"); // 转义制表符
+const formatForFile = str => {
+  return (
+    '"' +
+    str
+      .replace(/\\/g, "\\\\") // 先转义反斜杠
+      .replace(/"/g, '\\"') // 转义双引号
+      .replace(/\r/g, "\\r") // 转义回车
+      .replace(/\n/g, "\\n") // 转义换行
+      .replace(/\t/g, "\\t") + // 转义制表符
+    '"'
+  );
 };
 
 const catchAllEntries = (fileContent, langType, entryTree) => {
