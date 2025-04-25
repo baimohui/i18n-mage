@@ -372,11 +372,11 @@ const deleteEntries = ({ data, raw }) => {
  */
 const formatEntryValue = str => {
   return str
-    .replace(/\\(["'`])/g, "$1")
-    .replace(/\\/g, "\\\\")
-    .replace(/\n/g, "\\n")
-    .replace(/\r/g, "\\r")
-    .replace(/"/g, '\\"');
+    .replace(/\\/g, "\\\\") // 先转义反斜杠
+    .replace(/"/g, '\\"')   // 转义双引号
+    .replace(/\r/g, "\\r")  // 转义回车
+    .replace(/\n/g, "\\n")  // 转义换行
+    .replace(/\t/g, "\\t"); // 转义制表符
 };
 
 const catchAllEntries = (fileContent, langType, entryTree) => {
