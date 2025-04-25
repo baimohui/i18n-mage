@@ -171,6 +171,7 @@ class treeProvider {
         description: entryInfo[lang] ?? false,
         collapsibleState: vscode.TreeItemCollapsibleState.None,
         level: 3,
+        data: { name: element.label, lang },
         contextValue: "entryTranslationInCurFile",
         id: this.genId(element, lang),
         tooltip: getLangText(lang)
@@ -208,6 +209,8 @@ class treeProvider {
         level: 3,
         key: element.key,
         id: this.genId(element, item[0]),
+        contextValue: "syncInfoItem",
+        data: { name: unescapeEntryName(item[0]), lang: element.key },
         collapsibleState: vscode.TreeItemCollapsibleState.None
       }));
     }

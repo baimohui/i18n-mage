@@ -103,15 +103,16 @@ exports.activate = async function (context) {
     vscode.window.showInformationMessage(`已复制：${e.description}`);
   });
   vscode.commands.registerCommand("i18nMage.editValue", async e => {
-    if (!e || !e.description) return;
+    if (!e || !e.data) return;
     const newLabel = await vscode.window.showInputBox({
       prompt: "编辑文本",
       value: e.description // 默认值为当前文本
     });
     if (newLabel) {
+      const { name, lang } = e.data;
       robot.setOptions({
         task: "modify",
-        modifyList: [{ name: e.name, value: newLabel, lang: e.label }],
+        modifyList: [{ name, lang, value: newLabel }],
         globalFlag: false,
         clearCache: false
       });

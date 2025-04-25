@@ -302,8 +302,7 @@
         },
         {
           "command": "i18nMage.ignoreFile",
-          "when": "viewItem == fileItem",
-          "group": "inline"
+          "when": "viewItem == fileItem"
         },
         {
           "command": "i18nMage.copyName",
@@ -322,7 +321,7 @@
         },
         {
           "command": "i18nMage.editValue",
-          "when": "viewItem == entryTranslationInCurFile",
+          "when": "viewItem == entryTranslationInCurFile || viewItem == syncInfoItem",
           "group": "inline@2"
         },
         {
