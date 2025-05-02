@@ -1,4 +1,3 @@
-// const vscode = require('vscode');
 const vscode = require("vscode");
 const path = require("path");
 const fs = require("fs");
@@ -114,7 +113,8 @@ exports.activate = async function (context) {
         task: "modify",
         modifyList: [{ name, lang, value: newLabel }],
         globalFlag: false,
-        clearCache: false
+        clearCache: false,
+        rewriteFlag: true
       });
       const success = robot.execute();
       if (success) {
@@ -134,7 +134,13 @@ exports.activate = async function (context) {
       { title: "取消" }
     );
     if (confirmDelete?.title === "确定") {
-      robot.setOptions({ task: "trim", trimNameList: e.data.map(item => item.escaped), globalFlag: false, clearCache: false });
+      robot.setOptions({
+        task: "trim",
+        trimNameList: e.data.map(item => item.escaped),
+        globalFlag: false,
+        clearCache: false,
+        rewriteFlag: true
+      });
       const success = await robot.execute();
       if (success) {
         robot.setOptions({ task: "check", globalFlag: true, clearCache: true, ignoredFileList: config.ignoredFileList });

@@ -45,6 +45,8 @@ class LangCheckRobot {
   #roguePath;
   #isVacant;
   #langTree;
+  #updatedEntryValueInfo;
+  #patchedEntryIdList;
 
   constructor(options) {
     this.task = ""; // 当前执行任务
@@ -145,6 +147,9 @@ class LangCheckRobot {
         case "trim":
           this._handleTrim();
           break;
+        case "rewrite":
+          this._handleRewrite();
+          break;
         default:
           this._genOverviewTable();
       }
@@ -209,6 +214,8 @@ class LangCheckRobot {
     this.#roguePath = "";
     this.#isVacant = true;
     this.#langTree = {};
+    this.#updatedEntryValueInfo = {};
+    this.#patchedEntryIdList = [];
   }
 
   async _readLangFiles() {
@@ -633,32 +640,21 @@ class LangCheckRobot {
 
   async _handleModify() {
     printTitle("修改翻译条目");
-    let modifiedLangList = [];
     this.modifyList.forEach(item => {
       const { name, value, lang } = item;
-      if (!lang) {
-        modifiedLangList = Object.keys(this.#langCountryMap);
-      } else if (!modifiedLangList.includes(lang)) {
-        modifiedLangList.push(lang);
-      }
       const entryName = getValueByAmbiguousEntryName(this.#langTree, name);
-      entryName && this._updateEntryValue(entryName, value, lang);
+      entryName && this._setUpdatedEntryValueInfo(entryName, value, lang);
     });
-    modifiedLangList.forEach(lang => {
-      this._rewriteTranslationFile(lang);
-    });
+    this.rewriteFlag && this._handleRewrite();
   }
 
-  async _handleTrim() {
+  _handleTrim() {
     printTitle("清理翻译条目");
     if (this.trimNameList.length > 0) {
       this.trimNameList.forEach(name => {
-        this._updateEntryValue(name, undefined)
+        this._setUpdatedEntryValueInfo(name, undefined);
       });
-      this.detectedLangList.forEach(lang => {
-        this._rewriteTranslationFile(lang);
-      })
-      printInfo("翻译条目已清理完成！", "success");
+      this.rewriteFlag && this._handleRewrite();
     } else {
       printInfo("未检测到需要清理的翻译条目！", "success");
     }
@@ -666,29 +662,29 @@ class LangCheckRobot {
 
   async _handleFix() {
     printTitle(`补充翻译${this.globalFlag ? "与修正条目" : ""}`);
-    const needGlobalFixList = []; // 需要修正的全局条目列表
     // 处理未定义的翻译条目
     if (this.#undefinedEntryList.length > 0) {
-      await this._processUndefinedEntries(needGlobalFixList);
+      await this._processUndefinedEntries();
     }
     // 补充缺失的翻译
     const needTranslate = await this._fillMissingTranslations();
-    if (!needTranslate) {
-      printInfo("翻译齐全，无需补充！", "success");
-    }
-    // 写入翻译文件
-    for (const [lang, list] of Object.entries(this.#lackInfo)) {
-      if (list.length > 0) {
-        this._rewriteTranslationFile(lang);
-      }
-    }
-    // 修正全局条目
-    if (needGlobalFixList.length > 0 && this.rewriteFlag) {
-      this._applyGlobalFixes(needGlobalFixList);
-    }
+    !needTranslate && printInfo("翻译齐全，无需补充！", "success");
+    this.rewriteFlag && this._handleRewrite();
   }
 
-  async _processUndefinedEntries(needGlobalFixList = []) {
+  _handleRewrite() {
+    printTitle("写入翻译条目");
+    for (const [lang, entryInfo] of Object.entries(this.#updatedEntryValueInfo)) {
+      for (const [entry, value] of Object.entries(entryInfo)) {
+        this._updateEntryValue(entry, value, lang);
+      }
+      this._rewriteTranslationFile(lang);
+    }
+    // 修正全局条目
+    this._applyGlobalFixes();
+  }
+
+  async _processUndefinedEntries() {
     const referredLangCode = getLangCode(this.referredLang);
     const referredLangMap = this.#langCountryMap[this.referredLang];
     const valueKeyMap = Object.keys(referredLangMap).reduce((prev, cur) => ({ ...prev, [getIdByStr(referredLangMap[cur])]: cur }), {});
@@ -700,7 +696,7 @@ class LangCheckRobot {
           entry.name = valueKeyMap[entry.id];
           entry.fixedRaw = this._getFixedRaw(entry, entry.name);
         }
-        needGlobalFixList.push(entry);
+        this.#patchedEntryIdList.push(entry);
       } else if (validateLang(entry.text, getLangCode(this.referredLang))) {
         valueKeyMap[entry.id] = entry.text;
         needTranslateList.push(entry);
@@ -752,16 +748,20 @@ class LangCheckRobot {
       }
       entry.name = entryName;
       entry.fixedRaw = this._getFixedRaw(entry, entryName);
-      needGlobalFixList.push(entry);
+      this.#patchedEntryIdList.push(entry);
       referredLangMap[entryName] = entry.text;
-      this.detectedLangList.forEach(item => {
-        if (item === this.referredLang) {
-          this._updateEntryValue(entryName, entry.text, item);
-        } else if (item === enLang) {
-          this._updateEntryValue(entryName, enNameList[index], item);
+      this.detectedLangList.forEach(lang => {
+        // if (lang === this.referredLang) {
+        //   this._updateEntryValue(entryName, entry.text, lang);
+        // } else if (lang === enLang) {
+        //   this._updateEntryValue(entryName, enNameList[index], lang);
+        // }
+        if ([this.referredLang, enLang].includes(lang)) {
+          this.#updatedEntryValueInfo[lang] ??= {};
+          this.#updatedEntryValueInfo[lang][entryName] = lang === this.referredLang ? entry.text : enNameList[index];
         }
-        this.#lackInfo[item] ??= [];
-        this.#lackInfo[item].push(entryName);
+        this.#lackInfo[lang] ??= [];
+        this.#lackInfo[lang].push(entryName);
       });
     });
   }
@@ -782,23 +782,23 @@ class LangCheckRobot {
         });
         if (res.success) {
           this._printAddedText(lang, res.data, res.api);
-          lackEntries.forEach((entry, index) => {
-            this._updateEntryValue(entry, res.data[index], lang);
+          lackEntries.forEach((entryName, index) => {
+            // this._updateEntryValue(entryName, res.data[index], lang);
+            this._setUpdatedEntryValueInfo(entryName, res.data[index], lang);
           });
         } else {
           printInfo(res.message, "error");
         }
       }
     }
-
     return needTranslate;
   }
 
-  _applyGlobalFixes(needGlobalFixList = []) {
+  _applyGlobalFixes() {
     const globalFixMap = {};
-    needGlobalFixList.forEach(entry => {
+    this.#patchedEntryIdList.forEach(entry => {
       if (!entry.fixedRaw) {
-        const fixedEntryId = needGlobalFixList.filter(item => item.id === entry.id && item.fixedRaw)[0]?.name || entry.text;
+        const fixedEntryId = this.#patchedEntryIdList.filter(item => item.id === entry.id && item.fixedRaw)[0]?.name || entry.text;
         entry.name = fixedEntryId;
         entry.fixedRaw = this._getFixedRaw(entry, fixedEntryId);
       }
@@ -820,23 +820,28 @@ class LangCheckRobot {
     }
   }
 
-  _updateEntryValue(name, value, lang) {
+  _setUpdatedEntryValueInfo(name, value, lang) {
     const langList = Object.keys(this.#langCountryMap).filter(item => !lang || item === lang);
-    langList.forEach(item => {
-      if (typeof value === "string") {
-        if (this.#langDictionary[name]) {
-          this.#langDictionary[name][item] = value;
-        } else {
-          this.#langDictionary[name] = { [item]: value };
-        }
-        this.#langCountryMap[item][name] = value;
-        setValueByEscapedEntryName(this.#langTree, name, name);
-      } else {
-        delete this.#langDictionary[name][item];
-        delete this.#langCountryMap[item][name];
-        setValueByEscapedEntryName(this.#langTree, name, undefined);
-      }
+    langList.forEach(lang => {
+      this.#updatedEntryValueInfo[lang] ??= {};
+      this.#updatedEntryValueInfo[lang][name] = value;
     });
+  }
+
+  _updateEntryValue(name, value, lang) {
+    if (typeof value === "string") {
+      if (this.#langDictionary[name]) {
+        this.#langDictionary[name][lang] = value;
+      } else {
+        this.#langDictionary[name] = { [lang]: value };
+      }
+      this.#langCountryMap[lang][name] = value;
+      setValueByEscapedEntryName(this.#langTree, name, name);
+    } else {
+      delete this.#langDictionary[name][lang];
+      delete this.#langCountryMap[lang][name];
+      setValueByEscapedEntryName(this.#langTree, name, undefined);
+    }
   }
 
   _rewriteTranslationFile(lang) {
