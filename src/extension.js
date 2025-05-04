@@ -1,10 +1,10 @@
 const vscode = require("vscode");
 const path = require("path");
-const fs = require("fs");
 const { treeProvider } = require("./tree");
 const LangCheckRobot = require("./langCheckRobot");
 const { getPossibleLangDirList } = require("./utils/fs");
-const util = require("./util");
+const previewFixContent = require("./previewBeforeFix");
+
 let isProcessing = false;
 let treeInstance;
 /**
@@ -181,12 +181,27 @@ exports.activate = async function (context) {
     startProgress({
       title: "修复中...",
       callback: async () => {
-        robot.setOptions({ task: "fix", globalFlag: true, rewriteFlag: true });
+        const rewriteFlag = !config.previewBeforeFix;
+        robot.setOptions({ task: "fix", globalFlag: true, rewriteFlag });
         const success = await robot.execute();
         if (success) {
-          robot.setOptions({ task: "check", globalFlag: true, clearCache: true, ignoredFileList: config.ignoredFileList });
-          await robot.execute();
-          vscode.window.showInformationMessage("Fix success");
+          if (rewriteFlag) {
+            robot.setOptions({ task: "check", globalFlag: true, clearCache: true, ignoredFileList: config.ignoredFileList });
+            await robot.execute();
+            vscode.window.showInformationMessage("Fix success");
+          } else {
+            const { updatedValues, patchedIds } = robot.langDetail;
+            if ([updatedValues, patchedIds].some(item => Object.keys(item).length > 0)) {
+              previewFixContent(updatedValues, patchedIds, async () => {
+                robot.setOptions({ task: "rewrite" });
+                await robot.execute();
+                treeInstance.refresh(); // 刷新 TreeView
+                vscode.window.showInformationMessage("Fix success");
+              });
+            } else {
+              vscode.window.showErrorMessage("No updated entries found.");
+            }
+          }
         }
       }
     });
@@ -308,17 +323,3 @@ function startProgress({ title, callback }) {
     treeInstance.refresh();
   });
 }
-
-function getWebviewContent(context, templatePath) {
-  const resourcePath = util.getExtensionFileAbsolutePath(context, templatePath);
-  // const dirPath = path.dirname(resourcePath);
-  let html = fs.readFileSync(resourcePath, "utf-8");
-  return html;
-}
-
-/**
- * 插件被释放时触发
- */
-// exports.deactivate = function() {
-//     console.log('您的扩展“vscode-plugin-demo”已被释放！')
-// };

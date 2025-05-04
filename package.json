@@ -33,6 +33,11 @@
             "default": "cn",
             "description": "参考语言"
           },
+          "i18n-mage.previewBeforeFix": {
+            "type": "boolean",
+            "default": true,
+            "description": "是否需要对修复内容进行预览与选择/修改"
+          },
           "i18n-mage.syncBasedOnReferredEntries": {
             "type": "boolean",
             "default": false,
