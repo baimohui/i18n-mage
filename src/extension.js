@@ -190,10 +190,12 @@ exports.activate = async function (context) {
             await robot.execute();
             vscode.window.showInformationMessage("Fix success");
           } else {
-            const { updatedValues, patchedIds } = robot.langDetail;
+            const { updatedValues, patchedIds, countryMap } = robot.langDetail;
             if ([updatedValues, patchedIds].some(item => Object.keys(item).length > 0)) {
-              previewFixContent(updatedValues, patchedIds, async () => {
+              previewFixContent(updatedValues, patchedIds, countryMap, robot.referredLang, async () => {
                 robot.setOptions({ task: "rewrite" });
+                await robot.execute();
+                robot.setOptions({ task: "check", globalFlag: true, clearCache: true, ignoredFileList: config.ignoredFileList });
                 await robot.execute();
                 treeInstance.refresh(); // 刷新 TreeView
                 vscode.window.showInformationMessage("Fix success");

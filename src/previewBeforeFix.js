@@ -1,6 +1,6 @@
 const vscode = require("vscode");
 
-function getWebviewContent(valueFixes, idFixes) {
+function getWebviewContent(valueFixes, idFixes, langCountryMap, referredLang) {
   const nonce = getNonce();
 
   const valueSections = Object.entries(valueFixes)
@@ -12,7 +12,8 @@ function getWebviewContent(valueFixes, idFixes) {
         <input type="checkbox" id="value_${name}" class="value-checkbox" checked>
         <label>${name}</label>
         <input type="text" class="value-input" value="${value}">
-        ${entryInfo.oldValue ? `<div class="old-value">旧值：${entryInfo.oldValue}</div>` : ""}
+        ${langCountryMap[lang][name] ? `<div class="old-value">${langCountryMap[lang][name]}</div>` : ""}
+        ${!langCountryMap[lang][name] && langCountryMap[referredLang][name] ? `<div class="refer-value">${langCountryMap[referredLang][name]}</div>` : ""}
       </div>
     `
         )
@@ -73,6 +74,15 @@ function getWebviewContent(valueFixes, idFixes) {
           border: 1px solid var(--vscode-editorWidget-border);
           box-shadow: 0 2px 6px rgba(0,0,0,0.05);
         }
+        .entry {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+        }
+        .entry label {
+          width: 200px;  
+          flex-shrink: 0;
+        }
         .entry, .id-change {
           display: flex;
           align-items: center;
@@ -80,7 +90,7 @@ function getWebviewContent(valueFixes, idFixes) {
           margin-top: 10px;
         }
         .entry input[type="text"] {
-          flex: 1;
+          flex: 3;
           padding: 6px 10px;
           border-radius: 6px;
           background: var(--vscode-input-background);
@@ -88,7 +98,12 @@ function getWebviewContent(valueFixes, idFixes) {
           border: 1px solid var(--vscode-input-border);
         }
         .old-value {
-          color: var(--vscode-diff-removedTextBackground);
+          flex: 2;
+          color: red;
+          font-size: 0.9em;
+        }
+        .refer-value {
+          flex: 2;
           font-size: 0.9em;
         }
         .old-id {
@@ -146,6 +161,7 @@ function getWebviewContent(valueFixes, idFixes) {
           input.addEventListener('input', () => {
             const checkbox = input.parentElement.querySelector('.value-checkbox');
             checkbox.checked = input.value.trim() !== '';
+            checkbox.disabled = input.value.trim() === '';
           });
         });
 
@@ -200,13 +216,13 @@ function getNonce() {
   return text;
 }
 
-module.exports = async function (updatedEntryValueInfo, patchedEntryIdInfo, callback) {
+module.exports = async function (updatedEntryValueInfo, patchedEntryIdInfo, langCountryMap, referredLang, callback) {
   const panel = vscode.window.createWebviewPanel("fixProblems", "选择要应用的修复", vscode.ViewColumn.One, {
     enableScripts: true,
     retainContextWhenHidden: false
   });
 
-  panel.webview.html = getWebviewContent(updatedEntryValueInfo, patchedEntryIdInfo);
+  panel.webview.html = getWebviewContent(updatedEntryValueInfo, patchedEntryIdInfo, langCountryMap, referredLang);
 
   panel.webview.onDidReceiveMessage(message => {
     if (message.type === "applyFixes") {
