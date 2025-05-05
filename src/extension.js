@@ -244,11 +244,30 @@ exports.activate = async function (context) {
       startProgress({
         title: "导入中...",
         callback: async () => {
+          const rewriteFlag = !config.previewBeforeFix;
           const filePath = fileUri[0].fsPath;
-          robot.setOptions({ task: "import", importExcelFrom: filePath });
+          robot.setOptions({ task: "import", importExcelFrom: filePath, rewriteFlag });
           const success = await robot.execute();
           if (success) {
-            vscode.window.showInformationMessage("Import success");
+            if (rewriteFlag) {
+              robot.setOptions({ task: "check", globalFlag: true, clearCache: true, ignoredFileList: config.ignoredFileList });
+              await robot.execute();
+              vscode.window.showInformationMessage("Import success");
+            } else {
+              const { updatedValues, patchedIds, countryMap } = robot.langDetail;
+              if ([updatedValues, patchedIds].some(item => Object.keys(item).length > 0)) {
+                previewFixContent(updatedValues, patchedIds, countryMap, robot.referredLang, async () => {
+                  robot.setOptions({ task: "rewrite" });
+                  await robot.execute();
+                  robot.setOptions({ task: "check", globalFlag: true, clearCache: true, ignoredFileList: config.ignoredFileList });
+                  await robot.execute();
+                  treeInstance.refresh(); // 刷新 TreeView
+                  vscode.window.showInformationMessage("Import success");
+                });
+              } else {
+                vscode.window.showErrorMessage("No updated entries found.");
+              }
+            }
           }
         }
       });

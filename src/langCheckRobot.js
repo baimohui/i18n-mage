@@ -189,7 +189,7 @@ class LangCheckRobot {
       undefined: this.#undefinedEntryMap,
       tree: this.#langTree,
       updatedValues: this.#updatedEntryValueInfo,
-      patchedIds: this.#patchedEntryIdInfo,
+      patchedIds: this.#patchedEntryIdInfo
     };
   }
 
@@ -573,7 +573,7 @@ class LangCheckRobot {
       return prev;
     }, {});
     const excelData = xlsx.parse(this.importExcelFrom);
-    const modifiedLangList = [];
+    let isModified = false;
     for (let sheetIndex = 0; sheetIndex < excelData.length; sheetIndex++) {
       if (this.importSheetData && !sheetNeeds[sheetIndex]) continue;
       const sheetData = excelData[sheetIndex].data;
@@ -600,42 +600,26 @@ class LangCheckRobot {
       sheetData.forEach(item => {
         const entryName = item[labelIndex]?.trim() ?? "";
         if (Object.hasOwn(this.#langDictionary, entryName)) {
-          const entry = this.#langDictionary[entryName];
           const langList = Array.isArray(sheetNeeds[sheetIndex]) ? sheetNeeds[sheetIndex] : this.detectedLangList;
           langList.forEach(lang => {
             const langAlias = Object.values(getLangIntro(lang));
             !langAlias.includes(lang) && langAlias.push(lang);
             const langInfo = this.#langCountryMap[lang];
-            const langText = item[headInfo.findIndex(item => langAlias.some(alias => alias.toLowerCase() === item.toLowerCase()))];
+            const langText = item[headInfo.findIndex(item => langAlias.some(alias => alias.toLowerCase() === item.toLowerCase()))]?.toString();
             if (langText && langInfo[entryName] !== langText) {
               printInfo(
                 `条目 ${entryName} ${getLangText(lang)}更改：\x1b[31m${langInfo[entryName]}\x1b[0m -> \x1b[32m${langText}\x1b[0m`,
                 "mage"
               );
-              entry[lang] = langText;
-              langInfo[entryName] = langText;
-              if (!modifiedLangList.includes(lang)) {
-                modifiedLangList.push(lang);
-              }
+              this._setUpdatedEntryValueInfo(entryName, langText, lang);
+              isModified = true;
             }
           });
         }
       });
     }
-    modifiedLangList.forEach(lang => {
-      const filePath = path.join(this.langDir, this._getLangFileName(lang));
-      const langData = Object.entries(this.#langCountryMap[lang]).map(([name, value]) => ({ name, value }));
-      fs.writeFileSync(
-        filePath,
-        replaceAllEntries({
-          data: [{ desc: "", value: langData }],
-          langType: this.#langFormatType,
-          indents: this.#langIndents[lang],
-          extraInfo: this.#langFileExtraInfo[lang]
-        })
-      );
-    });
-    if (modifiedLangList.length === 0) {
+    this.rewriteFlag && this._handleRewrite();
+    if (!isModified) {
       printInfo("未检测到文案变动的条目", "success");
     }
   }
@@ -692,7 +676,7 @@ class LangCheckRobot {
     const referredLangMap = this.#langCountryMap[this.referredLang];
     const valueKeyMap = Object.keys(referredLangMap).reduce((prev, cur) => ({ ...prev, [getIdByStr(referredLangMap[cur])]: cur }), {});
     const needTranslateList = [];
-    const patchedEntryIdList = []
+    const patchedEntryIdList = [];
     this.#undefinedEntryList.forEach(entry => {
       if (valueKeyMap[entry.id]) {
         const isFixed = needTranslateList.every(item => item.id !== entry.id);
@@ -761,8 +745,7 @@ class LangCheckRobot {
         //   this._updateEntryValue(entryName, enNameList[index], lang);
         // }
         if ([this.referredLang, enLang].includes(lang)) {
-          this.#updatedEntryValueInfo[lang] ??= {};
-          this.#updatedEntryValueInfo[lang][entryName] = lang === this.referredLang ? entry.text : enNameList[index];
+          this._setUpdatedEntryValueInfo(entryName, lang === this.referredLang ? entry.text : enNameList[index], lang);
         }
         this.#lackInfo[lang] ??= [];
         this.#lackInfo[lang].push(entryName);
@@ -797,7 +780,6 @@ class LangCheckRobot {
         if (res.success) {
           this._printAddedText(lang, res.data, res.api);
           lackEntries.forEach((entryName, index) => {
-            // this._updateEntryValue(entryName, res.data[index], lang);
             this._setUpdatedEntryValueInfo(entryName, res.data[index], lang);
           });
         } else {
