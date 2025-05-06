@@ -5,14 +5,16 @@
 {
 	"version": "0.2.0",
 	"configurations": [
-		{
-			"name": "Run Extension",
-			"type": "extensionHost",
-			"request": "launch",
-			"args": [
+    {
+      "name": "Run Extension",
+      "type": "extensionHost",
+      "request": "launch",
+      "preLaunchTask": "esbuild:watch", // 参考下方 tasks.json
+      "outFiles": ["dist/**/*.js"],
+      "args": [
         "--disable-extensions",
 				"--extensionDevelopmentPath=${workspaceFolder}"
 			]
-		}
+    }
 	]
 }
