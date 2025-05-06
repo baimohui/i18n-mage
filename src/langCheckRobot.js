@@ -605,7 +605,8 @@ class LangCheckRobot {
             const langAlias = Object.values(getLangIntro(lang));
             !langAlias.includes(lang) && langAlias.push(lang);
             const langInfo = this.#langCountryMap[lang];
-            const langText = item[headInfo.findIndex(item => langAlias.some(alias => alias.toLowerCase() === item.toLowerCase()))]?.toString();
+            const langText =
+              item[headInfo.findIndex(item => langAlias.some(alias => alias.toLowerCase() === item.toLowerCase()))]?.toString();
             if (langText && langInfo[entryName] !== langText) {
               printInfo(
                 `条目 ${entryName} ${getLangText(lang)}更改：\x1b[31m${langInfo[entryName]}\x1b[0m -> \x1b[32m${langText}\x1b[0m`,
@@ -739,16 +740,12 @@ class LangCheckRobot {
       patchedEntryIdList.push(entry);
       referredLangMap[entryName] = entry.text;
       this.detectedLangList.forEach(lang => {
-        // if (lang === this.referredLang) {
-        //   this._updateEntryValue(entryName, entry.text, lang);
-        // } else if (lang === enLang) {
-        //   this._updateEntryValue(entryName, enNameList[index], lang);
-        // }
         if ([this.referredLang, enLang].includes(lang)) {
           this._setUpdatedEntryValueInfo(entryName, lang === this.referredLang ? entry.text : enNameList[index], lang);
+        } else {
+          this.#lackInfo[lang] ??= [];
+          this.#lackInfo[lang].push(entryName);
         }
-        this.#lackInfo[lang] ??= [];
-        this.#lackInfo[lang].push(entryName);
       });
     });
     this.#patchedEntryIdInfo = {};

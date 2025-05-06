@@ -12,8 +12,16 @@ function getWebviewContent(valueFixes, idFixes, langCountryMap, referredLang) {
         <input type="checkbox" id="value_${name}" class="value-checkbox" checked>
         <label>${name}</label>
         <input type="text" class="value-input" value="${value}">
-        ${langCountryMap[lang][name] ? `<div class="old-value">${langCountryMap[lang][name]}</div>` : ""}
-        ${!langCountryMap[lang][name] && langCountryMap[referredLang][name] ? `<div class="refer-value">${langCountryMap[referredLang][name]}</div>` : ""}
+        ${
+          langCountryMap[lang][name] && langCountryMap[lang][name] !== value
+            ? `<div class="old-value">${langCountryMap[lang][name]}</div>`
+            : ""
+        }
+        ${
+          !langCountryMap[lang][name] && langCountryMap[referredLang][name]
+            ? `<div class="refer-value">${langCountryMap[referredLang][name]}</div>`
+            : ""
+        }
       </div>
     `
         )
