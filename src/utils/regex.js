@@ -498,7 +498,7 @@ const parseTEntry = (fileContent, startPos, curPos, symbolStr) => {
       break;
     }
     const { type, value } = matchResult;
-    tFormList.push({ type, value: /"'`/.test(symbolStr) ? value.slice(1, -1) : value });
+    tFormList.push({ type, value: /["'`]/.test(symbolStr) ? value.slice(1, -1) : value });
     curPos += value.length;
     symbolStr = fileContent[curPos];
   }
