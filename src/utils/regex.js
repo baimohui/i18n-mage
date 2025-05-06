@@ -487,15 +487,20 @@ const parseTEntry = (fileContent, startPos, curPos, symbolStr) => {
   let tempHelper = undefined;
   const initSymbolStr = symbolStr;
   while (symbolStr !== ")") {
+    if (/\s\+,/.test(symbolStr)) {
+      curPos++;
+      symbolStr = fileContent[curPos];
+      continue;
+    }
     const matchResult = matchTEntryPart(fileContent, curPos, symbolStr);
     if (!matchResult) {
       isValid = false;
       break;
     }
-    const { type, value, nextSymbol, matchLength } = matchResult;
-    tFormList.push({ type, value });
-    curPos += matchLength;
-    symbolStr = nextSymbol;
+    const { type, value } = matchResult;
+    tFormList.push({ type, value: /"'`/.test(symbolStr) ? value.slice(1, -1) : value });
+    curPos += value.length;
+    symbolStr = fileContent[curPos];
   }
   if (!isValid || tFormList.every(item => !["text", "varText"].includes(item.type))) {
     return null;
@@ -586,59 +591,50 @@ const parseTEntry = (fileContent, startPos, curPos, symbolStr) => {
 const matchTEntryPart = (fileContent, startPos, symbolStr) => {
   let match;
   let type = "";
-  let nextSymbol = "";
-  let matchLength = 0;
   if (/["'`]/.test(symbolStr)) {
     type = symbolStr === "`" ? "varText" : "text";
-    match = fileContent.slice(startPos).match(new RegExp(`${symbolStr}([^]*?)(?<!\\\\)${symbolStr}[\\s+,]*(\\S)`));
+    match = fileContent.slice(startPos).match(new RegExp(`(${symbolStr}[^]*?(?<!\\\\)${symbolStr})`));
   } else if (/[\w(]/.test(symbolStr)) {
     type = "var";
     if (symbolStr === "(") {
       match = matchBrackets(fileContent, startPos, "(", ")");
     } else {
-      match = fileContent.slice(startPos).match(new RegExp(`(${symbolStr}[\\w.]*)[\\s+,]*(\\S)`));
+      match = fileContent.slice(startPos).match(new RegExp(`(${symbolStr}[\\w.]*)`));
     }
   } else if (symbolStr === "{") {
     type = "obj";
     match = matchBrackets(fileContent, startPos, "{", "}");
   }
   if (match) {
-    nextSymbol = match[2];
-    matchLength = match[0].length - 1;
-    return { type, value: match[1], nextSymbol, matchLength };
+    return { type, value: match[1] };
   }
   return null;
 };
 
 /**
- * 匹配括号内容
- * @param {string} fileContent - 文件内容
+ * 匹配括号内容（支持嵌套）
+ * @param {string} str - 文件内容
  * @param {number} startPos - 起始位置
- * @param {string} open - 开括号
- * @param {string} close - 闭括号
- * @returns {Array|null} 匹配结果
+ * @param {string} open - 开括号符号
+ * @param {string} close - 闭括号符号
+ * @returns {Array|null} [匹配内容，结束位置] 或 null
  */
-const matchBrackets = (fileContent, startPos, open = "{", close = "}") => {
-  let match = fileContent.slice(startPos).match(new RegExp(`(${open}[^]*?${close})\\s*(\\))`));
-  if (!match) return null;
-  const countBrackets = (str, char) => {
-    let count = 0;
-    for (let i = 0; i < str.length; i++) {
-      if (str[i] === char) count++;
+const matchBrackets = (str, startPos = 0, open = "{", close = "}") => {
+  const stack = [];
+  let start = -1;
+  for (let i = startPos; i < str.length; i++) {
+    const char = str[i];
+    if (char === open) {
+      if (stack.length === 0) start = i;
+      stack.push(char);
+    } else if (char === close) {
+      stack.pop();
+      if (stack.length === 0) {
+        return [i, str.slice(start, i + 1)]; // 可返回结束位置方便下一次处理
+      }
     }
-    return count;
-  };
-  let leftBracketLen = countBrackets(match[1], open);
-  let rightBracketLen = countBrackets(match[1], close);
-  // 只在括号不匹配的情况下进入循环
-  while (leftBracketLen !== rightBracketLen) {
-    const bracketReg = new RegExp(`(${open}[^]*?{${open.repeat(leftBracketLen)}}[^]*?${close})\\s*(\\))`);
-    match = fileContent.slice(startPos).match(bracketReg);
-    if (!match) return null;
-    leftBracketLen = countBrackets(match[1], open);
-    rightBracketLen = countBrackets(match[1], close);
   }
-  return match;
+  return null; // 未能完整匹配
 };
 
 const catchCustomTEntries = fileContent => {
