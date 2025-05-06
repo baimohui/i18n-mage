@@ -1,10 +1,24 @@
-.vscode/**
-.vscode-test/**
+# 排除源码
+src/**
+*.ts
+*.tsx
+
+# 排除构建脚本
+esbuild.config.js
+webpack.config.js
+tsconfig.json
+.vscodeignore
+
+# 排除测试与文档
 test/**
-.gitignore
-.yarnrc
-vsc-extension-quickstart.md
-**/jsconfig.json
+**/*.test.js
+**/*.md
+.vscode-test
+
+# 排除映射文件
 **/*.map
-**/.eslintrc.json
-**/.vscode-test.*
+
+# node_modules 中忽略不需要的文件（可选，提升效果有限）
+**/node_modules/**/test/**
+**/node_modules/**/examples/**
+**/node_modules/**/*.md

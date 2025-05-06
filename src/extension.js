@@ -320,7 +320,6 @@ exports.activate = async function (context) {
   // require('./jump-to-definition')(context); // 跳转到定义
   // require('./completion')(context); // 自动补全
   // require('./hover')(context); // 悬停提示
-  require("./webview")(context); // Webview
   // require('./welcome')(context); // 欢迎提示
   // require('./other')(context); // 其它杂七杂八演示代码
 

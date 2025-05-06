@@ -21,7 +21,7 @@
   "activationEvents": [
     "onLanguage:vue"
   ],
-  "main": "./src/extension",
+  "main": "dist/extension.js",
   "contributes": {
     "configuration": [
       {
@@ -91,7 +91,11 @@
           },
           "i18n-mage.translateApiPriority": {
             "type": "array",
-            "default": ["google", "baidu", "tencent"],
+            "default": [
+              "google",
+              "baidu",
+              "tencent"
+            ],
             "description": "翻译调用优先级"
           }
         }
@@ -332,7 +336,7 @@
         {
           "command": "i18nMage.deleteUnusedEntries",
           "when": "viewItem == unusedGroupHeader || viewItem == unusedGroupItem",
-          "group": "inline@1" 
+          "group": "inline@1"
         }
       ],
       "editor/context": [
@@ -419,7 +423,9 @@
   "scripts": {
     "lint": "eslint .",
     "pretest": "npm run lint",
-    "test": "vscode-test"
+    "test": "vscode-test",
+    "build": "node esbuild.config.js",
+    "package": "npm run build && vsce package"
   },
   "dependencies": {
     "@vitalets/google-translate-api": "^9.2.0",
@@ -427,8 +433,7 @@
     "js-md5": "^0.7.3",
     "node-xlsx": "^0.24.0",
     "tencentcloud-sdk-nodejs-tmt": "^4.0.791",
-    "tunnel": "^0.0.6",
-    "xlsx": "^0.20.2"
+    "tunnel": "^0.0.6"
   },
   "devDependencies": {
     "@babel/core": "^7.24.8",
@@ -439,6 +444,7 @@
     "@types/vscode": "^1.89.0",
     "@vscode/test-cli": "^0.0.9",
     "@vscode/test-electron": "^2.3.9",
+    "esbuild": "^0.25.4",
     "eslint": "^8.57.0",
     "typescript": "^5.4.5"
   }
