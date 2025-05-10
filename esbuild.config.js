@@ -1,7 +1,7 @@
 const esbuild = require('esbuild');
 
 esbuild.build({
-  entryPoints: ['src/extension.js'], // 入口文件
+  entryPoints: ['src/extension.ts'], // 入口文件
   bundle: true,
   outfile: 'dist/extension.js',
   platform: 'node',

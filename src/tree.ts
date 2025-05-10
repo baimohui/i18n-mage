@@ -1,15 +1,27 @@
-const vscode = require("vscode");
-const LangCheckRobot = require("./langCheckRobot");
-const { catchTEntries, unescapeEntryName, getValueByAmbiguousEntryName } = require("./utils/regex");
-const { isPathInsideDirectory } = require("./utils/fs");
-const { getLangText } = require("./utils/const");
+import * as vscode from "vscode";
+import LangCheckRobot from "./langCheckRobot";
+import { catchTEntries, unescapeEntryName, getValueByAmbiguousEntryName } from "./utils/regex";
+import { isPathInsideDirectory } from "./utils/fs";
+import { getLangText } from "./utils/const";
+
+interface Entry {
+  text: string;
+  regex: RegExp;
+  id?: string;
+}
+
+interface ExtendedTreeItem extends vscode.TreeItem {
+  level: number;
+  root: string;
+  type?: string;
+}
 
 class FileItem extends vscode.TreeItem {
-  constructor(resourceUri, pos, label) {
+  constructor(resourceUri: vscode.Uri, pos: vscode.Position, label: string) {
     super(resourceUri, vscode.TreeItemCollapsibleState.None);
     this.contextValue = "fileItem";
     this.tooltip = `${resourceUri.fsPath}`;
-    this.description = `${pos.c + 1}:${pos.e + 1}`;
+    this.description = `${pos.line + 1}:${pos.character + 1}`;
     this.command = {
       command: "vscode.open",
       title: "Open File",
@@ -18,58 +30,67 @@ class FileItem extends vscode.TreeItem {
   }
 }
 
-class treeProvider {
-  #robot;
-  isInitialized = false; // 标志位：是否已完成初始化
+class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
+  #robot: LangCheckRobot;
+  isInitialized = false;
+  usedEntries: Entry[] = [];
+  definedEntriesInCurrentFile: Entry[] = [];
+  undefinedEntriesInCurrentFile: Entry[] = [];
+  usedEntryMap: Record<string, any>;
+  private _onDidChangeTreeData = new vscode.EventEmitter<void>();
+  readonly onDidChangeTreeData = this._onDidChangeTreeData.event;
+
   constructor() {
     this.#robot = LangCheckRobot.getInstance();
-    this.usedEntries = [];
-    this.definedEntriesInCurrentFile = [];
-    this.undefinedEntriesInCurrentFile = [];
     this.usedEntryMap = this.#robot.langDetail.used || {};
-    this._onDidChangeTreeData = new vscode.EventEmitter();
-    this.onDidChangeTreeData = this._onDidChangeTreeData.event;
     vscode.window.onDidChangeActiveTextEditor(() => {
       if (this.isInitialized) {
         this.onActiveEditorChanged();
       }
     });
     vscode.workspace.onDidSaveTextDocument(e => this.onDocumentChanged(e));
-    // vscode.workspace.onDidChangeTextDocument(e => this.onDocumentChanged(e));
   }
-  get langInfo() {
+
+  get langInfo(): Record<string, any> {
     return this.#robot.langDetail;
   }
+
   get dictionary() {
     return this.langInfo.dictionary;
   }
+
   get tree() {
     return this.langInfo.tree;
   }
+
   get undefinedEntryMap() {
     return this.langInfo.undefined || {};
   }
+
   get entryUsageInfo() {
     const dictionary = this.langInfo.dictionary;
-    const unusedEntries = [],
-      usedEntries = [];
-    for (let entry in dictionary) {
+    const unusedEntries: Entry[] = [];
+    const usedEntries: Entry[] = [];
+    for (const entry in dictionary) {
       const unescapedEntryName = unescapeEntryName(entry);
       if (!this.langInfo.used[unescapedEntryName]) {
-        unusedEntries.push({ unescaped: unescapedEntryName, escaped: entry });
+        unusedEntries.push({ text: unescapedEntryName, regex: new RegExp(entry) });
       } else {
-        usedEntries.push({ unescaped: unescapedEntryName, escaped: entry });
+        usedEntries.push({ text: unescapedEntryName, regex: new RegExp(entry) });
       }
     }
     return { used: usedEntries, unused: unusedEntries };
   }
-  refresh() {
-    this._onDidChangeTreeData.fire(undefined);
+
+  refresh(): void {
+    this._onDidChangeTreeData.fire();
   }
-  getTreeItem(element) {
+
+  getTreeItem(element: vscode.TreeItem): vscode.TreeItem {
     return element;
   }
-  getChildren(element) {
+
+  getChildren(element?: any): vscode.ProviderResult<vscode.TreeItem[]> {
     if (!element) {
       return this.getRootChildren();
     }
@@ -86,7 +107,12 @@ class treeProvider {
         return [];
     }
   }
-  getRootChildren() {
+
+  public onActiveEditorChanged(): void {
+    this.checkUsedInfo();
+  }
+
+  private getRootChildren(): ExtendedTreeItem[] {
     return [
       {
         level: 0,
@@ -127,7 +153,8 @@ class treeProvider {
       }
     ];
   }
-  getCurrentFileChildren(element) {
+
+  private getCurrentFileChildren(element: any): ExtendedTreeItem[] {
     if (element.level === 0) {
       return [
         {
@@ -151,7 +178,7 @@ class treeProvider {
       ];
     } else if (element.level === 1) {
       return this[element.type === "defined" ? "definedEntriesInCurrentFile" : "undefinedEntriesInCurrentFile"].map(entry => {
-        const entryInfo = this.dictionary[getValueByAmbiguousEntryName(this.tree, entry.text)];
+        const entryInfo = this.dictionary[getValueByAmbiguousEntryName(this.tree, entry.text) as string];
         return {
           label: entry.text,
           description: entryInfo && entryInfo[this.#robot.referredLang],
@@ -159,12 +186,12 @@ class treeProvider {
           level: 2,
           contextValue: element.type === "defined" ? "definedEntryInCurFile" : "undefinedEntryInCurFile",
           usedInfo: this[element.type === "defined" ? "usedEntryMap" : "undefinedEntryMap"][entry.text],
-          id: this.genId(element, entry.id),
+          id: this.genId(element, entry.id || ""),
           root: element.root
         };
       });
     } else if (element.level === 2) {
-      const entryInfo = this.dictionary[getValueByAmbiguousEntryName(this.tree, element.label)];
+      const entryInfo = this.dictionary[getValueByAmbiguousEntryName(this.tree, element.label) as string];
       return this.langInfo.langList.map(lang => ({
         label: lang,
         name: element.label,
@@ -179,7 +206,8 @@ class treeProvider {
     }
     return [];
   }
-  getSyncInfoChildren(element) {
+
+  private getSyncInfoChildren(element: any): vscode.TreeItem[] {
     if (element.level === 0) {
       return this.langInfo.langList.map(lang => ({
         level: 1,
@@ -203,7 +231,7 @@ class treeProvider {
         collapsibleState: vscode.TreeItemCollapsibleState[item.num === 0 ? "None" : item.type === "common" ? "Collapsed" : "Expanded"]
       }));
     } else if (element.level === 2) {
-      return element.data.map(item => ({
+      return element.data.map((item: any) => ({
         label: unescapeEntryName(item[0]),
         description: item[1],
         level: 3,
@@ -216,7 +244,8 @@ class treeProvider {
     }
     return [];
   }
-  async getUsageInfoChildren(element) {
+
+  private async getUsageInfoChildren(element: any): Promise<vscode.TreeItem[]> {
     if (element.level === 0) {
       return [
         { type: "used", label: "已使用", num: this.entryUsageInfo.used.length },
@@ -241,7 +270,6 @@ class treeProvider {
             return {
               key: item,
               label: item,
-              // label: `${item} (${undefinedNum})`,
               level: 2,
               description: `<${undefinedNum}>`,
               type: element.type,
@@ -252,31 +280,30 @@ class treeProvider {
           });
       } else if (element.type === "used") {
         return this.entryUsageInfo.used.sort().map(item => {
-          const usedNum = Object.values(this.usedEntryMap[item.unescaped]).flat().length;
-          const entryInfo = this.dictionary[item.escaped];
+          const usedNum = Object.values(this.usedEntryMap[item.text]).flat().length;
+          const entryInfo = this.dictionary[item.text];
           return {
-            key: item.escaped,
-            // label: `${item} (${usedNum})`,
-            label: item.unescaped,
+            key: item.text,
+            label: item.text,
             description: `<${usedNum}>${entryInfo[this.#robot.referredLang]}`,
             level: 2,
             type: element.type,
             root: element.root,
-            id: this.genId(element, item.unescaped),
+            id: this.genId(element, item.text),
             collapsibleState: vscode.TreeItemCollapsibleState.Collapsed
           };
         });
       } else {
         return this.entryUsageInfo.unused.sort().map(item => {
-          const entryInfo = this.dictionary[item.escaped];
+          const entryInfo = this.dictionary[item.text];
           return {
-            label: item.unescaped,
+            label: item.text,
             description: entryInfo[this.#robot.referredLang],
             level: 2,
             root: element.root,
             data: [item],
             contextValue: "unusedGroupItem",
-            id: this.genId(element, item.unescaped),
+            id: this.genId(element, item.text),
             collapsibleState: vscode.TreeItemCollapsibleState.None
           };
         });
@@ -284,11 +311,11 @@ class treeProvider {
     } else if (element.level === 2) {
       const entryUsedInfo = this[element.type === "used" ? "usedEntryMap" : "undefinedEntryMap"][element.key];
       if (entryUsedInfo) {
-        const list = [];
+        const list: vscode.TreeItem[] = [];
         for (const filePath in entryUsedInfo) {
           const fileUri = vscode.Uri.file(filePath);
           const document = await vscode.workspace.openTextDocument(fileUri);
-          entryUsedInfo[filePath].sort().forEach(offset => {
+          entryUsedInfo[filePath].sort().forEach((offset: number) => {
             const pos = document.positionAt(offset);
             list.push(new FileItem(fileUri, pos, element.key));
           });
@@ -299,27 +326,13 @@ class treeProvider {
     }
     return [];
   }
-  getDictionaryInfoChildren(element) {
-    if (element.level === 0) {
-      return Object.keys(this.tree)
-        .sort()
-        .map(item => {
-          return {
-            label: item,
-            level: element.level + 1,
-            id: this.genId(element, item),
-            root: element.root,
-            collapsibleState: vscode.TreeItemCollapsibleState.Collapsed
-          };
-        });
-    }
-  }
-  getDictionaryChildren(element) {
+
+  private getDictionaryChildren(element: any): vscode.TreeItem[] {
     const res = (element.stack || []).reduce((acc, item) => acc[item], this.tree);
     if (typeof res === "string") {
       return Object.entries(this.dictionary[res]).map(item => ({
         label: item[0],
-        description: item[1],
+        description: item[1] as string,
         tooltip: getLangText(item[0]),
         id: this.genId(element, item[0]),
         collapsibleState: vscode.TreeItemCollapsibleState.None
@@ -347,20 +360,18 @@ class treeProvider {
         });
     }
   }
-  onActiveEditorChanged() {
-    this.checkUsedInfo();
-  }
-  async onDocumentChanged(content) {
+
+  private async onDocumentChanged(content: vscode.TextDocument): Promise<void> {
     if (isPathInsideDirectory(this.#robot.langDir, content.fileName)) {
       console.log("isPathInsideDirectory");
     }
-    // TODO 添加防抖处理
     this.#robot.setOptions({ task: "check", globalFlag: true, clearCache: false });
     await this.#robot.execute();
     this.checkUsedInfo();
     this.refresh();
   }
-  checkUsedInfo() {
+
+  private checkUsedInfo(): void {
     this.definedEntriesInCurrentFile = [];
     this.undefinedEntriesInCurrentFile = [];
     const editor = vscode.window.activeTextEditor;
@@ -389,8 +400,9 @@ class treeProvider {
       this.refresh();
     }
   }
-  checkLangSyncInfo(lang) {
-    const list = [];
+
+  private checkLangSyncInfo(lang: string): string {
+    const list: string[] = [];
     const lackNum = this.langInfo.lack[lang].length;
     const extraNum = this.langInfo.extra[lang].length;
     const nullNum = this.langInfo.null[lang].length;
@@ -408,11 +420,12 @@ class treeProvider {
     }
     return list.join(" ");
   }
-  getSyncInfo(lang) {
+
+  private getSyncInfo(lang: string): any[] {
     const totalEntries = Object.entries(this.langInfo.countryMap?.[lang] || {});
     totalEntries.sort((a, b) => (a[0] > b[0] ? 1 : -1));
-    const commonEntries = [];
-    const extraEntries = [];
+    const commonEntries: any[] = [];
+    const extraEntries: any[] = [];
     const extraEntryNameList = this.langInfo.extra?.[lang] || [];
     const nullEntryNameList = this.langInfo.null?.[lang] || [];
     totalEntries.forEach(item => {
@@ -434,24 +447,27 @@ class treeProvider {
     }
     return res;
   }
-  getSyncPercent() {
-    const lackList = Object.values(this.langInfo.lack);
+
+  private getSyncPercent(): string {
+    const lackList = Object.values(this.langInfo.lack) as string[][];
     const lackNum = lackList.reduce((pre, cur) => pre + cur.length, 0);
-    const nullList = Object.values(this.langInfo.null);
+    const nullList = Object.values(this.langInfo.null) as string[][];
     const nullNum = nullList.reduce((pre, cur) => pre + cur.length, 0);
     let total = this.#robot.syncBasedOnReferredEntries ? this.langInfo.refer.length : Object.keys(this.dictionary).length;
     total = lackList.length ? total * lackList.length : total;
     const res = (Math.floor(((total - lackNum - nullNum) / total) * 10000) / 100).toFixed(2);
     return res + "%";
   }
-  getUsagePercent() {
+
+  private getUsagePercent(): string {
     const total = Object.keys(this.dictionary).length;
     if (total === 0) return "";
     return Math.floor(Number(((this.entryUsageInfo.used.length / total) * 10000).toFixed(0))) / 100 + "%";
   }
-  genId(element, name) {
+
+  private genId(element: any, name: string): string {
     return `${element.id},${name}`;
   }
 }
 
-module.exports = { treeProvider };
+export { TreeProvider };

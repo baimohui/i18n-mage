@@ -1,55 +1,54 @@
-const fs = require("fs");
-const path = require("path");
+import fs from "fs";
+import path from "path";
 
-const deleteFolderRecursive = (dirPath) => {
+const deleteFolderRecursive = (dirPath: string): void => {
   if (fs.existsSync(dirPath)) {
     fs.readdirSync(dirPath).forEach(file => {
       const curPath = path.join(dirPath, file);
-      fs.lstatSync(curPath).isDirectory() ? deleteFolderRecursive(curPath) : fs.unlinkSync(curPath);
+      if (fs.lstatSync(curPath).isDirectory()) {
+        deleteFolderRecursive(curPath);
+      } else {
+        fs.unlinkSync(curPath);
+      }
     });
     fs.rmdirSync(dirPath);
   }
-}
+};
 
-const createFolderRecursive = (dirPath) => {
+const createFolderRecursive = (dirPath: string): void => {
   if (fs.existsSync(dirPath)) return;
-  let parentPath = path.dirname(dirPath);
-  !fs.existsSync(parentPath) && createFolderRecursive(parentPath);
+  const parentPath = path.dirname(dirPath);
+  if (!fs.existsSync(parentPath)) createFolderRecursive(parentPath);
   fs.mkdirSync(dirPath);
-}
+};
 
-const getPossibleLangDirList = (dirPath, list = []) => {
+const getPossibleLangDirList = (dirPath: string, list: string[] = []): string[] => {
   const results = fs.readdirSync(dirPath, { withFileTypes: true });
   for (let i = 0; i < results.length; i++) {
     const targetName = results[i].name;
     const targetPath = path.join(dirPath, targetName);
     const ignoredDirList = ["dist", "node_modules", "img", "image", "css", "asset", "langChecker", ".vscode"];
     if (results[i].isDirectory()) {
-      const hasLangName = ["lang", "i18n", "translat", "fanyi"].some(key => targetName.includes(key))
+      const hasLangName = ["lang", "i18n", "translat", "fanyi"].some(key => targetName.includes(key));
       if (hasLangName) {
-        list.push(targetPath)
+        list.push(targetPath);
       } else if (ignoredDirList.every(key => !targetName.includes(key))) {
         getPossibleLangDirList(targetPath, list);
       }
     }
   }
   return list;
-}
+};
 
-const isPathInsideDirectory = (dir, targetPath) => {
+const isPathInsideDirectory = (dir: string, targetPath: string): boolean => {
   // 获取绝对路径
   const absoluteDir = path.resolve(dir);
   const absoluteTargetPath = path.resolve(targetPath);
   // 计算相对路径
   const relativePath = path.relative(absoluteDir, absoluteTargetPath);
   // 如果相对路径不以 ".." 开头，则 targetPath 是在 dir 目录下
-  const isInside = !relativePath.startsWith('..') && !path.isAbsolute(relativePath);
+  const isInside = !relativePath.startsWith("..") && !path.isAbsolute(relativePath);
   return isInside;
-}
+};
 
-module.exports = {
-  deleteFolderRecursive,
-  createFolderRecursive,
-  getPossibleLangDirList,
-  isPathInsideDirectory
-}
+export { deleteFolderRecursive, createFolderRecursive, getPossibleLangDirList, isPathInsideDirectory };

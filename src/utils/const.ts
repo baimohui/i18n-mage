@@ -1,7 +1,13 @@
-const { hasOwn } = require("./common");
-
 // 多语言文件名/翻译平台语言码映射表
-const LANG_INTRO_MAP = {
+interface LangIntro {
+  cnName: string;
+  enName: string;
+  ggCode: string;
+  tcCode: string;
+  bdCode: string;
+}
+
+const LANG_INTRO_MAP: Record<string, LangIntro> = {
   am: { cnName: "阿姆哈拉语", enName: "Amharic", ggCode: "am", tcCode: "", bdCode: "amh" },
   ara: { cnName: "阿拉伯语", enName: "Arabic", ggCode: "ar", tcCode: "ar", bdCode: "ara" },
   cs: { cnName: "捷克语", enName: "Czech", ggCode: "cs", tcCode: "", bdCode: "cs" },
@@ -34,9 +40,10 @@ const LANG_INTRO_MAP = {
 };
 
 // 多语言文件别名映射表
-const LANG_ALIAS_MAP = {
+const LANG_ALIAS_MAP: Record<string, string[]> = {
   am: ["ah"],
-  id: ["in"],
+  en: ["en-US"],
+  id: ["in", "id-ID"],
   jp: ["ja"],
   pt: ["po", "por"],
   tr: ["tr-TR"],
@@ -51,9 +58,9 @@ const LANG_ALIAS_MAP = {
 };
 
 // 根据多语言文件名获取对应语种简介
-const getLangIntro = str => {
+const getLangIntro = (str: string): LangIntro | null => {
   str = str.split(".")[0];
-  if (!hasOwn(LANG_INTRO_MAP, str)) {
+  if (!Object.hasOwn(LANG_INTRO_MAP, str)) {
     for (const key in LANG_INTRO_MAP) {
       if (str && Object.values(LANG_INTRO_MAP[key]).includes(str)) {
         str = key;
@@ -67,26 +74,26 @@ const getLangIntro = str => {
       }
     }
   }
-  return LANG_INTRO_MAP[str] || {};
+  return (str in LANG_INTRO_MAP) ? LANG_INTRO_MAP[str] : null;
 };
 
 // 根据多语言文件名获取对应语种名称
-const getLangText = (str, type = "cn") => {
-  const intro = getLangIntro(str);
+const getLangText = (str: string, type = "cn"): string => {
+  const intro = getLangIntro(str) as LangIntro;
   if (type === "cn") {
-    return intro.cnName || "未知语种";
+    return intro?.cnName || "未知语种";
   } else if (type === "en") {
-    return intro.enName || "Unknown language";
+    return intro?.enName || "Unknown language";
   } else {
     return str;
   }
 };
 
 // 根据多语言文件名和平台获取对应语种代码
-const getLangCode = (str, platform = "google") => {
-  const intro = getLangIntro(str);
-  const map = { google: "ggCode", tencent: "tcCode", baidu: "bdCode" };
-  return intro[map[platform]] || str;
+const getLangCode = (str: string, platform: "google" | "tencent" | "baidu" = "google"): string => {
+  const intro = getLangIntro(str) as LangIntro;
+  const map: Record<string, keyof LangIntro> = { google: "ggCode", tencent: "tcCode", baidu: "bdCode" };
+  return intro?.[map[platform]] || str;
 };
 
 // 多语言文件内容展示格式
@@ -94,16 +101,18 @@ const LANG_FORMAT_TYPE = {
   obj: "OBJECT",
   nonObj: "NON_OBJECT",
   nestedObj: "OBJECT_NESTED"
-};
+} as const;
+
+type LangFormatType = typeof LANG_FORMAT_TYPE[keyof typeof LANG_FORMAT_TYPE];
 
 // 条目默认分隔符
-const LANG_ENTRY_SPLIT_SYMBOL = {
+const LANG_ENTRY_SPLIT_SYMBOL: Record<LangFormatType, string> = {
   [LANG_FORMAT_TYPE.obj]: "_",
   [LANG_FORMAT_TYPE.nonObj]: ".",
   [LANG_FORMAT_TYPE.nestedObj]: "."
 };
 
-module.exports = {
+export {
   getLangIntro,
   getLangText,
   getLangCode,

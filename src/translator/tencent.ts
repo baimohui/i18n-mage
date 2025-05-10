@@ -1,16 +1,12 @@
-// const fs = require("fs");
-// const { globalSetting } = require("../common/collect");
-// const { translate: globalSettingTranslate } = globalSetting;
-// const { secretId, secretKey, region, endpoint, source, projectId } = globalSettingTranslate || {};
-// const { createFile } = require("../common/utils");
+import tencentCloud from "tencentcloud-sdk-nodejs-tmt";
+import { TranslateParams, TranslateResult } from "../types";
 
-const tencentCloud = require("tencentcloud-sdk-nodejs-tmt");
 const TmtClient = tencentCloud.tmt.v20180321.Client;
 
-let tencentSecretId = "",
-  tencentSecretKey = "";
+let tencentSecretId = "";
+let tencentSecretKey = "";
 
-const supportLangMap = {
+const supportLangMap: Record<string, string[]> = {
   zh: ["en", "ja", "ko", "fr", "es", "it", "de", "tr", "ru", "pt", "vi", "id", "th", "ms"],
   en: ["zh", "zh-TW", "ja", "ko", "fr", "es", "it", "de", "tr", "ru", "pt", "vi", "id", "th", "ms", "ar", "hi"],
   ja: ["zh", "zh-TW", "en", "ko"],
@@ -31,8 +27,14 @@ const supportLangMap = {
   "zh-TW": ["en", "ja", "ko", "fr", "es", "it", "de", "tr", "ru", "pt", "vi", "id", "th", "ms"]
 };
 
-const translateTo = async ({ source, target, sourceTextList, apiId, apiKey }) => {
-  if (supportLangMap[source] === "undefined") {
+const translateTo = async ({
+  source,
+  target,
+  sourceTextList,
+  apiId,
+  apiKey
+}: TranslateParams): Promise<TranslateResult> => {
+  if (!supportLangMap[source]) {
     return {
       success: false,
       langUnsupported: true,
@@ -51,8 +53,8 @@ const translateTo = async ({ source, target, sourceTextList, apiId, apiKey }) =>
   const translateLenLimit = 2000; // a request content max length
   const secondRequestLimit = 5; // the max times per second to request
   let sum = 0;
-  let pack = [];
-  let packList = [];
+  let pack: string[] = [];
+  let packList: string[][] = [];
   for (let i = 0; i < sourceTextList.length; i++) {
     const text = sourceTextList[i];
     sum += text.length;
@@ -73,8 +75,14 @@ const translateTo = async ({ source, target, sourceTextList, apiId, apiKey }) =>
   return await sendBatch(source, target, packList, 0, secondRequestLimit);
 };
 
-const sendBatch = async (source, target, packList, batchNum, batchSize) => {
-  const result = [];
+const sendBatch = async (
+  source: string,
+  target: string,
+  packList: string[][],
+  batchNum: number,
+  batchSize: number
+): Promise<TranslateResult> => {
+  const result: string[] = [];
   const packNum = batchNum * batchSize;
   try {
     for (let i = packNum; i < packNum + batchSize; i++) {
@@ -88,7 +96,7 @@ const sendBatch = async (source, target, packList, batchNum, batchSize) => {
       return new Promise(resolve => {
         setTimeout(async () => {
           const batchRes = await sendBatch(source, target, packList, batchNum + 1, batchSize);
-          result.push(...batchRes);
+          result.push(...batchRes.data || []);
           resolve({ success: true, data: result });
         }, 1100);
       });
@@ -98,12 +106,16 @@ const sendBatch = async (source, target, packList, batchNum, batchSize) => {
   } catch (e) {
     return {
       success: false,
-      message: e.message
+      message: (e as Error).message
     };
   }
 };
 
-const send = (source, target, sourceTextList) => {
+const send = (
+  source: string,
+  target: string,
+  sourceTextList: string[]
+): Promise<string[]> => {
   return new Promise((resolve, reject) => {
     const params = {
       Source: source,
@@ -125,7 +137,7 @@ const send = (source, target, sourceTextList) => {
     });
     client.TextTranslateBatch(params).then(
       data => {
-        resolve(data.TargetTextList);
+        resolve(data.TargetTextList || []);
       },
       err => {
         reject(err);
@@ -134,4 +146,4 @@ const send = (source, target, sourceTextList) => {
   });
 };
 
-module.exports = translateTo;
+export default translateTo;

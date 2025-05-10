@@ -1,6 +1,16 @@
-const vscode = require("vscode");
+import * as vscode from "vscode";
+import { TEntry } from "./types";
 
-function getWebviewContent(valueFixes, idFixes, langCountryMap, referredLang) {
+type ValueFixes = Record<string, Record<string, string | undefined>>;
+type IdFixes = Record<string, TEntry[]>;
+type LangCountryMap = Record<string, Record<string, string>>;
+
+function getWebviewContent(
+  valueFixes: ValueFixes,
+  idFixes: IdFixes,
+  langCountryMap: LangCountryMap,
+  referredLang: string
+): string {
   const nonce = getNonce();
 
   const valueSections = Object.entries(valueFixes)
@@ -36,10 +46,10 @@ function getWebviewContent(valueFixes, idFixes, langCountryMap, referredLang) {
     .join("");
 
   const idSections = Object.entries(idFixes)
-    .map(([file, changes], index) => {
+    .map(([file, changes]) => {
       const items = changes
         .map(
-          change => `
+          (change, index) => `
       <div class="id-change">
         <input type="checkbox" data-file="${file}" data-index="${index}" id="idfix_${change.id}" class="idfix-checkbox" checked>
         <label><span class="old-id">${change.raw}</span> → <span class="new-id">${change.fixedRaw}</span></label>
@@ -167,20 +177,20 @@ function getWebviewContent(valueFixes, idFixes, langCountryMap, referredLang) {
 
         document.querySelectorAll('.value-input').forEach(input => {
           input.addEventListener('input', () => {
-            const checkbox = input.parentElement.querySelector('.value-checkbox');
+            const checkbox = input.parentElement.querySelector('.value-checkbox') as HTMLInputElement;
             checkbox.checked = input.value.trim() !== '';
             checkbox.disabled = input.value.trim() === '';
           });
         });
 
         document.getElementById('applyBtn')?.addEventListener('click', () => {
-          const valueFixes = {};
+          const valueFixes: ValueFixes = {};
           document.querySelectorAll('.entry').forEach(entry => {
-            const id = entry.dataset.id;
-            const checkbox = entry.querySelector('.value-checkbox');
-            const input = entry.querySelector('.value-input');
+            const id = entry.getAttribute('data-id')!;
+            const checkbox = entry.querySelector('.value-checkbox') as HTMLInputElement;
+            const input = entry.querySelector('.value-input') as HTMLInputElement;
             if (checkbox.checked) {
-              const lang = entry.dataset.lang;
+              const lang = entry.getAttribute('data-lang')!;
               if (!valueFixes[lang]) {
                 valueFixes[lang] = {};
               }
@@ -188,11 +198,12 @@ function getWebviewContent(valueFixes, idFixes, langCountryMap, referredLang) {
             }
           });
 
-          const idFixes = {};
+          const idFixes: Record<string, number[]> = {};
           document.querySelectorAll('.idfix-checkbox').forEach(cb => {
-            if (cb.checked) {
-              const file = cb.dataset.file;
-              const index = cb.dataset.index;
+            const checkbox = cb as HTMLInputElement;
+            if (checkbox.checked) {
+              const file = checkbox.getAttribute('data-file')!;
+              const index = parseInt(checkbox.getAttribute('data-index')!, 10);
               if (!idFixes[file]) {
                 idFixes[file] = [];
               }
@@ -215,7 +226,7 @@ function getWebviewContent(valueFixes, idFixes, langCountryMap, referredLang) {
   `;
 }
 
-function getNonce() {
+function getNonce(): string {
   let text = "";
   const possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
   for (let i = 0; i < 32; i++) {
@@ -224,7 +235,13 @@ function getNonce() {
   return text;
 }
 
-module.exports = async function (updatedEntryValueInfo, patchedEntryIdInfo, langCountryMap, referredLang, callback) {
+export default async function (
+  updatedEntryValueInfo: ValueFixes,
+  patchedEntryIdInfo: IdFixes,
+  langCountryMap: LangCountryMap,
+  referredLang: string,
+  callback: () => void
+): Promise<void> {
   const panel = vscode.window.createWebviewPanel("fixProblems", "选择要应用的修复", vscode.ViewColumn.One, {
     enableScripts: true,
     retainContextWhenHidden: false
@@ -235,7 +252,6 @@ module.exports = async function (updatedEntryValueInfo, patchedEntryIdInfo, lang
   panel.webview.onDidReceiveMessage(message => {
     if (message.type === "applyFixes") {
       const { valueFixes, idFixes } = message.data;
-      // vscode.window.showInformationMessage(`应用了 ${selectedFixes.length} 项修复！`);
       for (const lang in updatedEntryValueInfo) {
         if (valueFixes[lang]) {
           for (const id in updatedEntryValueInfo[lang]) {
@@ -252,11 +268,11 @@ module.exports = async function (updatedEntryValueInfo, patchedEntryIdInfo, lang
       for (const filePath in patchedEntryIdInfo) {
         patchedEntryIdInfo[filePath] = patchedEntryIdInfo[filePath].filter((_, index) => !idFixes[filePath]?.includes(index));
       }
-      panel.dispose(); // 👈 关闭 Webview
-      callback(); // 👈 调用回调函数
+      panel.dispose();
+      callback();
     } else if (message.type === "cancelFixes") {
       console.log("用户取消了修复操作");
-      panel.dispose(); // 👈 关闭 Webview
+      panel.dispose();
     }
   });
-};
+}

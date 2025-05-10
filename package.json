@@ -13,7 +13,7 @@
   ],
   "version": "0.0.1",
   "engines": {
-    "vscode": "^1.89.0"
+    "vscode": "^1.99.0"
   },
   "categories": [
     "Other"
@@ -153,14 +153,6 @@
         }
       },
       {
-        "command": "i18nMage.sort",
-        "title": "排序",
-        "icon": {
-          "light": "./images/sort-light.svg",
-          "dark": "./images/sort-dark.svg"
-        }
-      },
-      {
         "command": "i18nMage.fix",
         "title": "修复",
         "icon": {
@@ -279,24 +271,19 @@
           "group": "navigation@1"
         },
         {
-          "command": "i18nMage.sort",
+          "command": "i18nMage.export",
           "when": "view == treeProvider",
           "group": "navigation@2"
         },
         {
-          "command": "i18nMage.export",
+          "command": "i18nMage.import",
           "when": "view == treeProvider",
           "group": "navigation@3"
         },
         {
-          "command": "i18nMage.import",
-          "when": "view == treeProvider",
-          "group": "navigation@4"
-        },
-        {
           "command": "i18nMage.fix",
           "when": "view == treeProvider",
-          "group": "navigation@5"
+          "group": "navigation@4"
         }
       ],
       "view/item/context": [
@@ -436,16 +423,18 @@
     "tunnel": "^0.0.6"
   },
   "devDependencies": {
-    "@babel/core": "^7.24.8",
-    "@babel/eslint-parser": "^7.24.8",
+    "@babel/core": "^7.27.1",
+    "@babel/eslint-parser": "^7.27.1",
     "@babel/preset-env": "^7.24.8",
     "@types/mocha": "^10.0.6",
-    "@types/node": "^18",
-    "@types/vscode": "^1.89.0",
+    "@types/node": "^18.19.97",
+    "@types/vscode": "^1.99.1",
+    "@typescript-eslint/eslint-plugin": "^8.32.0",
+    "@typescript-eslint/parser": "^8.32.0",
     "@vscode/test-cli": "^0.0.9",
     "@vscode/test-electron": "^2.3.9",
     "esbuild": "^0.25.4",
-    "eslint": "^8.57.0",
-    "typescript": "^5.4.5"
+    "eslint": "^8.57.1",
+    "typescript": "^5.8.3"
   }
 }
