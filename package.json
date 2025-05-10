@@ -6,6 +6,7 @@
     "type": "git",
     "url": "https://github.com/baimohui/i18n-checker.git"
   },
+  "publisher": "jensenwen",
   "keywords": [
     "i18n",
     "translate",
@@ -13,7 +14,7 @@
   ],
   "version": "0.0.1",
   "engines": {
-    "vscode": "^1.99.0"
+    "vscode": "^1.89.0"
   },
   "categories": [
     "Other"
@@ -223,44 +224,6 @@
           "light": "./images/delete-light.svg",
           "dark": "./images/delete-dark.svg"
         }
-      },
-      {
-        "command": "extension.sayHello",
-        "title": "Hello，小茗同学"
-      },
-      {
-        "command": "extension.demo.getCurrentFilePath",
-        "title": "获取当前文件 (夹) 路径"
-      },
-      {
-        "command": "extension.demo.testMenuShow",
-        "title": "这个菜单仅在 JS 文件中出现",
-        "icon": {
-          "light": "./images/tool-light.svg",
-          "dark": "./images/tool-light.svg"
-        }
-      },
-      {
-        "command": "extension.demo.openWebview",
-        "title": "打开 WebView"
-      },
-      {
-        "command": "extension.demo.showWelcome",
-        "title": "显示自定义欢迎页"
-      }
-    ],
-    "keybindings": [
-      {
-        "command": "extension.sayHello",
-        "key": "ctrl+f10",
-        "mac": "cmd+f10",
-        "when": "editorTextFocus"
-      },
-      {
-        "command": "extension.demo.openWebview",
-        "key": "ctrl+f9",
-        "mac": "cmd+f9",
-        "when": "editorTextFocus"
       }
     ],
     "menus": {
@@ -325,51 +288,6 @@
           "when": "viewItem == unusedGroupHeader || viewItem == unusedGroupItem",
           "group": "inline@1"
         }
-      ],
-      "editor/context": [
-        {
-          "when": "editorFocus",
-          "command": "extension.sayHello",
-          "group": "navigation@6"
-        },
-        {
-          "when": "editorFocus",
-          "command": "extension.demo.getCurrentFilePath",
-          "group": "navigation@5"
-        },
-        {
-          "when": "editorFocus && resourceLangId == javascript",
-          "command": "extension.demo.testMenuShow",
-          "group": "z_commands"
-        },
-        {
-          "command": "extension.demo.openWebview",
-          "group": "navigation"
-        }
-      ],
-      "editor/title": [
-        {
-          "when": "editorFocus && resourceLangId == javascript",
-          "command": "extension.demo.testMenuShow",
-          "group": "navigation"
-        }
-      ],
-      "editor/title/context": [
-        {
-          "when": "resourceLangId == javascript",
-          "command": "extension.demo.testMenuShow",
-          "group": "navigation"
-        }
-      ],
-      "explorer/context": [
-        {
-          "command": "extension.demo.getCurrentFilePath",
-          "group": "navigation"
-        },
-        {
-          "command": "extension.demo.openWebview",
-          "group": "navigation"
-        }
       ]
     },
     "snippets": [
@@ -428,7 +346,7 @@
     "@babel/preset-env": "^7.24.8",
     "@types/mocha": "^10.0.6",
     "@types/node": "^18.19.97",
-    "@types/vscode": "^1.99.1",
+    "@types/vscode": "^1.89.0",
     "@typescript-eslint/eslint-plugin": "^8.32.0",
     "@typescript-eslint/parser": "^8.32.0",
     "@vscode/test-cli": "^0.0.9",

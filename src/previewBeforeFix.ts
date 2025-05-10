@@ -177,20 +177,20 @@ function getWebviewContent(
 
         document.querySelectorAll('.value-input').forEach(input => {
           input.addEventListener('input', () => {
-            const checkbox = input.parentElement.querySelector('.value-checkbox') as HTMLInputElement;
+            const checkbox = input.parentElement.querySelector('.value-checkbox');
             checkbox.checked = input.value.trim() !== '';
             checkbox.disabled = input.value.trim() === '';
           });
         });
 
         document.getElementById('applyBtn')?.addEventListener('click', () => {
-          const valueFixes: ValueFixes = {};
+          const valueFixes = {};
           document.querySelectorAll('.entry').forEach(entry => {
-            const id = entry.getAttribute('data-id')!;
-            const checkbox = entry.querySelector('.value-checkbox') as HTMLInputElement;
-            const input = entry.querySelector('.value-input') as HTMLInputElement;
+            const id = entry.dataset.id;
+            const checkbox = entry.querySelector('.value-checkbox');
+            const input = entry.querySelector('.value-input');
             if (checkbox.checked) {
-              const lang = entry.getAttribute('data-lang')!;
+              const lang = entry.dataset.lang;
               if (!valueFixes[lang]) {
                 valueFixes[lang] = {};
               }
@@ -198,12 +198,11 @@ function getWebviewContent(
             }
           });
 
-          const idFixes: Record<string, number[]> = {};
+          const idFixes = {};
           document.querySelectorAll('.idfix-checkbox').forEach(cb => {
-            const checkbox = cb as HTMLInputElement;
-            if (checkbox.checked) {
-              const file = checkbox.getAttribute('data-file')!;
-              const index = parseInt(checkbox.getAttribute('data-index')!, 10);
+            if (cb.checked) {
+              const file = cb.dataset.file;
+              const index = cb.dataset.index;
               if (!idFixes[file]) {
                 idFixes[file] = [];
               }

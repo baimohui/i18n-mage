@@ -1,5 +1,6 @@
 import { LANG_FORMAT_TYPE, LANG_ENTRY_SPLIT_SYMBOL, getLangCode } from "./const";
 import { LangFileInfo, EntryMap, EntryTree, TEntry, PEntry, CaseType } from "../types/common";
+import { printInfo } from "./print";
 
 const newlineCharacter = "\r\n";
 
@@ -69,7 +70,11 @@ const getLangFileInfo = (str: string): LangFileInfo | null => {
       keyQuotes
     };
   } catch (e) {
-    console.error("Error parsing language file:", e);
+    if (e instanceof Error) {
+      printInfo(`解析异常，出现异常报错：${e.message}`, "demon");
+    } else {
+      printInfo(`解析异常，出现非 Error 类型的报错：${e as string}`, "demon");
+    }
     return null;
   }
 };

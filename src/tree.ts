@@ -3,12 +3,7 @@ import LangCheckRobot from "./langCheckRobot";
 import { catchTEntries, unescapeEntryName, getValueByAmbiguousEntryName } from "./utils/regex";
 import { isPathInsideDirectory } from "./utils/fs";
 import { getLangText } from "./utils/const";
-
-interface Entry {
-  text: string;
-  regex: RegExp;
-  id?: string;
-}
+import { TEntry } from "./types";
 
 interface ExtendedTreeItem extends vscode.TreeItem {
   level: number;
@@ -33,9 +28,9 @@ class FileItem extends vscode.TreeItem {
 class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
   #robot: LangCheckRobot;
   isInitialized = false;
-  usedEntries: Entry[] = [];
-  definedEntriesInCurrentFile: Entry[] = [];
-  undefinedEntriesInCurrentFile: Entry[] = [];
+  usedEntries: TEntry[] = [];
+  definedEntriesInCurrentFile: TEntry[] = [];
+  undefinedEntriesInCurrentFile: TEntry[] = [];
   usedEntryMap: Record<string, any>;
   private _onDidChangeTreeData = new vscode.EventEmitter<void>();
   readonly onDidChangeTreeData = this._onDidChangeTreeData.event;
@@ -69,14 +64,14 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
 
   get entryUsageInfo() {
     const dictionary = this.langInfo.dictionary;
-    const unusedEntries: Entry[] = [];
-    const usedEntries: Entry[] = [];
+    const unusedEntries: { escaped: string; unescaped: string }[] = [];
+    const usedEntries: { escaped: string; unescaped: string }[] = [];
     for (const entry in dictionary) {
       const unescapedEntryName = unescapeEntryName(entry);
       if (!this.langInfo.used[unescapedEntryName]) {
-        unusedEntries.push({ text: unescapedEntryName, regex: new RegExp(entry) });
+        unusedEntries.push({ unescaped: unescapedEntryName, escaped: entry });
       } else {
-        usedEntries.push({ text: unescapedEntryName, regex: new RegExp(entry) });
+        usedEntries.push({ unescaped: unescapedEntryName, escaped: entry });
       }
     }
     return { used: usedEntries, unused: unusedEntries };
@@ -280,30 +275,30 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
           });
       } else if (element.type === "used") {
         return this.entryUsageInfo.used.sort().map(item => {
-          const usedNum = Object.values(this.usedEntryMap[item.text]).flat().length;
-          const entryInfo = this.dictionary[item.text];
+          const usedNum = Object.values(this.usedEntryMap[item.unescaped]).flat().length;
+          const entryInfo = this.dictionary[item.escaped];
           return {
-            key: item.text,
-            label: item.text,
+            key: item.escaped,
+            label: item.unescaped,
             description: `<${usedNum}>${entryInfo[this.#robot.referredLang]}`,
             level: 2,
             type: element.type,
             root: element.root,
-            id: this.genId(element, item.text),
+            id: this.genId(element, item.unescaped),
             collapsibleState: vscode.TreeItemCollapsibleState.Collapsed
           };
         });
       } else {
         return this.entryUsageInfo.unused.sort().map(item => {
-          const entryInfo = this.dictionary[item.text];
+          const entryInfo = this.dictionary[item.escaped];
           return {
-            label: item.text,
+            label: item.unescaped,
             description: entryInfo[this.#robot.referredLang],
             level: 2,
             root: element.root,
             data: [item],
             contextValue: "unusedGroupItem",
-            id: this.genId(element, item.text),
+            id: this.genId(element, item.unescaped),
             collapsibleState: vscode.TreeItemCollapsibleState.None
           };
         });

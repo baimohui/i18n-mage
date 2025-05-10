@@ -4,7 +4,7 @@
     {
       "label": "esbuild:watch",
       "type": "shell",
-      "command": "npx esbuild src/extension.js --bundle --outfile=dist/extension.js --platform=node --target=node18 --external:vscode --watch",
+      "command": "npx esbuild src/extension.ts --bundle --outfile=dist/extension.js --platform=node --target=node18 --external:vscode --watch",
       "isBackground": true,
       "problemMatcher": []
     }

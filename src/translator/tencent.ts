@@ -1,7 +1,7 @@
-import tencentCloud from "tencentcloud-sdk-nodejs-tmt";
+import { tmt } from "tencentcloud-sdk-nodejs-tmt";
 import { TranslateParams, TranslateResult } from "../types";
 
-const TmtClient = tencentCloud.tmt.v20180321.Client;
+const TmtClient = tmt.v20180321.Client;
 
 let tencentSecretId = "";
 let tencentSecretKey = "";
