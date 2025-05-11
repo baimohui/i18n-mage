@@ -330,8 +330,9 @@ class LangCheckRobot {
       this.langTree = structure;
       this.langDictionary = lookup;
       if (!this.referredLang) {
-        const cnName = this.detectedLangList.find(a => ["cn", "zh"].some(b => a.startsWith(b))) as string;
-        const enName = this.detectedLangList.find(a => a.startsWith("en")) as string;
+        // TODO 中英文判断逻辑待优化
+        const cnName = this.detectedLangList.find(a => ["cn", "zh"].some(b => a.startsWith(b)));
+        const enName = this.detectedLangList.find(a => a.startsWith("en"));
         this.referredLang = cnName || enName || this.detectedLangList[0];
       }
       this.referredEntryList = [...new Set(this.referredEntryList.concat(Object.keys(this.langCountryMap[this.referredLang])))];
@@ -638,36 +639,31 @@ class LangCheckRobot {
     }
     const pcList = this._getPopularClassList();
     const namePrefix = pcList[0]?.name ?? "";
+    const checkExisted = (id) => getValueByAmbiguousEntryName(this.langTree, id);
     needTranslateList.forEach((entry, index) => {
       let id = getIdByStr(enNameList[index], true);
-      let entryName = "";
-      if (entry.name && !this.referredEntryList.includes(entry.name)) {
-        entryName = entry.name;
-      } else {
+      if (!entry.name || checkExisted(entry.name)) {
         if (entry.class && !entry.class.endsWith(LANG_ENTRY_SPLIT_SYMBOL[this.langFormatType] as string)) {
           entry.class += LANG_ENTRY_SPLIT_SYMBOL[this.langFormatType];
         }
-        const entryPrefix = entry.class || namePrefix;
-        if (id.length > 40) {
-          let index = 0;
-          id = `${entry.path!.match(/([a-zA-Z0-9]+)\./)![1]}Text`;
-          while (referredLangMap[entryPrefix + id + String(index).padStart(2, "0")]) {
-            index++;
-          }
-          id = id + String(index).padStart(2, "0");
+        const baseName = entry.class || namePrefix;
+        const needsNewId = id.length > 40 || checkExisted(baseName + id);
+        if (needsNewId) {
+          const mainName = id.length > 40 ? entry.path!.match(/([a-zA-Z0-9]+)\./)?.[1] + "Text" : id;
+          id = this._generateUniqueId(mainName, baseName);
         }
-        entryName = entryPrefix + id;
+        entry.name = baseName + id;
+      } else {
       }
-      entry.name = entryName;
-      entry.fixedRaw = this._getFixedRaw(entry, entryName);
+      entry.fixedRaw = this._getFixedRaw(entry, entry.name);
       patchedEntryIdList.push(entry);
-      referredLangMap[entryName] = entry.text;
+      referredLangMap[entry.name] = entry.text;
       this.detectedLangList.forEach(lang => {
         if ([this.referredLang, enLang].includes(lang)) {
-          this._setUpdatedEntryValueInfo(entryName, lang === this.referredLang ? entry.text : enNameList[index], lang);
+          this._setUpdatedEntryValueInfo(entry.name, lang === this.referredLang ? entry.text : enNameList[index], lang);
         } else {
           this.lackInfo[lang] ??= [];
-          this.lackInfo[lang].push(entryName);
+          this.lackInfo[lang].push(entry.name);
         }
       });
     });
@@ -681,6 +677,17 @@ class LangCheckRobot {
       this.patchedEntryIdInfo[entry.path as string] ??= [];
       this.patchedEntryIdInfo[entry.path as string].push(entry);
     });
+  }
+
+  private _generateUniqueId(main, prefix) {
+    let index = 1;
+    const separator = "_";
+    const check = id => getValueByAmbiguousEntryName(this.langTree, prefix + id);
+
+    while (check(`${main}${separator}${String(index).padStart(2, "0")}`)) {
+      index++;
+    }
+    return `${main}${separator}${String(index).padStart(2, "0")}`;
   }
 
   private async _fillMissingTranslations(): Promise<boolean> {
