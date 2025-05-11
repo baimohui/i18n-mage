@@ -313,7 +313,8 @@
       "i18nMage": [
         {
           "id": "treeProvider",
-          "name": ""
+          "name": "",
+          "when": "workspaceFolderCount != 0"
         }
       ]
     },

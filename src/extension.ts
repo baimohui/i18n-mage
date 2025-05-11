@@ -30,9 +30,9 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
       baiduSecretKey: config.baiduSecretKey,
       tencentSecretId: config.tencentSecretId,
       tencentSecretKey: config.tencentSecretKey,
-      translateApiPriority: config.translateApiPriority,
+      translateApiPriority: config.translateApiPriority
     },
-    syncBasedOnReferredEntries: config.syncBasedOnReferredEntries,
+    syncBasedOnReferredEntries: config.syncBasedOnReferredEntries
   });
 
   async function getLangDir(): Promise<boolean> {
@@ -55,8 +55,8 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     return true;
   }
 
-  if (!(await getLangDir())) return;
-
+  // if (!(await getLangDir())) return;
+  await getLangDir();
   treeInstance = new TreeProvider();
   vscode.window.registerTreeDataProvider("treeProvider", treeInstance);
   treeInstance.isInitialized = true;
@@ -69,7 +69,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
         await globalConfig.update("i18n-mage.referenceLanguage", lang.key, vscode.ConfigurationTarget.Workspace);
         robot.setOptions({ referredLang: lang.key, task: "check", globalFlag: false, clearCache: false });
         await robot.execute();
-      },
+      }
     });
   });
 
@@ -81,7 +81,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
         robot.setOptions({ task: "check", globalFlag: true, clearCache: true, ignoredFileList: config.ignoredFileList });
         const res = await robot.execute();
         !res && (await getLangDir());
-      },
+      }
     });
   });
 
@@ -95,7 +95,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
         robot.setOptions({ task: "check", globalFlag: true, clearCache: true, ignoredFileList });
         const res = await robot.execute();
         !res && (await getLangDir());
-      },
+      }
     });
   });
 
@@ -115,7 +115,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     if (!e || !e.data) return;
     const newLabel = await vscode.window.showInputBox({
       prompt: "编辑文本",
-      value: e.description as string,
+      value: e.description as string
     });
     if (newLabel) {
       const { name, lang } = e.data;
@@ -124,7 +124,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
         modifyList: [{ name, lang, value: newLabel }],
         globalFlag: false,
         clearCache: false,
-        rewriteFlag: true,
+        rewriteFlag: true
       });
       const success = await robot.execute();
       if (success) {
@@ -135,31 +135,34 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     }
   });
 
-  vscode.commands.registerCommand("i18nMage.deleteUnusedEntries", async (e: vscode.TreeItem & { data: { unescaped: string; escaped: string }[] }) => {
-    if (!e || !e.label || !e.data || e.data.length === 0) return;
-    const confirmDelete = await vscode.window.showWarningMessage(
-      "确定删除吗？",
-      { modal: true, detail: `将删除词条：${e.data.map((item) => item.unescaped).join(", ")}` },
-      { title: "确定" },
-      { title: "取消" }
-    );
-    if (confirmDelete?.title === "确定") {
-      robot.setOptions({
-        task: "trim",
-        trimNameList: e.data.map((item) => item.escaped),
-        globalFlag: false,
-        clearCache: false,
-        rewriteFlag: true,
-      });
-      const success = await robot.execute();
-      if (success) {
-        robot.setOptions({ task: "check", globalFlag: true, clearCache: true, ignoredFileList: config.ignoredFileList });
-        await robot.execute();
-        treeInstance.refresh();
-        vscode.window.showInformationMessage(`已删除`);
+  vscode.commands.registerCommand(
+    "i18nMage.deleteUnusedEntries",
+    async (e: vscode.TreeItem & { data: { unescaped: string; escaped: string }[] }) => {
+      if (!e || !e.label || !e.data || e.data.length === 0) return;
+      const confirmDelete = await vscode.window.showWarningMessage(
+        "确定删除吗？",
+        { modal: true, detail: `将删除词条：${e.data.map(item => item.unescaped).join(", ")}` },
+        { title: "确定" },
+        { title: "取消" }
+      );
+      if (confirmDelete?.title === "确定") {
+        robot.setOptions({
+          task: "trim",
+          trimNameList: e.data.map(item => item.escaped),
+          globalFlag: false,
+          clearCache: false,
+          rewriteFlag: true
+        });
+        const success = await robot.execute();
+        if (success) {
+          robot.setOptions({ task: "check", globalFlag: true, clearCache: true, ignoredFileList: config.ignoredFileList });
+          await robot.execute();
+          treeInstance.refresh();
+          vscode.window.showInformationMessage(`已删除`);
+        }
       }
     }
-  });
+  );
 
   vscode.commands.registerCommand("i18nMage.openFileAtPosition", async (e: { usedInfo: Record<string, number[]>; label: string }) => {
     const editor = vscode.window.activeTextEditor;
@@ -169,7 +172,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     }
     const resourceUri = editor.document.uri;
     if (e.usedInfo) {
-      const matchedPath = Object.keys(e.usedInfo).find((filePath) => vscode.Uri.file(filePath).fsPath === resourceUri.fsPath);
+      const matchedPath = Object.keys(e.usedInfo).find(filePath => vscode.Uri.file(filePath).fsPath === resourceUri.fsPath);
       const document = await vscode.workspace.openTextDocument(resourceUri);
       const pos = document.positionAt(e.usedInfo[matchedPath!][0]);
       const selection = new vscode.Range(pos, pos.translate(0, e.label.length));
@@ -186,7 +189,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
         if (success) {
           vscode.window.showInformationMessage("Sort success");
         }
-      },
+      }
     });
   });
 
@@ -204,7 +207,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
             vscode.window.showInformationMessage("Fix success");
           } else {
             const { updatedValues, patchedIds, countryMap } = robot.langDetail;
-            if ([updatedValues, patchedIds].some((item) => Object.keys(item).length > 0)) {
+            if ([updatedValues, patchedIds].some(item => Object.keys(item).length > 0)) {
               previewFixContent(updatedValues, patchedIds, countryMap, robot.referredLang, async () => {
                 robot.setOptions({ task: "rewrite" });
                 await robot.execute();
@@ -218,7 +221,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
             }
           }
         }
-      },
+      }
     });
   });
 
@@ -226,8 +229,8 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     const options: vscode.SaveDialogOptions = {
       saveLabel: "Save Excel file",
       filters: {
-        "Excel files": ["xlsx", "xls"],
-      },
+        "Excel files": ["xlsx", "xls"]
+      }
     };
     const fileUri = await vscode.window.showSaveDialog(options);
     if (fileUri) {
@@ -240,7 +243,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
           if (success) {
             vscode.window.showInformationMessage("Export success");
           }
-        },
+        }
       });
     }
   });
@@ -250,8 +253,8 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
       canSelectMany: false,
       openLabel: "Select Excel file",
       filters: {
-        "Excel files": ["xlsx", "xls"],
-      },
+        "Excel files": ["xlsx", "xls"]
+      }
     };
     const fileUri = await vscode.window.showOpenDialog(options);
     if (fileUri && fileUri[0]) {
@@ -269,7 +272,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
               vscode.window.showInformationMessage("Import success");
             } else {
               const { updatedValues, patchedIds, countryMap } = robot.langDetail;
-              if ([updatedValues, patchedIds].some((item) => Object.keys(item).length > 0)) {
+              if ([updatedValues, patchedIds].some(item => Object.keys(item).length > 0)) {
                 previewFixContent(updatedValues, patchedIds, countryMap, robot.referredLang, async () => {
                   robot.setOptions({ task: "rewrite" });
                   await robot.execute();
@@ -283,12 +286,12 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
               }
             }
           }
-        },
+        }
       });
     }
   });
 
-  vscode.workspace.onDidChangeConfiguration((event) => {
+  vscode.workspace.onDidChangeConfiguration(event => {
     if (!event.affectsConfiguration("i18n-mage")) return;
     const config = vscode.workspace.getConfiguration("i18n-mage");
     if (event.affectsConfiguration("i18n-mage.syncBasedOnReferredEntries")) {
