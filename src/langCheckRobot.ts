@@ -65,8 +65,8 @@ class LangCheckRobot {
   private undefinedEntryList: TEntry[] = [];
   private undefinedEntryMap: Record<string, Record<string, number[]>> = {};
   private usedEntryMap: Record<string, Record<string, number[]>> = {};
-  private langIndents: Record<string, any> = {};
-  private langFileExtraInfo: Record<string, any> = {};
+  private langIndents: Record<string, string> = {};
+  private langFileExtraInfo: Record<string, object> = {};
   private primaryPathLevel: number = 0;
   private roguePath: string = "";
   private isVacant: boolean = true;
@@ -144,7 +144,7 @@ class LangCheckRobot {
         return false;
       }
       if (this.globalFlag) {
-        await this._startCensus();
+        this._startCensus();
       }
       switch (this.task) {
         case "check":
@@ -333,7 +333,7 @@ class LangCheckRobot {
         // TODO 中英文判断逻辑待优化
         const cnName = this.detectedLangList.find(a => ["cn", "zh"].some(b => a.startsWith(b)));
         const enName = this.detectedLangList.find(a => a.startsWith("en"));
-        this.referredLang = cnName || enName || this.detectedLangList[0];
+        this.referredLang = cnName ?? enName ?? this.detectedLangList[0];
       }
       this.referredEntryList = [...new Set(this.referredEntryList.concat(Object.keys(this.langCountryMap[this.referredLang])))];
       Object.keys(this.langDictionary).forEach(entry => this._genEntryClassTree(unescapeEntryName(entry)));
@@ -518,8 +518,8 @@ class LangCheckRobot {
             const newLangText =
               item[
                 headInfo.findIndex(item => langAlias.some(alias => String(alias).toLowerCase() === String(item).toLowerCase()))
-              ]?.toString();
-            if (newLangText?.trim() && oldLangText !== newLangText) {
+              ]?.toString() ?? "";
+            if (newLangText.trim() && oldLangText !== newLangText) {
               printInfo(
                 `条目 ${entryName} ${getLangText(lang)}更改：\x1b[31m${oldLangText}\x1b[0m -> \x1b[32m${newLangText}\x1b[0m`,
                 "mage"
@@ -544,7 +544,7 @@ class LangCheckRobot {
     this.modifyList.forEach(item => {
       const { name, value, lang } = item;
       const entryName = getValueByAmbiguousEntryName(this.langTree, name);
-      if (entryName) {
+      if (entryName !== null && entryName !== undefined && entryName.trim() !== "") {
         this._setUpdatedEntryValueInfo(entryName, value, lang);
       }
     });
@@ -639,7 +639,7 @@ class LangCheckRobot {
     }
     const pcList = this._getPopularClassList();
     const namePrefix = pcList[0]?.name ?? "";
-    const checkExisted = (id) => getValueByAmbiguousEntryName(this.langTree, id);
+    const checkExisted = (id: string) => Boolean(getValueByAmbiguousEntryName(this.langTree, id));
     needTranslateList.forEach((entry, index) => {
       let id = getIdByStr(enNameList[index], true);
       if (!entry.name || checkExisted(entry.name)) {
@@ -653,7 +653,6 @@ class LangCheckRobot {
           id = this._generateUniqueId(mainName, baseName);
         }
         entry.name = baseName + id;
-      } else {
       }
       entry.fixedRaw = this._getFixedRaw(entry, entry.name);
       patchedEntryIdList.push(entry);
@@ -669,7 +668,7 @@ class LangCheckRobot {
     });
     this.patchedEntryIdInfo = {};
     patchedEntryIdList.forEach(entry => {
-      if (!entry.fixedRaw) {
+      if (entry.fixedRaw === null || entry.fixedRaw === undefined) {
         const fixedEntryId = patchedEntryIdList.find(item => item.id === entry.id && Boolean(item.fixedRaw))?.name ?? entry.text;
         entry.name = fixedEntryId;
         entry.fixedRaw = this._getFixedRaw(entry, fixedEntryId);
@@ -682,7 +681,7 @@ class LangCheckRobot {
   private _generateUniqueId(main, prefix) {
     let index = 1;
     const separator = "_";
-    const check = id => getValueByAmbiguousEntryName(this.langTree, prefix + id);
+    const check = (id: string) => Boolean(getValueByAmbiguousEntryName(this.langTree, prefix + id));
 
     while (check(`${main}${separator}${String(index).padStart(2, "0")}`)) {
       index++;
@@ -735,7 +734,7 @@ class LangCheckRobot {
   }
 
   private _setUpdatedEntryValueInfo(name: string, value: string | undefined, lang?: string): void {
-    const langList = Object.keys(this.langCountryMap).filter(item => !lang || item === lang);
+    const langList = Object.keys(this.langCountryMap).filter(item => lang == null || item === lang);
     langList.forEach(lang => {
       this.updatedEntryValueInfo[lang] ??= {};
       this.updatedEntryValueInfo[lang][name] = value;
@@ -744,7 +743,7 @@ class LangCheckRobot {
 
   private _updateEntryValue(name: string, value: string | undefined, lang: string): void {
     if (typeof value === "string") {
-      if (this.langDictionary[name]) {
+      if (Object.hasOwn(this.langDictionary, name)) {
         this.langDictionary[name][lang] = value;
       } else {
         this.langDictionary[name] = { [lang]: value };
@@ -770,7 +769,7 @@ class LangCheckRobot {
     printInfo(`文件 ${this._getLangFileName(lang)} 翻译已写入`, "rocket");
   }
 
-  private _getFixedRaw(entry: any, name: string): string {
+  private _getFixedRaw(entry: TEntry, name: string): string {
     if (this.langFormatType === LANG_FORMAT_TYPE.nonObj) {
       return name;
     } else {
@@ -784,7 +783,7 @@ class LangCheckRobot {
 
   private _printAddedText(lang: string, textList: string[], api?: string): void {
     printInfo(
-      `文件 ${this._getLangFileName(lang)} 补充${api ? ` ${api} ` : ""}翻译：${textList
+      `文件 ${this._getLangFileName(lang)} 补充${api !== undefined && api !== null ? ` ${api} ` : ""}翻译：${textList
         .map(item => `\x1b[36m${item.replaceAll(/\n/g, "\\n")}\x1b[0m`)
         .join(", ")}`,
       "mage"
@@ -792,14 +791,16 @@ class LangCheckRobot {
   }
 
   private _genEntryClassTree(entry: string = ""): void {
-    const splitSymbol = LANG_ENTRY_SPLIT_SYMBOL[this.langFormatType];
+    const splitSymbol = LANG_ENTRY_SPLIT_SYMBOL[this.langFormatType] as string;
     const structure = entry.split(splitSymbol);
     const structureLayer = structure.length;
     const primaryClass = structure[0];
     if (Object.hasOwn(this.entryClassInfo, primaryClass)) {
       const classInfo = this.entryClassInfo[primaryClass];
       classInfo.num++;
-      !classInfo.layer.includes(structureLayer) && classInfo.layer.push(structureLayer);
+      if (!classInfo.layer.includes(structureLayer)) {
+        classInfo.layer.push(structureLayer);
+      }
     } else {
       this.entryClassInfo[primaryClass] = {
         num: 1,
@@ -810,7 +811,7 @@ class LangCheckRobot {
     }
     let tempObj = this.entryClassTree;
     structure.forEach((key, index) => {
-      if (!tempObj[key]) {
+      if (tempObj[key] === undefined || tempObj[key] === null) {
         if (structureLayer > index + 1) {
           tempObj[key] = {};
         } else {
@@ -821,17 +822,17 @@ class LangCheckRobot {
           childrenCase[keyCase]++;
         }
       }
-      tempObj = tempObj[key];
+      tempObj = tempObj[key] as object;
     });
   }
 
-  private _getPopularClassMap(tree: Record<string, any>, map: Record<string, any> = {}, classPrefix: string = ""): Record<string, any> {
-    const splitSymbol = LANG_ENTRY_SPLIT_SYMBOL[this.langFormatType];
+  private _getPopularClassMap(tree: Record<string, object>, map: Record<string, number> = {}, classPrefix: string = ""): Record<string, number> {
+    const splitSymbol = LANG_ENTRY_SPLIT_SYMBOL[this.langFormatType] as string
     for (const [key, value] of Object.entries(tree)) {
       const itemName = classPrefix + key + splitSymbol;
-      if (value) {
+      if (value !== null && value !== undefined) {
         map[itemName] = Object.keys(value).length;
-        this._getPopularClassMap(value, map, itemName);
+        this._getPopularClassMap(value as Record<string, object>, map, itemName);
       }
     }
     return map;
@@ -846,7 +847,7 @@ class LangCheckRobot {
 
   private _checkUsage(): void {
     printTitle("检测条目是否使用");
-    const unusedEntryList = this.referredEntryList.map(name => unescapeEntryName(name)).filter(entry => !this.usedEntryMap[entry]);
+    const unusedEntryList = this.referredEntryList.map(name => unescapeEntryName(name)).filter(entry => !Object.hasOwn(this.usedEntryMap, entry));
     if (unusedEntryList.length > 0) {
       printInfo(`存在疑似未使用条目：${this._formatEntriesInTerminal(unusedEntryList)}`, "puzzle");
     }
@@ -859,9 +860,11 @@ class LangCheckRobot {
     }
   }
 
-  private async _startCensus(): Promise<void> {
-    this.showPreInfo && printInfo("正在对条目进行全局捕获，这可能需要一点时间...", "brain");
-    const filePaths = await this._readAllFiles(this.rootPath);
+  private _startCensus(): void {
+    if (this.showPreInfo) {
+      printInfo("正在对条目进行全局捕获，这可能需要一点时间...", "brain");
+    }
+    const filePaths = this._readAllFiles(this.rootPath);
     const pathLevelCountMap: Record<number, number> = {};
     let maxNum = 0;
     const totalEntryList = Object.keys(this.langDictionary).map(key => unescapeEntryName(key));
@@ -869,11 +872,11 @@ class LangCheckRobot {
     this.undefinedEntryMap = {};
     for (const filePath of filePaths) {
       if (this.ignoredFileList.some(ifp => path.resolve(filePath) === path.resolve(path.join(this.rootPath, ifp)))) continue;
-      const fileContent = await fs.readFileSync(filePath, "utf8");
-      const getLayerLen = (str: string) => str.split(LANG_ENTRY_SPLIT_SYMBOL[this.langFormatType]).length;
+      const fileContent = fs.readFileSync(filePath, "utf8");
+      const getLayerLen = (str: string) => str.split(LANG_ENTRY_SPLIT_SYMBOL[this.langFormatType] as string).length;
       const isSameLayer = (str0: string, str1: string) => getLayerLen(str0) === getLayerLen(str1);
       const { tItems, existedItems } = catchAllEntries(fileContent, this.langFormatType, this.entryClassTree);
-      let usedEntryList = existedItems.slice();
+      const usedEntryList = existedItems.slice();
       if (usedEntryList.length > maxNum) {
         maxNum = usedEntryList.length;
         this.roguePath = filePath;
@@ -894,7 +897,7 @@ class LangCheckRobot {
           );
         }
       }
-      usedEntryList = [...new Set(usedEntryList)];
+      // usedEntryList = [...new Set(usedEntryList)];
       if (usedEntryList.length > 0) {
         const count = filePath.split("\\").length - 1;
         pathLevelCountMap[count] ??= 0;
@@ -917,16 +920,16 @@ class LangCheckRobot {
     this.primaryPathLevel = primaryPathLevel;
   }
 
-  private async _readAllFiles(dir: string): Promise<string[]> {
+  private _readAllFiles(dir: string): string[] {
     const pathList: string[] = [];
-    const results = await fs.readdirSync(dir, { withFileTypes: true });
+    const results = fs.readdirSync(dir, { withFileTypes: true });
     for (let i = 0; i < results.length; i++) {
       const targetName = results[i].name;
       const tempPath = path.join(dir, targetName);
       const isLangDir = path.resolve(tempPath) === path.resolve(this.langDir);
       const ignoredDirList = ["dist", "node_modules", "img", "image", "css", "asset", "langChecker", ".vscode"];
       if (results[i].isDirectory() && ignoredDirList.every(name => !targetName.includes(name)) && !isLangDir) {
-        const tempPathList = await this._readAllFiles(tempPath);
+        const tempPathList = this._readAllFiles(tempPath);
         pathList.push(...tempPathList);
       }
       const ignoredNameList = ["jquery", "element", "qrcode", "underscore", "vant", "language", "vue.js"];
@@ -960,14 +963,14 @@ class LangCheckRobot {
       }
       if (this.globalFlag) {
         tableInfo["闲置条目"] = this._genOverviewTableRow(
-          lang => getEntryTotal(lang).filter(entry => !this.usedEntryMap[unescapeEntryName(entry)]).length
+          lang => getEntryTotal(lang).filter(entry => !Object.hasOwn(this.usedEntryMap, unescapeEntryName(entry))).length
         );
       }
     }
     console.table(tableInfo);
   }
 
-  private _genOverviewTableRow(func: (lang: string) => any): Record<string, any> {
+  private _genOverviewTableRow(func: (lang: string) => string | number): Record<string, string> {
     let referFlagIcon = "🚩";
     if (this.checkStyleFlag) {
       const iconMap = {
@@ -976,7 +979,7 @@ class LangCheckRobot {
         shock: "🟠",
         error: "🔴"
       };
-      referFlagIcon = iconMap[this._getScore(this.styleScore)];
+      referFlagIcon = iconMap[this._getScore(this.styleScore)] as string;
     }
     return this.detectedLangList.reduce((prev, cur) => {
       let name = this._getLangFileName(cur);

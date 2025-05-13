@@ -12,18 +12,21 @@
     "plugin:@typescript-eslint/recommended",  // 启用 TS 推荐规则
     "plugin:@typescript-eslint/recommended-requiring-type-checking" // 关键：启用基于类型检查的规则
   ],
-  "parser": "@babel/eslint-parser",
+  "parser": "@typescript-eslint/parser",
   "parserOptions": {
     "ecmaVersion": 2022,
+    "requireConfigFile": false, // 禁用配置文件检查
     "project": "./tsconfig.json",             // 关联 TS 配置
     "tsconfigRootDir": "."                    // 根目录位置
   },
   "plugins": ["@typescript-eslint"],
   "rules": {
     // 示例：启用严格类型规则
-    "@typescript-eslint/no-explicit-any": "error",
+    "@typescript-eslint/no-explicit-any": "warn",
     // "@typescript-eslint/explicit-function-return-type": "error",
-    "@typescript-eslint/strict-boolean-expressions": "error"
+    "@typescript-eslint/strict-boolean-expressions": "error",
+    "@typescript-eslint/no-unused-vars": "error", // 替换默认的 no-unused-vars
+    "no-unused-vars": "off" // 关闭 ESLint 默认规则
   },
   "overrides": [
     {

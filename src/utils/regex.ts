@@ -206,7 +206,7 @@ const catchAllEntries = (fileContent: string, langType: string, entryTree: Entry
   return { tItems, existedItems };
 };
 
-const catchPossibleEntries = (fileContent: string, langType: string, entryTree: EntryTree): any[] => {
+const catchPossibleEntries = (fileContent: string, langType: string, entryTree: EntryTree): {name: string; pos: number}[] => {
   const primaryClassList = Object.keys(entryTree).filter(entry => !!entry);
   if (primaryClassList.length === 0) return [];
   const primaryClassReg = new RegExp(

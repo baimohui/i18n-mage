@@ -234,13 +234,19 @@ function getNonce(): string {
   return text;
 }
 
-export default async function (
+interface WebviewMessage {
+  command: string;
+  type: "applyFixes" | "cancelFixes";
+  data: { valueFixes: Record<string, Record<string, string>>, idFixes: Record<string, number[]> };
+}
+
+export default function (
   updatedEntryValueInfo: ValueFixes,
   patchedEntryIdInfo: IdFixes,
   langCountryMap: LangCountryMap,
   referredLang: string,
-  callback: () => void
-): Promise<void> {
+  callback: () => Promise<void>
+) {
   const panel = vscode.window.createWebviewPanel("fixProblems", "选择要应用的修复", vscode.ViewColumn.One, {
     enableScripts: true,
     retainContextWhenHidden: false
@@ -248,11 +254,11 @@ export default async function (
 
   panel.webview.html = getWebviewContent(updatedEntryValueInfo, patchedEntryIdInfo, langCountryMap, referredLang);
 
-  panel.webview.onDidReceiveMessage(message => {
+  panel.webview.onDidReceiveMessage(async (message: WebviewMessage) => {
     if (message.type === "applyFixes") {
       const { valueFixes, idFixes } = message.data;
       for (const lang in updatedEntryValueInfo) {
-        if (valueFixes[lang]) {
+        if (Object.hasOwn(valueFixes, lang)) {
           for (const id in updatedEntryValueInfo[lang]) {
             if (valueFixes[lang][id]) {
               updatedEntryValueInfo[lang][id] = valueFixes[lang][id];
@@ -268,7 +274,7 @@ export default async function (
         patchedEntryIdInfo[filePath] = patchedEntryIdInfo[filePath].filter((_, index) => !idFixes[filePath]?.includes(index));
       }
       panel.dispose();
-      callback();
+      await callback();
     } else if (message.type === "cancelFixes") {
       console.log("用户取消了修复操作");
       panel.dispose();

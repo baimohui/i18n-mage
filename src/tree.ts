@@ -3,12 +3,16 @@ import LangCheckRobot from "./langCheckRobot";
 import { catchTEntries, unescapeEntryName, getValueByAmbiguousEntryName } from "./utils/regex";
 import { isPathInsideDirectory } from "./utils/fs";
 import { getLangText } from "./utils/const";
-import { TEntry } from "./types";
+import { TEntry, LangTree } from "./types";
 
 interface ExtendedTreeItem extends vscode.TreeItem {
-  level: number;
-  root: string;
+  level?: number;
+  root?: string;
   type?: string;
+  name?: string;
+  key?: string;
+  data?: any;
+  stack?: string[];
 }
 
 class FileItem extends vscode.TreeItem {
@@ -31,13 +35,13 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
   usedEntries: TEntry[] = [];
   definedEntriesInCurrentFile: TEntry[] = [];
   undefinedEntriesInCurrentFile: TEntry[] = [];
-  usedEntryMap: Record<string, any>;
+  usedEntryMap: Record<string, Record<string, number[]>>;
   private _onDidChangeTreeData = new vscode.EventEmitter<void>();
   readonly onDidChangeTreeData = this._onDidChangeTreeData.event;
 
   constructor() {
     this.#robot = LangCheckRobot.getInstance();
-    this.usedEntryMap = this.#robot.langDetail.used || {};
+    this.usedEntryMap = this.#robot.langDetail.used ?? {};
     vscode.window.onDidChangeActiveTextEditor(() => {
       if (this.isInitialized) {
         this.onActiveEditorChanged();
@@ -46,7 +50,7 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
     vscode.workspace.onDidSaveTextDocument(e => this.onDocumentChanged(e));
   }
 
-  get langInfo(): Record<string, any> {
+  get langInfo() {
     return this.#robot.langDetail;
   }
 
@@ -59,7 +63,7 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
   }
 
   get undefinedEntryMap() {
-    return this.langInfo.undefined || {};
+    return this.langInfo.undefined ?? {};
   }
 
   get entryUsageInfo() {
@@ -68,10 +72,10 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
     const usedEntries: { escaped: string; unescaped: string }[] = [];
     for (const entry in dictionary) {
       const unescapedEntryName = unescapeEntryName(entry);
-      if (!this.langInfo.used[unescapedEntryName]) {
-        unusedEntries.push({ unescaped: unescapedEntryName, escaped: entry });
-      } else {
+      if (Object.hasOwn(this.langInfo.used, unescapedEntryName)) {
         usedEntries.push({ unescaped: unescapedEntryName, escaped: entry });
+      } else {
+        unusedEntries.push({ unescaped: unescapedEntryName, escaped: entry });
       }
     }
     return { used: usedEntries, unused: unusedEntries };
@@ -85,7 +89,7 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
     return element;
   }
 
-  getChildren(element?: any): vscode.ProviderResult<vscode.TreeItem[]> {
+  getChildren(element?: ExtendedTreeItem): vscode.ProviderResult<vscode.TreeItem[]> {
     if (!this.#robot.langDir) {
       return [new vscode.TreeItem("未检测到有效的语言文件", vscode.TreeItemCollapsibleState.None)];
     }
@@ -152,7 +156,7 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
     ];
   }
 
-  private getCurrentFileChildren(element: any): ExtendedTreeItem[] {
+  private getCurrentFileChildren(element: ExtendedTreeItem): ExtendedTreeItem[] {
     if (element.level === 0) {
       return [
         {
@@ -176,10 +180,10 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
       ];
     } else if (element.level === 1) {
       return this[element.type === "defined" ? "definedEntriesInCurrentFile" : "undefinedEntriesInCurrentFile"].map(entry => {
-        const entryInfo = this.dictionary[getValueByAmbiguousEntryName(this.tree, entry.text) as string];
+        const entryInfo = this.dictionary[getValueByAmbiguousEntryName(this.tree, entry.text) as string] ?? {};
         return {
           label: entry.text,
-          description: entryInfo && entryInfo[this.#robot.referredLang],
+          description: entryInfo[this.#robot.referredLang],
           collapsibleState: vscode.TreeItemCollapsibleState[element.type === "defined" ? "Collapsed" : "None"],
           level: 2,
           contextValue: element.type === "defined" ? "definedEntryInCurFile" : "undefinedEntryInCurFile",
@@ -189,10 +193,10 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
         };
       });
     } else if (element.level === 2) {
-      const entryInfo = this.dictionary[getValueByAmbiguousEntryName(this.tree, element.label) as string];
+      const entryInfo = this.dictionary[getValueByAmbiguousEntryName(this.tree, element.label as string) as string];
       return this.langInfo.langList.map(lang => ({
         label: lang,
-        name: element.label,
+        name: element.label as string,
         description: entryInfo[lang] ?? false,
         collapsibleState: vscode.TreeItemCollapsibleState.None,
         level: 3,
@@ -205,7 +209,7 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
     return [];
   }
 
-  private getSyncInfoChildren(element: any): vscode.TreeItem[] {
+  private getSyncInfoChildren(element: ExtendedTreeItem): ExtendedTreeItem[] {
     if (element.level === 0) {
       return this.langInfo.langList.map(lang => ({
         level: 1,
@@ -219,7 +223,7 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
         collapsibleState: vscode.TreeItemCollapsibleState.Collapsed
       }));
     } else if (element.level === 1) {
-      return this.getSyncInfo(element.key).map(item => ({
+      return this.getSyncInfo(element.key as string).map(item => ({
         ...item,
         level: 2,
         key: element.key,
@@ -229,7 +233,7 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
         collapsibleState: vscode.TreeItemCollapsibleState[item.num === 0 ? "None" : item.type === "common" ? "Collapsed" : "Expanded"]
       }));
     } else if (element.level === 2) {
-      return element.data.map((item: any) => ({
+      return (element.data as [string, string][]).map(item => ({
         label: unescapeEntryName(item[0]),
         description: item[1],
         level: 3,
@@ -243,7 +247,7 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
     return [];
   }
 
-  private async getUsageInfoChildren(element: any): Promise<vscode.TreeItem[]> {
+  private async getUsageInfoChildren(element: ExtendedTreeItem): Promise<ExtendedTreeItem[]> {
     if (element.level === 0) {
       return [
         { type: "used", label: "已使用", num: this.entryUsageInfo.used.length },
@@ -255,7 +259,7 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
         root: element.root,
         description: String(item.num),
         id: this.genId(element, item.type),
-        data: this.entryUsageInfo[item.type],
+        data: this.entryUsageInfo[item.type as "used" | "unused"],
         contextValue: item.num === 0 ? `${item.type}GroupHeader-None` : `${item.type}GroupHeader`,
         collapsibleState: vscode.TreeItemCollapsibleState[item.num === 0 ? "None" : "Collapsed"]
       }));
@@ -307,15 +311,15 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
         });
       }
     } else if (element.level === 2) {
-      const entryUsedInfo = this[element.type === "used" ? "usedEntryMap" : "undefinedEntryMap"][element.key];
-      if (entryUsedInfo) {
+      const entryUsedInfo = this[element.type === "used" ? "usedEntryMap" : "undefinedEntryMap"][element.key as string];
+      if (Object.keys(entryUsedInfo).length > 0) {
         const list: vscode.TreeItem[] = [];
         for (const filePath in entryUsedInfo) {
           const fileUri = vscode.Uri.file(filePath);
           const document = await vscode.workspace.openTextDocument(fileUri);
           entryUsedInfo[filePath].sort().forEach((offset: number) => {
             const pos = document.positionAt(offset);
-            list.push(new FileItem(fileUri, pos, element.key));
+            list.push(new FileItem(fileUri, pos, element.key as string));
           });
         }
         return list;
@@ -325,12 +329,12 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
     return [];
   }
 
-  private getDictionaryChildren(element: any): vscode.TreeItem[] {
-    const res = (element.stack || []).reduce((acc, item) => acc[item], this.tree);
+  private getDictionaryChildren(element: ExtendedTreeItem): ExtendedTreeItem[] {
+    const res = (element.stack || []).reduce((acc, item) => acc[item] as LangTree, this.tree) as string | LangTree;
     if (typeof res === "string") {
       return Object.entries(this.dictionary[res]).map(item => ({
         label: item[0],
-        description: item[1] as string,
+        description: item[1],
         tooltip: getLangText(item[0]),
         id: this.genId(element, item[0]),
         collapsibleState: vscode.TreeItemCollapsibleState.None
@@ -376,13 +380,13 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
     if (editor) {
       const text = editor.document.getText();
       this.usedEntries = catchTEntries(text);
-      const usedEntryMap = this.#robot.langDetail.used || {};
+      const usedEntryMap = this.#robot.langDetail.used ?? {};
       this.usedEntries.forEach(entry => {
-        if (this.undefinedEntryMap[entry.text]) {
+        if (Object.hasOwn(this.undefinedEntryMap, entry.text)) {
           if (this.undefinedEntriesInCurrentFile.every(item => item.text !== entry.text)) {
             this.undefinedEntriesInCurrentFile.push(entry);
           }
-        } else if (usedEntryMap[entry.text]) {
+        } else if (Object.hasOwn(usedEntryMap, entry.text)) {
           if (this.definedEntriesInCurrentFile.every(item => item.text !== entry.text)) {
             this.definedEntriesInCurrentFile.push(entry);
           }
@@ -419,13 +423,13 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
     return list.join(" ");
   }
 
-  private getSyncInfo(lang: string): any[] {
-    const totalEntries = Object.entries(this.langInfo.countryMap?.[lang] || {});
+  private getSyncInfo(lang: string) {
+    const totalEntries = Object.entries(this.langInfo.countryMap?.[lang] ?? {});
     totalEntries.sort((a, b) => (a[0] > b[0] ? 1 : -1));
-    const commonEntries: any[] = [];
-    const extraEntries: any[] = [];
-    const extraEntryNameList = this.langInfo.extra?.[lang] || [];
-    const nullEntryNameList = this.langInfo.null?.[lang] || [];
+    const commonEntries: [string, string][] = [];
+    const extraEntries: [string, string][] = [];
+    const extraEntryNameList = this.langInfo.extra?.[lang] ?? [];
+    const nullEntryNameList = this.langInfo.null?.[lang] ?? [];
     totalEntries.forEach(item => {
       if (extraEntryNameList.includes(item[0])) {
         extraEntries.push(item);
@@ -433,7 +437,7 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
         commonEntries.push(item);
       }
     });
-    const lackEntries = (this.langInfo.lack?.[lang] || []).map(item => [item, this.dictionary[item][this.#robot.referredLang]]);
+    const lackEntries = (this.langInfo.lack?.[lang] ?? []).map(item => [item, this.dictionary[item][this.#robot.referredLang]]);
     const nullEntries = nullEntryNameList.map(item => [item, this.dictionary[item][this.#robot.referredLang]]);
     const res = [
       { label: "正常", num: commonEntries.length, data: commonEntries, type: "common" },
@@ -447,9 +451,9 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
   }
 
   private getSyncPercent(): string {
-    const lackList = Object.values(this.langInfo.lack) as string[][];
+    const lackList = Object.values(this.langInfo.lack);
     const lackNum = lackList.reduce((pre, cur) => pre + cur.length, 0);
-    const nullList = Object.values(this.langInfo.null) as string[][];
+    const nullList = Object.values(this.langInfo.null);
     const nullNum = nullList.reduce((pre, cur) => pre + cur.length, 0);
     let total = this.#robot.syncBasedOnReferredEntries ? this.langInfo.refer.length : Object.keys(this.dictionary).length;
     total = lackList.length ? total * lackList.length : total;
@@ -463,7 +467,7 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
     return Math.floor(Number(((this.entryUsageInfo.used.length / total) * 10000).toFixed(0))) / 100 + "%";
   }
 
-  private genId(element: any, name: string): string {
+  private genId(element: ExtendedTreeItem, name: string): string {
     return `${element.id},${name}`;
   }
 }
