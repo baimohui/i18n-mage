@@ -70,8 +70,10 @@ export async function activate(): Promise<void> {
     }
     if (robot.detectedLangList.length === 0) {
       vscode.window.showInformationMessage("No lang dir in workspace");
+      vscode.commands.executeCommand('setContext', 'showMainOpBtnGroup', false);
       return false;
     }
+    vscode.commands.executeCommand('setContext', 'showMainOpBtnGroup', true);
     return true;
   }
 

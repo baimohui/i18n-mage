@@ -230,22 +230,22 @@
       "view/title": [
         {
           "command": "i18nMage.checkUsage",
-          "when": "view == treeProvider",
+          "when": "view == treeProvider && showMainOpBtnGroup",
           "group": "navigation@1"
         },
         {
           "command": "i18nMage.export",
-          "when": "view == treeProvider",
+          "when": "view == treeProvider && showMainOpBtnGroup",
           "group": "navigation@2"
         },
         {
           "command": "i18nMage.import",
-          "when": "view == treeProvider",
+          "when": "view == treeProvider && showMainOpBtnGroup",
           "group": "navigation@3"
         },
         {
           "command": "i18nMage.fix",
-          "when": "view == treeProvider",
+          "when": "view == treeProvider && showMainOpBtnGroup",
           "group": "navigation@4"
         }
       ],
