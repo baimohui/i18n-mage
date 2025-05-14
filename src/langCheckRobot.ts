@@ -544,7 +544,7 @@ class LangCheckRobot {
     this.modifyList.forEach(item => {
       const { name, value, lang } = item;
       const entryName = getValueByAmbiguousEntryName(this.langTree, name);
-      if (entryName !== null && entryName !== undefined && entryName.trim() !== "") {
+      if (typeof entryName === "string" && entryName.trim() !== "") {
         this._setUpdatedEntryValueInfo(entryName, value, lang);
       }
     });

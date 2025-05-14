@@ -91,7 +91,7 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
 
   getChildren(element?: ExtendedTreeItem): vscode.ProviderResult<vscode.TreeItem[]> {
     if (!this.#robot.langDir) {
-      return [new vscode.TreeItem("未检测到有效的语言文件", vscode.TreeItemCollapsibleState.None)];
+      return []
     }
     if (!element) {
       return this.getRootChildren();

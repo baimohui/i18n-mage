@@ -56,7 +56,7 @@ export type EntryClassInfo = Record<
     num: number;
     layer: number[];
     case: CaseType;
-    childrenCase: Record<CaseType, number> | {};
+    childrenCase: Record<CaseType, number> | object;
   }
 >;
 

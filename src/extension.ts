@@ -7,7 +7,6 @@ import previewFixContent from "./previewBeforeFix";
 
 let isProcessing = false;
 let treeInstance: TreeProvider;
-// let treeView: vscode.TreeView<vscode.TreeItem>;
 
 interface PluginConfiguration extends vscode.WorkspaceConfiguration {
   referenceLanguage: string;
@@ -55,6 +54,12 @@ export async function activate(): Promise<void> {
     syncBasedOnReferredEntries: config.syncBasedOnReferredEntries
   });
 
+  treeInstance = new TreeProvider();
+  vscode.window.registerTreeDataProvider("treeProvider", treeInstance);
+  await getLangDir();
+  treeInstance.isInitialized = true;
+  treeInstance.onActiveEditorChanged();
+
   async function getLangDir(): Promise<boolean> {
     if (rootPath === null || rootPath === undefined || rootPath.trim() === "") {
       vscode.window.showErrorMessage("No workspace opened");
@@ -70,19 +75,13 @@ export async function activate(): Promise<void> {
     }
     if (robot.detectedLangList.length === 0) {
       vscode.window.showInformationMessage("No lang dir in workspace");
-      vscode.commands.executeCommand('setContext', 'showMainOpBtnGroup', false);
+      vscode.commands.executeCommand("setContext", "showMainOpBtnGroup", false);
+      robot.setOptions({ langDir: "" });
       return false;
     }
-    vscode.commands.executeCommand('setContext', 'showMainOpBtnGroup', true);
+    vscode.commands.executeCommand("setContext", "showMainOpBtnGroup", true);
     return true;
   }
-
-  // if (!(await getLangDir())) return;
-  await getLangDir();
-  treeInstance = new TreeProvider();
-  vscode.window.registerTreeDataProvider("treeProvider", treeInstance);
-  treeInstance.isInitialized = true;
-  treeInstance.onActiveEditorChanged();
 
   vscode.commands.registerCommand("i18nMage.setReferredLang", (lang: { key: string }) => {
     startProgress({

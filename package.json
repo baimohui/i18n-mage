@@ -318,6 +318,12 @@
         }
       ]
     },
+    "viewsWelcome": [
+      {
+        "view": "treeProvider",
+        "contents": "未检测到有效的语言文件"
+      }
+    ],
     "iconThemes": [
       {
         "id": "testIconTheme",
