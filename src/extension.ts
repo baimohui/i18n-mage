@@ -2,7 +2,7 @@ import * as vscode from "vscode";
 import * as path from "path";
 import { TreeProvider } from "./tree";
 import LangCheckRobot from "./langCheckRobot";
-import { getPossibleLangDirList } from "./utils/fs";
+import { getPossibleLangDirs } from "./utils/fs";
 import previewFixContent from "./previewBeforeFix";
 
 let isProcessing = false;
@@ -56,16 +56,16 @@ export async function activate(): Promise<void> {
 
   treeInstance = new TreeProvider();
   vscode.window.registerTreeDataProvider("treeProvider", treeInstance);
-  await getLangDir();
+  await findLangDir();
   treeInstance.isInitialized = true;
   treeInstance.onActiveEditorChanged();
 
-  async function getLangDir(): Promise<boolean> {
+  async function findLangDir(): Promise<boolean> {
     if (rootPath === null || rootPath === undefined || rootPath.trim() === "") {
       vscode.window.showErrorMessage("No workspace opened");
       return false;
     }
-    const possibleLangDirs = getPossibleLangDirList(rootPath);
+    const possibleLangDirs = getPossibleLangDirs(rootPath);
     for (const langDir of possibleLangDirs) {
       robot.setOptions({ langDir, task: "check", globalFlag: true, clearCache: false });
       await robot.execute();
@@ -103,7 +103,7 @@ export async function activate(): Promise<void> {
         robot.setOptions({ task: "check", globalFlag: true, clearCache: true, ignoredFileList });
         const res = await robot.execute();
         if (!res) {
-          await getLangDir();
+          await findLangDir();
         }
       }
     });
@@ -119,7 +119,7 @@ export async function activate(): Promise<void> {
         robot.setOptions({ task: "check", globalFlag: true, clearCache: true, ignoredFileList });
         const res = await robot.execute();
         if (!res) {
-          await getLangDir();
+          await findLangDir();
         }
       }
     });

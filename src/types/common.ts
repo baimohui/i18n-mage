@@ -2,16 +2,34 @@ export type LangName = string;
 export type EntryValue = string;
 export type UnescapedEntryKey = string;
 export type EscapedEntryKey = string;
+export type LangFileType = "js" | "ts" | "json" | "json5" | "mjs" | "cjs";
 
-export interface LangFileInfo {
-  formatType: string;
+export interface FileExtraInfo {
   indents: string;
-  content: EntryMap;
-  raw: EntryTree;
   prefix: string;
   suffix: string;
   innerVar: string;
   keyQuotes: boolean;
+}
+export interface LangFileInfo {
+  formatType: string;
+  data: EntryTree;
+  extraInfo: FileExtraInfo;
+}
+
+export interface LangFilesData {
+  fileType: LangFileType;
+  fileExtraInfo: Record<
+    LangName,
+    {
+      indents: string;
+      prefix: string;
+      suffix: string;
+      innerVar: string;
+      keyQuotes: boolean;
+    }
+  >;
+  langTree: LangTree;
 }
 
 export interface EntryTree {

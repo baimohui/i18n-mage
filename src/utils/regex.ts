@@ -1,73 +1,150 @@
+import fs from "fs";
+import path from "path";
 import { LANG_FORMAT_TYPE, LANG_ENTRY_SPLIT_SYMBOL, getLangCode } from "./const";
-import { LangFileInfo, EntryMap, EntryTree, TEntry, PEntry, CaseType } from "../types/common";
+import { LangFileInfo, EntryMap, EntryTree, TEntry, PEntry, CaseType, LangTree, FileExtraInfo } from "../types/common";
 import { printInfo } from "./print";
 
 const newlineCharacter = "\r\n";
 
-const getCaseType = (str: string): CaseType => {
+export function getCaseType(str: string): CaseType {
   if (!/^[a-zA-Z][a-zA-Z0-9]*$/.test(str)) return "wc"; // weird-case
   if (str === str.toUpperCase()) return "au"; // Uppercase
   if (/^[a-z][A-Za-z0-9]*$/.test(str)) return "cc"; // camelCase
   if (/^[A-Z][A-Za-z0-9]*$/.test(str)) return "pc"; // PascalCase
   return "unknown";
-};
+}
 
-const escapeRegExp = (str: string): string => {
+export function escapeRegExp(str: string): string {
   return str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-};
+}
 
-const getLangFileInfo = (str: string): LangFileInfo | null => {
-  try {
-    let formatType = "";
-    if ([/\w+\s*\(.*\)\s*{[^]*}/, /\s*=>\s*/].every(reg => !reg.test(str))) {
-      if (str.includes("export default")) {
-        formatType = /\n\s*"?\w+"?\s*:\s*{/.test(str) ? LANG_FORMAT_TYPE.nestedObj : LANG_FORMAT_TYPE.obj;
-      }
-      if (/\n[\w.]+\s*=\s*".*";+\s/.test(str)) {
-        formatType = LANG_FORMAT_TYPE.nonObj;
+// 定义节点类型
+interface EntryNode {
+  type: "directory" | "file";
+  children?: Record<string, EntryNode>; // 只有目录有 children
+  ext?: string; // 只有文件有扩展名
+}
+
+export interface ExtractResult {
+  fileType: string; // 最终使用的文件后缀
+  formatType: string; // 最终使用的格式
+  langTree: LangTree; // 语言数据树
+  fileExtraInfo: Record<string, FileExtraInfo>;
+  fileStructure: EntryNode; // 带 type 标记的文件树
+}
+
+export function extractLangDataFromDir(langDir: string): ExtractResult | null {
+  let validFileType = "";
+  let validFormatType = "";
+  const fileExtraInfo: Record<string, FileExtraInfo> = {};
+
+  function traverse(dir: string): {
+    tree: LangTree;
+    node: EntryNode;
+    hasData: boolean;
+  } {
+    const tree: LangTree = {};
+    const node: EntryNode = { type: "directory", children: {} };
+    let hasData = false;
+
+    for (const dirent of fs.readdirSync(dir, { withFileTypes: true })) {
+      const fullPath = path.join(dir, dirent.name);
+
+      if (dirent.isDirectory()) {
+        const { tree: subTree, node: subNode, hasData: ok } = traverse(fullPath);
+        if (ok) {
+          tree[dirent.name] = subTree;
+          node.children![dirent.name] = subNode;
+          hasData = true;
+        }
+      } else {
+        const [base, ext] = dirent.name.split(".");
+        if (!/^(json|js|ts|json5|mjs|cjs)$/.test(ext) || (validFileType && ext !== validFileType) || base === "index") {
+          // 非法或不一致的后缀、跳过
+          continue;
+        }
+
+        const info = getLangFileInfo(fullPath);
+        if (!info) continue;
+        const { data, extraInfo, formatType } = info;
+
+        validFileType ||= ext;
+        validFormatType = formatType;
+
+        // 挂到语言树
+        tree[base] = data;
+        // 记录扩展信息
+        fileExtraInfo[base] = extraInfo;
+        // 在结构树中标记为文件
+        node.children![base] = { type: "file", ext };
+        hasData = true;
       }
     }
+
+    return { tree, node, hasData };
+  }
+
+  const { tree: langTree, node: fileStructure, hasData } = traverse(langDir);
+  if (!hasData) return null;
+
+  return {
+    fileType: validFileType,
+    formatType: validFormatType,
+    langTree,
+    fileExtraInfo,
+    fileStructure
+  };
+}
+
+export function getLangFileInfo(filePath: string): LangFileInfo | null {
+  try {
+    let fileContent = fs.readFileSync(filePath, "utf-8");
+    let formatType = "";
+    if ([/\w+\s*\(.*\)\s*{[^]*}/, /\s*=>\s*/].every(reg => !reg.test(fileContent))) {
+      formatType = /\n[\w.]+\s*=\s*".*";+\s/.test(fileContent) ? LANG_FORMAT_TYPE.nonObj : LANG_FORMAT_TYPE.obj;
+    }
     if (formatType === "") return null;
-    const matchResult = str.match(/{\s*\n(\s*)\S/);
-    const indents = formatType === LANG_FORMAT_TYPE.nonObj ? "" : matchResult ? matchResult[1] : "";
-    let content: EntryMap = {};
-    let entryTree: EntryTree = {};
+    let indents = "";
+    let tree: EntryTree = {};
     let prefix = "";
     let suffix = "";
     let innerVar = "";
     let keyQuotes = false;
     if (formatType === LANG_FORMAT_TYPE.nonObj) {
-      str = str
+      fileContent = fileContent
         .replace(/\/\*[^]*?\*\/|(?<=["'`;\n]{1}\s*)\/\/[^\n]*|<!--[^]*?-->/g, "")
         .replace(/(\S+)(\s*=\s*)([^]+?);*\s*(?=\n\s*\S+\s*=|$)/g, '"$1":$3,');
-      entryTree = eval(`({${str}})`) as EntryTree;
+      tree = eval(`({${fileContent}})`) as EntryTree;
     } else {
-      const match = str.match(/([^]*?)({[^]*})([^]*)/);
+      const indentsMatch = fileContent.match(/{\s*\n(\s*)\S/);
+      indents = indentsMatch ? indentsMatch[1] : "  ";
+      const match = fileContent.match(/([^]*?)({[^]*})([^]*)/);
       if (match) {
         prefix = match[1];
         suffix = match[3];
-        str = match[2];
+        fileContent = match[2];
       }
-      const spreadVarMatch = str.match(/\n\s*\.\.\.\S+/g);
+      const spreadVarMatch = fileContent.match(/\n\s*\.\.\.\S+/g);
       if (spreadVarMatch) {
         innerVar = spreadVarMatch.join("");
         const spreadVarReg = new RegExp(`${spreadVarMatch.join("|")}`, "g");
-        str = str.replace(spreadVarReg, "");
+        fileContent = fileContent.replace(spreadVarReg, "");
       }
-      keyQuotes = /^{\s*["'`]/.test(str);
-      entryTree = eval(`(${str})`) as EntryTree;
+      keyQuotes = /^{\s*["'`]/.test(fileContent);
+      tree = eval(`(${fileContent})`) as EntryTree;
     }
-    if (getNestedValues(entryTree).some(item => typeof item !== "string")) return null;
-    content = flattenNestedObj(entryTree);
+    // TODO vue-i18n 似乎支持值为字符串、数组、对象，甚至函数（返回字符串），这里的判断需要调整
+    if (getNestedValues(tree).some(item => typeof item !== "string")) return null;
     return {
+      data: tree,
       formatType,
-      indents,
-      content,
-      raw: entryTree,
-      prefix,
-      suffix,
-      innerVar,
-      keyQuotes
+      extraInfo: {
+        indents,
+        prefix,
+        suffix,
+        innerVar,
+        keyQuotes
+      }
     };
   } catch (e) {
     if (e instanceof Error) {
@@ -77,10 +154,10 @@ const getLangFileInfo = (str: string): LangFileInfo | null => {
     }
     return null;
   }
-};
+}
 
-const getNestedValues = (obj: EntryTree): any[] => {
-  let values: any[] = [];
+export function getNestedValues(obj: EntryTree): string[] {
+  let values: string[] = [];
   for (const key in obj) {
     if (typeof obj[key] === "object" && obj[key] !== null) {
       values = values.concat(getNestedValues(obj[key]));
@@ -89,9 +166,9 @@ const getNestedValues = (obj: EntryTree): any[] => {
     }
   }
   return values;
-};
+}
 
-const flattenNestedObj = (obj: EntryTree, res: EntryMap = {}, className = ""): EntryMap => {
+export function flattenNestedObj(obj: EntryTree, res: EntryMap = {}, className = ""): EntryMap {
   for (const key in obj) {
     if (key.trim() === "") break;
     const value = obj[key];
@@ -103,9 +180,9 @@ const flattenNestedObj = (obj: EntryTree, res: EntryMap = {}, className = ""): E
     }
   }
   return res;
-};
+}
 
-const validateLang = (str: string, lang: string): boolean => {
+export function validateLang(str: string, lang: string): boolean {
   let res = true;
   const code = getLangCode(lang, "google");
   switch (code) {
@@ -129,9 +206,9 @@ const validateLang = (str: string, lang: string): boolean => {
       break;
   }
   return res;
-};
+}
 
-const getIdByStr = (str: string, usedForEntryName = false): string => {
+export function getIdByStr(str: string, usedForEntryName = false): string {
   let id = str.toLowerCase();
   if (usedForEntryName) {
     id = id
@@ -142,7 +219,7 @@ const getIdByStr = (str: string, usedForEntryName = false): string => {
   }
   id = id.replace(/\s/g, "");
   return id;
-};
+}
 
 type LangExtraInfo = {
   prefix?: string;
@@ -150,7 +227,8 @@ type LangExtraInfo = {
   innerVar?: string;
   keyQuotes?: boolean;
 };
-function formatObjectToString(obj: EntryTree, fileType = "json", indent = "  ", extraInfo: LangExtraInfo = {}): string {
+
+export function formatObjectToString(obj: EntryTree, fileType = "json", indent = "  ", extraInfo: LangExtraInfo = {}): string {
   const { prefix = "", suffix = "", innerVar = "", keyQuotes = true } = extraInfo;
   function needsQuotes(key: string): boolean {
     const validIdentifier = /^[a-zA-Z_$][a-zA-Z0-9_$]*$/;
@@ -186,16 +264,16 @@ function formatObjectToString(obj: EntryTree, fileType = "json", indent = "  ", 
   return output.join("\n");
 }
 
-const deleteEntries = ({ data, raw }: { data: string[]; raw: string }): string => {
+export function deleteEntries({ data, raw }: { data: string[]; raw: string }): string {
   const entryLineReg = new RegExp(`(^|\\n)\\s*["'\`]?(${data.join("|")})(?!\\w)[^\\n]*`, "g");
   return raw.replace(entryLineReg, "");
-};
+}
 
-const formatForFile = (str: string): string => {
+export function formatForFile(str: string): string {
   return '"' + str.replace(/\\/g, "\\\\").replace(/"/g, '\\"').replace(/\r/g, "\\r").replace(/\n/g, "\\n").replace(/\t/g, "\\t") + '"';
-};
+}
 
-const catchAllEntries = (fileContent: string, langType: string, entryTree: EntryTree) => {
+export function catchAllEntries(fileContent: string, langType: string, entryTree: EntryTree) {
   let tItems: TEntry[] = [];
   if (langType === LANG_FORMAT_TYPE.nonObj) {
     tItems = catchCustomTEntries(fileContent);
@@ -204,9 +282,9 @@ const catchAllEntries = (fileContent: string, langType: string, entryTree: Entry
   }
   const existedItems = catchPossibleEntries(fileContent, langType, entryTree);
   return { tItems, existedItems };
-};
+}
 
-const catchPossibleEntries = (fileContent: string, langType: string, entryTree: EntryTree): {name: string; pos: number}[] => {
+export function catchPossibleEntries(fileContent: string, langType: string, entryTree: EntryTree): { name: string; pos: number }[] {
   const primaryClassList = Object.keys(entryTree).filter(entry => !!entry);
   if (primaryClassList.length === 0) return [];
   const primaryClassReg = new RegExp(
@@ -256,9 +334,9 @@ const catchPossibleEntries = (fileContent: string, langType: string, entryTree: 
     }
   }
   return entryInfoList;
-};
+}
 
-const catchTEntries = (fileContent: string): TEntry[] => {
+export function catchTEntries(fileContent: string): TEntry[] {
   const tReg = /(?<=[$\s.[({:=]{1})t\s*\(\s*(\S)/g;
   const entryInfoList: TEntry[] = [];
   let tRes: RegExpExecArray | null;
@@ -272,9 +350,9 @@ const catchTEntries = (fileContent: string): TEntry[] => {
     }
   }
   return entryInfoList;
-};
+}
 
-const parseTEntry = (fileContent: string, startPos: number, curPos: number, symbolStr: string): TEntry | null => {
+export function parseTEntry(fileContent: string, startPos: number, curPos: number, symbolStr: string): TEntry | null {
   let isValid = true;
   const tFormList: { type: string; value: string }[] = [];
   let entryIndex = 0;
@@ -378,9 +456,9 @@ const parseTEntry = (fileContent: string, startPos: number, curPos: number, symb
     pos: startPos + (entryRaw.indexOf(initSymbolStr) + 1),
     isValid
   };
-};
+}
 
-const matchTEntryPart = (fileContent: string, startPos: number, symbolStr: string): { type: string; value: string } | null => {
+export function matchTEntryPart(fileContent: string, startPos: number, symbolStr: string): { type: string; value: string } | null {
   let match: RegExpMatchArray | [number, string] | null = null;
   let type = "";
   if (/["'`]/.test(symbolStr)) {
@@ -401,9 +479,9 @@ const matchTEntryPart = (fileContent: string, startPos: number, symbolStr: strin
     return { type, value: match[1] };
   }
   return null;
-};
+}
 
-const matchBrackets = (str: string, startPos = 0, open = "{", close = "}"): [number, string] | null => {
+export function matchBrackets(str: string, startPos = 0, open = "{", close = "}"): [number, string] | null {
   const stack: string[] = [];
   let start = -1;
   for (let i = startPos; i < str.length; i++) {
@@ -419,9 +497,9 @@ const matchBrackets = (str: string, startPos = 0, open = "{", close = "}"): [num
     }
   }
   return null;
-};
+}
 
-const catchCustomTEntries = (fileContent: string): TEntry[] => {
+export function catchCustomTEntries(fileContent: string): TEntry[] {
   const customT = "lc@";
   const tReg = new RegExp(`(["'\`]){1}${customT}`, "g");
   const entryInfoList: TEntry[] = [];
@@ -458,16 +536,16 @@ const catchCustomTEntries = (fileContent: string): TEntry[] => {
     }
   }
   return entryInfoList;
-};
+}
 
-const isStringInUncommentedRange = (code: string, searchString: string): boolean => {
+export function isStringInUncommentedRange(code: string, searchString: string): boolean {
   const uncommentedCode = code
     .replace(/lc-disable([^]*?)(lc-enable|$)/g, "")
     .replace(/\/\*[^]*?\*\/|(?<!:\s*)\/\/[^\n]*|<!--[^]*?-->/g, "");
   return uncommentedCode.includes(searchString);
-};
+}
 
-const genLangTree = (tree: EntryTree = {}, content: EntryTree = {}, type = ""): void => {
+export function genLangTree(tree: EntryTree = {}, content: EntryTree = {}, type = ""): void {
   for (const key in content) {
     if (typeof content[key] === "object") {
       tree[key] = {};
@@ -476,9 +554,9 @@ const genLangTree = (tree: EntryTree = {}, content: EntryTree = {}, type = ""): 
       tree[key] = type === "string" ? content[key] : content[key].replace(/\s/g, "");
     }
   }
-};
+}
 
-const traverseLangTree = (EntryTree: EntryTree, callback: (key: string, value: any) => void, prefix = ""): void => {
+export function traverseLangTree(EntryTree: EntryTree, callback: (key: string, value: any) => void, prefix = ""): void {
   for (const key in EntryTree) {
     if (typeof EntryTree[key] === "object") {
       traverseLangTree(EntryTree[key], callback, prefix ? `${prefix}.${key}` : key);
@@ -486,14 +564,14 @@ const traverseLangTree = (EntryTree: EntryTree, callback: (key: string, value: a
       callback(prefix + key, EntryTree[key]);
     }
   }
-};
+}
 
-const getLangTree = (obj: object | string): string => {
+export function getLangTree(obj: object | string): string {
   if (typeof obj !== "object") return "";
   return Object.keys(obj).some(key => typeof obj[key] === "object") ? "object" : "string";
-};
+}
 
-const getEntryFromLangTree = (EntryTree: EntryTree, key: string): string => {
+export function getEntryFromLangTree(EntryTree: EntryTree, key: string): string {
   let res = "";
   const blockList = key.split(".");
   for (let i = 0; i < blockList.length; i++) {
@@ -507,17 +585,17 @@ const getEntryFromLangTree = (EntryTree: EntryTree, key: string): string => {
     }
   }
   return res;
-};
+}
 
-const escapeEntryName = (str: string): string => {
+export function escapeEntryName(str: string): string {
   return str.replace(/\\/g, "\\\\").replace(/\./g, "\\.");
-};
+}
 
-const unescapeEntryName = (str: string): string => {
+export function unescapeEntryName(str: string): string {
   return str.replace(/\\\./g, ".").replace(/\\\\/g, "\\");
-};
+}
 
-const parseEscapedPath = (path: string): string[] => {
+export function parseEscapedPath(path: string): string[] {
   const result: string[] = [];
   let current = "";
   let escaping = false;
@@ -547,9 +625,9 @@ const parseEscapedPath = (path: string): string[] => {
   }
 
   return result;
-};
+}
 
-const getValueByEscapedEntryName = (EntryTree: EntryTree | string, escapedPath: string): string | undefined => {
+export function getValueByEscapedEntryName(EntryTree: EntryTree | string, escapedPath: string): string | undefined {
   const pathParts = parseEscapedPath(escapedPath);
   let current = EntryTree;
   for (const part of pathParts) {
@@ -560,9 +638,9 @@ const getValueByEscapedEntryName = (EntryTree: EntryTree | string, escapedPath: 
     }
   }
   return current as string;
-};
+}
 
-const setValueByEscapedEntryName = (EntryTree: EntryTree, escapedPath: string, value: string | undefined): void => {
+export function setValueByEscapedEntryName(EntryTree: EntryTree, escapedPath: string, value: string | undefined): void {
   const pathParts = parseEscapedPath(escapedPath);
   let current = EntryTree;
   for (let i = 0; i < pathParts.length - 1; i++) {
@@ -573,9 +651,9 @@ const setValueByEscapedEntryName = (EntryTree: EntryTree, escapedPath: string, v
     current = current[part] as EntryTree;
   }
   current[pathParts[pathParts.length - 1]] = value as string;
-};
+}
 
-function getValueByAmbiguousEntryName(EntryTree: EntryTree, ambiguousPath: string): string | undefined {
+export function getValueByAmbiguousEntryName(EntryTree: EntryTree, ambiguousPath: string): string | undefined {
   if (typeof EntryTree !== "object" || EntryTree === null) {
     return undefined;
   }
@@ -627,23 +705,3 @@ function accessPath(obj: EntryTree | string, path: string[]): string | undefined
   }
   return current as string;
 }
-
-export {
-  getCaseType,
-  escapeRegExp,
-  getLangFileInfo,
-  validateLang,
-  getIdByStr,
-  deleteEntries,
-  catchAllEntries,
-  catchTEntries,
-  genLangTree,
-  traverseLangTree,
-  getEntryFromLangTree,
-  escapeEntryName,
-  unescapeEntryName,
-  formatObjectToString,
-  getValueByEscapedEntryName,
-  setValueByEscapedEntryName,
-  getValueByAmbiguousEntryName
-};

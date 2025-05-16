@@ -6,7 +6,7 @@ import { printInfo, printTitle } from "./utils/print";
 import { LANG_FORMAT_TYPE, LANG_ENTRY_SPLIT_SYMBOL, getLangText, getLangCode, getLangIntro } from "./utils/const";
 import {
   getCaseType,
-  getLangFileInfo,
+  extractLangDataFromDir,
   getIdByStr,
   validateLang,
   escapeEntryName,
@@ -14,6 +14,7 @@ import {
   setValueByEscapedEntryName,
   getValueByAmbiguousEntryName,
   formatObjectToString,
+  flattenNestedObj,
   catchAllEntries
 } from "./utils/regex";
 import { EntryTree, LangDictionary, LangCountryMap, LangTree, EntryClassInfo, ExcelData, TEntry, LackInfo, NullInfo } from "./types";
@@ -248,51 +249,73 @@ class LangCheckRobot {
   }
 
   private _readLangFiles(): void {
-    this.langFormatType = "";
-    const files = fs.readdirSync(this.langDir);
-    const langTree: LangTree = {};
-    files.forEach(file => {
-      if (![".js", ".json", ".ts"].includes(path.extname(file))) {
-        if (this.showPreInfo) {
-          printInfo(`文件 ${file} 类型不符合规范，跳过检测！`, "ghost");
-        }
-        return;
-      }
-      if (this.excludedLangList.some(lang => file.split(".")[0] !== lang)) {
-        if (this.showPreInfo) {
-          printInfo(`文件 ${file} 所属语言被排除，跳过检测！`, "ghost");
-        }
-        return;
-      }
-      if (this.includedLangList.length > 0 && this.includedLangList.every(lang => file.split(".")[0] !== lang)) {
-        if (this.showPreInfo) {
-          printInfo(`文件 ${file} 所属语言被排除，跳过检测！`, "ghost");
-        }
-        return;
-      }
-      const fileContents = fs.readFileSync(path.join(this.langDir, file), "utf8");
-      if (this.ignoreEmptyLangFile && fileContents.length < this.langFileMinLength) {
-        if (this.showPreInfo) {
-          printInfo(`文件 ${file} 疑似为空白文件，跳过检测！`, "ghost");
-        }
-        return;
-      }
-      const fileInfo = getLangFileInfo(fileContents);
-      if (!fileInfo || file.startsWith("index") || (this.langFormatType && this.langFormatType !== fileInfo.formatType)) {
-        if (this.showPreInfo) {
-          printInfo(`文件 ${file} 格式不符合规范，跳过检测！`, "ghost");
-        }
-        return;
-      }
-      const { formatType, content: entryMap, indents, prefix, suffix, innerVar, keyQuotes, raw } = fileInfo;
-      const [fileName, fileType] = file.split(".");
-      this.langFileType = fileType;
-      this.langFormatType = formatType;
-      this.langIndents[fileName] = indents;
-      this.langCountryMap[fileName] = entryMap;
-      this.langFileExtraInfo[fileName] = { prefix, suffix, innerVar, keyQuotes };
-      langTree[fileName] = raw;
-    });
+    // const files = fs.readdirSync(this.langDir);
+    // files.forEach(file => {
+    //   if (!/\.(json|js|ts|json5|mjs|cjs)$/.test(path.extname(file))) {
+    //     if (this.showPreInfo) {
+    //       printInfo(`文件 ${file} 类型不符合规范，跳过检测！`, "ghost");
+    //     }
+    //     return;
+    //   }
+    //   if (this.excludedLangList.some(lang => file.split(".")[0] !== lang)) {
+    //     if (this.showPreInfo) {
+    //       printInfo(`文件 ${file} 所属语言被排除，跳过检测！`, "ghost");
+    //     }
+    //     return;
+    //   }
+    //   if (this.includedLangList.length > 0 && this.includedLangList.every(lang => file.split(".")[0] !== lang)) {
+    //     if (this.showPreInfo) {
+    //       printInfo(`文件 ${file} 所属语言被排除，跳过检测！`, "ghost");
+    //     }
+    //     return;
+    //   }
+    //   const fileContents = fs.readFileSync(path.join(this.langDir, file), "utf8");
+    //   if (this.ignoreEmptyLangFile && fileContents.length < this.langFileMinLength) {
+    //     if (this.showPreInfo) {
+    //       printInfo(`文件 ${file} 疑似为空白文件，跳过检测！`, "ghost");
+    //     }
+    //     return;
+    //   }
+    //   const fileInfo = getLangFileInfo(fileContents);
+    //   if (!fileInfo || file.startsWith("index") || (this.langFormatType && this.langFormatType !== fileInfo.formatType)) {
+    //     if (this.showPreInfo) {
+    //       printInfo(`文件 ${file} 格式不符合规范，跳过检测！`, "ghost");
+    //     }
+    //     return;
+    //   }
+    //   const { formatType, indents, prefix, suffix, innerVar, keyQuotes, tree } = fileInfo;
+    //   const [fileName, fileType] = file.split(".");
+    //   this.langFileType = fileType;
+    //   this.langFormatType = formatType;
+    //   this.langIndents[fileName] = indents;
+    //   this.langCountryMap[fileName] = entryMap;
+    //   this.langFileExtraInfo[fileName] = { prefix, suffix, innerVar, keyQuotes };
+    //   langTree[fileName] = tree;
+    // });
+    const langData = extractLangDataFromDir(this.langDir);
+    if (langData === null) {
+      printInfo(`无效路径：${this.langDir}`, "ghost");
+      return
+    }
+    const langTree = langData.langTree;
+    this.langFileExtraInfo = langData.fileExtraInfo;
+    this.langFormatType = langData.formatType;
+    this.referredLang = this.detectedLangList.find(item => item.includes(this.referredLang))!;
+    Object.entries(langTree).forEach(([lang, data]) => {
+      this.langCountryMap[lang] = flattenNestedObj(data)
+    })
+    const { structure, lookup } = mergeTreesToTwoObjectsSemantic(Object.values(langTree), Object.keys(langTree));
+    this.langTree = structure;
+    this.langDictionary = lookup;
+    if (!this.referredLang) {
+      // TODO 中英文判断逻辑待优化
+      const cnName = this.detectedLangList.find(a => ["cn", "zh"].some(b => a.startsWith(b)));
+      const enName = this.detectedLangList.find(a => a.startsWith("en"));
+      this.referredLang = cnName ?? enName ?? this.detectedLangList[0];
+    }
+    this.referredEntryList = [...new Set(this.referredEntryList.concat(Object.keys(this.langCountryMap[this.referredLang])))];
+    Object.keys(this.langDictionary).forEach(entry => this._genEntryClassTree(unescapeEntryName(entry)));
+
     function mergeTreesToTwoObjectsSemantic(trees: EntryTree[], labels: string[]): { structure: LangTree; lookup: LangDictionary } {
       const structure: LangTree = {};
       const lookup: LangDictionary = {};
@@ -323,20 +346,6 @@ class LangCheckRobot {
       }
       trees.forEach((tree, i) => traverse(tree, [], labels[i]));
       return { structure, lookup };
-    }
-    if (this.detectedLangList.length > 0) {
-      this.referredLang = this.detectedLangList.find(item => item.includes(this.referredLang))!;
-      const { structure, lookup } = mergeTreesToTwoObjectsSemantic(Object.values(langTree), Object.keys(langTree));
-      this.langTree = structure;
-      this.langDictionary = lookup;
-      if (!this.referredLang) {
-        // TODO 中英文判断逻辑待优化
-        const cnName = this.detectedLangList.find(a => ["cn", "zh"].some(b => a.startsWith(b)));
-        const enName = this.detectedLangList.find(a => a.startsWith("en"));
-        this.referredLang = cnName ?? enName ?? this.detectedLangList[0];
-      }
-      this.referredEntryList = [...new Set(this.referredEntryList.concat(Object.keys(this.langCountryMap[this.referredLang])))];
-      Object.keys(this.langDictionary).forEach(entry => this._genEntryClassTree(unescapeEntryName(entry)));
     }
   }
 

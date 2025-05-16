@@ -1,7 +1,7 @@
 import fs from "fs";
 import path from "path";
 
-const deleteFolderRecursive = (dirPath: string): void => {
+export function deleteFolderRecursive(dirPath: string): void {
   if (fs.existsSync(dirPath)) {
     fs.readdirSync(dirPath).forEach(file => {
       const curPath = path.join(dirPath, file);
@@ -13,34 +13,37 @@ const deleteFolderRecursive = (dirPath: string): void => {
     });
     fs.rmdirSync(dirPath);
   }
-};
+}
 
-const createFolderRecursive = (dirPath: string): void => {
+export function createFolderRecursive(dirPath: string): void {
   if (fs.existsSync(dirPath)) return;
   const parentPath = path.dirname(dirPath);
   if (!fs.existsSync(parentPath)) createFolderRecursive(parentPath);
   fs.mkdirSync(dirPath);
-};
+}
 
-const getPossibleLangDirList = (dirPath: string, list: string[] = []): string[] => {
-  const results = fs.readdirSync(dirPath, { withFileTypes: true });
-  for (let i = 0; i < results.length; i++) {
-    const targetName = results[i].name;
-    const targetPath = path.join(dirPath, targetName);
-    const ignoredDirList = ["dist", "node_modules", "img", "image", "css", "asset", "langChecker", ".vscode"];
-    if (results[i].isDirectory()) {
-      const hasLangName = ["lang", "i18n", "translat", "fanyi"].some(key => targetName.includes(key));
-      if (hasLangName) {
-        list.push(targetPath);
-      } else if (ignoredDirList.every(key => !targetName.includes(key))) {
-        getPossibleLangDirList(targetPath, list);
+export function getPossibleLangDirs(rootDir: string): string[] {
+  const langDirs: string[] = [];
+  const ignoredDirRegex = /dist|node_modules|img|image|css|asset|^\./i;
+  const langDirRegex = /lang|i18n|locale|translat|message|intl|localization|fanyi|语|翻|Sprachen/i;
+  function traverse(currentDir: string) {
+    const items = fs.readdirSync(currentDir, { withFileTypes: true });
+    for (const dirent of items) {
+      const fullPath = path.join(currentDir, dirent.name);
+      if (dirent.isDirectory()) {
+        if (langDirRegex.test(dirent.name)) {
+          langDirs.push(fullPath);
+        } else if (!ignoredDirRegex.test(dirent.name)) {
+          traverse(fullPath);
+        }
       }
     }
   }
-  return list;
-};
+  traverse(rootDir);
+  return langDirs;
+}
 
-const isPathInsideDirectory = (dir: string, targetPath: string): boolean => {
+export function isPathInsideDirectory(dir: string, targetPath: string): boolean {
   // 获取绝对路径
   const absoluteDir = path.resolve(dir);
   const absoluteTargetPath = path.resolve(targetPath);
@@ -49,6 +52,4 @@ const isPathInsideDirectory = (dir: string, targetPath: string): boolean => {
   // 如果相对路径不以 ".." 开头，则 targetPath 是在 dir 目录下
   const isInside = !relativePath.startsWith("..") && !path.isAbsolute(relativePath);
   return isInside;
-};
-
-export { deleteFolderRecursive, createFolderRecursive, getPossibleLangDirList, isPathInsideDirectory };
+}
