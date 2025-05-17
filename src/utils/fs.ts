@@ -22,25 +22,46 @@ export function createFolderRecursive(dirPath: string): void {
   fs.mkdirSync(dirPath);
 }
 
+const ignoredDirRegex = /^(dist|node_modules|img|image|css|asset|\.)/i;
+// 只匹配容器目录名：lang、i18n、locale……等关键词
+const langDirRegex = /\b(lang|language|i18n|locale|translation|translate|message|intl|fanyi)s?\b/i;
+// 严格的区域/语言代码格式
+const localeCodeRegex = /^[a-z]{2,3}([-_][a-z]{2,4})?$/i;
+// 匹配单文件翻译名及后缀
+const localeFileRegex = /^([a-z]{2,3}(?:[-_][A-Za-z]{2,4})?)\.(js|ts|json|json5|mjs|cjs)$/i;
+// 最小文件/目录数限制
+const MIN_ENTRIES = 2;
+
 export function getPossibleLangDirs(rootDir: string): string[] {
-  const langDirs: string[] = [];
-  const ignoredDirRegex = /dist|node_modules|img|image|css|asset|^\./i;
-  const langDirRegex = /lang|i18n|locale|translat|message|intl|localization|fanyi|语|翻|Sprachen/i;
-  function traverse(currentDir: string) {
-    const items = fs.readdirSync(currentDir, { withFileTypes: true });
-    for (const dirent of items) {
-      const fullPath = path.join(currentDir, dirent.name);
-      if (dirent.isDirectory()) {
-        if (langDirRegex.test(dirent.name)) {
-          langDirs.push(fullPath);
-        } else if (!ignoredDirRegex.test(dirent.name)) {
-          traverse(fullPath);
-        }
-      }
+  const results = new Set<string>();
+  function traverse(dir: string) {
+    const basename = path.basename(dir);
+    const entries = fs.readdirSync(dir, { withFileTypes: true });
+    const subdirs = entries.filter(d => d.isDirectory() && !d.isSymbolicLink());
+    const files = entries.filter(d => d.isFile());
+    // —— 目录式检测 ——
+    // 1. 当前目录名要命中 langDirRegex
+    // 2. 且它下面至少有 2 个符合 localeCodeRegex 的子目录
+    if (langDirRegex.test(basename) && subdirs.filter(d => localeCodeRegex.test(d.name)).length >= MIN_ENTRIES) {
+      results.add(dir);
+      // return;
+    }
+    // —— 文件式检测 ——
+    // 当前目录下至少 2 个符合 localeFileRegex 的文件
+    if (langDirRegex.test(basename) && files.filter(d => localeFileRegex.test(d.name)).length >= MIN_ENTRIES) {
+      results.add(dir);
+      // return;
+    }
+    // —— 继续递归 ——
+    for (const d of subdirs) {
+      if (ignoredDirRegex.test(d.name)) continue;
+      traverse(path.join(dir, d.name));
     }
   }
   traverse(rootDir);
-  return langDirs;
+  // 去掉彼此包含的父目录，只保留最深那层
+  const dirs = Array.from(results);
+  return dirs.filter(a => !dirs.some(b => a !== b && b.startsWith(a + path.sep)));
 }
 
 export function isPathInsideDirectory(dir: string, targetPath: string): boolean {
