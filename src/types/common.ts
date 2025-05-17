@@ -19,16 +19,7 @@ export interface LangFileInfo {
 
 export interface LangFilesData {
   fileType: LangFileType;
-  fileExtraInfo: Record<
-    LangName,
-    {
-      indents: string;
-      prefix: string;
-      suffix: string;
-      innerVar: string;
-      keyQuotes: boolean;
-    }
-  >;
+  fileExtraInfo: Record<LangName, FileExtraInfo>;
   langTree: LangTree;
 }
 
@@ -104,4 +95,11 @@ export interface TranslateResult {
   data?: string[];
   message?: string;
   api?: ApiPlatform;
+}
+
+// 定义节点类型
+export interface EntryNode {
+  type: "directory" | "file";
+  children?: Record<string, EntryNode>; // 只有目录有 children
+  ext?: string; // 只有文件有扩展名
 }

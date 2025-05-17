@@ -15,9 +15,23 @@ import {
   getValueByAmbiguousEntryName,
   formatObjectToString,
   flattenNestedObj,
+  getFileLocationFromId,
+  getContentAtLocation,
   catchAllEntries
 } from "./utils/regex";
-import { EntryTree, LangDictionary, LangCountryMap, LangTree, EntryClassInfo, ExcelData, TEntry, LackInfo, NullInfo } from "./types";
+import {
+  EntryTree,
+  LangDictionary,
+  LangCountryMap,
+  LangTree,
+  EntryClassInfo,
+  ExcelData,
+  TEntry,
+  LackInfo,
+  NullInfo,
+  EntryNode,
+  FileExtraInfo
+} from "./types";
 import { PrintType } from "./utils/print";
 
 interface LangCheckRobotOptions {
@@ -52,6 +66,7 @@ class LangCheckRobot {
   private static instance: LangCheckRobot;
   private langFileType: string = "";
   private langFormatType: string = "";
+  private fileStructure: EntryNode | null = null;
   private langDictionary: LangDictionary = {};
   private langCountryMap: LangCountryMap = {};
   private lackInfo: LackInfo = {};
@@ -67,7 +82,7 @@ class LangCheckRobot {
   private undefinedEntryMap: Record<string, Record<string, number[]>> = {};
   private usedEntryMap: Record<string, Record<string, number[]>> = {};
   private langIndents: Record<string, string> = {};
-  private langFileExtraInfo: Record<string, object> = {};
+  private langFileExtraInfo: Record<string, FileExtraInfo> = {};
   private primaryPathLevel: number = 0;
   private roguePath: string = "";
   private isVacant: boolean = true;
@@ -295,15 +310,16 @@ class LangCheckRobot {
     const langData = extractLangDataFromDir(this.langDir);
     if (langData === null) {
       printInfo(`无效路径：${this.langDir}`, "ghost");
-      return
+      return;
     }
     const langTree = langData.langTree;
     this.langFileExtraInfo = langData.fileExtraInfo;
     this.langFormatType = langData.formatType;
+    this.fileStructure = langData.fileStructure;
     this.referredLang = this.detectedLangList.find(item => item.includes(this.referredLang))!;
     Object.entries(langTree).forEach(([lang, data]) => {
-      this.langCountryMap[lang] = flattenNestedObj(data)
-    })
+      this.langCountryMap[lang] = flattenNestedObj(data);
+    });
     const { structure, lookup } = mergeTreesToTwoObjectsSemantic(Object.values(langTree), Object.keys(langTree));
     this.langTree = structure;
     this.langDictionary = lookup;
@@ -366,9 +382,8 @@ class LangCheckRobot {
           nullTranslations.push(entry);
         }
       });
-      const langName = this._getLangFileName(lang);
       if (missingTranslations.length > 0 && !needFixFlag) {
-        printInfo(`文件 ${langName} 缺少条目：${this._formatEntriesInTerminal(missingTranslations)}`, "error");
+        printInfo(`语种 ${lang} 缺少条目：${this._formatEntriesInTerminal(missingTranslations)}`, "error");
       }
       this.lackInfo[lang] = missingTranslations;
       this.nullInfo[lang] = nullTranslations;
@@ -382,12 +397,12 @@ class LangCheckRobot {
         }
       }
       if (extraTranslations.length > 0 && !needFixFlag) {
-        printInfo(`文件 ${langName} 多出条目：${this._formatEntriesInTerminal(extraTranslations)}`, "puzzle");
+        printInfo(`语种 ${lang} 多出条目：${this._formatEntriesInTerminal(extraTranslations)}`, "puzzle");
       }
       this.extraInfo[lang] = extraTranslations;
 
       if (missingTranslations.length === 0 && extraTranslations.length === 0 && !needFixFlag) {
-        printInfo(`文件 ${langName} 条目保持一致！`, "success");
+        printInfo(`语种 ${lang} 条目保持一致！`, "success");
       }
     });
   }
@@ -593,10 +608,21 @@ class LangCheckRobot {
   private _handleRewrite(): void {
     printTitle("写入翻译条目");
     for (const [lang, entryInfo] of Object.entries(this.updatedEntryValueInfo)) {
-      for (const [entry, value] of Object.entries(entryInfo)) {
-        this._updateEntryValue(entry, value, lang);
+      console.log("🚀 ~ LangCheckRobot ~ _handleRewrite ~ lang, entryInfo:", lang, entryInfo)
+      const filePosSet = new Set<string>();
+      for (const [key, value] of Object.entries(entryInfo)) {
+        console.log("🚀 ~ LangCheckRobot ~ _handleRewrite ~ key, value:", key, value)
+        this._updateEntryValue(key, value, lang);
+        const filePos = getFileLocationFromId(`${lang}\\.${key}`, this.fileStructure as EntryNode);
+        console.log("🚀 ~ LangCheckRobot ~ _handleRewrite ~ filePos:", key, this.fileStructure ,filePos)
+        if (filePos !== null) filePosSet.add(filePos);
       }
-      this._rewriteTranslationFile(lang);
+      const filePosList = Array.from(filePosSet);
+      if (filePosList.length === 0) {
+        this._rewriteTranslationFile(lang, "");
+      } else {
+        filePosList.forEach(filePos => this._rewriteTranslationFile(lang, filePos));
+      }
     }
     this.updatedEntryValueInfo = {};
     this._applyGlobalFixes();
@@ -743,6 +769,7 @@ class LangCheckRobot {
   }
 
   private _setUpdatedEntryValueInfo(name: string, value: string | undefined, lang?: string): void {
+    console.log("🚀 ~ LangCheckRobot ~ _setUpdatedEntryValueInfo ~ name:", name)
     const langList = Object.keys(this.langCountryMap).filter(item => lang == null || item === lang);
     langList.forEach(lang => {
       this.updatedEntryValueInfo[lang] ??= {};
@@ -750,32 +777,44 @@ class LangCheckRobot {
     });
   }
 
-  private _updateEntryValue(name: string, value: string | undefined, lang: string): void {
+  private _updateEntryValue(key: string, value: string | undefined, lang: string): void {
     if (typeof value === "string") {
-      if (Object.hasOwn(this.langDictionary, name)) {
-        this.langDictionary[name][lang] = value;
+      if (Object.hasOwn(this.langDictionary, key)) {
+        this.langDictionary[key][lang] = value;
       } else {
-        this.langDictionary[name] = { [lang]: value };
+        this.langDictionary[key] = { [lang]: value };
       }
-      this.langCountryMap[lang][name] = value;
-      setValueByEscapedEntryName(this.langTree, name, name);
+      this.langCountryMap[lang][key] = value;
+      setValueByEscapedEntryName(this.langTree, key, key);
     } else {
-      delete this.langDictionary[name][lang];
-      delete this.langCountryMap[lang][name];
-      setValueByEscapedEntryName(this.langTree, name, undefined);
+      delete this.langDictionary[key][lang];
+      delete this.langCountryMap[lang][key];
+      setValueByEscapedEntryName(this.langTree, key, undefined);
     }
   }
 
-  private _rewriteTranslationFile(lang: string): void {
-    const filePath = path.join(this.langDir, this._getLangFileName(lang));
-    const fileContent = formatObjectToString(
-      this.langCountryMap[lang],
-      this.langFileType,
-      this.langIndents[lang],
-      this.langFileExtraInfo[lang]
-    );
-    fs.writeFileSync(filePath, fileContent);
-    printInfo(`文件 ${this._getLangFileName(lang)} 翻译已写入`, "rocket");
+  private _rewriteTranslationFile(lang: string, filePos: string): void {
+    const filePath = this._getLangFilePath(lang, filePos);
+    const entryTree = getContentAtLocation(filePos, this.langTree);
+    if (entryTree) {
+      const fileContent = formatObjectToString(
+        entryTree,
+        this.langCountryMap[lang],
+        this.langFileType,
+        this.langFileExtraInfo[lang]
+      );
+      fs.writeFileSync(filePath, fileContent);
+      printInfo(`翻译已写入`, "success");
+    }
+  }
+
+  private _getLangFilePath(lang: string, filePos: string): string {
+    if (filePos === "") {
+      return path.join(this.langDir, `${lang}.${this.langFileType}`);
+    } else {
+      const pathSegs = filePos.split("\\.");
+      return path.join(this.langDir, lang, ...pathSegs, `.${this.langFileType}`);
+    }
   }
 
   private _getFixedRaw(entry: TEntry, name: string): string {
@@ -792,7 +831,7 @@ class LangCheckRobot {
 
   private _printAddedText(lang: string, textList: string[], api?: string): void {
     printInfo(
-      `文件 ${this._getLangFileName(lang)} 补充${api !== undefined && api !== null ? ` ${api} ` : ""}翻译：${textList
+      `语种 ${lang} 补充${api !== undefined && api !== null ? ` ${api} ` : ""}翻译：${textList
         .map(item => `\x1b[36m${item.replaceAll(/\n/g, "\\n")}\x1b[0m`)
         .join(", ")}`,
       "mage"
@@ -835,8 +874,12 @@ class LangCheckRobot {
     });
   }
 
-  private _getPopularClassMap(tree: Record<string, object>, map: Record<string, number> = {}, classPrefix: string = ""): Record<string, number> {
-    const splitSymbol = LANG_ENTRY_SPLIT_SYMBOL[this.langFormatType] as string
+  private _getPopularClassMap(
+    tree: Record<string, object>,
+    map: Record<string, number> = {},
+    classPrefix: string = ""
+  ): Record<string, number> {
+    const splitSymbol = LANG_ENTRY_SPLIT_SYMBOL[this.langFormatType] as string;
     for (const [key, value] of Object.entries(tree)) {
       const itemName = classPrefix + key + splitSymbol;
       if (value !== null && value !== undefined) {
@@ -856,7 +899,9 @@ class LangCheckRobot {
 
   private _checkUsage(): void {
     printTitle("检测条目是否使用");
-    const unusedEntryList = this.referredEntryList.map(name => unescapeEntryName(name)).filter(entry => !Object.hasOwn(this.usedEntryMap, entry));
+    const unusedEntryList = this.referredEntryList
+      .map(name => unescapeEntryName(name))
+      .filter(entry => !Object.hasOwn(this.usedEntryMap, entry));
     if (unusedEntryList.length > 0) {
       printInfo(`存在疑似未使用条目：${this._formatEntriesInTerminal(unusedEntryList)}`, "puzzle");
     }
@@ -991,7 +1036,7 @@ class LangCheckRobot {
       referFlagIcon = iconMap[this._getScore(this.styleScore)] as string;
     }
     return this.detectedLangList.reduce((prev, cur) => {
-      let name = this._getLangFileName(cur);
+      let name = cur;
       name = this.referredLang === cur ? `${name} ${referFlagIcon}` : name;
       return { ...prev, [name]: func(cur) };
     }, {});
@@ -1028,10 +1073,6 @@ class LangCheckRobot {
     if (str >= 0.6) return "puzzle";
     if (str >= 0.4) return "shock";
     return "error";
-  }
-
-  private _getLangFileName(str: string = ""): string {
-    return `${str}.${this.langFileType}`;
   }
 }
 

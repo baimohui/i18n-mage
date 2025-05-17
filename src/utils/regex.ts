@@ -1,7 +1,17 @@
 import fs from "fs";
 import path from "path";
 import { LANG_FORMAT_TYPE, LANG_ENTRY_SPLIT_SYMBOL, getLangCode } from "./const";
-import { LangFileInfo, EntryMap, EntryTree, TEntry, PEntry, CaseType, LangTree, FileExtraInfo } from "../types/common";
+import {
+  LangFileInfo,
+  EntryMap,
+  EntryTree,
+  TEntry,
+  PEntry,
+  CaseType,
+  LangTree,
+  EntryNode,
+  FileExtraInfo
+} from "../types/common";
 import { printInfo } from "./print";
 
 const newlineCharacter = "\r\n";
@@ -18,13 +28,6 @@ export function escapeRegExp(str: string): string {
   return str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
-// 定义节点类型
-interface EntryNode {
-  type: "directory" | "file";
-  children?: Record<string, EntryNode>; // 只有目录有 children
-  ext?: string; // 只有文件有扩展名
-}
-
 export interface ExtractResult {
   fileType: string; // 最终使用的文件后缀
   formatType: string; // 最终使用的格式
@@ -38,7 +41,7 @@ export function extractLangDataFromDir(langDir: string): ExtractResult | null {
   let validFormatType = "";
   const fileExtraInfo: Record<string, FileExtraInfo> = {};
 
-  function traverse(dir: string): {
+  function traverse(dir: string, pathSegs: string[]): {
     tree: LangTree;
     node: EntryNode;
     hasData: boolean;
@@ -51,7 +54,8 @@ export function extractLangDataFromDir(langDir: string): ExtractResult | null {
       const fullPath = path.join(dir, dirent.name);
 
       if (dirent.isDirectory()) {
-        const { tree: subTree, node: subNode, hasData: ok } = traverse(fullPath);
+        const subPathSegs = [...pathSegs, dirent.name];
+        const { tree: subTree, node: subNode, hasData: ok } = traverse(fullPath, subPathSegs);
         if (ok) {
           tree[dirent.name] = subTree;
           node.children![dirent.name] = subNode;
@@ -73,18 +77,19 @@ export function extractLangDataFromDir(langDir: string): ExtractResult | null {
 
         // 挂到语言树
         tree[base] = data;
-        // 记录扩展信息
-        fileExtraInfo[base] = extraInfo;
         // 在结构树中标记为文件
         node.children![base] = { type: "file", ext };
         hasData = true;
+        // 生成位置键：pathSegs + base
+        const locSegments = [...pathSegs, base].map(seg => seg.replace(/\./g, "\\."));
+        const locationKey = locSegments.join("\\.");
+        fileExtraInfo[locationKey] = extraInfo;
       }
     }
-
     return { tree, node, hasData };
   }
 
-  const { tree: langTree, node: fileStructure, hasData } = traverse(langDir);
+  const { tree: langTree, node: fileStructure, hasData } = traverse(langDir, []);
   if (!hasData) return null;
 
   return {
@@ -221,26 +226,19 @@ export function getIdByStr(str: string, usedForEntryName = false): string {
   return id;
 }
 
-type LangExtraInfo = {
-  prefix?: string;
-  suffix?: string;
-  innerVar?: string;
-  keyQuotes?: boolean;
-};
-
-export function formatObjectToString(obj: EntryTree, fileType = "json", indent = "  ", extraInfo: LangExtraInfo = {}): string {
-  const { prefix = "", suffix = "", innerVar = "", keyQuotes = true } = extraInfo;
+export function formatObjectToString(tree: EntryTree, lookup: EntryMap, fileType = "json", extraInfo: FileExtraInfo): string {
+  const { prefix = "", suffix = "", innerVar = "", indents = "  ", keyQuotes = true } = extraInfo;
   function needsQuotes(key: string): boolean {
     const validIdentifier = /^[a-zA-Z_$][a-zA-Z0-9_$]*$/;
     return !validIdentifier.test(key);
   }
   function formatObject(obj: EntryTree, level = 0): string {
     const result: string[] = [];
-    const currentIndent = indent.repeat(level);
+    const currentIndent = indents.repeat(level);
     for (const [key, value] of Object.entries(obj)) {
       const keyStr = unescapeEntryName(keyQuotes || fileType === "json" || needsQuotes(key) ? `"${key}"` : key);
       if (typeof value === "string") {
-        result.push(`${currentIndent}${keyStr}: ${formatForFile(value)}`);
+        result.push(`${currentIndent}${keyStr}: ${formatForFile(lookup[value])}`);
       } else if (typeof value === "object" && value !== null) {
         result.push(`${currentIndent}${keyStr}: {${newlineCharacter}${formatObject(value, level + 1)}${newlineCharacter}${currentIndent}}`);
       }
@@ -251,9 +249,9 @@ export function formatObjectToString(obj: EntryTree, fileType = "json", indent =
   const output: string[] = [];
   output.push(prefix ? `${prefix}{` : "{");
   if (fileType === "js" && innerVar) {
-    output.push(`${indent}${innerVar}`);
+    output.push(`${indents}${innerVar}`);
   }
-  const formattedObj = formatObject(obj, 1);
+  const formattedObj = formatObject(tree, 1);
   if (formattedObj) {
     output.push(formattedObj);
   }
@@ -599,10 +597,8 @@ export function parseEscapedPath(path: string): string[] {
   const result: string[] = [];
   let current = "";
   let escaping = false;
-
   for (let i = 0; i < path.length; i++) {
     const char = path[i];
-
     if (escaping) {
       current += char;
       escaping = false;
@@ -615,29 +611,13 @@ export function parseEscapedPath(path: string): string[] {
       current += char;
     }
   }
-
   if (escaping) {
     throw new Error("Invalid escape sequence at end of string");
   }
-
   if (current.length > 0) {
     result.push(current);
   }
-
   return result;
-}
-
-export function getValueByEscapedEntryName(EntryTree: EntryTree | string, escapedPath: string): string | undefined {
-  const pathParts = parseEscapedPath(escapedPath);
-  let current = EntryTree;
-  for (const part of pathParts) {
-    if (Object.hasOwn(current as EntryTree, part)) {
-      current = current[part] as EntryTree;
-    } else {
-      return undefined;
-    }
-  }
-  return current as string;
 }
 
 export function setValueByEscapedEntryName(EntryTree: EntryTree, escapedPath: string, value: string | undefined): void {
@@ -657,16 +637,12 @@ export function getValueByAmbiguousEntryName(EntryTree: EntryTree, ambiguousPath
   if (typeof EntryTree !== "object" || EntryTree === null) {
     return undefined;
   }
-
   const parts = ambiguousPath.split(".");
   const m = parts.length;
-
   if (m === 0) {
     return undefined;
   }
-
   const numCombinations = 1 << (m - 1);
-
   for (let i = 0; i < numCombinations; i++) {
     const split = buildSplit(parts, i, m);
     const value = accessPath(EntryTree, split);
@@ -674,14 +650,62 @@ export function getValueByAmbiguousEntryName(EntryTree: EntryTree, ambiguousPath
       return value;
     }
   }
-
   return undefined;
+}
+
+/**
+ * 根据文案 id（形如 "zh-CN\\.demos\\.textA"）和 fileStructure，
+ * 返回该文案对应的文件位置（即去掉最后一级 key 后再用 `\.` 连接的部分，例如 "zh-CN\\.demos"）。
+ * 如果 fileStructure 中不存在该路径，则返回 null。
+ */
+export function getFileLocationFromId(id: string, fileStructure: EntryNode): string | null {
+  console.log("🚀 ~ getFileLocationFromId ~ fileStructure:", fileStructure)
+  console.log("🚀 ~ getFileLocationFromId ~ id:", id)
+  // 1. 先把所有 “\\. ” 临时替换成占位符
+  const placeholder = "__DOT__";
+  const tmp = id.replace(/\\\./g, placeholder);
+  // 2. 按未转义的点拆分，再把占位符还原
+  const segments = tmp.split(".").map(seg => seg.replace(new RegExp(placeholder, "g"), "."));
+  // 最后一级是文案 key，前面都是文件路径
+  const pathSegs = segments.slice(0, -1);
+  let node = fileStructure;
+  for (const seg of pathSegs) {
+    if (node.type === "directory" && node.children && typeof node.children[seg] === "object") {
+      node = node.children[seg];
+    } else {
+      return null; // 路径无效
+    }
+  }
+  // 最后一个节点应该是 file 类型
+  if (node.type !== "file") return null;
+  // 用 '\.' 重新连接
+  return pathSegs.map(s => s.replace(/\./g, "\\.")).join("\\.");
+}
+
+/**
+ * 根据文件位置（"zh-CN\\.demos"）和翻译树，返回该文件下的整个对象内容，
+ * 例如 { textA: "...", "textB.dot": "..." }。
+ * 若路径无效，则返回 null。
+ */
+export function getContentAtLocation(location: string, tree: LangTree): EntryTree | null {
+  // 同样先处理转义
+  const placeholder = "__DOT__";
+  const tmp = location.replace(/\\\./g, placeholder);
+  const segments = tmp.split(".").map(seg => seg.replace(new RegExp(placeholder, "g"), "."));
+  let cursor: EntryTree = tree;
+  for (const seg of segments) {
+    if (typeof cursor === "object" && seg in cursor) {
+      cursor = cursor[seg] as EntryTree;
+    } else {
+      return null;
+    }
+  }
+  return cursor;
 }
 
 function buildSplit(parts: string[], i: number, m: number): string[] {
   const split: string[] = [];
   let current = parts[0];
-
   for (let j = 0; j < m - 1; j++) {
     if ((i & (1 << j)) !== 0) {
       current += "." + parts[j + 1];
