@@ -137,17 +137,17 @@ export async function activate(): Promise<void> {
     vscode.window.showInformationMessage(`已复制：${e.description}`);
   });
 
-  vscode.commands.registerCommand("i18nMage.editValue", async (e: vscode.TreeItem & { data: { name: string; lang: string } }) => {
+  vscode.commands.registerCommand("i18nMage.editValue", async (e: vscode.TreeItem & { data: { name: string; key: string; value: string; lang: string } }) => {
     if (typeof e.data !== "object" || Object.keys(e.data).length === 0) return;
+    const { name, key, value, lang } = e.data;
     const newLabel = await vscode.window.showInputBox({
-      prompt: "编辑文本",
-      value: e.description as string
+      prompt: `编辑 ${name}`,
+      value
     });
     if (typeof newLabel === "string" && newLabel.trim() !== "") {
-      const { name, lang } = e.data;
       robot.setOptions({
         task: "modify",
-        modifyList: [{ name, lang, value: newLabel }],
+        modifyList: [{ name: key, lang, value: newLabel }],
         globalFlag: false,
         clearCache: false,
         rewriteFlag: true

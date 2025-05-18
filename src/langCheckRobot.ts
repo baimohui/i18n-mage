@@ -17,6 +17,7 @@ import {
   flattenNestedObj,
   getFileLocationFromId,
   getContentAtLocation,
+  getPathSegsFromId,
   catchAllEntries
 } from "./utils/regex";
 import {
@@ -314,6 +315,7 @@ class LangCheckRobot {
     }
     const langTree = langData.langTree;
     this.langFileExtraInfo = langData.fileExtraInfo;
+    this.langFileType = langData.fileType;
     this.langFormatType = langData.formatType;
     this.fileStructure = langData.fileStructure;
     this.referredLang = this.detectedLangList.find(item => item.includes(this.referredLang))!;
@@ -346,21 +348,24 @@ class LangCheckRobot {
         }
         cur[path[path.length - 1]] = value;
       }
-      function traverse(node: string | EntryTree, path: string[], label: string): void {
+      function traverse(node: string | EntryTree, path: string[], idTree: EntryTree, label: string): void {
         if (typeof node === "string") {
           const id = path.map(key => escapeEntryName(key)).join(".");
-          setAtPath(structure, path, id);
+          setAtPath(idTree, path, id);
           if (!(id in lookup)) {
             lookup[id] = {};
           }
           lookup[id][label] = node;
         } else {
           for (const key in node) {
-            traverse(node[key], path.concat(key), label);
+            traverse(node[key], path.concat(key), idTree, label);
           }
         }
       }
-      trees.forEach((tree, i) => traverse(tree, [], labels[i]));
+      trees.forEach((tree, i) => {
+        structure[labels[i]] = {};
+        traverse(tree, [], structure[labels[i]], labels[i]);
+      });
       return { structure, lookup };
     }
   }
@@ -567,7 +572,7 @@ class LangCheckRobot {
     printTitle("修改翻译条目");
     this.modifyList.forEach(item => {
       const { name, value, lang } = item;
-      const entryName = getValueByAmbiguousEntryName(this.langTree, name);
+      const entryName = getValueByAmbiguousEntryName(this.langTree[lang], name);
       if (typeof entryName === "string" && entryName.trim() !== "") {
         this._setUpdatedEntryValueInfo(entryName, value, lang);
       }
@@ -608,13 +613,10 @@ class LangCheckRobot {
   private _handleRewrite(): void {
     printTitle("写入翻译条目");
     for (const [lang, entryInfo] of Object.entries(this.updatedEntryValueInfo)) {
-      console.log("🚀 ~ LangCheckRobot ~ _handleRewrite ~ lang, entryInfo:", lang, entryInfo)
       const filePosSet = new Set<string>();
       for (const [key, value] of Object.entries(entryInfo)) {
-        console.log("🚀 ~ LangCheckRobot ~ _handleRewrite ~ key, value:", key, value)
         this._updateEntryValue(key, value, lang);
-        const filePos = getFileLocationFromId(`${lang}\\.${key}`, this.fileStructure as EntryNode);
-        console.log("🚀 ~ LangCheckRobot ~ _handleRewrite ~ filePos:", key, this.fileStructure ,filePos)
+        const filePos = getFileLocationFromId(`${lang}.${key}`, this.fileStructure as EntryNode);
         if (filePos !== null) filePosSet.add(filePos);
       }
       const filePosList = Array.from(filePosSet);
@@ -769,7 +771,6 @@ class LangCheckRobot {
   }
 
   private _setUpdatedEntryValueInfo(name: string, value: string | undefined, lang?: string): void {
-    console.log("🚀 ~ LangCheckRobot ~ _setUpdatedEntryValueInfo ~ name:", name)
     const langList = Object.keys(this.langCountryMap).filter(item => lang == null || item === lang);
     langList.forEach(lang => {
       this.updatedEntryValueInfo[lang] ??= {};
@@ -797,12 +798,7 @@ class LangCheckRobot {
     const filePath = this._getLangFilePath(lang, filePos);
     const entryTree = getContentAtLocation(filePos, this.langTree);
     if (entryTree) {
-      const fileContent = formatObjectToString(
-        entryTree,
-        this.langCountryMap[lang],
-        this.langFileType,
-        this.langFileExtraInfo[lang]
-      );
+      const fileContent = formatObjectToString(entryTree, this.langCountryMap[lang], this.langFileType, this.langFileExtraInfo[filePos]);
       fs.writeFileSync(filePath, fileContent);
       printInfo(`翻译已写入`, "success");
     }
@@ -810,10 +806,14 @@ class LangCheckRobot {
 
   private _getLangFilePath(lang: string, filePos: string): string {
     if (filePos === "") {
+      // 根文件：zh-CN.json
       return path.join(this.langDir, `${lang}.${this.langFileType}`);
     } else {
-      const pathSegs = filePos.split("\\.");
-      return path.join(this.langDir, lang, ...pathSegs, `.${this.langFileType}`);
+      const pathSegs = getPathSegsFromId(filePos);
+      // 先拼出不带扩展名的完整路径，再在末尾加上 .json
+      // 类似： /…/langDir/zh-CN/demos/textA + ".json"
+      const withoutExt = path.join(this.langDir, ...pathSegs);
+      return withoutExt + `.${this.langFileType}`;
     }
   }
 

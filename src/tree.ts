@@ -193,14 +193,15 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
         };
       });
     } else if (element.level === 2) {
-      const entryInfo = this.dictionary[getValueByAmbiguousEntryName(this.tree, element.label as string) as string];
+      const entryKey = getValueByAmbiguousEntryName(this.tree, element.label as string) ?? "";
+      const entryInfo = this.dictionary[entryKey];
       return this.langInfo.langList.map(lang => ({
         label: lang,
         name: element.label as string,
         description: entryInfo[lang] ?? false,
         collapsibleState: vscode.TreeItemCollapsibleState.None,
         level: 3,
-        data: { name: element.label, lang },
+        data: { name: element.label, key: entryKey, value: entryInfo[lang] ?? "", lang },
         contextValue: "entryTranslationInCurFile",
         id: this.genId(element, lang),
         tooltip: getLangText(lang)
@@ -240,7 +241,7 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
         key: element.key,
         id: this.genId(element, item[0]),
         contextValue: "syncInfoItem",
-        data: { name: unescapeEntryName(item[0]), lang: element.key },
+        data: { name: unescapeEntryName(item[0]), key: item[0], value: item[1], lang: element.key },
         collapsibleState: vscode.TreeItemCollapsibleState.None
       }));
     }

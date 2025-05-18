@@ -1,17 +1,7 @@
 import fs from "fs";
 import path from "path";
 import { LANG_FORMAT_TYPE, LANG_ENTRY_SPLIT_SYMBOL, getLangCode } from "./const";
-import {
-  LangFileInfo,
-  EntryMap,
-  EntryTree,
-  TEntry,
-  PEntry,
-  CaseType,
-  LangTree,
-  EntryNode,
-  FileExtraInfo
-} from "../types/common";
+import { LangFileInfo, EntryMap, EntryTree, TEntry, PEntry, CaseType, LangTree, EntryNode, FileExtraInfo } from "../types/common";
 import { printInfo } from "./print";
 
 const newlineCharacter = "\r\n";
@@ -41,7 +31,10 @@ export function extractLangDataFromDir(langDir: string): ExtractResult | null {
   let validFormatType = "";
   const fileExtraInfo: Record<string, FileExtraInfo> = {};
 
-  function traverse(dir: string, pathSegs: string[]): {
+  function traverse(
+    dir: string,
+    pathSegs: string[]
+  ): {
     tree: LangTree;
     node: EntryNode;
     hasData: boolean;
@@ -81,8 +74,7 @@ export function extractLangDataFromDir(langDir: string): ExtractResult | null {
         node.children![base] = { type: "file", ext };
         hasData = true;
         // 生成位置键：pathSegs + base
-        const locSegments = [...pathSegs, base].map(seg => seg.replace(/\./g, "\\."));
-        const locationKey = locSegments.join("\\.");
+        const locationKey = [...pathSegs, base].join(".");
         fileExtraInfo[locationKey] = extraInfo;
       }
     }
@@ -653,45 +645,32 @@ export function getValueByAmbiguousEntryName(EntryTree: EntryTree, ambiguousPath
   return undefined;
 }
 
-/**
- * 根据文案 id（形如 "zh-CN\\.demos\\.textA"）和 fileStructure，
- * 返回该文案对应的文件位置（即去掉最后一级 key 后再用 `\.` 连接的部分，例如 "zh-CN\\.demos"）。
- * 如果 fileStructure 中不存在该路径，则返回 null。
- */
-export function getFileLocationFromId(id: string, fileStructure: EntryNode): string | null {
-  console.log("🚀 ~ getFileLocationFromId ~ fileStructure:", fileStructure)
-  console.log("🚀 ~ getFileLocationFromId ~ id:", id)
-  // 1. 先把所有 “\\. ” 临时替换成占位符
-  const placeholder = "__DOT__";
-  const tmp = id.replace(/\\\./g, placeholder);
-  // 2. 按未转义的点拆分，再把占位符还原
-  const segments = tmp.split(".").map(seg => seg.replace(new RegExp(placeholder, "g"), "."));
-  // 最后一级是文案 key，前面都是文件路径
-  const pathSegs = segments.slice(0, -1);
-  let node = fileStructure;
-  for (const seg of pathSegs) {
-    if (node.type === "directory" && node.children && typeof node.children[seg] === "object") {
-      node = node.children[seg];
-    } else {
-      return null; // 路径无效
-    }
-  }
-  // 最后一个节点应该是 file 类型
-  if (node.type !== "file") return null;
-  // 用 '\.' 重新连接
-  return pathSegs.map(s => s.replace(/\./g, "\\.")).join("\\.");
+export function getPathSegsFromId(id: string): string[] {
+  // 1. 用正则一次性按 “\\.”（转义点） 或者 非“.” 字符的连续串 拆分
+  const rawSegs = id.match(/(\\\.|[^.])+/g);
+  if (!rawSegs) return [];
+  // 2. 把每段里的 "\." 恢复成真正的 "."
+  return rawSegs.map(seg => seg.replace(/\\\./g, "."));
 }
 
-/**
- * 根据文件位置（"zh-CN\\.demos"）和翻译树，返回该文件下的整个对象内容，
- * 例如 { textA: "...", "textB.dot": "..." }。
- * 若路径无效，则返回 null。
- */
+export function getFileLocationFromId(id: string, fileStructure: EntryNode): string | null {
+  const segments = getPathSegsFromId(id);
+  const pathSegs: string[] = [];
+  let node: EntryNode = fileStructure;
+  for (const seg of segments) {
+    if (node.type === "directory" && node.children && seg in node.children) {
+      pathSegs.push(seg);
+      node = node.children[seg];
+    } else {
+      break;
+    }
+  }
+  if (node.type !== "file") return null; // 路径在结构里不存在
+  return pathSegs.join(".");
+}
+
 export function getContentAtLocation(location: string, tree: LangTree): EntryTree | null {
-  // 同样先处理转义
-  const placeholder = "__DOT__";
-  const tmp = location.replace(/\\\./g, placeholder);
-  const segments = tmp.split(".").map(seg => seg.replace(new RegExp(placeholder, "g"), "."));
+  const segments = getPathSegsFromId(location);
   let cursor: EntryTree = tree;
   for (const seg of segments) {
     if (typeof cursor === "object" && seg in cursor) {
