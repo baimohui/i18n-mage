@@ -786,11 +786,11 @@ class LangCheckRobot {
         this.langDictionary[key] = { [lang]: value };
       }
       this.langCountryMap[lang][key] = value;
-      setValueByEscapedEntryName(this.langTree, key, key);
+      setValueByEscapedEntryName(this.langTree[lang], key, key);
     } else {
       delete this.langDictionary[key][lang];
       delete this.langCountryMap[lang][key];
-      setValueByEscapedEntryName(this.langTree, key, undefined);
+      setValueByEscapedEntryName(this.langTree[lang], key, undefined);
     }
   }
 
