@@ -239,7 +239,7 @@ export function formatObjectToString(tree: EntryTree, lookup: EntryMap, fileType
   }
 
   const output: string[] = [];
-  output.push(prefix ? `${prefix}{` : "{");
+  output.push(prefix.trim() ? `${prefix}{` : "{");
   if (fileType === "js" && innerVar) {
     output.push(`${indents}${innerVar}`);
   }
@@ -247,11 +247,8 @@ export function formatObjectToString(tree: EntryTree, lookup: EntryMap, fileType
   if (formattedObj) {
     output.push(formattedObj);
   }
-  output.push("}");
-  if (suffix) {
-    output.push(suffix);
-  }
-  return output.join("\n");
+  output.push(suffix.trim() ? `}${suffix}` : "}");
+  return output.join(newlineCharacter);
 }
 
 export function deleteEntries({ data, raw }: { data: string[]; raw: string }): string {
