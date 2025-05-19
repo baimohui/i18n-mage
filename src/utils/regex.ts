@@ -1,10 +1,76 @@
 import fs from "fs";
 import path from "path";
+import * as vscode from "vscode";
 import { LANG_FORMAT_TYPE, LANG_ENTRY_SPLIT_SYMBOL, getLangCode } from "./const";
 import { LangFileInfo, EntryMap, EntryTree, TEntry, PEntry, CaseType, LangTree, EntryNode, FileExtraInfo } from "../types/common";
 import { printInfo } from "./print";
 
-const newlineCharacter = "\r\n";
+/**
+ * 获取当前编辑器最准确的换行符
+ * 判断优先级：1. 当前文档实际使用的换行符 > 2. 用户配置的换行符 > 3. 系统默认换行符
+ * @returns '\n' (LF) 或 '\r\n' (CRLF)
+ */
+export function getLineEnding(): string {
+  const activeDocEol = getActiveDocumentEol();
+  if (activeDocEol !== null && activeDocEol !== undefined) {
+    return activeDocEol;
+  }
+  const configuredEol = getConfiguredLineEnding();
+  if (configuredEol !== null && configuredEol !== undefined) {
+    return configuredEol;
+  }
+  return getSystemDefaultEol();
+}
+
+/**
+ * 获取活动文档实际使用的换行符
+ */
+function getActiveDocumentEol(): string | null {
+  const editor = vscode.window.activeTextEditor;
+  if (!editor) {
+    return null;
+  }
+  // 方式 A：通过 document.eol 属性
+  if (editor.document.eol === vscode.EndOfLine.CRLF) {
+    return "\r\n";
+  } else if (editor.document.eol === vscode.EndOfLine.LF) {
+    return "\n";
+  }
+  // 方式 B：通过内容检测（更可靠，特别是新建文件时）
+  const text = editor.document.getText();
+  const hasCRLF = text.indexOf("\r\n") !== -1;
+  const hasLF = text.indexOf("\n") !== -1;
+  // 如果同时存在两种换行符，优先返回出现次数多的
+  if (hasCRLF && hasLF) {
+    const crlfCount = (text.match(/\r\n/g) || []).length;
+    const lfCount = (text.match(/[^\r]\n/g) || []).length;
+    return crlfCount > lfCount ? "\r\n" : "\n";
+  }
+  if (hasCRLF) return "\r\n";
+  if (hasLF) return "\n";
+  return null;
+}
+
+/**
+ * 获取用户配置的换行符
+ */
+function getConfiguredLineEnding(): string | null {
+  const config = vscode.workspace.getConfiguration("files");
+  const eolSetting = config.get<string>("eol");
+  if (eolSetting === "\r\n") {
+    return "\r\n";
+  } else if (eolSetting === "\n") {
+    return "\n";
+  }
+  return null; // 设置为 auto 或未设置
+}
+
+/**
+ * 获取系统默认换行符
+ */
+function getSystemDefaultEol(): string {
+  return process.platform === "win32" ? "\r\n" : "\n";
+}
 
 export function getCaseType(str: string): CaseType {
   if (!/^[a-zA-Z][a-zA-Z0-9]*$/.test(str)) return "wc"; // weird-case
@@ -224,6 +290,7 @@ export function formatObjectToString(tree: EntryTree, lookup: EntryMap, fileType
     const validIdentifier = /^[a-zA-Z_$][a-zA-Z0-9_$]*$/;
     return !validIdentifier.test(key);
   }
+  const lineEnding = getLineEnding();
   function formatObject(obj: EntryTree, level = 0): string {
     const result: string[] = [];
     const currentIndent = indents.repeat(level);
@@ -232,14 +299,14 @@ export function formatObjectToString(tree: EntryTree, lookup: EntryMap, fileType
       if (typeof value === "string") {
         result.push(`${currentIndent}${keyStr}: ${formatForFile(lookup[value])}`);
       } else if (typeof value === "object" && value !== null) {
-        result.push(`${currentIndent}${keyStr}: {${newlineCharacter}${formatObject(value, level + 1)}${newlineCharacter}${currentIndent}}`);
+        result.push(`${currentIndent}${keyStr}: {${lineEnding}${formatObject(value, level + 1)}${lineEnding}${currentIndent}}`);
       }
     }
-    return result.join(`,${newlineCharacter}`);
+    return result.join(`,${lineEnding}`);
   }
 
   const output: string[] = [];
-  output.push(prefix.trim() ? `${prefix}{` : "{");
+  output.push(prefix ? `${prefix}{` : "{");
   if (fileType === "js" && innerVar) {
     output.push(`${indents}${innerVar}`);
   }
@@ -247,8 +314,8 @@ export function formatObjectToString(tree: EntryTree, lookup: EntryMap, fileType
   if (formattedObj) {
     output.push(formattedObj);
   }
-  output.push(suffix.trim() ? `}${suffix}` : "}");
-  return output.join(newlineCharacter);
+  output.push(suffix ? `}${suffix}` : "}");
+  return output.join(lineEnding);
 }
 
 export function deleteEntries({ data, raw }: { data: string[]; raw: string }): string {
