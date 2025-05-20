@@ -5,12 +5,7 @@ type ValueFixes = Record<string, Record<string, string | undefined>>;
 type IdFixes = Record<string, TEntry[]>;
 type LangCountryMap = Record<string, Record<string, string>>;
 
-function getWebviewContent(
-  valueFixes: ValueFixes,
-  idFixes: IdFixes,
-  langCountryMap: LangCountryMap,
-  referredLang: string
-): string {
+function getWebviewContent(valueFixes: ValueFixes, idFixes: IdFixes, langCountryMap: LangCountryMap, referredLang: string): string {
   const nonce = getNonce();
 
   const valueSections = Object.entries(valueFixes)
@@ -19,7 +14,7 @@ function getWebviewContent(
         .map(
           ([name, value]) => `
       <div class="entry" data-lang="${lang}" data-id="${name}">
-        <input type="checkbox" id="value_${name}" class="value-checkbox" checked>
+        <input type="checkbox" id="value_${name}" data-lang="${lang}" class="value-checkbox value-checkbox-${lang}" checked>
         <label>${name}</label>
         <input type="text" class="value-input" value="${value}">
         ${
@@ -38,7 +33,10 @@ function getWebviewContent(
         .join("");
       return `
       <div class="lang-section">
-        <h4>${lang}</h4>
+        <div class="entry">
+          <input type="checkbox" id="value_${lang}" data-lang="${lang}" class="lang-checkbox" checked>
+          <h3>${lang}</h3>
+        </div>
         ${items}
       </div>
     `;
@@ -46,12 +44,12 @@ function getWebviewContent(
     .join("");
 
   const idSections = Object.entries(idFixes)
-    .map(([file, changes]) => {
+    .map(([file, changes], fileIndex) => {
       const items = changes
         .map(
           (change, index) => `
       <div class="id-change">
-        <input type="checkbox" data-file="${file}" data-index="${index}" id="idfix_${change.id}" class="idfix-checkbox" checked>
+        <input type="checkbox" data-fi="${fileIndex}" data-index="${index}" id="idfix_${change.id}" class="idfix-checkbox" checked>
         <label><span class="old-id">${change.raw}</span> → <span class="new-id">${change.fixedRaw}</span></label>
       </div>
     `
@@ -59,7 +57,10 @@ function getWebviewContent(
         .join("");
       return `
       <div class="file-section">
-        <h4>${file}</h4>
+        <div class="entry">
+          <input type="checkbox" id="file_${fileIndex}" class="file-checkbox" data-index="${fileIndex}" checked>
+          <h3>${file}</h3>
+        </div>
         ${items}
       </div>
     `;
@@ -157,15 +158,15 @@ function getWebviewContent(
       </style>
     </head>
     <body>
-      <h2>确认要应用以下修复内容</h2>
+      <h1>确认要应用以下修复内容</h1>
 
       <div class="section" style="display: ${Object.keys(valueFixes).length ? "block" : "none"};">
-        <h3>词条值更新</h3>
+        <h2>词条值更新</h2>
         ${valueSections}
       </div>
 
       <div class="section" style="display: ${Object.keys(idFixes).length ? "block" : "none"};">
-        <h3>词条 ID 修正</h3>
+        <h2>词条 ID 修正</h2>
         ${idSections}
       </div>
 
@@ -180,6 +181,50 @@ function getWebviewContent(
             const checkbox = input.parentElement.querySelector('.value-checkbox');
             checkbox.checked = input.value.trim() !== '';
             checkbox.disabled = input.value.trim() === '';
+          });
+        });
+
+        document.querySelectorAll(".lang-checkbox").forEach(checkbox => {
+          checkbox.addEventListener("change", (event) => {
+            document.querySelectorAll(".value-checkbox-" + checkbox.dataset.lang).forEach(item => {
+              item.checked = event.target.checked && !item.disabled;
+            })
+          })
+        })
+
+        document.querySelectorAll(".value-checkbox").forEach(checkbox => {
+          const lang = checkbox.dataset.lang;
+          const langCheckbox = document.querySelector("#value_" + lang);
+          if (!lang || !langCheckbox) return;
+
+          checkbox.addEventListener("change", (event) => {
+            const allInLang = [...document.querySelectorAll(".value-checkbox-" + lang)]
+              .every(cb => cb.checked || cb.disabled);
+            langCheckbox.checked = allInLang;
+          });
+        });
+
+        // 文件级全选/全不选
+        document.querySelectorAll(".file-checkbox").forEach(cb => {
+          cb.addEventListener("change", event => {
+            const fileIndex = cb.dataset.index;
+            const checked = event.target.checked;
+            console.log("checked", checked, fileIndex)
+            document.querySelectorAll(".idfix-checkbox[data-fi='" + fileIndex + "']").forEach(item => { 
+              console.log("item:", item)
+              item.checked = checked; 
+            });
+          });
+        });
+
+        document.querySelectorAll(".idfix-checkbox").forEach(checkbox => {
+          const fileIndex = checkbox.dataset.fi;
+          const fileCheckbox = document.querySelector("#file_" + fileIndex);
+          if (!fileCheckbox) return;
+
+          checkbox.addEventListener("change", (event) => {
+            const allInFile = [...document.querySelectorAll(".idfix-checkbox[data-fi='" + fileIndex + "']")].every(cb => cb.checked);
+            fileCheckbox.checked = allInFile;
           });
         });
 
@@ -237,7 +282,7 @@ function getNonce(): string {
 interface WebviewMessage {
   command: string;
   type: "applyFixes" | "cancelFixes";
-  data: { valueFixes: Record<string, Record<string, string>>, idFixes: Record<string, number[]> };
+  data: { valueFixes: Record<string, Record<string, string>>; idFixes: Record<string, number[]> };
 }
 
 export default function (
