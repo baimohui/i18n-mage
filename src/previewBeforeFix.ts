@@ -1,328 +1,268 @@
 import * as vscode from "vscode";
 import { TEntry } from "./types";
 
-type ValueFixes = Record<string, Record<string, string | undefined>>;
-type IdFixes = Record<string, TEntry[]>;
-type LangCountryMap = Record<string, Record<string, string>>;
+type EntryValueUpdates = Record<string, Record<string, string | undefined>>;
+type EntryIdPatches = Record<string, TEntry[]>;
+type LocaleMap = Record<string, Record<string, string>>;
 
-function getWebviewContent(valueFixes: ValueFixes, idFixes: IdFixes, langCountryMap: LangCountryMap, referredLang: string): string {
-  const nonce = getNonce();
-
-  const valueSections = Object.entries(valueFixes)
-    .map(([lang, entryInfo]) => {
-      const items = Object.entries(entryInfo)
-        .map(
-          ([name, value]) => `
-      <div class="entry" data-lang="${lang}" data-id="${name}">
-        <input type="checkbox" id="value_${name}" data-lang="${lang}" class="value-checkbox value-checkbox-${lang}" checked>
-        <label>${name}</label>
-        <input type="text" class="value-input" value="${value}">
-        ${
-          langCountryMap[lang][name] && langCountryMap[lang][name] !== value
-            ? `<div class="old-value">${langCountryMap[lang][name]}</div>`
-            : ""
-        }
-        ${
-          !langCountryMap[lang][name] && langCountryMap[referredLang][name]
-            ? `<div class="refer-value">${langCountryMap[referredLang][name]}</div>`
-            : ""
-        }
-      </div>
-    `
-        )
-        .join("");
-      return `
-      <div class="lang-section">
-        <div class="entry">
-          <input type="checkbox" id="value_${lang}" data-lang="${lang}" class="lang-checkbox" checked>
-          <h3>${lang}</h3>
-        </div>
-        ${items}
-      </div>
-    `;
-    })
-    .join("");
-
-  const idSections = Object.entries(idFixes)
-    .map(([file, changes], fileIndex) => {
-      const items = changes
-        .map(
-          (change, index) => `
-      <div class="id-change">
-        <input type="checkbox" data-fi="${fileIndex}" data-index="${index}" id="idfix_${change.id}" class="idfix-checkbox" checked>
-        <label><span class="old-id">${change.raw}</span> → <span class="new-id">${change.fixedRaw}</span></label>
-      </div>
-    `
-        )
-        .join("");
-      return `
-      <div class="file-section">
-        <div class="entry">
-          <input type="checkbox" id="file_${fileIndex}" class="file-checkbox" data-index="${fileIndex}" checked>
-          <h3>${file}</h3>
-        </div>
-        ${items}
-      </div>
-    `;
-    })
-    .join("");
-
-  return `
-    <!DOCTYPE html>
-    <html lang="zh-CN">
-    <head>
-      <meta charset="UTF-8">
-      <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'nonce-${nonce}';">
-      <title>修复内容确认</title>
-      <style>
-        body {
-          font-family: var(--vscode-font-family, sans-serif);
-          padding: 20px;
-          background-color: var(--vscode-editor-background);
-          color: var(--vscode-editor-foreground);
-        }
-        h2, h3, h4 {
-          color: var(--vscode-editor-foreground);
-        }
-        .section {
-          margin-bottom: 30px;
-          background: #fff;
-          padding: 20px;
-          border-radius: 12px;
-          background: var(--vscode-sideBar-background);
-          border: 1px solid var(--vscode-editorWidget-border);
-          box-shadow: 0 2px 6px rgba(0,0,0,0.05);
-        }
-        .entry {
-          display: flex;
-          align-items: center;
-          gap: 10px;
-        }
-        .entry label {
-          width: 200px;  
-          flex-shrink: 0;
-        }
-        .entry, .id-change {
-          display: flex;
-          align-items: center;
-          gap: 10px;
-          margin-top: 10px;
-        }
-        .entry input[type="text"] {
-          flex: 3;
-          padding: 6px 10px;
-          border-radius: 6px;
-          background: var(--vscode-input-background);
-          color: var(--vscode-input-foreground);
-          border: 1px solid var(--vscode-input-border);
-        }
-        .old-value {
-          flex: 2;
-          color: red;
-          font-size: 0.9em;
-        }
-        .refer-value {
-          flex: 2;
-          font-size: 0.9em;
-        }
-        .old-id {
-          color: red;
-        }
-        .new-id {
-          color: green;
-        }
-        button {
-          margin-right: 10px;
-          padding: 10px 20px;
-          font-size: 1em;
-          border: none;
-          border-radius: 6px;
-          cursor: pointer;
-          background-color: var(--vscode-button-background);
-          color: var(--vscode-button-foreground);
-        }
-        #applyBtn {
-          background-color: #007acc;
-          color: white;
-        }
-        #cancelBtn {
-          background-color: #ccc;
-          color: #333;
-        }
-        button:hover {
-          background-color: var(--vscode-button-hoverBackground);
-        }
-        button:active {
-          background-color: var(--vscode-button-activeBackground);
-        }
-      </style>
-    </head>
-    <body>
-      <h1>确认要应用以下修复内容</h1>
-
-      <div class="section" style="display: ${Object.keys(valueFixes).length ? "block" : "none"};">
-        <h2>词条值更新</h2>
-        ${valueSections}
-      </div>
-
-      <div class="section" style="display: ${Object.keys(idFixes).length ? "block" : "none"};">
-        <h2>词条 ID 修正</h2>
-        ${idSections}
-      </div>
-
-      <button id="applyBtn">应用</button>
-      <button id="cancelBtn">取消</button>
-
-      <script nonce="${nonce}">
-        const vscode = acquireVsCodeApi();
-
-        document.querySelectorAll('.value-input').forEach(input => {
-          input.addEventListener('input', () => {
-            const checkbox = input.parentElement.querySelector('.value-checkbox');
-            checkbox.checked = input.value.trim() !== '';
-            checkbox.disabled = input.value.trim() === '';
-          });
-        });
-
-        document.querySelectorAll(".lang-checkbox").forEach(checkbox => {
-          checkbox.addEventListener("change", (event) => {
-            document.querySelectorAll(".value-checkbox-" + checkbox.dataset.lang).forEach(item => {
-              item.checked = event.target.checked && !item.disabled;
-            })
-          })
-        })
-
-        document.querySelectorAll(".value-checkbox").forEach(checkbox => {
-          const lang = checkbox.dataset.lang;
-          const langCheckbox = document.querySelector("#value_" + lang);
-          if (!lang || !langCheckbox) return;
-
-          checkbox.addEventListener("change", (event) => {
-            const allInLang = [...document.querySelectorAll(".value-checkbox-" + lang)]
-              .every(cb => cb.checked || cb.disabled);
-            langCheckbox.checked = allInLang;
-          });
-        });
-
-        // 文件级全选/全不选
-        document.querySelectorAll(".file-checkbox").forEach(cb => {
-          cb.addEventListener("change", event => {
-            const fileIndex = cb.dataset.index;
-            const checked = event.target.checked;
-            console.log("checked", checked, fileIndex)
-            document.querySelectorAll(".idfix-checkbox[data-fi='" + fileIndex + "']").forEach(item => { 
-              console.log("item:", item)
-              item.checked = checked; 
-            });
-          });
-        });
-
-        document.querySelectorAll(".idfix-checkbox").forEach(checkbox => {
-          const fileIndex = checkbox.dataset.fi;
-          const fileCheckbox = document.querySelector("#file_" + fileIndex);
-          if (!fileCheckbox) return;
-
-          checkbox.addEventListener("change", (event) => {
-            const allInFile = [...document.querySelectorAll(".idfix-checkbox[data-fi='" + fileIndex + "']")].every(cb => cb.checked);
-            fileCheckbox.checked = allInFile;
-          });
-        });
-
-        document.getElementById('applyBtn')?.addEventListener('click', () => {
-          const valueFixes = {};
-          document.querySelectorAll('.entry').forEach(entry => {
-            const id = entry.dataset.id;
-            const checkbox = entry.querySelector('.value-checkbox');
-            const input = entry.querySelector('.value-input');
-            if (checkbox.checked) {
-              const lang = entry.dataset.lang;
-              if (!valueFixes[lang]) {
-                valueFixes[lang] = {};
-              }
-              valueFixes[lang][id] = input.value;
-            }
-          });
-
-          const idFixes = {};
-          document.querySelectorAll('.idfix-checkbox').forEach(cb => {
-            if (cb.checked) {
-              const file = cb.dataset.file;
-              const index = cb.dataset.index;
-              if (!idFixes[file]) {
-                idFixes[file] = [];
-              }
-              idFixes[file].push(index);
-            }
-          });
-
-          vscode.postMessage({
-            type: 'applyFixes',
-            data: { valueFixes, idFixes }
-          });
-        });
-
-        document.getElementById('cancelBtn')?.addEventListener('click', () => {
-          vscode.postMessage({ type: 'cancelFixes' });
-        });
-      </script>
-    </body>
-    </html>
-  `;
-}
-
-function getNonce(): string {
-  let text = "";
-  const possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-  for (let i = 0; i < 32; i++) {
-    text += possible.charAt(Math.floor(Math.random() * possible.length));
-  }
-  return text;
-}
-
-interface WebviewMessage {
-  command: string;
-  type: "applyFixes" | "cancelFixes";
-  data: { valueFixes: Record<string, Record<string, string>>; idFixes: Record<string, number[]> };
-}
-
-export default function (
-  updatedEntryValueInfo: ValueFixes,
-  patchedEntryIdInfo: IdFixes,
-  langCountryMap: LangCountryMap,
-  referredLang: string,
-  callback: () => Promise<void>
+export default function launchFixWebview(
+  valueUpdates: EntryValueUpdates,
+  idPatches: EntryIdPatches,
+  localeMap: LocaleMap,
+  baseLocale: string,
+  onComplete: () => Promise<void>
 ) {
-  const panel = vscode.window.createWebviewPanel("fixProblems", "选择要应用的修复", vscode.ViewColumn.One, {
-    enableScripts: true,
-    retainContextWhenHidden: false
-  });
+  const panel = vscode.window.createWebviewPanel("fixProblems", "修复确认", vscode.ViewColumn.One, { enableScripts: true });
+  panel.webview.html = buildHtml(valueUpdates, idPatches, localeMap, baseLocale);
 
-  panel.webview.html = getWebviewContent(updatedEntryValueInfo, patchedEntryIdInfo, langCountryMap, referredLang);
-
-  panel.webview.onDidReceiveMessage(async (message: WebviewMessage) => {
-    if (message.type === "applyFixes") {
-      const { valueFixes, idFixes } = message.data;
-      for (const lang in updatedEntryValueInfo) {
-        if (Object.hasOwn(valueFixes, lang)) {
-          for (const id in updatedEntryValueInfo[lang]) {
-            if (valueFixes[lang][id]) {
-              updatedEntryValueInfo[lang][id] = valueFixes[lang][id];
-            } else {
-              delete updatedEntryValueInfo[lang][id];
-            }
-          }
-        } else {
-          delete updatedEntryValueInfo[lang];
-        }
-      }
-      for (const filePath in patchedEntryIdInfo) {
-        patchedEntryIdInfo[filePath] = patchedEntryIdInfo[filePath].filter((_, index) => !idFixes[filePath]?.includes(index));
-      }
+  panel.webview.onDidReceiveMessage(async (msg: WebviewMessage) => {
+    if (msg.type === "apply") {
+      applyValueUpdates(valueUpdates, msg.data.valueUpdates);
+      applyIdPatches(idPatches, msg.data.idPatches);
       panel.dispose();
-      await callback();
-    } else if (message.type === "cancelFixes") {
-      console.log("用户取消了修复操作");
+      await onComplete();
+    } else {
       panel.dispose();
     }
   });
+}
+
+interface WebviewMessage {
+  type: "apply" | "cancel";
+  data: { valueUpdates: EntryValueUpdates; idPatches: Record<string, number[]> };
+}
+
+function buildHtml(valueUpdates: EntryValueUpdates, idPatches: EntryIdPatches, localeMap: LocaleMap, baseLocale: string): string {
+  const nonce = createNonce();
+  return /* html */ `
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="Content-Security-Policy"
+    content="default-src 'none'; style-src 'unsafe-inline'; script-src 'nonce-${nonce}';">
+  <title>确认修复</title>
+  ${buildStyles()}
+</head>
+<body>
+  <h1>确认以下修复</h1>
+  ${renderValueSection(valueUpdates, localeMap, baseLocale)}
+  ${renderIdSection(idPatches)}
+  <div class="actions">
+    <button id="btn-apply">应用</button>
+    <button id="btn-cancel">取消</button>
+  </div>
+  <script nonce="${nonce}">
+    ${buildClientScript()}
+  </script>
+</body>
+</html>`;
+}
+
+function buildStyles(): string {
+  return /* css */ `
+<style>
+  :root {
+    --bg: var(--vscode-sideBar-background);
+    --fg: var(--vscode-editor-foreground);
+    --input-bg: var(--vscode-input-background);
+    --input-fg: var(--vscode-input-foreground);
+    --border: var(--vscode-input-border);
+    --btn-bg: var(--vscode-button-background);
+    --btn-fg: var(--vscode-button-foreground);
+    --btn-hover: var(--vscode-button-hoverBackground);
+  }
+  body { font-family: var(--vscode-font-family); padding: 20px; color: var(--fg); background: var(--bg); }
+  h1, h2 { margin-bottom: 12px; }
+  details { margin-bottom: 24px; }
+  .section { margin-bottom: 24px; padding: 16px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); }
+  .section h2 { margin-top: 0; }
+  .group-head { display: flex; align-items: center; gap: 8px; cursor: pointer; margin-bottom: 12px; }
+  .group { display: flex; flex-direction: column; gap: 12px; }
+  .item { display: flex; align-items: center; gap: 8px; }
+  .item input[type="text"] { flex: 3; padding: 4px 8px; border: 1px solid var(--border); border-radius: 4px; background: var(--input-bg); color: var(--input-fg); }
+  .item label { width: 200px; flex-shrink: 0; word-wrap: break-word; }
+  .old { flex: 2; color: #c00; font-size: 0.9em; }
+  .new { flex: 2; color: #090; font-size: 0.9em; }
+  .actions { text-align: right; }
+  button { margin-left: 8px; padding: 8px 16px; border: none; border-radius: 4px; cursor: pointer;
+    background: var(--btn-bg); color: var(--btn-fg); }
+  button:hover { background: var(--btn-hover); }
+  #btn-apply { background: #007acc; color: #fff; }
+  #btn-cancel { background: #ccc; color: #333; }
+</style>`;
+}
+
+function renderValueSection(updates: EntryValueUpdates, localeMap: LocaleMap, base: string): string {
+  if (!Object.keys(updates).length) return "";
+  return /* html */ `
+  <div class="section value-updates">
+    <h2>词条值更新</h2>
+    ${Object.entries(updates)
+      .map(
+        ([locale, entries]) => /* html */ `
+      <details open data-locale="${locale}">
+        <summary class="group-head">
+          <input type="checkbox" checked>
+          <strong>${locale}</strong>
+        </summary>
+        <div class="group">
+          ${Object.entries(entries)
+            .map(
+              ([key, val]) => /* html */ `
+          <div class="item">
+            <input type="checkbox" data-key="${key}" checked>
+            <label>${key}</label>
+            <input type="text" value="${val ?? ""}">
+            ${
+              localeMap[locale][key] && localeMap[locale][key] !== val
+                ? `<span class="old">${localeMap[locale][key]}</span>`
+                : localeMap[base][key]
+                ? `<span>${localeMap[base][key]}</span>`
+                : ""
+            }
+          </div>`
+            )
+            .join("")}
+        </div>
+      </details>`
+      )
+      .join("")}
+  </div>`;
+}
+
+function renderIdSection(patches: EntryIdPatches): string {
+  if (!Object.keys(patches).length) return "";
+  return /* html */ `
+  <div class="section id-patches">
+    <h2>词条 ID 修正</h2>
+    ${Object.entries(patches)
+      .map(
+        ([file, changes], idx) => /* html */ `
+      <details open>
+        <summary class="group-head">
+          <input type="checkbox" data-index="${idx}" checked>
+          <strong>${file}</strong>
+        </summary>
+        <div class="group">
+          ${changes
+            .map(
+              (chg, i) => /* html */ `
+          <div class="item">
+            <input type="checkbox" data-file="${idx}" data-index="${i}" checked>
+            <label><span class="old">${chg.raw}</span> → <span class="new">${chg.fixedRaw}</span></label>
+          </div>`
+            )
+            .join("")}
+        </div>
+      </details>`
+      )
+      .join("")}
+  </div>`;
+}
+
+function buildClientScript(): string {
+  return `
+const vscode = acquireVsCodeApi();
+
+document.querySelectorAll('.group-head input[type=checkbox]').forEach(chk => {
+  chk.onchange = () => {
+    const group = chk.closest('details');
+    if (group) {
+      group.querySelectorAll('input[type=checkbox]').forEach(input => {
+        if (input !== chk) {
+          input.checked = chk.checked && !input.disabled;
+        }
+      });
+    }
+  }
+})
+
+document.querySelectorAll(".value-updates .item input[type=text]").forEach(input => {
+  const chk = input.previousElementSibling;
+  input.addEventListener("input", () => {
+    if (chk && chk instanceof HTMLInputElement) {
+      chk.checked = !!input.value.trim();
+      chk.disabled = !chk.checked;
+    }
+  }); 
+})
+
+document.querySelectorAll(".value-updates .item input[type=checkbox]").forEach(chk => {
+  const groupHeadChk = document.querySelector(".value-updates .group-head input[type=checkbox]");
+  chk.onchange = () => {
+    const group = chk.closest(".value-updates .group");
+    const allInLang = [...group.querySelectorAll("input[type=checkbox]")].every(input => input.checked || input.disabled);
+    if (groupHeadChk && group) {
+      groupHeadChk.checked = allInLang;
+    }
+  }
+})
+
+document.querySelectorAll(".id-patches .item input[type=checkbox]").forEach(chk => {
+  const groupHeadChk = document.querySelector(".id-patches .group-head input[type=checkbox]");
+  chk.onchange = () => {
+    const group = chk.closest(".id-patches .group");
+    const allInFile = [...group.querySelectorAll("input[type=checkbox]")].every(input => input.checked);
+    if (groupHeadChk && group) {
+      groupHeadChk.checked = allInFile;
+    }
+  }
+})
+
+document.getElementById('btn-apply').onclick = () => {
+  const valueUpdates = {}, idPatches = {};
+  document.querySelectorAll('[data-locale]').forEach(sec => {
+    const locale = sec.getAttribute('data-locale');
+    sec.querySelectorAll('.group input[type=checkbox]').forEach(chk => {
+      if (chk.checked) {
+        const key = chk.dataset.key;
+        const val = (chk.nextElementSibling.nextElementSibling).value;
+        valueUpdates[locale] = valueUpdates[locale] || {};
+        valueUpdates[locale][key] = val;
+      }
+    });
+  });
+  document.querySelectorAll('input[data-file]').forEach(chk => {
+    if (chk.checked) {
+      const file = chk.dataset.file, idx = +chk.dataset.index;
+      idPatches[file] = idPatches[file] || [];
+      idPatches[file].push(idx);
+    }
+  });
+  vscode.postMessage({ type: 'apply', data: { valueUpdates, idPatches } });
+};
+
+document.getElementById('btn-cancel').onclick = () => {
+  vscode.postMessage({ type: 'cancel' });
+};`;
+}
+
+function createNonce(): string {
+  return Array.from(
+    { length: 32 },
+    () => "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"[Math.floor(Math.random() * 62)]
+  ).join("");
+}
+
+function applyValueUpdates(origin: EntryValueUpdates, updates: EntryValueUpdates) {
+  for (const locale in origin) {
+    if (updates[locale] != null) {
+      for (const key in origin[locale]) {
+        if (updates[locale][key] != null) {
+          origin[locale][key] = updates[locale][key];
+        } else {
+          delete origin[locale][key];
+        }
+      }
+    } else {
+      delete origin[locale];
+    }
+  }
+}
+
+function applyIdPatches(origin: EntryIdPatches, patches: Record<string, number[]>) {
+  for (const file in origin) {
+    origin[file] = origin[file].filter((_, idx) => !patches[file]?.includes(idx));
+  }
 }
