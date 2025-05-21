@@ -5,7 +5,7 @@ import bdTranslateTo from "./baidu";
 import ggTranslateTo from "./google";
 import { TranslateParams, TranslateResult, ApiPlatform } from "../types";
 
-interface Credentials {
+export interface Credentials {
   baiduAppId?: string;
   baiduSecretKey?: string;
   tencentSecretId?: string;
@@ -13,25 +13,28 @@ interface Credentials {
   translateApiPriority: string[];
 }
 
-// interface TranslateParams {
-//   source: string;
-//   target: string;
-//   sourceTextList: string[];
-//   credentials: Credentials;
-// }
+export interface TranslateData {
+  source: string;
+  target: string;
+  sourceTextList: string[];
+  credentials: Credentials;
+}
 
 type ApiMap = Record<ApiPlatform, (string | undefined)[]>;
 
 let curApiId = 0;
 
-const translateTo = async ({ source, target, sourceTextList, credentials }): Promise<TranslateResult> => {
-  const { baiduAppId, baiduSecretKey, tencentSecretId, tencentSecretKey, translateApiPriority } = credentials as Credentials;
+const translateTo = async (data: TranslateData): Promise<TranslateResult> => {
+  const { source = "", target = "", sourceTextList = [], credentials } = data;
+  const { baiduAppId, baiduSecretKey, tencentSecretId, tencentSecretKey, translateApiPriority } = credentials;
   const apiMap: ApiMap = {
     google: [],
     baidu: [baiduAppId, baiduSecretKey],
     tencent: [tencentSecretId, tencentSecretKey]
   };
-  const availableApiList = translateApiPriority.filter(api => apiMap[api] && !apiMap[api].some(token => !token)) as ApiPlatform[];
+  const availableApiList = translateApiPriority.filter(
+    api => Array.isArray(apiMap[api]) && !apiMap[api].some(token => typeof token !== "string" || token.trim() === "")
+  ) as ApiPlatform[];
   let availableApi = availableApiList[curApiId];
   const hasBackupApi = availableApiList.length > curApiId + 1;
   if (!availableApi) {
@@ -39,14 +42,14 @@ const translateTo = async ({ source, target, sourceTextList, credentials }): Pro
   }
 
   let res: TranslateResult;
-  const sourceLangCode = getLangCode(source, availableApi);
-  const targetLangCode = getLangCode(target, availableApi);
-  const params:TranslateParams = {
+  const sourceLangCode = getLangCode(source, availableApi) ?? source;
+  const targetLangCode = getLangCode(target, availableApi) ?? target;
+  const params: TranslateParams = {
     source: sourceLangCode,
     target: targetLangCode,
     sourceTextList,
-    apiId: apiMap[availableApi][0] || "",
-    apiKey: apiMap[availableApi][1] || ""
+    apiId: apiMap[availableApi][0] ?? "",
+    apiKey: apiMap[availableApi][1] ?? ""
   };
   switch (availableApi) {
     case "tencent":
@@ -68,13 +71,15 @@ const translateTo = async ({ source, target, sourceTextList, credentials }): Pro
     if (hasBackupApi) {
       availableApi = availableApiList[++curApiId];
       printInfo(failedFixInfo, "error");
-      if (res.langUnsupported) {
+      if (res.langUnsupported === true) {
         printInfo(`将由 ${availableApi} 尝试翻译该语种`, "brain");
       } else {
         printInfo(`将由 ${availableApi} 继续服务...`, "success");
       }
       const newRes = await translateTo({ source, target, sourceTextList, credentials });
-      res.langUnsupported && curApiId--;
+      if (res.langUnsupported === true) {
+        curApiId--;
+      }
       return newRes;
     } else {
       return { success: false, message: failedFixInfo };

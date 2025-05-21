@@ -35,7 +35,7 @@ const translateTo = async ({ source, target, sourceTextList, apiId, apiKey }: Tr
   let pack: string[] = [];
   const packList: string[][] = [];
   const unsupportedLang = [source, target].find(item => !supportLangList.includes(item));
-  if (unsupportedLang) {
+  if (unsupportedLang !== undefined && unsupportedLang !== null) {
     return {
       success: false,
       langUnsupported: true,
@@ -58,7 +58,13 @@ const translateTo = async ({ source, target, sourceTextList, apiId, apiKey }: Tr
   return await sendBatch(source, target, packList, 0, secondRequestLimit);
 };
 
-const sendBatch = async (source: string, target: string, packList: string[][], batchNum: number, batchSize: number): Promise<TranslateResult> => {
+const sendBatch = async (
+  source: string,
+  target: string,
+  packList: string[][],
+  batchNum: number,
+  batchSize: number
+): Promise<TranslateResult> => {
   const result: TranslateResult = { success: true, message: "", data: [] };
   const packNum = batchNum * batchSize;
   for (let i = packNum; i < packNum + batchSize; i++) {
@@ -73,20 +79,31 @@ const sendBatch = async (source: string, target: string, packList: string[][], b
   }
   if (packList.length > packNum + batchSize) {
     return new Promise(resolve => {
-      setTimeout(async () => {
-        const batchRes = await sendBatch(source, target, packList, batchNum + 1, batchSize);
-        if (batchRes.success) {
-          result.data!.push(...batchRes.data!);
-          resolve(result);
-        } else {
-          resolve(batchRes);
-        }
+      setTimeout(() => {
+        sendBatch(source, target, packList, batchNum + 1, batchSize)
+          .then(batchRes => {
+            if (batchRes.success) {
+              result.data!.push(...batchRes.data!);
+              resolve(result);
+            } else {
+              resolve(batchRes);
+            }
+          })
+          .catch(error => {
+            resolve({ success: false, message: error instanceof Error ? error.message : (error as string) });
+          });
       }, 1100);
     });
   } else {
     return result;
   }
 };
+
+interface TranslationResponse {
+  error_code?: number;
+  trans_result: Array<{ dst: string }>;
+  // 其他可能的响应字段
+}
 
 const send = async (source: string, target: string, sourceTextList: string[]): Promise<TranslateResult> => {
   try {
@@ -97,12 +114,12 @@ const send = async (source: string, target: string, sourceTextList: string[]): P
       to: target,
       appid: baiduAppId,
       salt,
-      sign: md5(baiduAppId + sourceText + salt + baiduSecretKey),
+      sign: String((md5 as (input: string) => string)(baiduAppId + sourceText + salt + baiduSecretKey)),
       q: encodeURIComponent(sourceText)
     };
     const requestUrl = createUrl(baseUrl, params);
-    const { data } = await axios.get(requestUrl);
-    if (data.error_code) {
+    const { data } = await axios.get<TranslationResponse>(requestUrl);
+    if (data.error_code != null) {
       return { success: false, langUnsupported: data.error_code == 58001, message: `${errorCodeMap[data.error_code]}[${data.error_code}]` };
     } else {
       const transformedList: string[] = [];
@@ -115,12 +132,16 @@ const send = async (source: string, target: string, sourceTextList: string[]): P
       });
       return { success: true, data: transformedList };
     }
-  } catch (e: any) {
-    return { success: false, message: e.message };
+  } catch (e: unknown) {
+    if (e instanceof Error) {
+      return { success: false, message: e.message };
+    } else {
+      return { success: false, message: e as string };
+    }
   }
 };
 
-const createUrl = (domain: string, form: Record<string, any>): string => {
+const createUrl = (domain: string, form: Record<string, string | number>): string => {
   let result = domain + "?";
   for (const key in form) {
     result += `${key}=${form[key]}&`;

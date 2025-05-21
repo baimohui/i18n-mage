@@ -1,4 +1,4 @@
-import tunnel from "tunnel";
+import { httpsOverHttp } from "tunnel";
 import { translate } from "@vitalets/google-translate-api";
 
 interface TranslateParams {
@@ -19,7 +19,7 @@ const translateTo = async ({ source, target, sourceTextList }: TranslateParams):
   let sum = 0;
   let pack: string[] = [];
   const packList: string[][] = [];
-  
+
   for (const text of sourceTextList) {
     sum += text.length;
     if (text.length > translateLenLimit) {
@@ -59,14 +59,22 @@ const sendBatch = async (
 
   if (packList.length > packNum + batchSize) {
     return new Promise(resolve => {
-      setTimeout(async () => {
-        const batchRes = await sendBatch(source, target, packList, batchNum + 1, batchSize);
-        if (batchRes.success) {
-          result.data!.push(...batchRes.data!);
-          resolve(result);
-        } else {
-          resolve(batchRes);
-        }
+      setTimeout(() => {
+        sendBatch(source, target, packList, batchNum + 1, batchSize)
+          .then(batchRes => {
+            if (batchRes.success) {
+              result.data!.push(...batchRes.data!); // 假设 result.data 和 batchRes.data 已初始化
+              resolve(result);
+            } else {
+              resolve(batchRes); // 直接返回失败的 batchRes
+            }
+          })
+          .catch(error => {
+            resolve({
+              success: false,
+              message: error instanceof Error ? error.message : "Batch processing failed"
+            });
+          });
       }, 1100);
     });
   } else {
@@ -77,11 +85,11 @@ const sendBatch = async (
 const send = async (source: string, target: string, sourceTextList: string[]): Promise<TranslateResult> => {
   const sourceText = sourceTextList.join("\n");
   try {
-    const res = await translate(sourceText, {
+    const res = (await translate(sourceText, {
       from: source,
       to: target,
       fetchOptions: {
-        agent: tunnel.httpsOverHttp({
+        agent: (httpsOverHttp as unknown as (options: any) => import('https').Agent)({
           proxy: {
             port: 7890,
             host: "127.0.0.1",
@@ -91,7 +99,7 @@ const send = async (source: string, target: string, sourceTextList: string[]): P
           }
         })
       }
-    }) as { text: string; message?: string };
+    })) as { text: string; message?: string };
 
     if (res.text) {
       const transformedList: string[] = [];
@@ -106,10 +114,10 @@ const send = async (source: string, target: string, sourceTextList: string[]): P
 
       return { success: true, data: transformedList, message: "success" };
     } else {
-      return { success: false, message: res.message || "未知错误" };
+      return { success: false, message: res.message ?? "未知错误" };
     }
-  } catch (e: any) {
-    return { success: false, message: e.message };
+  } catch (e: unknown) {
+    return { success: false, message: e instanceof Error ? e.message : e as string };
   }
 };
 

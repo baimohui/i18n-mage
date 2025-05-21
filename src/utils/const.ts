@@ -7,78 +7,244 @@ interface LangIntro {
   bdCode: string;
 }
 
-const LANG_INTRO_MAP: Record<string, LangIntro> = {
+export const LANG_INTRO_MAP: Record<string, LangIntro> = {
   am: { cnName: "阿姆哈拉语", enName: "Amharic", ggCode: "am", tcCode: "", bdCode: "amh" },
-  ara: { cnName: "阿拉伯语", enName: "Arabic", ggCode: "ar", tcCode: "ar", bdCode: "ara" },
+  ar: { cnName: "阿拉伯语", enName: "Arabic", ggCode: "ar", tcCode: "ar", bdCode: "ara" },
+  az: { cnName: "阿塞拜疆语", enName: "Azerbaijani", ggCode: "az", tcCode: "", bdCode: "" },
+  be: { cnName: "白俄罗斯语", enName: "Belarusian", ggCode: "be", tcCode: "", bdCode: "" },
+  bg: { cnName: "保加利亚语", enName: "Bulgarian", ggCode: "bg", tcCode: "", bdCode: "bul" },
+  bn: { cnName: "孟加拉语", enName: "Bengali", ggCode: "bn", tcCode: "", bdCode: "ben" },
+  bs: { cnName: "波斯尼亚语", enName: "Bosnian", ggCode: "bs", tcCode: "", bdCode: "" },
+  ca: { cnName: "加泰罗尼亚语", enName: "Catalan", ggCode: "ca", tcCode: "", bdCode: "" },
+  ceb: { cnName: "宿务语", enName: "Cebuano", ggCode: "ceb", tcCode: "", bdCode: "" },
+  co: { cnName: "科西嘉语", enName: "Corsican", ggCode: "co", tcCode: "", bdCode: "" },
   cs: { cnName: "捷克语", enName: "Czech", ggCode: "cs", tcCode: "", bdCode: "cs" },
+  cy: { cnName: "威尔士语", enName: "Welsh", ggCode: "cy", tcCode: "", bdCode: "" },
   da: { cnName: "丹麦语", enName: "Danish", ggCode: "da", tcCode: "", bdCode: "dan" },
   de: { cnName: "德语", enName: "German", ggCode: "de", tcCode: "de", bdCode: "de" },
+  el: { cnName: "希腊语", enName: "Greek", ggCode: "el", tcCode: "", bdCode: "el" },
   en: { cnName: "英语", enName: "English", ggCode: "en", tcCode: "en", bdCode: "en" },
-  spa: { cnName: "西班牙语", enName: "Spanish", ggCode: "es", tcCode: "es", bdCode: "spa" },
-  fra: { cnName: "法语", enName: "French", ggCode: "fr", tcCode: "fr", bdCode: "fra" },
+  eo: { cnName: "世界语", enName: "Esperanto", ggCode: "eo", tcCode: "", bdCode: "" },
+  es: { cnName: "西班牙语", enName: "Spanish", ggCode: "es", tcCode: "es", bdCode: "spa" },
+  et: { cnName: "爱沙尼亚语", enName: "Estonian", ggCode: "et", tcCode: "", bdCode: "est" },
+  eu: { cnName: "巴斯克语", enName: "Basque", ggCode: "eu", tcCode: "", bdCode: "" },
+  fa: { cnName: "波斯语", enName: "Persian", ggCode: "fa", tcCode: "", bdCode: "per" },
+  fi: { cnName: "芬兰语", enName: "Finnish", ggCode: "fi", tcCode: "", bdCode: "fin" },
+  fr: { cnName: "法语", enName: "French", ggCode: "fr", tcCode: "fr", bdCode: "fra" },
+  fy: { cnName: "弗里斯兰语", enName: "Frisian", ggCode: "fy", tcCode: "", bdCode: "" },
+  ga: { cnName: "爱尔兰语", enName: "Irish", ggCode: "ga", tcCode: "", bdCode: "" },
+  gd: { cnName: "苏格兰盖尔语", enName: "Scots Gaelic", ggCode: "gd", tcCode: "", bdCode: "" },
+  gl: { cnName: "加利西亚语", enName: "Galician", ggCode: "gl", tcCode: "", bdCode: "" },
+  gu: { cnName: "古吉拉特语", enName: "Gujarati", ggCode: "gu", tcCode: "", bdCode: "gu" },
+  ha: { cnName: "豪萨语", enName: "Hausa", ggCode: "ha", tcCode: "", bdCode: "" },
+  haw: { cnName: "夏威夷语", enName: "Hawaiian", ggCode: "haw", tcCode: "", bdCode: "" },
+  he: { cnName: "希伯来语", enName: "Hebrew", ggCode: "he", tcCode: "", bdCode: "heb" },
+  hi: { cnName: "印地语", enName: "Hindi", ggCode: "hi", tcCode: "", bdCode: "hi" },
+  hmn: { cnName: "苗语", enName: "Hmong", ggCode: "hmn", tcCode: "", bdCode: "" },
   hr: { cnName: "克罗地亚语", enName: "Croatian", ggCode: "hr", tcCode: "", bdCode: "hrv" },
+  ht: { cnName: "海地克里奥尔语", enName: "Haitian Creole", ggCode: "ht", tcCode: "", bdCode: "" },
   hu: { cnName: "匈牙利语", enName: "Hungarian", ggCode: "hu", tcCode: "", bdCode: "hu" },
+  hy: { cnName: "亚美尼亚语", enName: "Armenian", ggCode: "hy", tcCode: "", bdCode: "arm" },
   id: { cnName: "印尼语", enName: "Indonesian", ggCode: "id", tcCode: "id", bdCode: "id" },
+  ig: { cnName: "伊博语", enName: "Igbo", ggCode: "ig", tcCode: "", bdCode: "" },
+  is: { cnName: "冰岛语", enName: "Icelandic", ggCode: "is", tcCode: "", bdCode: "ice" },
   it: { cnName: "意大利语", enName: "Italian", ggCode: "it", tcCode: "it", bdCode: "it" },
-  jp: { cnName: "日语", enName: "Japanese", ggCode: "ja", tcCode: "ja", bdCode: "jp" },
-  kor: { cnName: "韩语", enName: "Korean", ggCode: "ko", tcCode: "ko", bdCode: "kor" },
-  cht: { cnName: "繁体中文", enName: "Traditional Chinese", ggCode: "zh-TW", tcCode: "zh-TW", bdCode: "cht" },
+  ja: { cnName: "日语", enName: "Japanese", ggCode: "ja", tcCode: "ja", bdCode: "jp" },
+  jv: { cnName: "爪哇语", enName: "Javanese", ggCode: "jv", tcCode: "", bdCode: "" },
+  ka: { cnName: "格鲁吉亚语", enName: "Georgian", ggCode: "ka", tcCode: "", bdCode: "geo" },
+  kk: { cnName: "哈萨克语", enName: "Kazakh", ggCode: "kk", tcCode: "", bdCode: "" },
+  km: { cnName: "高棉语", enName: "Khmer", ggCode: "km", tcCode: "", bdCode: "khm" },
+  kn: { cnName: "卡纳达语", enName: "Kannada", ggCode: "kn", tcCode: "", bdCode: "" },
+  ko: { cnName: "韩语", enName: "Korean", ggCode: "ko", tcCode: "ko", bdCode: "kor" },
+  ku: { cnName: "库尔德语", enName: "Kurdish", ggCode: "ku", tcCode: "", bdCode: "" },
+  ky: { cnName: "吉尔吉斯语", enName: "Kyrgyz", ggCode: "ky", tcCode: "", bdCode: "" },
+  la: { cnName: "拉丁语", enName: "Latin", ggCode: "la", tcCode: "", bdCode: "" },
+  lb: { cnName: "卢森堡语", enName: "Luxembourgish", ggCode: "lb", tcCode: "", bdCode: "" },
+  lo: { cnName: "老挝语", enName: "Lao", ggCode: "lo", tcCode: "", bdCode: "lao" },
+  lt: { cnName: "立陶宛语", enName: "Lithuanian", ggCode: "lt", tcCode: "", bdCode: "lit" },
+  lv: { cnName: "拉脱维亚语", enName: "Latvian", ggCode: "lv", tcCode: "", bdCode: "lav" },
+  mg: { cnName: "马尔加什语", enName: "Malagasy", ggCode: "mg", tcCode: "", bdCode: "" },
+  mi: { cnName: "毛利语", enName: "Maori", ggCode: "mi", tcCode: "", bdCode: "" },
+  mk: { cnName: "马其顿语", enName: "Macedonian", ggCode: "mk", tcCode: "", bdCode: "mac" },
+  ml: { cnName: "马拉雅拉姆语", enName: "Malayalam", ggCode: "ml", tcCode: "", bdCode: "" },
+  mn: { cnName: "蒙古语", enName: "Mongolian", ggCode: "mn", tcCode: "", bdCode: "mon" },
+  mr: { cnName: "马拉地语", enName: "Marathi", ggCode: "mr", tcCode: "", bdCode: "" },
+  ms: { cnName: "马来语", enName: "Malay", ggCode: "ms", tcCode: "", bdCode: "may" },
+  mt: { cnName: "马耳他语", enName: "Maltese", ggCode: "mt", tcCode: "", bdCode: "" },
+  my: { cnName: "缅甸语", enName: "Myanmar", ggCode: "my", tcCode: "", bdCode: "bur" },
+  ne: { cnName: "尼泊尔语", enName: "Nepali", ggCode: "ne", tcCode: "", bdCode: "nep" },
   nl: { cnName: "荷兰语", enName: "Dutch", ggCode: "nl", tcCode: "nl", bdCode: "nl" },
   no: { cnName: "挪威语", enName: "Norwegian", ggCode: "no", tcCode: "", bdCode: "nor" },
+  ny: { cnName: "齐切瓦语", enName: "Chichewa", ggCode: "ny", tcCode: "", bdCode: "" },
+  or: { cnName: "奥里亚语", enName: "Odia", ggCode: "or", tcCode: "", bdCode: "" },
+  pa: { cnName: "旁遮普语", enName: "Punjabi", ggCode: "pa", tcCode: "", bdCode: "pan" },
   pl: { cnName: "波兰语", enName: "Polish", ggCode: "pl", tcCode: "", bdCode: "pl" },
+  ps: { cnName: "普什图语", enName: "Pashto", ggCode: "ps", tcCode: "", bdCode: "" },
   pt: { cnName: "葡萄牙语", enName: "Portuguese", ggCode: "pt", tcCode: "pt", bdCode: "pt" },
-  rom: { cnName: "罗马尼亚语", enName: "Romanian", ggCode: "ro", tcCode: "", bdCode: "rom" },
+  ro: { cnName: "罗马尼亚语", enName: "Romanian", ggCode: "ro", tcCode: "", bdCode: "rom" },
   ru: { cnName: "俄语", enName: "Russian", ggCode: "ru", tcCode: "ru", bdCode: "ru" },
+  sd: { cnName: "信德语", enName: "Sindhi", ggCode: "sd", tcCode: "", bdCode: "" },
+  si: { cnName: "僧伽罗语", enName: "Sinhala", ggCode: "si", tcCode: "", bdCode: "" },
   sk: { cnName: "斯洛伐克语", enName: "Slovak", ggCode: "sk", tcCode: "", bdCode: "sk" },
   sl: { cnName: "斯洛文尼亚语", enName: "Slovenian", ggCode: "sl", tcCode: "", bdCode: "slo" },
+  sm: { cnName: "萨摩亚语", enName: "Samoan", ggCode: "sm", tcCode: "", bdCode: "" },
+  sn: { cnName: "修纳语", enName: "Shona", ggCode: "sn", tcCode: "", bdCode: "" },
+  so: { cnName: "索马里语", enName: "Somali", ggCode: "so", tcCode: "", bdCode: "" },
+  sq: { cnName: "阿尔巴尼亚语", enName: "Albanian", ggCode: "sq", tcCode: "", bdCode: "alb" },
+  sr: { cnName: "塞尔维亚语", enName: "Serbian", ggCode: "sr", tcCode: "", bdCode: "srp" },
+  st: { cnName: "塞索托语", enName: "Sesotho", ggCode: "st", tcCode: "", bdCode: "" },
+  su: { cnName: "巽他语", enName: "Sundanese", ggCode: "su", tcCode: "", bdCode: "" },
   sv: { cnName: "瑞典语", enName: "Swedish", ggCode: "sv", tcCode: "", bdCode: "swe" },
+  sw: { cnName: "斯瓦希里语", enName: "Swahili", ggCode: "sw", tcCode: "", bdCode: "swa" },
+  ta: { cnName: "泰米尔语", enName: "Tamil", ggCode: "ta", tcCode: "", bdCode: "" },
+  te: { cnName: "泰卢固语", enName: "Telugu", ggCode: "te", tcCode: "", bdCode: "" },
+  tg: { cnName: "塔吉克语", enName: "Tajik", ggCode: "tg", tcCode: "", bdCode: "" },
   th: { cnName: "泰语", enName: "Thai", ggCode: "th", tcCode: "th", bdCode: "th" },
+  tk: { cnName: "土库曼语", enName: "Turkmen", ggCode: "tk", tcCode: "", bdCode: "" },
+  tl: { cnName: "菲律宾语", enName: "Filipino", ggCode: "tl", tcCode: "", bdCode: "" },
   tr: { cnName: "土耳其语", enName: "Turkish", ggCode: "tr", tcCode: "tr", bdCode: "tr" },
-  ukr: { cnName: "乌克兰语", enName: "Ukrainian", ggCode: "uk", tcCode: "", bdCode: "ukr" },
+  tt: { cnName: "鞑靼语", enName: "Tatar", ggCode: "tt", tcCode: "", bdCode: "" },
+  ug: { cnName: "维吾尔语", enName: "Uyghur", ggCode: "ug", tcCode: "", bdCode: "" },
+  uk: { cnName: "乌克兰语", enName: "Ukrainian", ggCode: "uk", tcCode: "", bdCode: "ukr" },
+  ur: { cnName: "乌尔都语", enName: "Urdu", ggCode: "ur", tcCode: "", bdCode: "urd" },
   uz: { cnName: "乌兹别克语", enName: "Uzbek", ggCode: "uz", tcCode: "", bdCode: "" },
-  zh: { cnName: "简体中文", enName: "Simplified Chinese", ggCode: "zh-CN", tcCode: "zh", bdCode: "zh" }
+  vi: { cnName: "越南语", enName: "Vietnamese", ggCode: "vi", tcCode: "vi", bdCode: "vie" },
+  xh: { cnName: "科萨语", enName: "Xhosa", ggCode: "xh", tcCode: "", bdCode: "" },
+  yi: { cnName: "意第绪语", enName: "Yiddish", ggCode: "yi", tcCode: "", bdCode: "" },
+  yo: { cnName: "约鲁巴语", enName: "Yoruba", ggCode: "yo", tcCode: "", bdCode: "" },
+  zh: { cnName: "简体中文", enName: "Simplified Chinese", ggCode: "zh-CN", tcCode: "zh", bdCode: "zh" },
+  "zh-TW": { cnName: "繁体中文", enName: "Traditional Chinese", ggCode: "zh-TW", tcCode: "zh-TW", bdCode: "cht" },
+  zu: { cnName: "祖鲁语", enName: "Zulu", ggCode: "zu", tcCode: "", bdCode: "" }
 };
 
 // 多语言文件别名映射表
-const LANG_ALIAS_MAP: Record<string, string[]> = {
-  am: ["ah"],
-  en: ["en-US"],
-  id: ["in", "id-ID"],
-  jp: ["ja"],
-  pt: ["po", "por"],
-  tr: ["tr-TR"],
-  zh: ["cn", "zh-cn", "zh-CN"],
-  ara: ["ar"],
-  cht: ["tc", "cn_tc", "zh-tw", "zh_tw", "zh-TW", "zh_TW"],
-  fra: ["fr"],
-  kor: ["ko"],
-  rom: ["ro"],
-  spa: ["es", "es-419", "es-ES", "es-419-ES", "es-MX", "es-419-MX", "el"],
-  ukr: ["uk"]
+export const LANG_ALIAS_MAP: Record<string, string[]> = {
+  am: ["ah", "amh", "am-ET"],
+  ar: ["arb", "ar-SA", "ar-EG", "ar-AE"],
+  az: ["az-AZ", "azeri"],
+  be: ["be-BY", "bel"],
+  bg: ["bg-BG", "bul"],
+  bn: ["bn-BD", "bn-IN", "beng"],
+  bs: ["bs-BA", "bos"],
+  ca: ["cat"],
+  cs: ["cs-CZ", "ces"],
+  da: ["da-DK", "dan"],
+  de: ["de-DE", "de-AT", "de-CH", "ge", "ger"],
+  el: ["el-GR", "gre"],
+  en: ["en-US", "en-GB", "en-AU", "eng"],
+  es: ["es-ES", "es-MX", "es-AR", "spa", "es-419"],
+  et: ["et-EE", "est"],
+  fa: ["fa-IR", "per"],
+  fi: ["fi-FI", "fin"],
+  fr: ["fr-FR", "fr-CA", "fra", "fre"],
+  he: ["he-IL", "iw", "iw-IL"],
+  hi: ["hi-IN", "hin"],
+  hr: ["hr-HR"],
+  hu: ["hu-HU", "hun"],
+  hy: ["hy-AM", "arm"],
+  id: ["in", "id-ID", "ind"],
+  is: ["is-IS", "ice"],
+  it: ["it-IT", "ita"],
+  ja: ["ja-JP", "jp", "jpn"],
+  ka: ["ka-GE", "geo"],
+  kk: ["kk-KZ"],
+  km: ["km-KH", "khm"],
+  ko: ["ko-KR", "kor"],
+  lo: ["lo-LA", "lao"],
+  lt: ["lt-LT", "lit"],
+  lv: ["lv-LV", "lav"],
+  ms: ["ms-MY", "ms-BN", "may"],
+  my: ["my-MM", "bur"],
+  nl: ["nl-NL", "nld"],
+  no: ["no-NO", "nor"],
+  pl: ["pl-PL", "pol"],
+  pt: ["pt-PT", "pt-BR", "po", "por"],
+  ro: ["ro-RO", "rom"],
+  ru: ["ru-RU", "rus"],
+  sk: ["sk-SK"],
+  sl: ["sl-SI", "slo"],
+  sr: ["sr-RS", "sr-Cyrl", "sr-Latn"],
+  sv: ["sv-SE", "swe"],
+  sw: ["sw-TZ", "swa"],
+  ta: ["ta-IN", "tam"],
+  th: ["th-TH"],
+  tr: ["tr-TR", "tur"],
+  uk: ["uk-UA", "ukr"],
+  ur: ["ur-PK", "urd"],
+  uz: ["uz-UZ"],
+  vi: ["vi-VN", "vie"],
+  zh: ["cn", "zh-cn", "zh-CN", "zh-Hans", "zh-SG"],
+  "zh-TW": ["tc", "cn_tc", "zh-tw", "zh_tw", "zh-TW", "zh_HK", "zh-MO", "cht", "zh-Hant"],
+  zu: ["zu-ZA"]
 };
+
+// 预处理：构建反向索引映射
+const REVERSE_MAP = new Map<string, string>();
+const LANG_CODES = new Set<string>();
+
+// 初始化标准代码集合
+Object.keys(LANG_INTRO_MAP).forEach(key => LANG_CODES.add(key.toLowerCase()));
+
+// 构建反向映射（代码 -> 主键）
+Object.entries(LANG_INTRO_MAP).forEach(([key, intro]) => {
+  [intro.ggCode, intro.tcCode, intro.bdCode]
+    .filter(Boolean)
+    .map(code => code.toLowerCase().replace(/_/g, "-"))
+    .forEach(code => REVERSE_MAP.set(code, key));
+});
+
+// 构建别名映射（别名 -> 主键）
+Object.entries(LANG_ALIAS_MAP).forEach(([key, aliases]) => {
+  aliases.forEach(alias => {
+    const normalized = alias.toLowerCase().replace(/_/g, "-");
+    REVERSE_MAP.set(normalized, key);
+  });
+});
 
 // 根据多语言文件名获取对应语种简介
-const getLangIntro = (str: string): LangIntro | null => {
-  str = str.split(".")[0];
-  if (!Object.hasOwn(LANG_INTRO_MAP, str)) {
-    for (const key in LANG_INTRO_MAP) {
-      if (str && Object.values(LANG_INTRO_MAP[key]).includes(str)) {
-        str = key;
-        break;
-      }
+export function getLangIntro(str: string): LangIntro | null {
+  // 标准化处理
+  const baseName = str
+    .split(".")[0]
+    .toLowerCase()
+    .replace(/_/g, "-") // 统一分隔符
+    .replace(/[^a-z0-9-]/g, ""); // 过滤特殊字符
+
+  // 匹配优先级：
+  // 1. 精确匹配主键
+  if (LANG_CODES.has(baseName)) {
+    return LANG_INTRO_MAP[baseName] ?? null;
+  }
+  // 2. 匹配反向映射（代码 + 别名）
+  if (REVERSE_MAP.has(baseName)) {
+    const mainKey = REVERSE_MAP.get(baseName)!;
+    return LANG_INTRO_MAP[mainKey] ?? null;
+  }
+  // 3. 处理带区域码的情况（如 en-US -> en）
+  const [langPart] = baseName.split("-");
+  if (langPart && langPart !== baseName) {
+    if (LANG_CODES.has(langPart)) {
+      return LANG_INTRO_MAP[langPart] ?? null;
     }
-    for (const key in LANG_ALIAS_MAP) {
-      if (LANG_ALIAS_MAP[key].includes(str)) {
-        str = key;
-        break;
-      }
+    if (REVERSE_MAP.has(langPart)) {
+      const mainKey = REVERSE_MAP.get(langPart)!;
+      return LANG_INTRO_MAP[mainKey] ?? null;
     }
   }
-  return (str in LANG_INTRO_MAP) ? LANG_INTRO_MAP[str] : null;
-};
+  // 4. 处理数字区域码（如 es-419）
+  if (/\d+$/.test(baseName)) {
+    const langPart = baseName.split("-").find(part => !/^\d+$/.test(part));
+    if (langPart !== undefined && REVERSE_MAP.has(langPart)) {
+      const mainKey = REVERSE_MAP.get(langPart)!;
+      return LANG_INTRO_MAP[mainKey] ?? null;
+    }
+  }
+  // 5. 最终尝试直接匹配（兼容非标准键名）
+  return LANG_INTRO_MAP[baseName] ?? null;
+}
 
 // 根据多语言文件名获取对应语种名称
-const getLangText = (str: string, type = "cn"): string => {
+export function getLangText(str: string, type: "cn" | "en" = "cn"): string {
   const intro = getLangIntro(str) as LangIntro;
   if (type === "cn") {
     return intro?.cnName || "未知语种";
@@ -87,36 +253,27 @@ const getLangText = (str: string, type = "cn"): string => {
   } else {
     return str;
   }
-};
+}
 
 // 根据多语言文件名和平台获取对应语种代码
-const getLangCode = (str: string, platform: "google" | "tencent" | "baidu" = "google"): string => {
+export function getLangCode(str: string, platform: "google" | "tencent" | "baidu" = "google"): string | null {
   const intro = getLangIntro(str) as LangIntro;
   const map: Record<string, keyof LangIntro> = { google: "ggCode", tencent: "tcCode", baidu: "bdCode" };
-  return intro?.[map[platform]] || str;
-};
+  return intro?.[map[platform]] || null;
+}
 
 // 多语言文件内容展示格式
-const LANG_FORMAT_TYPE = {
+export const LANG_FORMAT_TYPE = {
   obj: "OBJECT",
   nonObj: "NON_OBJECT",
   nestedObj: "OBJECT_NESTED"
 } as const;
 
-type LangFormatType = typeof LANG_FORMAT_TYPE[keyof typeof LANG_FORMAT_TYPE];
+type LangFormatType = (typeof LANG_FORMAT_TYPE)[keyof typeof LANG_FORMAT_TYPE];
 
 // 条目默认分隔符
-const LANG_ENTRY_SPLIT_SYMBOL: Record<LangFormatType, string> = {
+export const LANG_ENTRY_SPLIT_SYMBOL: Record<LangFormatType, string> = {
   [LANG_FORMAT_TYPE.obj]: "_",
   [LANG_FORMAT_TYPE.nonObj]: ".",
   [LANG_FORMAT_TYPE.nestedObj]: "."
-};
-
-export {
-  getLangIntro,
-  getLangText,
-  getLangCode,
-  LANG_INTRO_MAP,
-  LANG_FORMAT_TYPE,
-  LANG_ENTRY_SPLIT_SYMBOL
 };

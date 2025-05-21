@@ -34,7 +34,7 @@ const translateTo = async ({
   apiId,
   apiKey
 }: TranslateParams): Promise<TranslateResult> => {
-  if (!supportLangMap[source]) {
+  if (!Object.hasOwn(supportLangMap, source)) {
     return {
       success: false,
       langUnsupported: true,
@@ -54,7 +54,7 @@ const translateTo = async ({
   const secondRequestLimit = 5; // the max times per second to request
   let sum = 0;
   let pack: string[] = [];
-  let packList: string[][] = [];
+  const packList: string[][] = [];
   for (let i = 0; i < sourceTextList.length; i++) {
     const text = sourceTextList[i];
     sum += text.length;
@@ -94,10 +94,18 @@ const sendBatch = async (
     }
     if (packList.length > packNum + batchSize) {
       return new Promise(resolve => {
-        setTimeout(async () => {
-          const batchRes = await sendBatch(source, target, packList, batchNum + 1, batchSize);
-          result.push(...batchRes.data || []);
-          resolve({ success: true, data: result });
+        setTimeout(() => {
+          sendBatch(source, target, packList, batchNum + 1, batchSize)
+            .then(batchRes => {
+              result.push(...batchRes.data || []); // 确保 batchRes.data 存在，否则 fallback 空数组
+              resolve({ success: true, data: result });
+            })
+            .catch(error => { // 捕获可能的错误
+              resolve({ 
+                success: false, 
+                message: error instanceof Error ? error.message : "Batch translation failed" 
+              });
+            });
         }, 1100);
       });
     } else {
@@ -140,7 +148,7 @@ const send = (
         resolve(data.TargetTextList || []);
       },
       err => {
-        reject(err);
+        reject(err as Error);
       }
     );
   });
