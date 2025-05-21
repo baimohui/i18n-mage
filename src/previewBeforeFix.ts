@@ -49,6 +49,7 @@ function buildHtml(valueUpdates: EntryValueUpdates, idPatches: EntryIdPatches, l
   ${renderValueSection(valueUpdates, localeMap, baseLocale)}
   ${renderIdSection(idPatches)}
   <div class="actions">
+    <span id="countDisplay">已选中 <span id="selectedCount">0</span> 项</span>
     <button id="btn-apply">应用</button>
     <button id="btn-cancel">取消</button>
   </div>
@@ -85,10 +86,12 @@ function buildStyles(): string {
   .old { flex: 2; color: #c00; font-size: 0.9em; }
   .new { flex: 2; color: #090; font-size: 0.9em; }
   .actions { text-align: right; }
+  #countDisplay { margin-right: 16px; font-weight: bold; }
   button { margin-left: 8px; padding: 8px 16px; border: none; border-radius: 4px; cursor: pointer;
     background: var(--btn-bg); color: var(--btn-fg); }
   button:hover { background: var(--btn-hover); }
   #btn-apply { background: #007acc; color: #fff; }
+  #btn-apply:disabled { background: #888 !important; color: #ccc !important; cursor: not-allowed; }
   #btn-cancel { background: #ccc; color: #333; }
 </style>`;
 }
@@ -111,7 +114,7 @@ function renderValueSection(updates: EntryValueUpdates, localeMap: LocaleMap, ba
             .map(
               ([key, val]) => /* html */ `
           <div class="item">
-            <input type="checkbox" data-key="${key}" checked>
+            <input type="checkbox" data-key="${key}" data-locale="${locale}" checked>
             <label>${key}</label>
             <input type="text" value="${val ?? ""}">
             ${
@@ -139,9 +142,9 @@ function renderIdSection(patches: EntryIdPatches): string {
     ${Object.entries(patches)
       .map(
         ([file, changes], idx) => /* html */ `
-      <details open>
+      <details open data-index="${idx}">
         <summary class="group-head">
-          <input type="checkbox" data-index="${idx}" checked>
+          <input type="checkbox" checked>
           <strong>${file}</strong>
         </summary>
         <div class="group">
@@ -164,6 +167,14 @@ function renderIdSection(patches: EntryIdPatches): string {
 function buildClientScript(): string {
   return `
 const vscode = acquireVsCodeApi();
+const applyBtn = document.getElementById('btn-apply');
+
+const updateCount = () => {
+  const count = document.querySelectorAll('.item input[type=checkbox]:checked').length;
+  document.getElementById('selectedCount').textContent = count;
+  applyBtn.disabled = (count === 0);
+};
+updateCount();
 
 document.querySelectorAll('.group-head input[type=checkbox]').forEach(chk => {
   chk.onchange = () => {
@@ -174,43 +185,51 @@ document.querySelectorAll('.group-head input[type=checkbox]').forEach(chk => {
           input.checked = chk.checked && !input.disabled;
         }
       });
+      updateCount();
     }
   }
 })
 
 document.querySelectorAll(".value-updates .item input[type=text]").forEach(input => {
-  const chk = input.previousElementSibling;
+  const chk = input.closest('.item').querySelector('input');
   input.addEventListener("input", () => {
     if (chk && chk instanceof HTMLInputElement) {
+      const initChecked = chk.checked;
       chk.checked = !!input.value.trim();
       chk.disabled = !chk.checked;
+      if (initChecked !== chk.checked) {
+        updateCount();
+      }
     }
   }); 
 })
 
 document.querySelectorAll(".value-updates .item input[type=checkbox]").forEach(chk => {
-  const groupHeadChk = document.querySelector(".value-updates .group-head input[type=checkbox]");
+  const groupHeadChk = document.querySelector(".value-updates details[data-locale='" + chk.dataset.locale + "'] .group-head input[type=checkbox]");
   chk.onchange = () => {
     const group = chk.closest(".value-updates .group");
     const allInLang = [...group.querySelectorAll("input[type=checkbox]")].every(input => input.checked || input.disabled);
     if (groupHeadChk && group) {
       groupHeadChk.checked = allInLang;
     }
+    updateCount();
   }
 })
 
 document.querySelectorAll(".id-patches .item input[type=checkbox]").forEach(chk => {
-  const groupHeadChk = document.querySelector(".id-patches .group-head input[type=checkbox]");
+  const groupHeadChk = document.querySelector(".id-patches details[data-index='" + chk.dataset.file + "'] .group-head input[type=checkbox]");
   chk.onchange = () => {
     const group = chk.closest(".id-patches .group");
     const allInFile = [...group.querySelectorAll("input[type=checkbox]")].every(input => input.checked);
     if (groupHeadChk && group) {
       groupHeadChk.checked = allInFile;
     }
+    updateCount();
   }
 })
 
-document.getElementById('btn-apply').onclick = () => {
+applyBtn.onclick = () => {
+  if (applyBtn.disabled) return;
   const valueUpdates = {}, idPatches = {};
   document.querySelectorAll('[data-locale]').forEach(sec => {
     const locale = sec.getAttribute('data-locale');
