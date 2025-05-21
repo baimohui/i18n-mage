@@ -333,7 +333,7 @@
     ]
   },
   "scripts": {
-    "lint": "eslint .",
+    "lint": "eslint **/*.{ts,tsx}",
     "pretest": "npm run lint",
     "test": "vscode-test",
     "build": "node esbuild.config.js",
