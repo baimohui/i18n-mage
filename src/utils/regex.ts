@@ -296,10 +296,13 @@ export function formatObjectToString(tree: EntryTree, lookup: EntryMap, fileType
     const currentIndent = indents.repeat(level);
     for (const [key, value] of Object.entries(obj)) {
       const keyStr = unescapeEntryName(keyQuotes || fileType === "json" || needsQuotes(key) ? `"${key}"` : key);
-      if (typeof value === "string") {
+      if (typeof value === "string" && value in lookup) {
         result.push(`${currentIndent}${keyStr}: ${formatForFile(lookup[value])}`);
-      } else if (typeof value === "object" && value !== null) {
-        result.push(`${currentIndent}${keyStr}: {${lineEnding}${formatObject(value, level + 1)}${lineEnding}${currentIndent}}`);
+      } else if (Object.prototype.toString.call(value) === "[object Object]") {
+        const nestedValue = formatObject(value as EntryTree, level + 1);
+        if (nestedValue) {
+          result.push(`${currentIndent}${keyStr}: {${lineEnding}${nestedValue}${lineEnding}${currentIndent}}`);
+        }
       }
     }
     return result.join(`,${lineEnding}`);
