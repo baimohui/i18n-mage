@@ -3,6 +3,7 @@
     "types": ["node"],
     "module": "commonjs",
     "target": "ES2022",
+    "sourceMap": true,
     "outDir": "dist",
     "rootDir": "src",
     "strict": true,

@@ -11,6 +11,8 @@
       "request": "launch",
       "preLaunchTask": "esbuild:watch", // 参考下方 tasks.json
       "outFiles": ["dist/**/*.js"],
+      "sourceMaps": true,
+      "resolveSourceMapLocations": ["!**/node_modules/**"],
       "args": ["--disable-extensions", "--extensionDevelopmentPath=${workspaceFolder}"]
     }
   ]
