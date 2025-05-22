@@ -733,7 +733,7 @@ export function getFileLocationFromId(id: string, fileStructure: EntryNode): str
   return pathSegs.join(".");
 }
 
-export function getContentAtLocation(location: string, tree: LangTree): EntryTree | null {
+export function getContentAtLocation(location: string, tree: EntryTree): EntryTree | null {
   const segments = getPathSegsFromId(location);
   let cursor: EntryTree = tree;
   for (const seg of segments) {

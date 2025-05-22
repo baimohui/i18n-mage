@@ -82,12 +82,11 @@ class LangCheckRobot {
   private undefinedEntryList: TEntry[] = [];
   private undefinedEntryMap: Record<string, Record<string, number[]>> = {};
   private usedEntryMap: Record<string, Record<string, number[]>> = {};
-  private langIndents: Record<string, string> = {};
   private langFileExtraInfo: Record<string, FileExtraInfo> = {};
   private primaryPathLevel: number = 0;
   private roguePath: string = "";
   private isVacant: boolean = true;
-  private langTree: LangTree = {};
+  private entryTree: EntryTree = {};
   private updatedEntryValueInfo: Record<string, Record<string, string | undefined>> = {};
   private patchedEntryIdInfo: Record<string, TEntry[]> = {};
 
@@ -231,7 +230,7 @@ class LangCheckRobot {
       countryMap: this.langCountryMap,
       used: this.usedEntryMap,
       undefined: this.undefinedEntryMap,
-      tree: this.langTree,
+      tree: this.entryTree,
       updatedValues: this.updatedEntryValueInfo,
       patchedIds: this.patchedEntryIdInfo
     };
@@ -258,7 +257,7 @@ class LangCheckRobot {
     this.primaryPathLevel = 0;
     this.roguePath = "";
     this.isVacant = true;
-    this.langTree = {};
+    this.entryTree = {};
     this.updatedEntryValueInfo = {};
     this.patchedEntryIdInfo = {};
   }
@@ -278,10 +277,11 @@ class LangCheckRobot {
     Object.entries(langTree).forEach(([lang, data]) => {
       this.langCountryMap[lang] = flattenNestedObj(data);
     });
-    const { structure, lookup } = mergeTreesToTwoObjectsSemantic(Object.values(langTree), Object.keys(langTree));
-    this.langTree = structure;
+    const { structure, lookup } = mergeTreeToTwoObjectsSemantic(langTree);
+    this.entryTree = structure;
     this.langDictionary = lookup;
     if (!this.referredLang) {
+      // TODO 替换成 getLangCode
       const cnName = this.detectedLangList.find(lang => /^(zh|cn|chs|cht|zh-cn|zh-tw|zh-hk)$/i.test(lang));
       const enName = this.detectedLangList.find(lang => /^(en|eng|en-us|en-gb)$/i.test(lang));
       this.referredLang = cnName ?? enName ?? this.detectedLangList[0];
@@ -289,8 +289,8 @@ class LangCheckRobot {
     this.referredEntryList = [...new Set(this.referredEntryList.concat(Object.keys(this.langCountryMap[this.referredLang])))];
     Object.keys(this.langDictionary).forEach(entry => this._genEntryClassTree(unescapeEntryName(entry)));
 
-    function mergeTreesToTwoObjectsSemantic(trees: EntryTree[], labels: string[]): { structure: LangTree; lookup: LangDictionary } {
-      const structure: LangTree = {};
+    function mergeTreeToTwoObjectsSemantic(langTree: LangTree): { structure: EntryTree; lookup: LangDictionary } {
+      const structure: EntryTree = {};
       const lookup: LangDictionary = {};
       function setAtPath(obj: EntryTree, path: string[], value: string): void {
         let cur = obj;
@@ -317,9 +317,8 @@ class LangCheckRobot {
           }
         }
       }
-      trees.forEach((tree, i) => {
-        structure[labels[i]] = {};
-        traverse(tree, [], structure[labels[i]], labels[i]);
+      Object.entries(langTree).forEach(([lang, tree]) => {
+        traverse(tree, [], structure, lang);
       });
       return { structure, lookup };
     }
@@ -527,7 +526,7 @@ class LangCheckRobot {
     printTitle("修改翻译条目");
     this.modifyList.forEach(item => {
       const { name, value, lang } = item;
-      const entryName = getValueByAmbiguousEntryName(this.langTree[lang], name);
+      const entryName = getValueByAmbiguousEntryName(this.entryTree, name);
       if (typeof entryName === "string" && entryName.trim() !== "") {
         this._setUpdatedEntryValueInfo(entryName, value, lang);
       }
@@ -571,7 +570,9 @@ class LangCheckRobot {
       const filePosSet = new Set<string>();
       for (const [key, value] of Object.entries(entryInfo)) {
         this._updateEntryValue(key, value, lang);
-        const filePos = getFileLocationFromId(`${lang}.${key}`, this.fileStructure as EntryNode);
+        const structure = this.fileStructure?.children?.[lang];
+        if (!structure) continue;
+        const filePos = getFileLocationFromId(key, structure);
         if (filePos !== null) filePosSet.add(filePos);
       }
       const filePosList = Array.from(filePosSet);
@@ -631,7 +632,7 @@ class LangCheckRobot {
     }
     const pcList = this._getPopularClassList();
     const namePrefix = pcList[0]?.name ?? "";
-    const checkExisted = (id: string) => Boolean(getValueByAmbiguousEntryName(this.langTree, id));
+    const checkExisted = (id: string) => Boolean(getValueByAmbiguousEntryName(this.entryTree, id));
     needTranslateList.forEach((entry, index) => {
       let id = getIdByStr(enNameList[index], true);
       if (!entry.name || checkExisted(entry.name)) {
@@ -673,7 +674,7 @@ class LangCheckRobot {
   private _generateUniqueId(main, prefix) {
     let index = 1;
     const separator = "_";
-    const check = (id: string) => Boolean(getValueByAmbiguousEntryName(this.langTree, prefix + id));
+    const check = (id: string) => Boolean(getValueByAmbiguousEntryName(this.entryTree, prefix + id));
 
     while (check(`${main}${separator}${String(index).padStart(2, "0")}`)) {
       index++;
@@ -741,19 +742,19 @@ class LangCheckRobot {
         this.langDictionary[key] = { [lang]: value };
       }
       this.langCountryMap[lang][key] = value;
-      setValueByEscapedEntryName(this.langTree[lang], key, key);
+      setValueByEscapedEntryName(this.entryTree, key, key);
     } else {
       delete this.langDictionary[key][lang];
       delete this.langCountryMap[lang][key];
-      setValueByEscapedEntryName(this.langTree[lang], key, undefined);
+      setValueByEscapedEntryName(this.entryTree, key, undefined);
     }
   }
 
   private _rewriteTranslationFile(lang: string, filePos: string): void {
     const filePath = this._getLangFilePath(lang, filePos);
-    const entryTree = getContentAtLocation(filePos, this.langTree);
+    const entryTree = getContentAtLocation(filePos, this.entryTree);
     if (entryTree) {
-      const fileContent = formatObjectToString(entryTree, this.langCountryMap[lang], this.langFileType, this.langFileExtraInfo[filePos]);
+      const fileContent = formatObjectToString(entryTree, this.langCountryMap[lang], this.langFileType, this.langFileExtraInfo[filePos ? `${lang}.${filePos}` : lang]);
       fs.writeFileSync(filePath, fileContent);
       printInfo(`翻译已写入`, "success");
     }
@@ -767,7 +768,7 @@ class LangCheckRobot {
       const pathSegs = getPathSegsFromId(filePos);
       // 先拼出不带扩展名的完整路径，再在末尾加上 .json
       // 类似： /…/langDir/zh-CN/demos/textA + ".json"
-      const withoutExt = path.join(this.langDir, ...pathSegs);
+      const withoutExt = path.join(this.langDir, lang, ...pathSegs);
       return withoutExt + `.${this.langFileType}`;
     }
   }
