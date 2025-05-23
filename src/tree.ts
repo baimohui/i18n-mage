@@ -362,7 +362,7 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
             level: 2,
             type: element.type,
             root: element.root,
-            id: this.genId(element, item.name),
+            id: this.genId(element, item.key),
             collapsibleState: vscode.TreeItemCollapsibleState.Collapsed
           };
         });
@@ -376,7 +376,7 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
             root: element.root,
             data: [item],
             contextValue: "unusedGroupItem",
-            id: this.genId(element, item.name),
+            id: this.genId(element, item.key),
             collapsibleState: vscode.TreeItemCollapsibleState.None
           };
         });
