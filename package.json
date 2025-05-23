@@ -344,6 +344,7 @@
     "@vitalets/google-translate-api": "^9.2.0",
     "axios": "^1.9.0",
     "js-md5": "^0.7.3",
+    "json5": "^2.2.3",
     "node-xlsx": "^0.24.0",
     "tencentcloud-sdk-nodejs-tmt": "^4.0.791",
     "tunnel": "^0.0.6"

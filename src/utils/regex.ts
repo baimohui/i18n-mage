@@ -1,5 +1,6 @@
 import fs from "fs";
 import path from "path";
+import JSON5 from "json5";
 import * as vscode from "vscode";
 import { LANG_FORMAT_TYPE, LANG_ENTRY_SPLIT_SYMBOL, getLangCode } from "./const";
 import { LangFileInfo, EntryMap, EntryTree, TEntry, PEntry, CaseType, LangTree, EntryNode, FileExtraInfo } from "../types/common";
@@ -177,7 +178,6 @@ export function getLangFileInfo(filePath: string): LangFileInfo | null {
       fileContent = fileContent
         .replace(/\/\*[^]*?\*\/|(?<=["'`;\n]{1}\s*)\/\/[^\n]*|<!--[^]*?-->/g, "")
         .replace(/(\S+)(\s*=\s*)([^]+?);*\s*(?=\n\s*\S+\s*=|$)/g, '"$1":$3,');
-      tree = eval(`({${fileContent}})`) as EntryTree;
     } else {
       const indentsMatch = fileContent.match(/{\s*\n(\s*)\S/);
       indents = indentsMatch ? indentsMatch[1] : "  ";
@@ -193,9 +193,9 @@ export function getLangFileInfo(filePath: string): LangFileInfo | null {
         const spreadVarReg = new RegExp(`${spreadVarMatch.join("|")}`, "g");
         fileContent = fileContent.replace(spreadVarReg, "");
       }
-      keyQuotes = /^{\s*["'`]/.test(fileContent);
-      tree = eval(`(${fileContent})`) as EntryTree;
+      keyQuotes = /^{\s*["'`]/.test(fileContent.replace(/\/\/.*|\/\*[\s\S]*?\*\//g, ''));
     }
+    tree = JSON5.parse(fileContent);
     // TODO vue-i18n 似乎支持值为字符串、数组、对象，甚至函数（返回字符串），这里的判断需要调整
     if (getNestedValues(tree).some(item => typeof item !== "string")) return null;
     return {
