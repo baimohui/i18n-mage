@@ -83,24 +83,24 @@ export function activate(): void {
     "i18nMage.editValue",
     async (e: vscode.TreeItem & { data: { name: string; key: string; value: string; lang: string } }) => {
       if (typeof e.data !== "object" || Object.keys(e.data).length === 0) return;
-      const { name, key, value, lang } = e.data;
-      const newLabel = await vscode.window.showInputBox({
-        prompt: `修改 ${name} 的值`,
+      const { name, value, lang } = e.data;
+      const newValue = await vscode.window.showInputBox({
+        prompt: `修改 ${name} 的 ${lang} 值`,
         value
       });
-      if (typeof newLabel === "string" && newLabel.trim() !== "") {
+      if (typeof newValue === "string" && newValue !== value && newValue.trim() !== "") {
         robot.setOptions({
           task: "modify",
-          modifyList: [{ name: key, lang, value: newLabel }],
+          modifyList: [{ ...e.data, value: newValue }],
           globalFlag: false,
           clearCache: false,
           rewriteFlag: true
         });
         const success = await robot.execute();
         if (success) {
-          e.description = newLabel;
+          e.description = newValue;
           treeInstance.refresh();
-          vscode.window.showInformationMessage(`已写入：${newLabel}`);
+          vscode.window.showInformationMessage(`已写入：${newValue}`);
         }
       }
     }

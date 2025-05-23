@@ -59,7 +59,7 @@ interface LangCheckRobotOptions {
   clearCache?: boolean;
   credentials?: Credentials;
   syncBasedOnReferredEntries?: boolean;
-  modifyList?: Array<{ name: string; value: string; lang: string }>;
+  modifyList?: Array<{ key: string; name: string; value: string; lang: string }>;
   trimKeyList?: string[];
 }
 
@@ -114,7 +114,7 @@ class LangCheckRobot {
   public clearCache: boolean = true;
   public credentials: Credentials | null = null;
   public syncBasedOnReferredEntries: boolean = false;
-  public modifyList: Array<{ name: string; value: string; lang: string }> = [];
+  public modifyList: Array<{ key: string; name: string; value: string; lang: string }> = [];
   public trimKeyList: string[] = [];
 
   private constructor(options?: LangCheckRobotOptions) {
@@ -523,12 +523,15 @@ class LangCheckRobot {
   }
 
   private _handleModify(): void {
-    printTitle("修改翻译条目");
+    printTitle("修改词条");
     this.modifyList.forEach(item => {
-      const { name, value, lang } = item;
-      const entryName = getValueByAmbiguousEntryName(this.entryTree, name);
-      if (typeof entryName === "string" && entryName.trim() !== "") {
-        this._setUpdatedEntryValueInfo(entryName, value, lang);
+      const { key, name, value, lang } = item;
+      const entryKey = key || getValueByAmbiguousEntryName(this.entryTree, name);
+      if (typeof entryKey === "string" && entryKey.trim() !== "") {
+        this._setUpdatedEntryValueInfo(entryKey, value, lang);
+      } else {
+        printInfo("修改词条失败，未检测有效的词条名！", "error");
+        return;
       }
     });
     if (this.rewriteFlag) {
@@ -860,9 +863,7 @@ class LangCheckRobot {
 
   private _checkUsage(): void {
     printTitle("检测条目是否使用");
-    const unusedEntryList = this.referredEntryList
-      .map(key => unescapeString(key))
-      .filter(name => !Object.hasOwn(this.usedEntryMap, name));
+    const unusedEntryList = this.referredEntryList.map(key => unescapeString(key)).filter(name => !Object.hasOwn(this.usedEntryMap, name));
     if (unusedEntryList.length > 0) {
       printInfo(`存在疑似未使用条目：${this._formatEntriesInTerminal(unusedEntryList)}`, "puzzle");
     }
