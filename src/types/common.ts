@@ -1,7 +1,7 @@
 export type LangName = string;
 export type EntryValue = string;
-export type UnescapedEntryKey = string;
-export type EscapedEntryKey = string;
+export type EntryKeySeg = string;
+export type EntryKey = string;
 export type LangFileType = "js" | "ts" | "json" | "json5" | "mjs" | "cjs";
 
 export interface FileExtraInfo {
@@ -24,18 +24,18 @@ export interface LangFilesData {
 }
 
 export interface EntryTree {
-  [key: UnescapedEntryKey]: string | EntryTree;
+  [key: EntryKeySeg]: string | EntryTree;
 }
 
 export interface LangTree {
   [key: LangName]: EntryTree;
 }
 
-export type EntryMap = Record<EscapedEntryKey, EntryValue>;
+export type EntryMap = Record<EntryKey, EntryValue>;
 
 export type LangCountryMap = Record<LangName, EntryMap>;
 
-export type LangDictionary = Record<EscapedEntryKey, Record<LangName, EntryValue>>;
+export type LangDictionary = Record<EntryKey, Record<LangName, EntryValue>>;
 
 export interface TEntry {
   raw: string;
@@ -69,8 +69,8 @@ export type EntryClassInfo = Record<
   }
 >;
 
-export type LackInfo = Record<LangName, EscapedEntryKey[]>;
-export type NullInfo = Record<LangName, EscapedEntryKey[]>;
+export type LackInfo = Record<LangName, EntryKey[]>;
+export type NullInfo = Record<LangName, EntryKey[]>;
 
 type Cell = string | number | boolean | Date | null | undefined;
 

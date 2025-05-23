@@ -1,6 +1,6 @@
 import * as vscode from "vscode";
 import LangCheckRobot from "./langCheckRobot";
-import { catchTEntries, unescapeEntryName, getValueByAmbiguousEntryName } from "./utils/regex";
+import { catchTEntries, unescapeString, getValueByAmbiguousEntryName } from "./utils/regex";
 import { isPathInsideDirectory, getPossibleLangDirs } from "./utils/fs";
 import { getLangText } from "./utils/const";
 import { TEntry, LangTree } from "./types";
@@ -83,14 +83,14 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
 
   get entryUsageInfo() {
     const dictionary = this.langInfo.dictionary;
-    const unusedEntries: { escaped: string; unescaped: string }[] = [];
-    const usedEntries: { escaped: string; unescaped: string }[] = [];
-    for (const entry in dictionary) {
-      const unescapedEntryName = unescapeEntryName(entry);
-      if (Object.hasOwn(this.langInfo.used, unescapedEntryName)) {
-        usedEntries.push({ unescaped: unescapedEntryName, escaped: entry });
+    const unusedEntries: { key: string; name: string }[] = [];
+    const usedEntries: { key: string; name: string }[] = [];
+    for (const key in dictionary) {
+      const name = unescapeString(key);
+      if (Object.hasOwn(this.langInfo.used, name)) {
+        usedEntries.push({ name, key });
       } else {
-        unusedEntries.push({ unescaped: unescapedEntryName, escaped: entry });
+        unusedEntries.push({ name, key });
       }
     }
     return { used: usedEntries, unused: unusedEntries };
@@ -305,13 +305,13 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
       }));
     } else if (element.level === 2) {
       return (element.data as [string, string][]).map(item => ({
-        label: unescapeEntryName(item[0]),
+        label: unescapeString(item[0]),
         description: item[1],
         level: 3,
         key: element.key,
         id: this.genId(element, item[0]),
         contextValue: "syncInfoItem",
-        data: { name: unescapeEntryName(item[0]), key: item[0], value: item[1], lang: element.key },
+        data: { name: unescapeString(item[0]), key: item[0], value: item[1], lang: element.key },
         collapsibleState: vscode.TreeItemCollapsibleState.None
       }));
     }
@@ -353,30 +353,30 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
           });
       } else if (element.type === "used") {
         return this.entryUsageInfo.used.sort().map(item => {
-          const usedNum = Object.values(this.usedEntryMap[item.unescaped]).flat().length;
-          const entryInfo = this.dictionary[item.escaped];
+          const usedNum = Object.values(this.usedEntryMap[item.name]).flat().length;
+          const entryInfo = this.dictionary[item.key];
           return {
-            key: item.escaped,
-            label: item.unescaped,
+            key: item.key,
+            label: item.name,
             description: `<${usedNum}>${entryInfo[this.#robot.referredLang]}`,
             level: 2,
             type: element.type,
             root: element.root,
-            id: this.genId(element, item.unescaped),
+            id: this.genId(element, item.name),
             collapsibleState: vscode.TreeItemCollapsibleState.Collapsed
           };
         });
       } else {
         return this.entryUsageInfo.unused.sort().map(item => {
-          const entryInfo = this.dictionary[item.escaped];
+          const entryInfo = this.dictionary[item.key];
           return {
-            label: item.unescaped,
+            label: item.name,
             description: entryInfo[this.#robot.referredLang],
             level: 2,
             root: element.root,
             data: [item],
             contextValue: "unusedGroupItem",
-            id: this.genId(element, item.unescaped),
+            id: this.genId(element, item.name),
             collapsibleState: vscode.TreeItemCollapsibleState.None
           };
         });

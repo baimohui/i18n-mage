@@ -108,18 +108,18 @@ export function activate(): void {
 
   vscode.commands.registerCommand(
     "i18nMage.deleteUnusedEntries",
-    async (e: vscode.TreeItem & { data: { unescaped: string; escaped: string }[] }) => {
+    async (e: vscode.TreeItem & { data: { name: string; key: string }[] }) => {
       if (typeof e.label !== "string" || e.label.trim() === "" || !Array.isArray(e.data) || e.data.length === 0) return;
       const confirmDelete = await vscode.window.showWarningMessage(
         "确定删除吗？",
-        { modal: true, detail: `将删除词条：${e.data.map(item => item.unescaped).join(", ")}` },
+        { modal: true, detail: `将删除词条：${e.data.map(item => item.name).join(", ")}` },
         { title: "确定" },
         { title: "取消" }
       );
       if (confirmDelete?.title === "确定") {
         robot.setOptions({
           task: "trim",
-          trimNameList: e.data.map(item => item.escaped),
+          trimKeyList: e.data.map(item => item.key),
           globalFlag: false,
           clearCache: false,
           rewriteFlag: true

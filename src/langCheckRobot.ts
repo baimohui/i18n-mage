@@ -9,8 +9,8 @@ import {
   extractLangDataFromDir,
   getIdByStr,
   validateLang,
-  escapeEntryName,
-  unescapeEntryName,
+  escapeString,
+  unescapeString,
   setValueByEscapedEntryName,
   getValueByAmbiguousEntryName,
   formatObjectToString,
@@ -60,7 +60,7 @@ interface LangCheckRobotOptions {
   credentials?: Credentials;
   syncBasedOnReferredEntries?: boolean;
   modifyList?: Array<{ name: string; value: string; lang: string }>;
-  trimNameList?: string[];
+  trimKeyList?: string[];
 }
 
 class LangCheckRobot {
@@ -115,7 +115,7 @@ class LangCheckRobot {
   public credentials: Credentials | null = null;
   public syncBasedOnReferredEntries: boolean = false;
   public modifyList: Array<{ name: string; value: string; lang: string }> = [];
-  public trimNameList: string[] = [];
+  public trimKeyList: string[] = [];
 
   private constructor(options?: LangCheckRobotOptions) {
     this._reset();
@@ -287,7 +287,7 @@ class LangCheckRobot {
       this.referredLang = cnName ?? enName ?? this.detectedLangList[0];
     }
     this.referredEntryList = [...new Set(this.referredEntryList.concat(Object.keys(this.langCountryMap[this.referredLang])))];
-    Object.keys(this.langDictionary).forEach(entry => this._genEntryClassTree(unescapeEntryName(entry)));
+    Object.keys(this.langDictionary).forEach(key => this._genEntryClassTree(unescapeString(key)));
 
     function mergeTreeToTwoObjectsSemantic(langTree: LangTree): { structure: EntryTree; lookup: LangDictionary } {
       const structure: EntryTree = {};
@@ -305,7 +305,7 @@ class LangCheckRobot {
       }
       function traverse(node: string | EntryTree, path: string[], idTree: EntryTree, label: string): void {
         if (typeof node === "string") {
-          const id = path.map(key => escapeEntryName(key)).join(".");
+          const id = path.map(key => escapeString(key)).join(".");
           setAtPath(idTree, path, id);
           if (!(id in lookup)) {
             lookup[id] = {};
@@ -334,11 +334,11 @@ class LangCheckRobot {
       const missingTranslations: string[] = [];
       const nullTranslations: string[] = [];
       const pivotEntryList = this.syncBasedOnReferredEntries ? this.referredEntryList : Object.keys(this.langDictionary);
-      pivotEntryList.forEach(entry => {
-        if (!Object.hasOwn(translation, entry)) {
-          missingTranslations.push(entry);
-        } else if (translation[entry] === null || translation[entry] === undefined) {
-          nullTranslations.push(entry);
+      pivotEntryList.forEach(key => {
+        if (!Object.hasOwn(translation, key)) {
+          missingTranslations.push(key);
+        } else if (translation[key] === null || translation[key] === undefined) {
+          nullTranslations.push(key);
         }
       });
       if (missingTranslations.length > 0 && !needFixFlag) {
@@ -349,9 +349,9 @@ class LangCheckRobot {
 
       const extraTranslations: string[] = [];
       if (this.syncBasedOnReferredEntries) {
-        for (const entry in translation) {
-          if (!this.referredEntryList.includes(entry)) {
-            extraTranslations.push(entry);
+        for (const key in translation) {
+          if (!this.referredEntryList.includes(key)) {
+            extraTranslations.push(key);
           }
         }
       }
@@ -369,21 +369,21 @@ class LangCheckRobot {
   private _checkRepeat(): void {
     printTitle("检测条目在不同语种的译文是否相同");
     let isTextRepeatedInEntriesInLangs = false;
-    for (const entry in this.langDictionary) {
-      const list = Object.values(this.langDictionary[entry]);
+    for (const key in this.langDictionary) {
+      const list = Object.values(this.langDictionary[key]);
       const filterList = [...new Set(list)];
       if (list.length !== filterList.length) {
         isTextRepeatedInEntriesInLangs = true;
-        this.multiLangRepeatTextInfo[entry] = [];
+        this.multiLangRepeatTextInfo[key] = [];
         if (list.length > 1 && filterList.length === 1) {
-          this.multiLangRepeatTextInfo[entry].push(this.detectedLangList.join(","));
+          this.multiLangRepeatTextInfo[key].push(this.detectedLangList.join(","));
         } else {
           filterList.forEach(filterItem => {
-            const repeatLangList = Object.keys(this.langDictionary[entry]).filter(lang => this.langDictionary[entry][lang] === filterItem);
+            const repeatLangList = Object.keys(this.langDictionary[key]).filter(lang => this.langDictionary[key][lang] === filterItem);
             const isElWithPor = repeatLangList.every(lang => ["el", "por", "po"].some(langKey => lang.includes(langKey)));
             if (repeatLangList.length > 1 && !isElWithPor) {
-              this.multiLangRepeatTextInfo[entry].push(repeatLangList.join(","));
-              printInfo(`${entry} 在 ${repeatLangList.join("、")} 的译文相同：${filterItem}`, "puzzle");
+              this.multiLangRepeatTextInfo[key].push(repeatLangList.join(","));
+              printInfo(`${key} 在 ${repeatLangList.join("、")} 的译文相同：${filterItem}`, "puzzle");
             }
           });
         }
@@ -435,9 +435,9 @@ class LangCheckRobot {
     }
 
     const tableData = [["Label", ...this.detectedLangList.map(item => getLangText(item, "en"))]];
-    for (const entry in this.langDictionary) {
-      const itemList = [entry];
-      const entryMap = this.langDictionary[entry];
+    for (const key in this.langDictionary) {
+      const itemList = [key];
+      const entryMap = this.langDictionary[key];
       this.detectedLangList.forEach(lang => {
         itemList.push(entryMap[lang]);
       });
@@ -538,8 +538,8 @@ class LangCheckRobot {
 
   private _handleTrim(): void {
     printTitle("清理翻译条目");
-    if (this.trimNameList.length > 0) {
-      this.trimNameList.forEach(name => {
+    if (this.trimKeyList.length > 0) {
+      this.trimKeyList.forEach(name => {
         this._setUpdatedEntryValueInfo(name, undefined);
       });
       if (this.rewriteFlag) {
@@ -686,10 +686,10 @@ class LangCheckRobot {
     let needTranslate = false;
     for (const lang in this.lackInfo) {
       const referredLangMap = this.langCountryMap[this.referredLang];
-      const lackEntries = this.lackInfo[lang].filter(entry => referredLangMap[entry]);
+      const lackEntries = this.lackInfo[lang].filter(key => referredLangMap[key]);
       if (lackEntries.length > 0 && this.credentials !== null) {
         needTranslate = true;
-        const referredEntriesText = lackEntries.map(entry => referredLangMap[entry]);
+        const referredEntriesText = lackEntries.map(key => referredLangMap[key]);
         const res = await translateTo({
           source: this.referredLang,
           target: lang,
@@ -754,7 +754,12 @@ class LangCheckRobot {
     const filePath = this._getLangFilePath(lang, filePos);
     const entryTree = getContentAtLocation(filePos, this.entryTree);
     if (entryTree) {
-      const fileContent = formatObjectToString(entryTree, this.langCountryMap[lang], this.langFileType, this.langFileExtraInfo[filePos ? `${lang}.${filePos}` : lang]);
+      const fileContent = formatObjectToString(
+        entryTree,
+        this.langCountryMap[lang],
+        this.langFileType,
+        this.langFileExtraInfo[filePos ? `${lang}.${filePos}` : lang]
+      );
       fs.writeFileSync(filePath, fileContent);
       printInfo(`翻译已写入`, "success");
     }
@@ -794,9 +799,9 @@ class LangCheckRobot {
     );
   }
 
-  private _genEntryClassTree(entry: string = ""): void {
+  private _genEntryClassTree(name: string = ""): void {
     const splitSymbol = LANG_ENTRY_SPLIT_SYMBOL[this.langFormatType] as string;
-    const structure = entry.split(splitSymbol);
+    const structure = name.split(splitSymbol);
     const structureLayer = structure.length;
     const primaryClass = structure[0];
     if (Object.hasOwn(this.entryClassInfo, primaryClass)) {
@@ -856,8 +861,8 @@ class LangCheckRobot {
   private _checkUsage(): void {
     printTitle("检测条目是否使用");
     const unusedEntryList = this.referredEntryList
-      .map(name => unescapeEntryName(name))
-      .filter(entry => !Object.hasOwn(this.usedEntryMap, entry));
+      .map(key => unescapeString(key))
+      .filter(name => !Object.hasOwn(this.usedEntryMap, name));
     if (unusedEntryList.length > 0) {
       printInfo(`存在疑似未使用条目：${this._formatEntriesInTerminal(unusedEntryList)}`, "puzzle");
     }
@@ -877,7 +882,7 @@ class LangCheckRobot {
     const filePaths = this._readAllFiles(this.rootPath);
     const pathLevelCountMap: Record<number, number> = {};
     let maxNum = 0;
-    const totalEntryList = Object.keys(this.langDictionary).map(key => unescapeEntryName(key));
+    const totalEntryList = Object.keys(this.langDictionary).map(key => unescapeString(key));
     this.undefinedEntryList = [];
     this.undefinedEntryMap = {};
     for (const filePath of filePaths) {
@@ -973,7 +978,7 @@ class LangCheckRobot {
       }
       if (this.globalFlag) {
         tableInfo["闲置条目"] = this._genOverviewTableRow(
-          lang => getEntryTotal(lang).filter(entry => !Object.hasOwn(this.usedEntryMap, unescapeEntryName(entry))).length
+          lang => getEntryTotal(lang).filter(key => !Object.hasOwn(this.usedEntryMap, unescapeString(key))).length
         );
       }
     }

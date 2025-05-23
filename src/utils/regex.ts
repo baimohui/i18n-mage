@@ -235,7 +235,7 @@ export function flattenNestedObj(obj: EntryTree, res: EntryMap = {}, className =
   for (const key in obj) {
     if (key.trim() === "") break;
     const value = obj[key];
-    const keyName = className ? `${className}.${escapeEntryName(key)}` : escapeEntryName(key);
+    const keyName = className ? `${className}.${escapeString(key)}` : escapeString(key);
     if (typeof obj[key] === "object") {
       flattenNestedObj(value as EntryTree, res, keyName);
     } else {
@@ -295,7 +295,7 @@ export function formatObjectToString(tree: EntryTree, lookup: EntryMap, fileType
     const result: string[] = [];
     const currentIndent = indents.repeat(level);
     for (const [key, value] of Object.entries(obj)) {
-      const keyStr = unescapeEntryName(keyQuotes || fileType === "json" || needsQuotes(key) ? `"${key}"` : key);
+      const keyStr = unescapeString(keyQuotes || fileType === "json" || needsQuotes(key) ? `"${key}"` : key);
       if (typeof value === "string" && value in lookup) {
         result.push(`${currentIndent}${keyStr}: ${formatForFile(lookup[value])}`);
       } else if (Object.prototype.toString.call(value) === "[object Object]") {
@@ -342,7 +342,7 @@ export function catchAllEntries(fileContent: string, langType: string, entryTree
 }
 
 export function catchPossibleEntries(fileContent: string, langType: string, entryTree: EntryTree): { name: string; pos: number }[] {
-  const primaryClassList = Object.keys(entryTree).filter(entry => !!entry);
+  const primaryClassList = Object.keys(entryTree).filter(i => !!i);
   if (primaryClassList.length === 0) return [];
   const primaryClassReg = new RegExp(
     `${langType === LANG_FORMAT_TYPE.nonObj ? "(?<![a-zA-Z0-9\\-]+)" : "(?<=[\"`']{1})"}(${primaryClassList.join("|")})[\\w.]*(?![:=/]{1})`,
@@ -644,11 +644,11 @@ export function getEntryFromLangTree(EntryTree: EntryTree, key: string): string 
   return res;
 }
 
-export function escapeEntryName(str: string): string {
+export function escapeString(str: string): string {
   return str.replace(/\\/g, "\\\\").replace(/\./g, "\\.");
 }
 
-export function unescapeEntryName(str: string): string {
+export function unescapeString(str: string): string {
   return str.replace(/\\\./g, ".").replace(/\\\\/g, "\\");
 }
 
