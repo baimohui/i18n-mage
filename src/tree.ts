@@ -527,8 +527,7 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
     const nullNum = nullList.reduce((pre, cur) => pre + cur.length, 0);
     let total = this.#robot.syncBasedOnReferredEntries ? this.langInfo.refer.length : Object.keys(this.dictionary).length;
     total = lackList.length ? total * lackList.length : total;
-    const res = (Math.floor(((total - lackNum - nullNum) / total) * 10000) / 100).toFixed(2);
-    return res + "%";
+    return Math.floor(Number((((total - lackNum - nullNum) / total) * 10000).toFixed(0))) / 100 + "%";
   }
 
   private getUsagePercent(): string {

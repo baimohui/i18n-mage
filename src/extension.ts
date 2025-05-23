@@ -113,8 +113,7 @@ export function activate(): void {
       const confirmDelete = await vscode.window.showWarningMessage(
         "确定删除吗？",
         { modal: true, detail: `将删除词条：${e.data.map(item => item.name).join(", ")}` },
-        { title: "确定" },
-        { title: "取消" }
+        { title: "确定" }
       );
       if (confirmDelete?.title === "确定") {
         robot.setOptions({
