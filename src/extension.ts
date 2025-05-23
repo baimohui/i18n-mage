@@ -1,87 +1,29 @@
 import * as vscode from "vscode";
 import * as path from "path";
-import { TreeProvider } from "./tree";
+import { TreeProvider, PluginConfiguration } from "./tree";
 import LangCheckRobot from "./langCheckRobot";
-import { getPossibleLangDirs } from "./utils/fs";
 import previewFixContent from "./previewBeforeFix";
 
 let isProcessing = false;
 let treeInstance: TreeProvider;
 
-interface PluginConfiguration extends vscode.WorkspaceConfiguration {
-  referenceLanguage: string;
-  ignoredFileList: string[];
-  langFileMinLength: number;
-  ignoreEmptyLangFile: boolean;
-  sortWithTrim: boolean;
-  baiduAppId: string;
-  baiduSecretKey: string;
-  tencentSecretId: string;
-  tencentSecretKey: string;
-  translateApiPriority: string[];
-  syncBasedOnReferredEntries: boolean;
-  previewBeforeFix: boolean;
-}
-
 /**
  * 插件被激活时触发，所有代码总入口
  * @param context 插件上下文
  */
-export async function activate(): Promise<void> {
-  let rootPath = "";
-  const workspaceFolders = vscode.workspace.workspaceFolders;
-  if (workspaceFolders !== undefined && workspaceFolders.length > 0) {
-    rootPath = workspaceFolders[0].uri.fsPath;
-  }
+export function activate(): void {
   const config = vscode.workspace.getConfiguration("i18n-mage") as PluginConfiguration;
   const globalConfig = vscode.workspace.getConfiguration();
   const robot = LangCheckRobot.getInstance();
 
-  robot.setOptions({
-    rootPath,
-    referredLang: config.referenceLanguage,
-    ignoredFileList: config.ignoredFileList,
-    langFileMinLength: config.langFileMinLength,
-    ignoreEmptyLangFile: config.ignoreEmptyLangFile,
-    sortWithTrim: config.sortWithTrim,
-    credentials: {
-      baiduAppId: config.baiduAppId,
-      baiduSecretKey: config.baiduSecretKey,
-      tencentSecretId: config.tencentSecretId,
-      tencentSecretKey: config.tencentSecretKey,
-      translateApiPriority: config.translateApiPriority
-    },
-    syncBasedOnReferredEntries: config.syncBasedOnReferredEntries
-  });
-
   treeInstance = new TreeProvider();
   vscode.window.registerTreeDataProvider("treeProvider", treeInstance);
-  await findLangDir();
-  treeInstance.isInitialized = true;
-  treeInstance.onActiveEditorChanged();
-
-  async function findLangDir(): Promise<boolean> {
-    if (rootPath === null || rootPath === undefined || rootPath.trim() === "") {
-      vscode.window.showErrorMessage("No workspace opened");
-      return false;
+  startProgress({
+    title: "初始化中...",
+    callback: async () => {
+      await treeInstance.initTree();
     }
-    const possibleLangDirs = getPossibleLangDirs(rootPath);
-    for (const langDir of possibleLangDirs) {
-      robot.setOptions({ langDir, task: "check", globalFlag: true, clearCache: false });
-      await robot.execute();
-      if (robot.detectedLangList.length > 0) {
-        break;
-      }
-    }
-    if (robot.detectedLangList.length === 0) {
-      vscode.window.showInformationMessage("No lang dir in workspace");
-      vscode.commands.executeCommand("setContext", "showMainOpBtnGroup", false);
-      robot.setOptions({ langDir: "" });
-      return false;
-    }
-    vscode.commands.executeCommand("setContext", "showMainOpBtnGroup", true);
-    return true;
-  }
+  });
 
   vscode.commands.registerCommand("i18nMage.setReferredLang", (lang: { key: string }) => {
     startProgress({
@@ -103,7 +45,7 @@ export async function activate(): Promise<void> {
         robot.setOptions({ task: "check", globalFlag: true, clearCache: true, ignoredFileList });
         const res = await robot.execute();
         if (!res) {
-          await findLangDir();
+          await treeInstance.initTree();
         }
       }
     });
@@ -114,12 +56,12 @@ export async function activate(): Promise<void> {
       title: "刷新中...",
       callback: async () => {
         const config = vscode.workspace.getConfiguration("i18n-mage") as PluginConfiguration;
-        const ignoredFileList = (config.ignoredFileList ?? []).concat(path.relative(rootPath, e.resourceUri!.fsPath));
+        const ignoredFileList = (config.ignoredFileList ?? []).concat(path.relative(robot.rootPath, e.resourceUri!.fsPath));
         await globalConfig.update("i18n-mage.ignoredFileList", ignoredFileList, vscode.ConfigurationTarget.Workspace);
         robot.setOptions({ task: "check", globalFlag: true, clearCache: true, ignoredFileList });
         const res = await robot.execute();
         if (!res) {
-          await findLangDir();
+          await treeInstance.initTree();
         }
       }
     });
@@ -137,29 +79,32 @@ export async function activate(): Promise<void> {
     vscode.window.showInformationMessage(`已复制：${e.description}`);
   });
 
-  vscode.commands.registerCommand("i18nMage.editValue", async (e: vscode.TreeItem & { data: { name: string; key: string; value: string; lang: string } }) => {
-    if (typeof e.data !== "object" || Object.keys(e.data).length === 0) return;
-    const { name, key, value, lang } = e.data;
-    const newLabel = await vscode.window.showInputBox({
-      prompt: `编辑 ${name}`,
-      value
-    });
-    if (typeof newLabel === "string" && newLabel.trim() !== "") {
-      robot.setOptions({
-        task: "modify",
-        modifyList: [{ name: key, lang, value: newLabel }],
-        globalFlag: false,
-        clearCache: false,
-        rewriteFlag: true
+  vscode.commands.registerCommand(
+    "i18nMage.editValue",
+    async (e: vscode.TreeItem & { data: { name: string; key: string; value: string; lang: string } }) => {
+      if (typeof e.data !== "object" || Object.keys(e.data).length === 0) return;
+      const { name, key, value, lang } = e.data;
+      const newLabel = await vscode.window.showInputBox({
+        prompt: `编辑 ${name}`,
+        value
       });
-      const success = await robot.execute();
-      if (success) {
-        e.description = newLabel;
-        treeInstance.refresh();
-        vscode.window.showInformationMessage(`已写入：${newLabel}`);
+      if (typeof newLabel === "string" && newLabel.trim() !== "") {
+        robot.setOptions({
+          task: "modify",
+          modifyList: [{ name: key, lang, value: newLabel }],
+          globalFlag: false,
+          clearCache: false,
+          rewriteFlag: true
+        });
+        const success = await robot.execute();
+        if (success) {
+          e.description = newLabel;
+          treeInstance.refresh();
+          vscode.window.showInformationMessage(`已写入：${newLabel}`);
+        }
       }
     }
-  });
+  );
 
   vscode.commands.registerCommand(
     "i18nMage.deleteUnusedEntries",

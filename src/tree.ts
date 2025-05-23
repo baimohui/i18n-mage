@@ -1,7 +1,7 @@
 import * as vscode from "vscode";
 import LangCheckRobot from "./langCheckRobot";
 import { catchTEntries, unescapeEntryName, getValueByAmbiguousEntryName } from "./utils/regex";
-import { isPathInsideDirectory } from "./utils/fs";
+import { isPathInsideDirectory, getPossibleLangDirs } from "./utils/fs";
 import { getLangText } from "./utils/const";
 import { TEntry, LangTree } from "./types";
 
@@ -13,6 +13,21 @@ interface ExtendedTreeItem extends vscode.TreeItem {
   key?: string;
   data?: any;
   stack?: string[];
+}
+
+export interface PluginConfiguration extends vscode.WorkspaceConfiguration {
+  referenceLanguage: string;
+  ignoredFileList: string[];
+  langFileMinLength: number;
+  ignoreEmptyLangFile: boolean;
+  sortWithTrim: boolean;
+  baiduAppId: string;
+  baiduSecretKey: string;
+  tencentSecretId: string;
+  tencentSecretKey: string;
+  translateApiPriority: string[];
+  syncBasedOnReferredEntries: boolean;
+  previewBeforeFix: boolean;
 }
 
 class FileItem extends vscode.TreeItem {
@@ -91,7 +106,7 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
 
   getChildren(element?: ExtendedTreeItem): vscode.ProviderResult<vscode.TreeItem[]> {
     if (!this.#robot.langDir) {
-      return []
+      return [];
     }
     if (!element) {
       return this.getRootChildren();
@@ -112,6 +127,61 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
 
   public onActiveEditorChanged(): void {
     this.checkUsedInfo();
+  }
+
+  async initTree(): Promise<boolean> {
+    let rootPath = "";
+    this.refresh();
+    const workspaceFolders = vscode.workspace.workspaceFolders;
+    if (workspaceFolders !== undefined && workspaceFolders.length > 0) {
+      rootPath = workspaceFolders[0].uri.fsPath;
+    }
+    const config = vscode.workspace.getConfiguration("i18n-mage") as PluginConfiguration;
+
+    this.#robot.setOptions({
+      rootPath,
+      referredLang: config.referenceLanguage,
+      ignoredFileList: config.ignoredFileList,
+      langFileMinLength: config.langFileMinLength,
+      ignoreEmptyLangFile: config.ignoreEmptyLangFile,
+      sortWithTrim: config.sortWithTrim,
+      credentials: {
+        baiduAppId: config.baiduAppId,
+        baiduSecretKey: config.baiduSecretKey,
+        tencentSecretId: config.tencentSecretId,
+        tencentSecretKey: config.tencentSecretKey,
+        translateApiPriority: config.translateApiPriority
+      },
+      syncBasedOnReferredEntries: config.syncBasedOnReferredEntries
+    });
+    let success = false;
+
+    if (rootPath === null || rootPath === undefined || rootPath.trim() === "") {
+      vscode.window.showErrorMessage("No workspace opened");
+      success = false;
+    } else {
+      const possibleLangDirs = getPossibleLangDirs(rootPath);
+      for (const langDir of possibleLangDirs) {
+        this.#robot.setOptions({ langDir, task: "check", globalFlag: true, clearCache: false });
+        await this.#robot.execute();
+        if (this.#robot.detectedLangList.length > 0) {
+          break;
+        }
+      }
+      if (this.#robot.detectedLangList.length === 0) {
+        vscode.window.showInformationMessage("No lang dir in workspace");
+        vscode.commands.executeCommand("setContext", "hasValidLangDir", false);
+        this.#robot.setOptions({ langDir: "" });
+        success = false;
+      } else {
+        this.checkUsedInfo();
+        vscode.commands.executeCommand("setContext", "hasValidLangDir", true);
+        success = true;
+      }
+    }
+    this.isInitialized = true;
+    vscode.commands.executeCommand("setContext", "initialized", true);
+    return success;
   }
 
   private getRootChildren(): ExtendedTreeItem[] {
@@ -371,7 +441,6 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
     this.#robot.setOptions({ task: "check", globalFlag: true, clearCache: false });
     await this.#robot.execute();
     this.checkUsedInfo();
-    this.refresh();
   }
 
   private checkUsedInfo(): void {
