@@ -337,7 +337,7 @@ class LangCheckRobot {
       pivotEntryList.forEach(key => {
         if (!Object.hasOwn(translation, key)) {
           missingTranslations.push(key);
-        } else if (translation[key] === null || translation[key] === undefined) {
+        } else if (translation[key].trim() === "") {
           nullTranslations.push(key);
         }
       });

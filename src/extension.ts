@@ -85,7 +85,7 @@ export function activate(): void {
       if (typeof e.data !== "object" || Object.keys(e.data).length === 0) return;
       const { name, key, value, lang } = e.data;
       const newLabel = await vscode.window.showInputBox({
-        prompt: `编辑 ${name}`,
+        prompt: `修改 ${name} 的值`,
         value
       });
       if (typeof newLabel === "string" && newLabel.trim() !== "") {
@@ -128,7 +128,7 @@ export function activate(): void {
           robot.setOptions({ task: "check", globalFlag: true, clearCache: true, ignoredFileList: config.ignoredFileList });
           await robot.execute();
           treeInstance.refresh();
-          vscode.window.showInformationMessage(`已删除`);
+          vscode.window.showInformationMessage("删除成功");
         }
       }
     }

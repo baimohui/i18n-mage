@@ -311,7 +311,7 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
         key: element.key,
         id: this.genId(element, item[0]),
         contextValue: "syncInfoItem",
-        data: { name: unescapeString(item[0]), key: item[0], value: item[1], lang: element.key },
+        data: { name: unescapeString(item[0]), key: item[0], value: element.type === "common" ? item[1] : "", lang: element.key },
         collapsibleState: vscode.TreeItemCollapsibleState.None
       }));
     }
