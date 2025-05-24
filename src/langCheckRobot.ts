@@ -65,9 +65,7 @@ interface LangCheckRobotOptions {
 
 class LangCheckRobot {
   private static instance: LangCheckRobot;
-  private langFileType: string = "";
   private langFormatType: string = "";
-  private fileStructure: EntryNode | null = null;
   private langDictionary: LangDictionary = {};
   private langCountryMap: LangCountryMap = {};
   private lackInfo: LackInfo = {};
@@ -92,6 +90,7 @@ class LangCheckRobot {
 
   public task: string = "";
   public langDir: string = "";
+  public langFileType: string = "";
   public rootPath: string = "";
   public checkUnityFlag: boolean = true;
   public checkRepeatFlag: boolean = false;
@@ -116,6 +115,7 @@ class LangCheckRobot {
   public syncBasedOnReferredEntries: boolean = false;
   public modifyList: Array<{ key: string; name: string; value: string; lang: string }> = [];
   public trimKeyList: string[] = [];
+  public fileStructure: EntryNode | null = null;
 
   private constructor(options?: LangCheckRobotOptions) {
     this._reset();
@@ -576,7 +576,7 @@ class LangCheckRobot {
         const structure = this.fileStructure?.children?.[lang];
         if (!structure) continue;
         const filePos = getFileLocationFromId(key, structure);
-        if (filePos !== null) filePosSet.add(filePos);
+        if (filePos !== null) filePosSet.add(filePos.join("."));
       }
       const filePosList = Array.from(filePosSet);
       if (filePosList.length === 0) {

@@ -213,11 +213,19 @@
         }
       },
       {
-        "command": "i18nMage.openFileAtPosition",
-        "title": "定位",
+        "command": "i18nMage.goToReference",
+        "title": "跳转到引用位置",
         "icon": {
           "light": "./images/source-light.svg",
           "dark": "./images/source-dark.svg"
+        }
+      },
+      {
+        "command": "i18nMage.goToDefinition",
+        "title": "跳转到词条定义",
+        "icon": {
+          "light": "./images/definition-light.svg",
+          "dark": "./images/definition-dark.svg"
         }
       },
       {
@@ -293,8 +301,13 @@
           "group": "inline@1"
         },
         {
-          "command": "i18nMage.openFileAtPosition",
+          "command": "i18nMage.goToReference",
           "when": "viewItem =~ /definedEntryInCurFile|undefinedEntryInCurFile/",
+          "group": "inline@2"
+        },
+        {
+          "command": "i18nMage.goToDefinition",
+          "when": "viewItem =~ /GO_TO_DEFINITION/",
           "group": "inline@2"
         },
         {
@@ -305,7 +318,7 @@
         {
           "command": "i18nMage.editValue",
           "when": "viewItem =~ /EDIT_VALUE/",
-          "group": "inline@2"
+          "group": "inline@3"
         },
         {
           "command": "i18nMage.deleteUnusedEntries",

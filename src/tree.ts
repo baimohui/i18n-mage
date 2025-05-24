@@ -267,7 +267,7 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
       const entryKey = getValueByAmbiguousEntryName(this.tree, element.label as string) ?? "";
       const entryInfo = this.dictionary[entryKey];
       return this.langInfo.langList.map(lang => {
-        const contextValueList = ["entryTranslationInCurFile", "COPY_VALUE", "EDIT_VALUE"];
+        const contextValueList = ["entryTranslationInCurFile", "COPY_VALUE", "GO_TO_DEFINITION", "EDIT_VALUE"];
         if (!getLangText(lang)) {
           contextValueList.push("INVALID_LANG");
         }
@@ -318,7 +318,7 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
       }));
     } else if (element.level === 2) {
       return (element.data as [string, string][]).map(item => {
-        const contextValueList = ["syncInfoItem", "EDIT_VALUE"];
+        const contextValueList = ["syncInfoItem", "GO_TO_DEFINITION", "EDIT_VALUE"];
         return {
           label: unescapeString(item[0]),
           description: item[1],

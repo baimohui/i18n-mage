@@ -4,6 +4,7 @@ import { TreeProvider, PluginConfiguration } from "./tree";
 import LangCheckRobot from "./langCheckRobot";
 import previewFixContent from "./previewBeforeFix";
 import { LANG_INTRO_MAP, getLangIntro } from "./utils/const";
+import { getFileLocationFromId, selectProperty } from "./utils/regex"
 
 let isProcessing = false;
 let treeInstance: TreeProvider;
@@ -169,7 +170,7 @@ export function activate(): void {
     }
   );
 
-  vscode.commands.registerCommand("i18nMage.openFileAtPosition", async (e: { usedInfo: Record<string, number[]>; label: string }) => {
+  vscode.commands.registerCommand("i18nMage.goToReference", async (e: { usedInfo: Record<string, number[]>; label: string }) => {
     const editor = vscode.window.activeTextEditor;
     if (!editor) {
       vscode.window.showErrorMessage("没有活动的编辑器");
@@ -184,6 +185,17 @@ export function activate(): void {
       vscode.window.showTextDocument(resourceUri, { selection });
     }
   });
+
+  vscode.commands.registerCommand("i18nMage.goToDefinition", async (e: { data: { key: string; lang: string } }) => {
+    const { key, lang } = e.data;
+    let filePathSegs: string[] = []
+    if (robot.fileStructure?.children) {
+      filePathSegs = getFileLocationFromId(key, robot.fileStructure.children[lang]) ?? [];
+    }
+    const realKey = filePathSegs.length > 0 ? key.replace(`${filePathSegs.join(".")}.`, "") : key
+    const resourceUri = vscode.Uri.file(path.join(robot.langDir, lang, ...filePathSegs) + `.${robot.langFileType}`);
+    await selectProperty(resourceUri, realKey);
+  })
 
   vscode.commands.registerCommand("i18nMage.sort", () => {
     startProgress({
