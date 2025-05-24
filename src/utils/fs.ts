@@ -61,6 +61,7 @@ export function getPossibleLangDirs(rootDir: string): string[] {
   traverse(rootDir);
   // 去掉彼此包含的父目录，只保留最深那层
   const dirs = Array.from(results);
+  // TODO path.sep 路径分隔符，统一用这个
   return dirs.filter(a => !dirs.some(b => a !== b && b.startsWith(a + path.sep)));
 }
 

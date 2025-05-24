@@ -419,11 +419,14 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
   private getDictionaryChildren(element: ExtendedTreeItem): ExtendedTreeItem[] {
     const res = (element.stack || []).reduce((acc, item) => acc[item] as LangTree, this.tree) as string | LangTree;
     if (typeof res === "string") {
+      const contextValueList = ["dictionaryItem", "COPY_VALUE", "GO_TO_DEFINITION", "EDIT_VALUE"];
       return Object.entries(this.dictionary[res]).map(item => ({
         label: item[0],
         description: item[1],
         tooltip: getLangText(item[0]) || "未知语种",
         id: this.genId(element, item[0]),
+        contextValue: contextValueList.join(","),
+        data: { key: res, value: item[1], lang: item[0] },
         collapsibleState: vscode.TreeItemCollapsibleState.None
       }));
     } else {
