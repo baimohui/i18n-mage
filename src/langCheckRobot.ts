@@ -434,7 +434,7 @@ class LangCheckRobot {
       return;
     }
 
-    const tableData = [["Label", ...this.detectedLangList.map(item => getLangText(item, "en"))]];
+    const tableData = [["Label", ...this.detectedLangList.map(item => getLangText(item, "en") || item)]];
     for (const key in this.langDictionary) {
       const itemList = [key];
       const entryMap = this.langDictionary[key];
@@ -504,7 +504,7 @@ class LangCheckRobot {
               ]?.toString() ?? "";
             if (newLangText.trim() && oldLangText !== newLangText) {
               printInfo(
-                `条目 ${entryName} ${getLangText(lang)}更改：\x1b[31m${oldLangText}\x1b[0m -> \x1b[32m${newLangText}\x1b[0m`,
+                `条目 ${entryName} ${getLangText(lang) || lang}更改：\x1b[31m${oldLangText}\x1b[0m -> \x1b[32m${newLangText}\x1b[0m`,
                 "mage"
               );
               this._setUpdatedEntryValueInfo(entryName, newLangText, lang);
@@ -965,7 +965,7 @@ class LangCheckRobot {
     printInfo(`共成功检测 ${this.detectedLangList.length} 个语言文件，结果概览如下：`, "brain");
     const tableInfo: Record<string, Record<string, any>> = {};
     const getEntryTotal = (lang: string) => Object.keys(this.langCountryMap[lang]);
-    tableInfo["所属语种"] = this._genOverviewTableRow(lang => getLangText(lang));
+    tableInfo["所属语种"] = this._genOverviewTableRow(lang => getLangText(lang) || "未知语种");
     tableInfo["已有条目"] = this._genOverviewTableRow(lang => getEntryTotal(lang).length);
     if (this.task === "check") {
       if (this.checkUnityFlag) {

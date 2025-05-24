@@ -1,4 +1,5 @@
-// 多语言文件名/翻译平台语言码映射表
+import * as vscode from "vscode";
+
 interface LangIntro {
   cnName: string;
   enName: string;
@@ -7,6 +8,7 @@ interface LangIntro {
   bdCode: string;
 }
 
+// 多语言文件名/翻译平台语言码映射表
 export const LANG_INTRO_MAP: Record<string, LangIntro> = {
   am: { cnName: "阿姆哈拉语", enName: "Amharic", ggCode: "am", tcCode: "", bdCode: "amh" },
   ar: { cnName: "阿拉伯语", enName: "Arabic", ggCode: "ar", tcCode: "ar", bdCode: "ara" },
@@ -118,7 +120,7 @@ export const LANG_INTRO_MAP: Record<string, LangIntro> = {
 };
 
 // 多语言文件别名映射表
-export const LANG_ALIAS_MAP: Record<string, string[]> = {
+const DEFAULT_LANG_ALIAS_MAP: Record<string, string[]> = {
   am: ["ah", "amh", "am-ET"],
   ar: ["arb", "ar-SA", "ar-EG", "ar-AE"],
   az: ["az-AZ", "azeri"],
@@ -178,6 +180,19 @@ export const LANG_ALIAS_MAP: Record<string, string[]> = {
   zu: ["zu-ZA"]
 };
 
+// 获取合并后的映射表
+function getMergedLangMap(): Record<string, string[]> {
+  const config = vscode.workspace.getConfiguration("i18n-mage");
+  const customMappings = config.get<Record<string, string[]>>("langAliasCustomMappings") || {};
+  // 深拷贝默认配置
+  const mergedMap = JSON.parse(JSON.stringify(DEFAULT_LANG_ALIAS_MAP)) as Record<string, string[]>;
+  // 合并策略：用户配置覆盖默认值
+  for (const [lang, aliases] of Object.entries(customMappings)) {
+    mergedMap[lang] = [...(mergedMap[lang] ?? []), ...aliases];
+  }
+  return mergedMap;
+}
+
 // 预处理：构建反向索引映射
 const REVERSE_MAP = new Map<string, string>();
 const LANG_CODES = new Set<string>();
@@ -193,16 +208,16 @@ Object.entries(LANG_INTRO_MAP).forEach(([key, intro]) => {
     .forEach(code => REVERSE_MAP.set(code, key));
 });
 
-// 构建别名映射（别名 -> 主键）
-Object.entries(LANG_ALIAS_MAP).forEach(([key, aliases]) => {
-  aliases.forEach(alias => {
-    const normalized = alias.toLowerCase().replace(/_/g, "-");
-    REVERSE_MAP.set(normalized, key);
-  });
-});
-
 // 根据多语言文件名获取对应语种简介
 export function getLangIntro(str: string): LangIntro | null {
+  // 构建别名映射（别名 -> 主键）
+  const mergedLangMap = getMergedLangMap();
+  Object.entries(mergedLangMap).forEach(([key, aliases]) => {
+    aliases.forEach(alias => {
+      const normalized = alias.toLowerCase().replace(/_/g, "-");
+      REVERSE_MAP.set(normalized, key);
+    });
+  });
   // 标准化处理
   const baseName = str
     .split(".")[0]
@@ -247,9 +262,9 @@ export function getLangIntro(str: string): LangIntro | null {
 export function getLangText(str: string, type: "cn" | "en" = "cn"): string {
   const intro = getLangIntro(str) as LangIntro;
   if (type === "cn") {
-    return intro?.cnName || "未知语种";
+    return intro?.cnName || "";
   } else if (type === "en") {
-    return intro?.enName || "Unknown language";
+    return intro?.enName || "";
   } else {
     return str;
   }

@@ -251,12 +251,13 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
     } else if (element.level === 1) {
       return this[element.type === "defined" ? "definedEntriesInCurrentFile" : "undefinedEntriesInCurrentFile"].map(entry => {
         const entryInfo = this.dictionary[getValueByAmbiguousEntryName(this.tree, entry.text) as string] ?? {};
+        const contextValueList = [element.type === "defined" ? "definedEntryInCurFile" : "undefinedEntryInCurFile", "COPY_NAME"]
         return {
           label: entry.text,
           description: entryInfo[this.#robot.referredLang],
           collapsibleState: vscode.TreeItemCollapsibleState[element.type === "defined" ? "Collapsed" : "None"],
           level: 2,
-          contextValue: element.type === "defined" ? "definedEntryInCurFile" : "undefinedEntryInCurFile",
+          contextValue: contextValueList.join(","),
           usedInfo: this[element.type === "defined" ? "usedEntryMap" : "undefinedEntryMap"][entry.text],
           id: this.genId(element, entry.id || ""),
           root: element.root
@@ -265,34 +266,46 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
     } else if (element.level === 2) {
       const entryKey = getValueByAmbiguousEntryName(this.tree, element.label as string) ?? "";
       const entryInfo = this.dictionary[entryKey];
-      return this.langInfo.langList.map(lang => ({
-        label: lang,
-        name: element.label as string,
-        description: entryInfo[lang] ?? false,
-        collapsibleState: vscode.TreeItemCollapsibleState.None,
-        level: 3,
-        data: { name: element.label, key: entryKey, value: entryInfo[lang] ?? "", lang },
-        contextValue: "entryTranslationInCurFile",
-        id: this.genId(element, lang),
-        tooltip: getLangText(lang)
-      }));
+      return this.langInfo.langList.map(lang => {
+        const contextValueList = ["entryTranslationInCurFile", "COPY_VALUE", "EDIT_VALUE"];
+        if (!getLangText(lang)) {
+          contextValueList.push("INVALID_LANG");
+        }
+        return {
+          label: lang,
+          name: element.label as string,
+          description: entryInfo[lang] ?? false,
+          collapsibleState: vscode.TreeItemCollapsibleState.None,
+          level: 3,
+          data: { name: element.label, key: entryKey, value: entryInfo[lang] ?? "", lang },
+          contextValue: contextValueList.join(","),
+          id: this.genId(element, lang),
+          tooltip: getLangText(lang) || "未知语种"
+        };
+      });
     }
     return [];
   }
 
   private getSyncInfoChildren(element: ExtendedTreeItem): ExtendedTreeItem[] {
     if (element.level === 0) {
-      return this.langInfo.langList.map(lang => ({
-        level: 1,
-        key: lang,
-        label: lang,
-        root: element.root,
-        tooltip: getLangText(lang),
-        id: this.genId(element, lang),
-        contextValue: "checkSyncInfo",
-        description: this.checkLangSyncInfo(lang),
-        collapsibleState: vscode.TreeItemCollapsibleState.Collapsed
-      }));
+      return this.langInfo.langList.map(lang => {
+        const contextValueList = ["checkSyncInfo"]
+        if (!getLangText(lang)) {
+          contextValueList.push("INVALID_LANG");
+        }
+        return {
+          level: 1,
+          key: lang,
+          label: lang,
+          root: element.root,
+          tooltip: getLangText(lang) || "未知语种",
+          id: this.genId(element, lang),
+          contextValue: contextValueList.join(","),
+          description: this.checkLangSyncInfo(lang),
+          collapsibleState: vscode.TreeItemCollapsibleState.Collapsed
+        }
+      });
     } else if (element.level === 1) {
       return this.getSyncInfo(element.key as string).map(item => ({
         ...item,
@@ -304,16 +317,19 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
         collapsibleState: vscode.TreeItemCollapsibleState[item.num === 0 ? "None" : item.type === "common" ? "Collapsed" : "Expanded"]
       }));
     } else if (element.level === 2) {
-      return (element.data as [string, string][]).map(item => ({
-        label: unescapeString(item[0]),
-        description: item[1],
-        level: 3,
-        key: element.key,
-        id: this.genId(element, item[0]),
-        contextValue: "syncInfoItem",
-        data: { name: unescapeString(item[0]), key: item[0], value: element.type === "common" ? item[1] : "", lang: element.key },
-        collapsibleState: vscode.TreeItemCollapsibleState.None
-      }));
+      return (element.data as [string, string][]).map(item => {
+        const contextValueList = ["syncInfoItem", "EDIT_VALUE"];
+        return {
+          label: unescapeString(item[0]),
+          description: item[1],
+          level: 3,
+          key: element.key,
+          id: this.genId(element, item[0]),
+          contextValue: contextValueList.join(","),
+          data: { name: unescapeString(item[0]), key: item[0], value: element.type === "common" ? item[1] : "", lang: element.key },
+          collapsibleState: vscode.TreeItemCollapsibleState.None
+        };
+      });
     }
     return [];
   }
@@ -406,7 +422,7 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
       return Object.entries(this.dictionary[res]).map(item => ({
         label: item[0],
         description: item[1],
-        tooltip: getLangText(item[0]),
+        tooltip: getLangText(item[0]) || "未知语种",
         id: this.genId(element, item[0]),
         collapsibleState: vscode.TreeItemCollapsibleState.None
       }));

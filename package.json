@@ -98,6 +98,17 @@
               "tencent"
             ],
             "description": "翻译调用优先级"
+          },
+          "i18n-mage.langAliasCustomMappings": {
+            "type": "object",
+            "description": "自定义语言别名映射（格式：{ 'lang': ['alias1', 'alias2'] }）",
+            "default": {},
+            "additionalProperties": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
           }
         }
       },
@@ -144,6 +155,14 @@
       {
         "command": "i18nMage.setReferredLang",
         "title": "设为参考语言"
+      },
+      {
+        "command": "i18nMage.markAsKnownLanguage",
+        "title": "标记为已知语言",
+        "icon": {
+          "light": "./images/claim-light.svg",
+          "dark": "./images/claim-dark.svg"
+        }
       },
       {
         "command": "i18nMage.checkUsage",
@@ -252,7 +271,12 @@
       "view/item/context": [
         {
           "command": "i18nMage.setReferredLang",
-          "when": "viewItem == checkSyncInfo"
+          "when": "viewItem =~ /checkSyncInfo/"
+        },
+        {
+          "command": "i18nMage.markAsKnownLanguage",
+          "when": "viewItem =~ /INVALID_LANG/",
+          "group": "inline@1"
         },
         {
           "command": "i18nMage.checkUsage",
@@ -265,22 +289,22 @@
         },
         {
           "command": "i18nMage.copyName",
-          "when": "viewItem == definedEntryInCurFile || viewItem == undefinedEntryInCurFile",
+          "when": "viewItem =~ /COPY_NAME/",
           "group": "inline@1"
         },
         {
           "command": "i18nMage.openFileAtPosition",
-          "when": "viewItem == definedEntryInCurFile || viewItem == undefinedEntryInCurFile",
+          "when": "viewItem =~ /definedEntryInCurFile|undefinedEntryInCurFile/",
           "group": "inline@2"
         },
         {
           "command": "i18nMage.copyValue",
-          "when": "viewItem == entryTranslationInCurFile",
+          "when": "viewItem =~ /COPY_VALUE/",
           "group": "inline@1"
         },
         {
           "command": "i18nMage.editValue",
-          "when": "viewItem == entryTranslationInCurFile || viewItem == syncInfoItem",
+          "when": "viewItem =~ /EDIT_VALUE/",
           "group": "inline@2"
         },
         {

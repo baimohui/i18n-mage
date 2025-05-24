@@ -42,8 +42,14 @@ const translateTo = async (data: TranslateData): Promise<TranslateResult> => {
   }
 
   let res: TranslateResult;
-  const sourceLangCode = getLangCode(source, availableApi) ?? source;
-  const targetLangCode = getLangCode(target, availableApi) ?? target;
+  const sourceLangCode = getLangCode(source, availableApi);
+  const targetLangCode = getLangCode(target, availableApi);
+  if (sourceLangCode === null) {
+    return { success: false, message: `源语言 ${source} 不支持 ${availableApi} 翻译` };
+  }
+  if (targetLangCode === null) {
+    return { success: false, message: `目标语言 ${target} 不支持 ${availableApi} 翻译` };
+  }
   const params: TranslateParams = {
     source: sourceLangCode,
     target: targetLangCode,

@@ -3,6 +3,7 @@ import * as path from "path";
 import { TreeProvider, PluginConfiguration } from "./tree";
 import LangCheckRobot from "./langCheckRobot";
 import previewFixContent from "./previewBeforeFix";
+import { LANG_INTRO_MAP, getLangIntro } from "./utils/const";
 
 let isProcessing = false;
 let treeInstance: TreeProvider;
@@ -34,6 +35,40 @@ export function activate(): void {
         await robot.execute();
       }
     });
+  });
+
+  vscode.commands.registerCommand("i18nMage.markAsKnownLanguage", async ({ key: langKey }) => {
+    try {
+      const reverseMap: Record<string, string> = {};
+      const languageList = Object.entries(LANG_INTRO_MAP)
+        .map(([key, info]) => {
+          reverseMap[info.cnName] = key;
+          return info.cnName;
+        })
+        .filter(cnName => robot.detectedLangList.every(i => getLangIntro(i)?.cnName !== cnName));
+      const selectedText = await vscode.window.showQuickPick(languageList, {
+        placeHolder: `标记 ${langKey} 所属语言`
+      });
+      if (typeof selectedText === "string" && selectedText.trim()) {
+        const selectedKey = reverseMap[selectedText];
+        const config = vscode.workspace.getConfiguration("i18n-mage");
+        const mappings = config.get<Record<string, string[]>>("langAliasCustomMappings") || {};
+        const aliases = new Set(mappings[selectedKey] ?? []);
+        if (!aliases.has(langKey as string)) {
+          aliases.add(langKey as string);
+          await config.update(
+            "langAliasCustomMappings",
+            { ...mappings, [selectedKey]: Array.from(aliases) },
+            vscode.ConfigurationTarget.Global
+          );
+          vscode.window.showInformationMessage(`已添加映射：${langKey} → ${selectedText}`);
+        } else {
+          vscode.window.showWarningMessage(`[${langKey}] 已存在于 ${selectedText} 的别名列表`);
+        }
+      }
+    } catch (err) {
+      vscode.window.showErrorMessage(`标记失败：${err instanceof Error ? err.message : "发生未知错误"}`);
+    }
   });
 
   vscode.commands.registerCommand("i18nMage.checkUsage", () => {
@@ -187,7 +222,7 @@ export function activate(): void {
                 vscode.window.showInformationMessage("Fix success");
               });
             } else {
-              vscode.window.showErrorMessage("No updated entries found.");
+              vscode.window.showWarningMessage("No updated entries found.");
             }
           }
         }
@@ -252,7 +287,7 @@ export function activate(): void {
                   vscode.window.showInformationMessage("Import success");
                 });
               } else {
-                vscode.window.showErrorMessage("No updated entries found.");
+                vscode.window.showWarningMessage("No updated entries found.");
               }
             }
           }
