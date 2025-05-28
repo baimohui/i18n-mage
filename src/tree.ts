@@ -318,7 +318,10 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
       }));
     } else if (element.level === 2) {
       return (element.data as [string, string][]).map(item => {
-        const contextValueList = ["syncInfoItem", "GO_TO_DEFINITION", "EDIT_VALUE"];
+        const contextValueList = ["syncInfoItem", "EDIT_VALUE"];
+        if (element.type !== "lack") {
+          contextValueList.push("GO_TO_DEFINITION");
+        }
         return {
           label: unescapeString(item[0]),
           description: item[1],
