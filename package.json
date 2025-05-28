@@ -213,6 +213,14 @@
         }
       },
       {
+        "command": "i18nMage.copyKeyValueList",
+        "title": "复制键值对",
+        "icon": {
+          "light": "./images/copy-light.svg",
+          "dark": "./images/copy-dark.svg"
+        }
+      },
+      {
         "command": "i18nMage.goToReference",
         "title": "跳转到引用位置",
         "icon": {
@@ -299,6 +307,10 @@
           "command": "i18nMage.copyName",
           "when": "viewItem =~ /COPY_NAME/",
           "group": "inline@1"
+        },
+        {
+          "command": "i18nMage.copyKeyValueList",
+          "when": "viewItem =~ /COPY_KEY_VALUE_LIST/"
         },
         {
           "command": "i18nMage.goToReference",

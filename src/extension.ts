@@ -4,7 +4,7 @@ import { TreeProvider, PluginConfiguration } from "./tree";
 import LangCheckRobot from "./langCheckRobot";
 import previewFixContent from "./previewBeforeFix";
 import { LANG_INTRO_MAP, getLangIntro } from "./utils/const";
-import { getFileLocationFromId, selectProperty } from "./utils/regex"
+import { getFileLocationFromId, selectProperty, formatForFile } from "./utils/regex";
 
 let isProcessing = false;
 let treeInstance: TreeProvider;
@@ -103,6 +103,12 @@ export function activate(): void {
     });
   });
 
+  vscode.commands.registerCommand("i18nMage.copyKeyValueList", async (e: vscode.TreeItem & { data: { name: string; value: string }[] }) => {
+    const content = e.data.map(i => `"${i.name}": "${formatForFile(i.value)}",`).join("\n");
+    await vscode.env.clipboard.writeText(content);
+    vscode.window.showInformationMessage(`已复制：${content}`);
+  });
+
   vscode.commands.registerCommand("i18nMage.copyName", async (e: vscode.TreeItem) => {
     if (typeof e.label !== "string" || e.label.trim() === "") return;
     await vscode.env.clipboard.writeText(e.label);
@@ -188,14 +194,14 @@ export function activate(): void {
 
   vscode.commands.registerCommand("i18nMage.goToDefinition", async (e: { data: { key: string; lang: string } }) => {
     const { key, lang } = e.data;
-    let filePathSegs: string[] = []
+    let filePathSegs: string[] = [];
     if (robot.fileStructure?.children) {
       filePathSegs = getFileLocationFromId(key, robot.fileStructure.children[lang]) ?? [];
     }
-    const realKey = filePathSegs.length > 0 ? key.replace(`${filePathSegs.join(".")}.`, "") : key
+    const realKey = filePathSegs.length > 0 ? key.replace(`${filePathSegs.join(".")}.`, "") : key;
     const resourceUri = vscode.Uri.file(path.join(robot.langDir, lang, ...filePathSegs) + `.${robot.langFileType}`);
     await selectProperty(resourceUri, realKey);
-  })
+  });
 
   vscode.commands.registerCommand("i18nMage.sort", () => {
     startProgress({

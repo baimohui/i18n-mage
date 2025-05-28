@@ -73,6 +73,10 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
     return this.langInfo.dictionary;
   }
 
+  get countryMap() {
+    return this.langInfo.countryMap;
+  }
+
   get tree() {
     return this.langInfo.tree;
   }
@@ -228,11 +232,21 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
 
   private getCurrentFileChildren(element: ExtendedTreeItem): ExtendedTreeItem[] {
     if (element.level === 0) {
+      const definedContextValueList = ["definedEntriesInCurFile"];
+      if (this.definedEntriesInCurrentFile.length > 0) {
+        definedContextValueList.push("COPY_KEY_VALUE_LIST");
+      }
       return [
         {
           label: "已定义",
           description: String(this.definedEntriesInCurrentFile.length),
           collapsibleState: vscode.TreeItemCollapsibleState[this.definedEntriesInCurrentFile.length === 0 ? "None" : "Collapsed"],
+          data: this.definedEntriesInCurrentFile.map(item => ({
+            name: item.text,
+            value: this.countryMap[this.#robot.referredLang][getValueByAmbiguousEntryName(this.tree, item.text) as string] ?? ""
+            // value: this.dictionary[getValueByAmbiguousEntryName(this.tree, item.text) as string]?.[this.#robot.referredLang] ?? ""
+          })),
+          contextValue: definedContextValueList.join(","),
           level: 1,
           type: "defined",
           id: this.genId(element, "defined"),
@@ -251,7 +265,7 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
     } else if (element.level === 1) {
       return this[element.type === "defined" ? "definedEntriesInCurrentFile" : "undefinedEntriesInCurrentFile"].map(entry => {
         const entryInfo = this.dictionary[getValueByAmbiguousEntryName(this.tree, entry.text) as string] ?? {};
-        const contextValueList = [element.type === "defined" ? "definedEntryInCurFile" : "undefinedEntryInCurFile", "COPY_NAME"]
+        const contextValueList = [element.type === "defined" ? "definedEntryInCurFile" : "undefinedEntryInCurFile", "COPY_NAME"];
         return {
           label: entry.text,
           description: entryInfo[this.#robot.referredLang],
@@ -290,7 +304,7 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
   private getSyncInfoChildren(element: ExtendedTreeItem): ExtendedTreeItem[] {
     if (element.level === 0) {
       return this.langInfo.langList.map(lang => {
-        const contextValueList = ["checkSyncInfo"]
+        const contextValueList = ["checkSyncInfo"];
         if (!getLangText(lang)) {
           contextValueList.push("INVALID_LANG");
         }
@@ -304,7 +318,7 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
           contextValue: contextValueList.join(","),
           description: this.checkLangSyncInfo(lang),
           collapsibleState: vscode.TreeItemCollapsibleState.Collapsed
-        }
+        };
       });
     } else if (element.level === 1) {
       return this.getSyncInfo(element.key as string).map(item => ({
