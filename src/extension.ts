@@ -104,7 +104,7 @@ export function activate(): void {
   });
 
   vscode.commands.registerCommand("i18nMage.copyKeyValueList", async (e: vscode.TreeItem & { data: { name: string; value: string }[] }) => {
-    const content = e.data.map(i => `"${i.name}": "${formatForFile(i.value)}",`).join("\n");
+    const content = e.data.map(i => `${formatForFile(i.name)}: ${formatForFile(i.value)},`).join("\n");
     await vscode.env.clipboard.writeText(content);
     vscode.window.showInformationMessage(`已复制：${content}`);
   });
