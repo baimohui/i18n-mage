@@ -50,13 +50,11 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
   usedEntries: TEntry[] = [];
   definedEntriesInCurrentFile: TEntry[] = [];
   undefinedEntriesInCurrentFile: TEntry[] = [];
-  usedEntryMap: Record<string, Record<string, number[]>>;
   private _onDidChangeTreeData = new vscode.EventEmitter<void>();
   readonly onDidChangeTreeData = this._onDidChangeTreeData.event;
 
   constructor() {
     this.#robot = LangCheckRobot.getInstance();
-    this.usedEntryMap = this.#robot.langDetail.used ?? {};
     vscode.window.onDidChangeActiveTextEditor(() => {
       if (this.isInitialized) {
         this.onActiveEditorChanged();
@@ -81,6 +79,10 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
     return this.langInfo.tree;
   }
 
+  get usedEntryMap() {
+    return this.langInfo.used ?? {};
+  }
+
   get undefinedEntryMap() {
     return this.langInfo.undefined ?? {};
   }
@@ -91,7 +93,7 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
     const usedEntries: { key: string; name: string }[] = [];
     for (const key in dictionary) {
       const name = unescapeString(key);
-      if (Object.hasOwn(this.langInfo.used, name)) {
+      if (Object.hasOwn(this.usedEntryMap, name)) {
         usedEntries.push({ name, key });
       } else {
         unusedEntries.push({ name, key });
@@ -474,7 +476,7 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
     if (isPathInsideDirectory(this.#robot.langDir, content.fileName)) {
       console.log("isPathInsideDirectory");
     }
-    this.#robot.setOptions({ task: "check", globalFlag: true, clearCache: false });
+    this.#robot.setOptions({ task: "check", globalFlag: true, clearCache: true });
     await this.#robot.execute();
     this.checkUsedInfo();
   }
@@ -486,18 +488,17 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
     if (editor) {
       const text = editor.document.getText();
       this.usedEntries = catchTEntries(text);
-      const usedEntryMap = this.#robot.langDetail.used ?? {};
       this.usedEntries.forEach(entry => {
         if (Object.hasOwn(this.undefinedEntryMap, entry.text)) {
           if (this.undefinedEntriesInCurrentFile.every(item => item.text !== entry.text)) {
             this.undefinedEntriesInCurrentFile.push(entry);
           }
-        } else if (Object.hasOwn(usedEntryMap, entry.text)) {
+        } else if (Object.hasOwn(this.usedEntryMap, entry.text)) {
           if (this.definedEntriesInCurrentFile.every(item => item.text !== entry.text)) {
             this.definedEntriesInCurrentFile.push(entry);
           }
         } else {
-          const matchList = Object.keys(usedEntryMap).filter(item => entry.regex.test(item));
+          const matchList = Object.keys(this.usedEntryMap).filter(item => entry.regex.test(item));
           matchList.forEach(matchItem => {
             if (this.definedEntriesInCurrentFile.every(item => item.text !== matchItem)) {
               this.definedEntriesInCurrentFile.push({ ...entry, text: matchItem, id: matchItem });
