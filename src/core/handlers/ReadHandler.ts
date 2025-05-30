@@ -1,0 +1,200 @@
+import fs from "fs";
+import path from "path";
+import { LangContextInternal } from "@/types";
+import { printInfo } from "@/utils/print";
+import { catchAllEntries, extractLangDataFromDir, flattenNestedObj, escapeString, unescapeString, getCaseType } from "@/utils/regex";
+import { getDetectedLangList } from "@/core/tools/contextTools";
+import { EntryTree, LangDictionary, LangTree } from "@/types";
+import { LANG_ENTRY_SPLIT_SYMBOL } from "@/utils/const";
+
+export class ReadHandler {
+  constructor(private ctx: LangContextInternal) {}
+
+  get detectedLangList() {
+    return getDetectedLangList(this.ctx);
+  }
+
+  public readLangFiles(): void {
+    const langData = extractLangDataFromDir(this.ctx.langDir);
+    if (langData === null) {
+      printInfo(`无效路径：${this.ctx.langDir}`, "ghost");
+      return;
+    }
+    const langTree = langData.langTree;
+    this.ctx.langFileExtraInfo = langData.fileExtraInfo;
+    this.ctx.langFileType = langData.fileType;
+    this.ctx.langFormatType = langData.formatType;
+    this.ctx.fileStructure = langData.fileStructure;
+    this.ctx.referredLang = this.detectedLangList.find(item => item.includes(this.ctx.referredLang))!;
+    Object.entries(langTree).forEach(([lang, data]) => {
+      this.ctx.langCountryMap[lang] = flattenNestedObj(data);
+    });
+    const { structure, lookup } = this.mergeTreeToTwoObjectsSemantic(langTree);
+    this.ctx.entryTree = structure;
+    this.ctx.langDictionary = lookup;
+    if (!this.ctx.referredLang) {
+      // TODO 替换成 getLangCode
+      const cnName = this.detectedLangList.find(lang => /^(zh|cn|chs|cht|zh-cn|zh-tw|zh-hk)$/i.test(lang));
+      const enName = this.detectedLangList.find(lang => /^(en|eng|en-us|en-gb)$/i.test(lang));
+      this.ctx.referredLang = cnName ?? enName ?? this.detectedLangList[0];
+    }
+    this.ctx.referredEntryList = [
+      ...new Set(this.ctx.referredEntryList.concat(Object.keys(this.ctx.langCountryMap[this.ctx.referredLang])))
+    ];
+    Object.keys(this.ctx.langDictionary).forEach(key => this._genEntryClassTree(unescapeString(key)));
+  }
+
+  public startCensus(): void {
+    if (this.ctx.showPreInfo) {
+      printInfo("正在对条目进行全局捕获，这可能需要一点时间...", "brain");
+    }
+    const filePaths = this._readAllFiles(this.ctx.rootPath);
+    const pathLevelCountMap: Record<number, number> = {};
+    let maxNum = 0;
+    const totalEntryList = Object.keys(this.ctx.langDictionary).map(key => unescapeString(key));
+    this.ctx.undefinedEntryList = [];
+    this.ctx.undefinedEntryMap = {};
+    for (const filePath of filePaths) {
+      if (this.ctx.ignoredFileList.some(ifp => path.resolve(filePath) === path.resolve(path.join(this.ctx.rootPath, ifp)))) continue;
+      const fileContent = fs.readFileSync(filePath, "utf8");
+      const getLayerLen = (str: string) => str.split(LANG_ENTRY_SPLIT_SYMBOL[this.ctx.langFormatType] as string).length;
+      const isSameLayer = (str0: string, str1: string) => getLayerLen(str0) === getLayerLen(str1);
+      const { tItems, existedItems } = catchAllEntries(fileContent, this.ctx.langFormatType, this.ctx.entryClassTree);
+      const usedEntryList = existedItems.slice();
+      if (usedEntryList.length > maxNum) {
+        maxNum = usedEntryList.length;
+        this.ctx.roguePath = filePath;
+      }
+      for (const item of tItems) {
+        const filterList = totalEntryList.filter(entry => item.regex.test(entry) && isSameLayer(item.text, entry));
+        if (filterList.length === 0) {
+          this.ctx.undefinedEntryList.push({ ...item, path: filePath });
+          this.ctx.undefinedEntryMap[item.text] ??= {};
+          this.ctx.undefinedEntryMap[item.text][filePath] ??= [];
+          this.ctx.undefinedEntryMap[item.text][filePath].push(item.pos);
+        } else {
+          usedEntryList.push(
+            ...filterList.map(entryName => ({
+              name: entryName,
+              pos: item.pos
+            }))
+          );
+        }
+      }
+      // usedEntryList = [...new Set(usedEntryList)];
+      if (usedEntryList.length > 0) {
+        const count = filePath.split("\\").length - 1;
+        pathLevelCountMap[count] ??= 0;
+        pathLevelCountMap[count]++;
+        usedEntryList.forEach(entry => {
+          this.ctx.usedEntryMap[entry.name] ??= {};
+          this.ctx.usedEntryMap[entry.name][filePath] ??= [];
+          if (!this.ctx.usedEntryMap[entry.name][filePath].includes(entry.pos)) {
+            this.ctx.usedEntryMap[entry.name][filePath].push(entry.pos);
+          }
+        });
+      }
+    }
+    let primaryPathLevel = 0;
+    Object.entries(pathLevelCountMap).forEach(([key, value]) => {
+      if (value > (pathLevelCountMap[primaryPathLevel] || 0)) {
+        primaryPathLevel = Number(key);
+      }
+    });
+    this.ctx.primaryPathLevel = primaryPathLevel;
+  }
+
+  private _readAllFiles(dir: string): string[] {
+    const pathList: string[] = [];
+    const results = fs.readdirSync(dir, { withFileTypes: true });
+    for (let i = 0; i < results.length; i++) {
+      const targetName = results[i].name;
+      const tempPath = path.join(dir, targetName);
+      const isLangDir = path.resolve(tempPath) === path.resolve(this.ctx.langDir);
+      const ignoredDirList = ["dist", "node_modules", "img", "image", "css", "asset", "langChecker", ".vscode"];
+      if (results[i].isDirectory() && ignoredDirList.every(name => !targetName.includes(name)) && !isLangDir) {
+        const tempPathList = this._readAllFiles(tempPath);
+        pathList.push(...tempPathList);
+      }
+      const ignoredNameList = ["jquery", "element", "qrcode", "underscore", "vant", "language", "vue.js"];
+      if (
+        !results[i].isDirectory() &&
+        [".js", ".vue", ".html", ".jsx", ".ts", ".tsx"].some(type => targetName.endsWith(type)) &&
+        ignoredNameList.every(name => !targetName.includes(name))
+      ) {
+        pathList.push(tempPath);
+      }
+    }
+    return pathList;
+  }
+
+  private mergeTreeToTwoObjectsSemantic(langTree: LangTree): { structure: EntryTree; lookup: LangDictionary } {
+    const structure: EntryTree = {};
+    const lookup: LangDictionary = {};
+    function setAtPath(obj: EntryTree, path: string[], value: string): void {
+      let cur = obj;
+      for (let i = 0; i < path.length - 1; i++) {
+        const key = path[i];
+        if (!Object.hasOwn(cur, key) || typeof cur[key] !== "object") {
+          cur[key] = {};
+        }
+        cur = cur[key];
+      }
+      cur[path[path.length - 1]] = value;
+    }
+    function traverse(node: string | EntryTree, path: string[], idTree: EntryTree, label: string): void {
+      if (typeof node === "string") {
+        const id = path.map(key => escapeString(key)).join(".");
+        setAtPath(idTree, path, id);
+        if (!(id in lookup)) {
+          lookup[id] = {};
+        }
+        lookup[id][label] = node;
+      } else {
+        for (const key in node) {
+          traverse(node[key], path.concat(key), idTree, label);
+        }
+      }
+    }
+    Object.entries(langTree).forEach(([lang, tree]) => {
+      traverse(tree, [], structure, lang);
+    });
+    return { structure, lookup };
+  }
+
+  private _genEntryClassTree(name: string = ""): void {
+    const splitSymbol = LANG_ENTRY_SPLIT_SYMBOL[this.ctx.langFormatType] as string;
+    const structure = name.split(splitSymbol);
+    const structureLayer = structure.length;
+    const primaryClass = structure[0];
+    if (Object.hasOwn(this.ctx.entryClassInfo, primaryClass)) {
+      const classInfo = this.ctx.entryClassInfo[primaryClass];
+      classInfo.num++;
+      if (!classInfo.layer.includes(structureLayer)) {
+        classInfo.layer.push(structureLayer);
+      }
+    } else {
+      this.ctx.entryClassInfo[primaryClass] = {
+        num: 1,
+        layer: [structureLayer],
+        case: getCaseType(primaryClass),
+        childrenCase: {}
+      };
+    }
+    let tempObj = this.ctx.entryClassTree;
+    structure.forEach((key, index) => {
+      if (tempObj[key] === undefined || tempObj[key] === null) {
+        if (structureLayer > index + 1) {
+          tempObj[key] = {};
+        } else {
+          tempObj[key] = null;
+          const keyCase = getCaseType(key);
+          const childrenCase = this.ctx.entryClassInfo[primaryClass].childrenCase;
+          childrenCase[keyCase] ??= 0;
+          childrenCase[keyCase]++;
+        }
+      }
+      tempObj = tempObj[key] as object;
+    });
+  }
+}

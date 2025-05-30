@@ -29,3 +29,12 @@ export function printInfo(str: string = "", type: PrintType): void {
   }
   console.info(text);
 }
+
+export function formatEntriesInTerminal(list: string[], showColor: boolean = true): string {
+  return (
+    list
+      .slice(0, 100)
+      .map(item => (showColor ? `\x1b[33m${item}\x1b[0m` : item))
+      .join(", ") + (list.length > 100 ? "..." : "")
+  );
+}

@@ -1,9 +1,9 @@
 import * as vscode from "vscode";
-import LangCheckRobot from "./langCheckRobot";
-import { catchTEntries, unescapeString, getValueByAmbiguousEntryName } from "./utils/regex";
-import { isPathInsideDirectory, getPossibleLangDirs } from "./utils/fs";
-import { getLangText } from "./utils/const";
-import { TEntry, LangTree } from "./types";
+import LangMage from "@/core/LangMage";
+import { catchTEntries, unescapeString, getValueByAmbiguousEntryName } from "@/utils/regex";
+import { isPathInsideDirectory, getPossibleLangDirs } from "@/utils/fs";
+import { getLangText } from "@/utils/const";
+import { TEntry, LangTree } from "@/types";
 
 interface ExtendedTreeItem extends vscode.TreeItem {
   level?: number;
@@ -45,7 +45,7 @@ class FileItem extends vscode.TreeItem {
 }
 
 class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
-  #robot: LangCheckRobot;
+  #mage: LangMage;
   isInitialized = false;
   usedEntries: TEntry[] = [];
   definedEntriesInCurrentFile: TEntry[] = [];
@@ -54,7 +54,7 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
   readonly onDidChangeTreeData = this._onDidChangeTreeData.event;
 
   constructor() {
-    this.#robot = LangCheckRobot.getInstance();
+    this.#mage = LangMage.getInstance();
     vscode.window.onDidChangeActiveTextEditor(() => {
       if (this.isInitialized) {
         this.onActiveEditorChanged();
@@ -63,8 +63,12 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
     vscode.workspace.onDidSaveTextDocument(e => this.onDocumentChanged(e));
   }
 
+  get publicCtx() {
+    return this.#mage.getPublicContext();
+  }
+
   get langInfo() {
-    return this.#robot.langDetail;
+    return this.#mage.langDetail;
   }
 
   get dictionary() {
@@ -111,7 +115,7 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
   }
 
   getChildren(element?: ExtendedTreeItem): vscode.ProviderResult<vscode.TreeItem[]> {
-    if (!this.#robot.langDir) {
+    if (!this.publicCtx.langDir) {
       return [];
     }
     if (!element) {
@@ -144,7 +148,7 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
     }
     const config = vscode.workspace.getConfiguration("i18n-mage") as PluginConfiguration;
 
-    this.#robot.setOptions({
+    this.#mage.setOptions({
       rootPath,
       referredLang: config.referenceLanguage,
       ignoredFileList: config.ignoredFileList,
@@ -168,16 +172,16 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
     } else {
       const possibleLangDirs = getPossibleLangDirs(rootPath);
       for (const langDir of possibleLangDirs) {
-        this.#robot.setOptions({ langDir, task: "check", globalFlag: true, clearCache: false });
-        await this.#robot.execute();
-        if (this.#robot.detectedLangList.length > 0) {
+        this.#mage.setOptions({ langDir, task: "check", globalFlag: true, clearCache: false });
+        await this.#mage.execute();
+        if (this.#mage.detectedLangList.length > 0) {
           break;
         }
       }
-      if (this.#robot.detectedLangList.length === 0) {
+      if (this.#mage.detectedLangList.length === 0) {
         vscode.window.showInformationMessage("No lang dir in workspace");
         vscode.commands.executeCommand("setContext", "hasValidLangDir", false);
-        this.#robot.setOptions({ langDir: "" });
+        this.#mage.setOptions({ langDir: "" });
         success = false;
       } else {
         this.checkUsedInfo();
@@ -245,8 +249,8 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
           collapsibleState: vscode.TreeItemCollapsibleState[this.definedEntriesInCurrentFile.length === 0 ? "None" : "Collapsed"],
           data: this.definedEntriesInCurrentFile.map(item => ({
             name: item.text,
-            value: this.countryMap[this.#robot.referredLang][getValueByAmbiguousEntryName(this.tree, item.text) as string] ?? ""
-            // value: this.dictionary[getValueByAmbiguousEntryName(this.tree, item.text) as string]?.[this.#robot.referredLang] ?? ""
+            value: this.countryMap[this.publicCtx.referredLang][getValueByAmbiguousEntryName(this.tree, item.text) as string] ?? ""
+            // value: this.dictionary[getValueByAmbiguousEntryName(this.tree, item.text) as string]?.[this.#mage.referredLang] ?? ""
           })),
           contextValue: definedContextValueList.join(","),
           level: 1,
@@ -270,7 +274,7 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
         const contextValueList = [element.type === "defined" ? "definedEntryInCurFile" : "undefinedEntryInCurFile", "COPY_NAME"];
         return {
           label: entry.text,
-          description: entryInfo[this.#robot.referredLang],
+          description: entryInfo[this.publicCtx.referredLang],
           collapsibleState: vscode.TreeItemCollapsibleState[element.type === "defined" ? "Collapsed" : "None"],
           level: 2,
           contextValue: contextValueList.join(","),
@@ -393,7 +397,7 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
           return {
             key: item.key,
             label: item.name,
-            description: `<${usedNum}>${entryInfo[this.#robot.referredLang]}`,
+            description: `<${usedNum}>${entryInfo[this.publicCtx.referredLang]}`,
             level: 2,
             type: element.type,
             root: element.root,
@@ -406,7 +410,7 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
           const entryInfo = this.dictionary[item.key];
           return {
             label: item.name,
-            description: entryInfo[this.#robot.referredLang],
+            description: entryInfo[this.publicCtx.referredLang],
             level: 2,
             root: element.root,
             data: [item],
@@ -461,7 +465,7 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
           const stack = (element.stack || []).concat(item[0]);
           return {
             label: item[0],
-            description: typeof item[1] === "string" ? this.dictionary[item[1]][this.#robot.referredLang] : false,
+            description: typeof item[1] === "string" ? this.dictionary[item[1]][this.publicCtx.referredLang] : false,
             root: element.root,
             id: this.genId(element, item[0]),
             stack,
@@ -473,11 +477,11 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
   }
 
   private async onDocumentChanged(content: vscode.TextDocument): Promise<void> {
-    if (isPathInsideDirectory(this.#robot.langDir, content.fileName)) {
+    if (isPathInsideDirectory(this.publicCtx.langDir, content.fileName)) {
       console.log("isPathInsideDirectory");
     }
-    this.#robot.setOptions({ task: "check", globalFlag: true, clearCache: true });
-    await this.#robot.execute();
+    this.#mage.setOptions({ task: "check", globalFlag: true, clearCache: true });
+    await this.#mage.execute();
     this.checkUsedInfo();
   }
 
@@ -524,7 +528,7 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
     if (lackNum === 0 && extraNum === 0 && nullNum === 0) {
       list.push("已同步");
     }
-    if (lang === this.#robot.referredLang) {
+    if (lang === this.publicCtx.referredLang) {
       list.push("参考");
     }
     return list.join(" ");
@@ -544,14 +548,14 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
         commonEntries.push(item);
       }
     });
-    const lackEntries = (this.langInfo.lack?.[lang] ?? []).map(item => [item, this.dictionary[item][this.#robot.referredLang]]);
-    const nullEntries = nullEntryNameList.map(item => [item, this.dictionary[item][this.#robot.referredLang]]);
+    const lackEntries = (this.langInfo.lack?.[lang] ?? []).map(item => [item, this.dictionary[item][this.publicCtx.referredLang]]);
+    const nullEntries = nullEntryNameList.map(item => [item, this.dictionary[item][this.publicCtx.referredLang]]);
     const res = [
       { label: "正常", num: commonEntries.length, data: commonEntries, type: "common" },
       { label: "空值", num: nullEntries.length, data: nullEntries, type: "null" },
       { label: "缺失", num: lackEntries.length, data: lackEntries, type: "lack" }
     ];
-    if (this.#robot.syncBasedOnReferredEntries) {
+    if (this.publicCtx.syncBasedOnReferredEntries) {
       res.push({ label: "多余", num: extraEntries.length, data: extraEntries, type: "extra" });
     }
     return res;
@@ -562,7 +566,7 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
     const lackNum = lackList.reduce((pre, cur) => pre + cur.length, 0);
     const nullList = Object.values(this.langInfo.null);
     const nullNum = nullList.reduce((pre, cur) => pre + cur.length, 0);
-    let total = this.#robot.syncBasedOnReferredEntries ? this.langInfo.refer.length : Object.keys(this.dictionary).length;
+    let total = this.publicCtx.syncBasedOnReferredEntries ? this.langInfo.refer.length : Object.keys(this.dictionary).length;
     total = lackList.length ? total * lackList.length : total;
     return Math.floor(Number((((total - lackNum - nullNum) / total) * 10000).toFixed(0))) / 100 + "%";
   }

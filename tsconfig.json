@@ -13,7 +13,11 @@
     "checkJs": true,
     "esModuleInterop": true,
     "moduleResolution": "node",
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/*"]
+    }
   },
   "include": ["src"],
   "exclude": [
