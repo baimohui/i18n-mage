@@ -1,14 +1,4 @@
-import {
-  EntryTree,
-  LangDictionary,
-  LangCountryMap,
-  EntryClassInfo,
-  TEntry,
-  LackInfo,
-  NullInfo,
-  EntryNode,
-  FileExtraInfo
-} from "@/types";
+import { EntryTree, LangDictionary, LangCountryMap, EntryClassInfo, TEntry, LackInfo, NullInfo, EntryNode, FileExtraInfo } from "@/types";
 import { Credentials } from "@/translator/index";
 
 // 外部模块可访问的公共上下文

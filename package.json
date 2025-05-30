@@ -383,11 +383,27 @@
     ]
   },
   "scripts": {
-    "lint": "eslint **/*.{ts,tsx}",
+    "prepare": "husky install",
+    "lint": "eslint \"src/**/*.{ts,tsx,js,jsx}\" --fix",
     "pretest": "npm run lint",
     "test": "vscode-test",
     "build": "node esbuild.config.js",
-    "package": "npm run build && vsce package"
+    "package": "npm run build && vsce package",
+    "format": "prettier --write ."
+  },
+  "lint-staged": {
+    "*.{ts,tsx}": [
+      "prettier --write",
+      "eslint --fix"
+    ],
+    "*.{js,jsx}": [
+      "prettier --write"
+    ]
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "lint-staged"
+    }
   },
   "dependencies": {
     "@vitalets/google-translate-api": "^9.2.0",
@@ -411,6 +427,11 @@
     "@vscode/test-electron": "^2.3.9",
     "esbuild": "^0.25.4",
     "eslint": "^8.57.1",
+    "eslint-config-prettier": "^10.1.5",
+    "eslint-plugin-prettier": "^5.4.0",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.1.0",
+    "prettier": "^3.5.3",
     "typescript": "^5.8.3"
   }
 }

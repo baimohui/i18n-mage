@@ -89,7 +89,7 @@ const send = async (source: string, target: string, sourceTextList: string[]): P
       from: source,
       to: target,
       fetchOptions: {
-        agent: (httpsOverHttp as unknown as (options: any) => import('https').Agent)({
+        agent: (httpsOverHttp as unknown as (options: any) => import("https").Agent)({
           proxy: {
             port: 7890,
             host: "127.0.0.1",
@@ -117,7 +117,7 @@ const send = async (source: string, target: string, sourceTextList: string[]): P
       return { success: false, message: res.message ?? "未知错误" };
     }
   } catch (e: unknown) {
-    return { success: false, message: e instanceof Error ? e.message : e as string };
+    return { success: false, message: e instanceof Error ? e.message : (e as string) };
   }
 };
 

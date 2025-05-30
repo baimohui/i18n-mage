@@ -28,7 +28,7 @@ export class FixHandler {
     }
     if (this.ctx.rewriteFlag) {
       const writer = new RewriteHandler(this.ctx);
-      writer.run();
+      await writer.run();
     }
   }
 

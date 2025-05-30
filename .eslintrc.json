@@ -9,38 +9,65 @@
   },
   "extends": [
     "eslint:recommended",
-    "plugin:@typescript-eslint/recommended",  // 启用 TS 推荐规则
-    "plugin:@typescript-eslint/recommended-requiring-type-checking" // 关键：启用基于类型检查的规则
+    "plugin:@typescript-eslint/recommended", // 启用 TS 推荐规则
+    "plugin:@typescript-eslint/recommended-requiring-type-checking", // 关键：启用基于类型检查的规则
+    "plugin:prettier/recommended"
   ],
   "parser": "@typescript-eslint/parser",
   "parserOptions": {
     "ecmaVersion": 2022,
     "requireConfigFile": false, // 禁用配置文件检查
-    "project": "./tsconfig.json",             // 关联 TS 配置
-    "tsconfigRootDir": "."                    // 根目录位置
+    "project": "./tsconfig.json", // 关联 TS 配置
+    "tsconfigRootDir": "." // 根目录位置
   },
-  "plugins": ["@typescript-eslint"],
+  "plugins": [
+    "@typescript-eslint"
+  ],
   "rules": {
     // 示例：启用严格类型规则
     "@typescript-eslint/no-explicit-any": "warn",
     // "@typescript-eslint/explicit-function-return-type": "error",
     "@typescript-eslint/strict-boolean-expressions": "error",
     "@typescript-eslint/no-unused-vars": "error", // 替换默认的 no-unused-vars
-    "no-unused-vars": "off" // 关闭 ESLint 默认规则
+    "no-unused-vars": "off", // 关闭 ESLint 默认规则
+    "prettier/prettier": [
+      "error",
+      {
+        "arrowParens": "avoid",
+        "endOfLine": "lf",
+        "singleQuote": false,
+        "trailingComma": "none",
+        "printWidth": 140
+      }
+    ]
   },
   "overrides": [
     {
-      "files": ["*.js"], // JS 文件覆盖配置（避免 TS 规则污染 JS）
-      "extends": ["eslint:recommended"],
+      "files": [
+        "*.js",
+        "*.jsx"
+      ], // JS 文件覆盖配置（避免 TS 规则污染 JS）
+      "extends": [
+        "eslint:recommended"
+      ],
       "parser": "@babel/eslint-parser",
       "parserOptions": {
         "requireConfigFile": false, // 关键：禁用 Babel 配置文件检查
         "babelOptions": {
-          "presets": ["@babel/preset-env"]
+          "presets": [
+            "@babel/preset-env"
+          ]
         }
       },
       "rules": {
-        "@typescript-eslint/no-unsafe-*": "off" // 关闭 TS 相关规则
+        // 关闭 TS 相关规则
+        "@typescript-eslint/strict-boolean-expressions": "off",
+        "@typescript-eslint/restrict-plus-operands": "off",
+        "@typescript-eslint/no-unsafe-call": "off",
+        "@typescript-eslint/no-unsafe-member-access": "off",
+        "@typescript-eslint/no-unsafe-assignment": "off",
+        "@typescript-eslint/no-unsafe-return": "off",
+        "@typescript-eslint/no-unsafe-*": "off"
       }
     }
   ]

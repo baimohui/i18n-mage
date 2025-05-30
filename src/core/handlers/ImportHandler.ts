@@ -14,7 +14,7 @@ export class ImportHandler {
     return getDetectedLangList(this.ctx);
   }
 
-  public run() {
+  public async run() {
     printTitle("导入翻译");
     if (!fs.existsSync(this.ctx.importExcelFrom)) {
       printInfo("导入文件路径不存在！", "brain");
@@ -72,7 +72,7 @@ export class ImportHandler {
       });
     }
     if (this.ctx.rewriteFlag) {
-      new RewriteHandler(this.ctx).run();
+      await new RewriteHandler(this.ctx).run();
     }
     if (!isModified) {
       printInfo("未检测到文案变动的条目", "success");

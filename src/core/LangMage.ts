@@ -38,7 +38,7 @@ class LangMage {
           this.ctx.checkRepeatFlag = (value as string[]).includes("repeat");
           this.ctx.checkStyleFlag = (value as string[]).includes("style");
         } else if (key in this.ctx) {
-          (this.ctx)[key] = value as string;
+          this.ctx[key] = value as string;
         }
       }
     }
@@ -73,13 +73,13 @@ class LangMage {
           new ExportHandler(this.ctx).run();
           break;
         case "import":
-          new ImportHandler(this.ctx).run();
+          await new ImportHandler(this.ctx).run();
           break;
         case "modify":
-          new ModifyHandler(this.ctx).run();
+          await new ModifyHandler(this.ctx).run();
           break;
         case "trim":
-          new TrimHandler(this.ctx).run();
+          await new TrimHandler(this.ctx).run();
           break;
         case "rewrite":
           await new RewriteHandler(this.ctx).run();
@@ -126,7 +126,7 @@ class LangMage {
       fileStructure: this.ctx.fileStructure,
       syncBasedOnReferredEntries: this.ctx.syncBasedOnReferredEntries,
       modifyList: this.ctx.modifyList
-    }
+    };
   }
 
   public get detectedLangList(): string[] {

@@ -7,7 +7,7 @@ import { RewriteHandler } from "./RewriteHandler";
 export class ModifyHandler {
   constructor(private ctx: LangContextInternal) {}
 
-  public run() {
+  public async run() {
     printTitle("修改词条");
     this.ctx.modifyList.forEach(item => {
       const { key, name, value, lang } = item;
@@ -20,7 +20,7 @@ export class ModifyHandler {
       }
     });
     if (this.ctx.rewriteFlag) {
-      new RewriteHandler(this.ctx).run();
+      await new RewriteHandler(this.ctx).run();
     }
   }
 }

@@ -27,13 +27,7 @@ const supportLangMap: Record<string, string[]> = {
   "zh-TW": ["en", "ja", "ko", "fr", "es", "it", "de", "tr", "ru", "pt", "vi", "id", "th", "ms"]
 };
 
-const translateTo = async ({
-  source,
-  target,
-  sourceTextList,
-  apiId,
-  apiKey
-}: TranslateParams): Promise<TranslateResult> => {
+const translateTo = async ({ source, target, sourceTextList, apiId, apiKey }: TranslateParams): Promise<TranslateResult> => {
   if (!Object.hasOwn(supportLangMap, source)) {
     return {
       success: false,
@@ -97,13 +91,14 @@ const sendBatch = async (
         setTimeout(() => {
           sendBatch(source, target, packList, batchNum + 1, batchSize)
             .then(batchRes => {
-              result.push(...batchRes.data || []); // 确保 batchRes.data 存在，否则 fallback 空数组
+              result.push(...(batchRes.data || [])); // 确保 batchRes.data 存在，否则 fallback 空数组
               resolve({ success: true, data: result });
             })
-            .catch(error => { // 捕获可能的错误
-              resolve({ 
-                success: false, 
-                message: error instanceof Error ? error.message : "Batch translation failed" 
+            .catch(error => {
+              // 捕获可能的错误
+              resolve({
+                success: false,
+                message: error instanceof Error ? error.message : "Batch translation failed"
               });
             });
         }, 1100);
@@ -119,11 +114,7 @@ const sendBatch = async (
   }
 };
 
-const send = (
-  source: string,
-  target: string,
-  sourceTextList: string[]
-): Promise<string[]> => {
+const send = (source: string, target: string, sourceTextList: string[]): Promise<string[]> => {
   return new Promise((resolve, reject) => {
     const params = {
       Source: source,

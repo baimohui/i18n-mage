@@ -121,8 +121,8 @@ function renderValueSection(updates: EntryValueUpdates, localeMap: LocaleMap, ba
               localeMap[locale][key] && localeMap[locale][key] !== val
                 ? `<span class="old">${localeMap[locale][key]}</span>`
                 : localeMap[base][key]
-                ? `<span>${localeMap[base][key]}</span>`
-                : ""
+                  ? `<span>${localeMap[base][key]}</span>`
+                  : ""
             }
           </div>`
             )
