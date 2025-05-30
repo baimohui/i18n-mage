@@ -82,7 +82,7 @@ class LangMage {
           new TrimHandler(this.ctx).run();
           break;
         case "rewrite":
-          new RewriteHandler(this.ctx).run();
+          await new RewriteHandler(this.ctx).run();
           break;
         default:
           new CheckHandler(this.ctx).genOverviewTable();

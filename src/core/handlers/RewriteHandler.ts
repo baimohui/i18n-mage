@@ -14,7 +14,7 @@ import {
 export class RewriteHandler {
   constructor(private ctx: LangContextInternal) {}
 
-  public run() {
+  public async run() {
     printTitle("写入翻译条目");
     for (const [lang, entryInfo] of Object.entries(this.ctx.updatedEntryValueInfo)) {
       const filePosSet = new Set<string>();
@@ -27,15 +27,15 @@ export class RewriteHandler {
       }
       const filePosList = Array.from(filePosSet);
       if (filePosList.length === 0) {
-        this.rewriteTranslationFile(lang, "");
+        await this.rewriteTranslationFile(lang, "");
       } else {
         for (const filePos of filePosList) {
-          this.rewriteTranslationFile(lang, filePos);
+          await this.rewriteTranslationFile(lang, filePos);
         }
       }
     }
     this.ctx.updatedEntryValueInfo = {};
-    this.applyGlobalFixes();
+    await this.applyGlobalFixes();
   }
 
   private updateEntryValue(key: string, value: string | undefined, lang: string): void {
@@ -54,7 +54,7 @@ export class RewriteHandler {
     }
   }
 
-  private rewriteTranslationFile(lang: string, filePos: string): void {
+  private async rewriteTranslationFile(lang: string, filePos: string): Promise<void> {
     const filePath = this.getLangFilePath(lang, filePos);
     const entryTree = getContentAtLocation(filePos, this.ctx.entryTree);
     if (entryTree) {
@@ -64,8 +64,7 @@ export class RewriteHandler {
         this.ctx.langFileType,
         this.ctx.langFileExtraInfo[filePos ? `${lang}.${filePos}` : lang]
       );
-      fs.writeFileSync(filePath, fileContent);
-      printInfo(`翻译已写入`, "success");
+      await this.writeFile(filePath, fileContent);
     }
   }
 
@@ -82,14 +81,14 @@ export class RewriteHandler {
     }
   }
 
-  private applyGlobalFixes() {
+  private async applyGlobalFixes() {
     for (const fixPath in this.ctx.patchedEntryIdInfo) {
       let fileContent = fs.readFileSync(fixPath, "utf8");
       const fixList = this.ctx.patchedEntryIdInfo[fixPath];
       fixList.forEach(item => {
         fileContent = fileContent.replaceAll(item.raw, item.fixedRaw as string);
       });
-      fs.writeFileSync(fixPath, fileContent);
+      await this.writeFile(fixPath, fileContent);
       const fixedEntries = formatEntriesInTerminal(
         fixList.map(item => `\x1b[31m${item.text}\x1b[0m -> \x1b[32m${item.name}\x1b[0m`),
         false
@@ -97,6 +96,19 @@ export class RewriteHandler {
       printInfo(`文件 ${this.getRelativePath(fixPath)} 修正条目：${fixedEntries}`, "mage");
     }
     this.ctx.patchedEntryIdInfo = {};
+  }
+
+  private async writeFile(filePath: string, content: string) {
+    try {
+      await fs.promises.writeFile(filePath, content);
+      printInfo(`已写入`, "success");
+    } catch (e) {
+      if (e instanceof Error) {
+        printInfo(`写入失败，出现异常报错：${e.message}`, "demon");
+      } else {
+        printInfo(`写入失败，出现非 Error 类型的报错：${e as string}`, "demon");
+      }
+    }
   }
 
   private getRelativePath(str: string = ""): string {
