@@ -13,22 +13,27 @@
     "editor.defaultFormatter": "esbenp.prettier-vscode"
   },
   "[javascript]": {
+    "editor.formatOnSave": true,
     "editor.defaultFormatter": "esbenp.prettier-vscode"
   },
   "[typescriptreact]": {
+    "editor.formatOnSave": true,
     "editor.defaultFormatter": "esbenp.prettier-vscode"
   },
   "[jsonc]": {
+    "editor.formatOnSave": true,
     "editor.defaultFormatter": "esbenp.prettier-vscode"
   },
   "[typescript]": {
+    "editor.formatOnSave": true,
     "editor.defaultFormatter": "esbenp.prettier-vscode"
   },
   "[json]": {
+    "editor.formatOnSave": true,
     "editor.defaultFormatter": "esbenp.prettier-vscode"
   },
   //这个设置在 ctrl+s 的时候，会启用默认的格式化，这里是 prettier
-  "editor.formatOnSave": false,
+  "editor.formatOnSave": true,
   "prettier.printWidth": 140, // 超过最大值换行
   "prettier.tabWidth": 2, // 缩进字节数
   "prettier.semi": true, // 句末使用分号
@@ -56,8 +61,5 @@
   "i18n-ally.sourceLanguage": "cn", // 翻译时的源语言
   "i18n-ally.displayLanguage": "cn",
   "i18n-ally.disabled": true,
-  "i18n-ally.keysInUse": [
-    "wirelessconfightml_tab_menu_wifiList",
-    "DOC.ddl.signalLevel0"
-  ] // 注释和树视图中的显示语言
+  "i18n-ally.keysInUse": ["wirelessconfightml_tab_menu_wifiList", "DOC.ddl.signalLevel0"] // 注释和树视图中的显示语言
 }
