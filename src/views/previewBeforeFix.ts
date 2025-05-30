@@ -1,5 +1,5 @@
 import * as vscode from "vscode";
-import { TEntry } from "./types";
+import { TEntry } from "../types";
 
 type EntryValueUpdates = Record<string, Record<string, string | undefined>>;
 type EntryIdPatches = Record<string, TEntry[]>;

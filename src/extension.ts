@@ -1,8 +1,8 @@
 import * as vscode from "vscode";
 import * as path from "path";
-import { TreeProvider, PluginConfiguration } from "@/tree";
+import { TreeProvider, PluginConfiguration } from "@/views/tree";
 import LangMage from "@/core/LangMage";
-import previewFixContent from "@/previewBeforeFix";
+import previewFixContent from "@/views/previewBeforeFix";
 import { LANG_INTRO_MAP, getLangIntro } from "@/utils/const";
 import { getFileLocationFromId, selectProperty, formatForFile } from "@/utils/regex";
 
