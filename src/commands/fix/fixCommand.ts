@@ -4,8 +4,9 @@ import { treeInstance } from "@/views/tree";
 import { PluginConfiguration } from "@/types";
 import previewFixContent from "@/views/previewBeforeFix";
 import { wrapWithProgress } from "@/utils/wrapWithProgress";
+import { registerDisposable } from "@/utils/dispose";
 
-export function registerFixCommand(context: vscode.ExtensionContext) {
+export function registerFixCommand() {
   const mage = LangMage.getInstance();
   const config = vscode.workspace.getConfiguration("i18n-mage") as PluginConfiguration;
   const disposable = vscode.commands.registerCommand("i18nMage.fix", () => {
@@ -43,5 +44,5 @@ export function registerFixCommand(context: vscode.ExtensionContext) {
     });
   });
 
-  context.subscriptions.push(disposable);
+  registerDisposable(disposable);
 }

@@ -1,8 +1,9 @@
 import * as vscode from "vscode";
 import LangMage from "@/core/LangMage";
 import { wrapWithProgress } from "@/utils/wrapWithProgress";
+import { registerDisposable } from "@/utils/dispose";
 
-export function registerExportCommand(context: vscode.ExtensionContext) {
+export function registerExportCommand() {
   const mage = LangMage.getInstance();
   const disposable = vscode.commands.registerCommand("i18nMage.export", async () => {
     const options: vscode.SaveDialogOptions = {
@@ -27,5 +28,5 @@ export function registerExportCommand(context: vscode.ExtensionContext) {
     }
   });
 
-  context.subscriptions.push(disposable);
+  registerDisposable(disposable);
 }

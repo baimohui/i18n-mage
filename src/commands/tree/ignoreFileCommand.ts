@@ -4,8 +4,9 @@ import LangMage from "@/core/LangMage";
 import { treeInstance } from "@/views/tree";
 import { PluginConfiguration } from "@/types";
 import { wrapWithProgress } from "@/utils/wrapWithProgress";
+import { registerDisposable } from "@/utils/dispose";
 
-export function registerIgnoreFileCommand(context: vscode.ExtensionContext) {
+export function registerIgnoreFileCommand() {
   const mage = LangMage.getInstance();
   const globalConfig = vscode.workspace.getConfiguration();
   const disposable = vscode.commands.registerCommand("i18nMage.ignoreFile", (e: vscode.TreeItem) => {
@@ -25,5 +26,5 @@ export function registerIgnoreFileCommand(context: vscode.ExtensionContext) {
     });
   });
 
-  context.subscriptions.push(disposable);
+  registerDisposable(disposable);
 }

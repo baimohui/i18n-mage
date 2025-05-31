@@ -1,6 +1,7 @@
 import * as vscode from "vscode";
+import { registerDisposable } from "@/utils/dispose";
 
-export function registerGoToReferenceCommand(context: vscode.ExtensionContext) {
+export function registerGoToReferenceCommand() {
   const disposable = vscode.commands.registerCommand(
     "i18nMage.goToReference",
     async (e: { usedInfo: Record<string, number[]>; label: string }) => {
@@ -20,5 +21,5 @@ export function registerGoToReferenceCommand(context: vscode.ExtensionContext) {
     }
   );
 
-  context.subscriptions.push(disposable);
+  registerDisposable(disposable);
 }

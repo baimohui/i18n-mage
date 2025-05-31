@@ -2,8 +2,9 @@ import path from "path";
 import * as vscode from "vscode";
 import LangMage from "@/core/LangMage";
 import { getFileLocationFromId, selectProperty } from "@/utils/regex";
+import { registerDisposable } from "@/utils/dispose";
 
-export function registerGoToDefinitionCommand(context: vscode.ExtensionContext) {
+export function registerGoToDefinitionCommand() {
   const disposable = vscode.commands.registerCommand("i18nMage.goToDefinition", async (e: { data: { key: string; lang: string } }) => {
     const mage = LangMage.getInstance();
     const { key, lang } = e.data;
@@ -17,5 +18,5 @@ export function registerGoToDefinitionCommand(context: vscode.ExtensionContext) 
     await selectProperty(resourceUri, realKey);
   });
 
-  context.subscriptions.push(disposable);
+  registerDisposable(disposable);
 }

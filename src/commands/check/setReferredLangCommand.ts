@@ -1,8 +1,9 @@
 import * as vscode from "vscode";
 import LangMage from "@/core/LangMage";
 import { wrapWithProgress } from "@/utils/wrapWithProgress";
+import { registerDisposable } from "@/utils/dispose";
 
-export function registerSetReferredLangCommand(context: vscode.ExtensionContext) {
+export function registerSetReferredLangCommand() {
   const mage = LangMage.getInstance();
   const globalConfig = vscode.workspace.getConfiguration();
   const disposable = vscode.commands.registerCommand("i18nMage.setReferredLang", () => (lang: { key: string }) => {
@@ -16,5 +17,5 @@ export function registerSetReferredLangCommand(context: vscode.ExtensionContext)
     });
   });
 
-  context.subscriptions.push(disposable);
+  registerDisposable(disposable);
 }

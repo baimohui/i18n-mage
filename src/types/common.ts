@@ -79,24 +79,6 @@ export type ExcelData = {
   data: Cell[][]; // 工作表数据，二维数组形式
 }[];
 
-export type ApiPlatform = "google" | "baidu" | "tencent";
-
-export interface TranslateParams {
-  source: string;
-  target: string;
-  sourceTextList: string[];
-  apiId: string;
-  apiKey: string;
-}
-
-export interface TranslateResult {
-  success: boolean;
-  langUnsupported?: boolean;
-  data?: string[];
-  message?: string;
-  api?: ApiPlatform;
-}
-
 // 定义节点类型
 export interface EntryNode {
   type: "directory" | "file";

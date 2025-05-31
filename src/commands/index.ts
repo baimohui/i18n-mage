@@ -1,4 +1,3 @@
-import * as vscode from "vscode";
 import { registerCheckUsageCommand } from "./check/checkUsageCommand";
 import { registerMarkAsKnownLangCommand } from "./check/markAsKnownLangCommand";
 import { registerSetReferredLangCommand } from "./check/setReferredLangCommand";
@@ -15,20 +14,20 @@ import { registerGoToDefinitionCommand } from "./tree/goToDefinitionCommand";
 import { registerGoToReferenceCommand } from "./tree/goToReferenceCommand";
 import { registerIgnoreFileCommand } from "./tree/ignoreFileCommand";
 
-export function registerAllCommands(context: vscode.ExtensionContext) {
-  registerCheckUsageCommand(context);
-  registerMarkAsKnownLangCommand(context);
-  registerSetReferredLangCommand(context);
-  registerCopyKeyValueCommand(context);
-  registerCopyNameCommand(context);
-  registerCopyValueCommand(context);
-  registerDeleteUnusedCommand(context);
-  registerEditValueCommand(context);
-  registerFixCommand(context);
-  registerSortCommand(context);
-  registerExportCommand(context);
-  registerImportCommand(context);
-  registerGoToDefinitionCommand(context);
-  registerGoToReferenceCommand(context);
-  registerIgnoreFileCommand(context);
+export function registerAllCommands() {
+  registerCheckUsageCommand();
+  registerMarkAsKnownLangCommand();
+  registerSetReferredLangCommand();
+  registerCopyKeyValueCommand();
+  registerCopyNameCommand();
+  registerCopyValueCommand();
+  registerDeleteUnusedCommand();
+  registerEditValueCommand();
+  registerFixCommand();
+  registerSortCommand();
+  registerExportCommand();
+  registerImportCommand();
+  registerGoToDefinitionCommand();
+  registerGoToReferenceCommand();
+  registerIgnoreFileCommand();
 }

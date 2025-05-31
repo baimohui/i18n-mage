@@ -2,8 +2,9 @@ import * as vscode from "vscode";
 import LangMage from "@/core/LangMage";
 import { treeInstance } from "@/views/tree";
 import { PluginConfiguration } from "@/types";
+import { registerDisposable } from "@/utils/dispose";
 
-export function registerDeleteUnusedCommand(context: vscode.ExtensionContext) {
+export function registerDeleteUnusedCommand() {
   const mage = LangMage.getInstance();
   const config = vscode.workspace.getConfiguration("i18n-mage") as PluginConfiguration;
   const disposable = vscode.commands.registerCommand(
@@ -34,5 +35,5 @@ export function registerDeleteUnusedCommand(context: vscode.ExtensionContext) {
     }
   );
 
-  context.subscriptions.push(disposable);
+  registerDisposable(disposable);
 }

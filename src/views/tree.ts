@@ -1,7 +1,7 @@
 import * as vscode from "vscode";
 import LangMage from "@/core/LangMage";
 import { catchTEntries, unescapeString, getValueByAmbiguousEntryName } from "@/utils/regex";
-import { isPathInsideDirectory, getPossibleLangDirs } from "@/utils/fs";
+import { getPossibleLangDirs } from "@/utils/fs";
 import { getLangText } from "@/utils/const";
 import { TEntry, LangTree } from "@/types";
 import { PluginConfiguration } from "@/types";
@@ -41,12 +41,6 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
 
   constructor() {
     this.#mage = LangMage.getInstance();
-    vscode.window.onDidChangeActiveTextEditor(() => {
-      if (this.isInitialized) {
-        this.onActiveEditorChanged();
-      }
-    });
-    vscode.workspace.onDidSaveTextDocument(e => this.onDocumentChanged(e));
   }
 
   get publicCtx() {
@@ -119,10 +113,6 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
       default:
         return [];
     }
-  }
-
-  public onActiveEditorChanged(): void {
-    this.checkUsedInfo();
   }
 
   async initTree(): Promise<boolean> {
@@ -462,16 +452,7 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
     }
   }
 
-  private async onDocumentChanged(content: vscode.TextDocument): Promise<void> {
-    if (isPathInsideDirectory(this.publicCtx.langDir, content.fileName)) {
-      console.log("isPathInsideDirectory");
-    }
-    this.#mage.setOptions({ task: "check", globalFlag: true, clearCache: true });
-    await this.#mage.execute();
-    this.checkUsedInfo();
-  }
-
-  private checkUsedInfo(): void {
+  public checkUsedInfo(): void {
     this.definedEntriesInCurrentFile = [];
     this.undefinedEntriesInCurrentFile = [];
     const editor = vscode.window.activeTextEditor;

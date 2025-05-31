@@ -1,7 +1,8 @@
 import * as vscode from "vscode";
 import { formatForFile } from "@/utils/regex";
+import { registerDisposable } from "@/utils/dispose";
 
-export function registerCopyKeyValueCommand(context: vscode.ExtensionContext) {
+export function registerCopyKeyValueCommand() {
   const disposable = vscode.commands.registerCommand(
     "i18nMage.copyKeyValue",
     async (e: vscode.TreeItem & { data: { name: string; value: string }[] }) => {
@@ -11,5 +12,5 @@ export function registerCopyKeyValueCommand(context: vscode.ExtensionContext) {
     }
   );
 
-  context.subscriptions.push(disposable);
+  registerDisposable(disposable);
 }

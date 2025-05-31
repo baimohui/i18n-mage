@@ -1,8 +1,9 @@
 import * as vscode from "vscode";
 import LangMage from "@/core/LangMage";
 import { treeInstance } from "@/views/tree";
+import { registerDisposable } from "@/utils/dispose";
 
-export function registerEditValueCommand(context: vscode.ExtensionContext) {
+export function registerEditValueCommand() {
   const mage = LangMage.getInstance();
   const disposable = vscode.commands.registerCommand(
     "i18nMage.editValue",
@@ -31,5 +32,5 @@ export function registerEditValueCommand(context: vscode.ExtensionContext) {
     }
   );
 
-  context.subscriptions.push(disposable);
+  registerDisposable(disposable);
 }

@@ -1,8 +1,9 @@
 import * as vscode from "vscode";
 import LangMage from "@/core/LangMage";
 import { LANG_INTRO_MAP, getLangIntro } from "@/utils/const";
+import { registerDisposable } from "@/utils/dispose";
 
-export function registerMarkAsKnownLangCommand(context: vscode.ExtensionContext) {
+export function registerMarkAsKnownLangCommand() {
   const mage = LangMage.getInstance();
   const disposable = vscode.commands.registerCommand("i18nMage.markAsKnownLang", async ({ key: langKey }) => {
     try {
@@ -38,5 +39,5 @@ export function registerMarkAsKnownLangCommand(context: vscode.ExtensionContext)
     }
   });
 
-  context.subscriptions.push(disposable);
+  registerDisposable(disposable);
 }

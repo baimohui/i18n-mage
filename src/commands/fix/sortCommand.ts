@@ -1,8 +1,9 @@
 import * as vscode from "vscode";
 import LangMage from "@/core/LangMage";
 import { wrapWithProgress } from "@/utils/wrapWithProgress";
+import { registerDisposable } from "@/utils/dispose";
 
-export function registerSortCommand(context: vscode.ExtensionContext) {
+export function registerSortCommand() {
   const mage = LangMage.getInstance();
   const disposable = vscode.commands.registerCommand("i18nMage.sort", () => {
     wrapWithProgress({
@@ -17,5 +18,5 @@ export function registerSortCommand(context: vscode.ExtensionContext) {
     });
   });
 
-  context.subscriptions.push(disposable);
+  registerDisposable(disposable);
 }

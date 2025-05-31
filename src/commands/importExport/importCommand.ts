@@ -4,8 +4,9 @@ import { treeInstance } from "@/views/tree";
 import { PluginConfiguration } from "@/types";
 import previewFixContent from "@/views/previewBeforeFix";
 import { wrapWithProgress } from "@/utils/wrapWithProgress";
+import { registerDisposable } from "@/utils/dispose";
 
-export function registerImportCommand(context: vscode.ExtensionContext) {
+export function registerImportCommand() {
   const mage = LangMage.getInstance();
   const config = vscode.workspace.getConfiguration("i18n-mage") as PluginConfiguration;
   const disposable = vscode.commands.registerCommand("i18nMage.import", async () => {
@@ -52,5 +53,5 @@ export function registerImportCommand(context: vscode.ExtensionContext) {
     }
   });
 
-  context.subscriptions.push(disposable);
+  registerDisposable(disposable);
 }

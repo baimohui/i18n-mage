@@ -1,11 +1,12 @@
 import * as vscode from "vscode";
+import { registerDisposable } from "@/utils/dispose";
 
-export function registerCopyNameCommand(context: vscode.ExtensionContext) {
+export function registerCopyNameCommand() {
   const disposable = vscode.commands.registerCommand("i18nMage.copyName", async (e: vscode.TreeItem) => {
     if (typeof e.label !== "string" || e.label.trim() === "") return;
     await vscode.env.clipboard.writeText(e.label);
     vscode.window.showInformationMessage(`已复制：${e.label}`);
   });
 
-  context.subscriptions.push(disposable);
+  registerDisposable(disposable);
 }
