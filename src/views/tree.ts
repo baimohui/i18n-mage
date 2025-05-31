@@ -4,6 +4,7 @@ import { catchTEntries, unescapeString, getValueByAmbiguousEntryName } from "@/u
 import { isPathInsideDirectory, getPossibleLangDirs } from "@/utils/fs";
 import { getLangText } from "@/utils/const";
 import { TEntry, LangTree } from "@/types";
+import { PluginConfiguration } from "@/types";
 
 interface ExtendedTreeItem extends vscode.TreeItem {
   level?: number;
@@ -13,21 +14,6 @@ interface ExtendedTreeItem extends vscode.TreeItem {
   key?: string;
   data?: any;
   stack?: string[];
-}
-
-export interface PluginConfiguration extends vscode.WorkspaceConfiguration {
-  referenceLanguage: string;
-  ignoredFileList: string[];
-  langFileMinLength: number;
-  ignoreEmptyLangFile: boolean;
-  sortWithTrim: boolean;
-  baiduAppId: string;
-  baiduSecretKey: string;
-  tencentSecretId: string;
-  tencentSecretKey: string;
-  translateApiPriority: string[];
-  syncBasedOnReferredEntries: boolean;
-  previewBeforeFix: boolean;
 }
 
 class FileItem extends vscode.TreeItem {
@@ -582,4 +568,6 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
   }
 }
 
-export { TreeProvider };
+const treeInstance = new TreeProvider();
+
+export { treeInstance };

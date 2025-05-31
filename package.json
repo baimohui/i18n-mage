@@ -157,7 +157,7 @@
         "title": "设为参考语言"
       },
       {
-        "command": "i18nMage.markAsKnownLanguage",
+        "command": "i18nMage.markAsKnownLang",
         "title": "标记为已知语言",
         "icon": {
           "light": "./images/claim-light.svg",
@@ -213,7 +213,7 @@
         }
       },
       {
-        "command": "i18nMage.copyKeyValueList",
+        "command": "i18nMage.copyKeyValue",
         "title": "复制键值对",
         "icon": {
           "light": "./images/copy-light.svg",
@@ -253,7 +253,7 @@
         }
       },
       {
-        "command": "i18nMage.deleteUnusedEntries",
+        "command": "i18nMage.deleteUnused",
         "title": "移除",
         "icon": {
           "light": "./images/delete-light.svg",
@@ -290,7 +290,7 @@
           "when": "viewItem =~ /checkSyncInfo/"
         },
         {
-          "command": "i18nMage.markAsKnownLanguage",
+          "command": "i18nMage.markAsKnownLang",
           "when": "viewItem =~ /INVALID_LANG/",
           "group": "inline@1"
         },
@@ -309,7 +309,7 @@
           "group": "inline@1"
         },
         {
-          "command": "i18nMage.copyKeyValueList",
+          "command": "i18nMage.copyKeyValue",
           "when": "viewItem =~ /COPY_KEY_VALUE_LIST/"
         },
         {
@@ -333,7 +333,7 @@
           "group": "inline@3"
         },
         {
-          "command": "i18nMage.deleteUnusedEntries",
+          "command": "i18nMage.deleteUnused",
           "when": "viewItem == unusedGroupHeader || viewItem == unusedGroupItem",
           "group": "inline@1"
         }

@@ -37,7 +37,7 @@ class LangMage {
           this.ctx.checkUnityFlag = (value as string[]).includes("unity");
           this.ctx.checkRepeatFlag = (value as string[]).includes("repeat");
           this.ctx.checkStyleFlag = (value as string[]).includes("style");
-        } else if (key in this.ctx) {
+        } else if (Object.hasOwn(this.ctx, key)) {
           this.ctx[key] = value as string;
         }
       }
