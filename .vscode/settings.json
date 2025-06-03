@@ -10,5 +10,8 @@
     "typescriptreact"
   ],
   "files.eol": "\n",
-  "git.ignoreRebaseWarning": true
+  "git.ignoreRebaseWarning": true,
+  "[typescript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  }
 }
