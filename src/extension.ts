@@ -1,5 +1,6 @@
 import * as vscode from "vscode";
 import { treeInstance } from "@/views/tree";
+import { DecoratorController } from "@/features/Decorator";
 import { wrapWithProgress } from "@/utils/wrapWithProgress";
 import { registerAllCommands } from "@/commands";
 import { registerAllListeners } from "@/listeners";
@@ -19,6 +20,10 @@ export function activate(context: vscode.ExtensionContext): void {
     title: "初始化中...",
     callback: async () => {
       await treeInstance.initTree();
+      if (vscode.window.activeTextEditor) {
+        const decorator = DecoratorController.getInstance();
+        decorator.update(vscode.window.activeTextEditor);
+      }
     }
   });
 }
