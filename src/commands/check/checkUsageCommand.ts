@@ -3,10 +3,11 @@ import LangMage from "@/core/LangMage";
 import { treeInstance } from "@/views/tree";
 import { wrapWithProgress } from "@/utils/wrapWithProgress";
 import { registerDisposable } from "@/utils/dispose";
+import { throttle } from "@/utils/common";
 
 export function registerCheckUsageCommand() {
   const mage = LangMage.getInstance();
-  const disposable = vscode.commands.registerCommand("i18nMage.checkUsage", () => {
+  const throttledHandler = throttle(() => {
     wrapWithProgress({
       title: "检查中...",
       callback: async () => {
@@ -19,7 +20,8 @@ export function registerCheckUsageCommand() {
         }
       }
     });
-  });
+  }, 3000);
+  const disposable = vscode.commands.registerCommand("i18nMage.checkUsage", throttledHandler);
 
   registerDisposable(disposable);
 }
