@@ -50,7 +50,7 @@ export class DecoratorController implements vscode.Disposable {
     return DecoratorController.instance;
   }
 
-  update(editor: vscode.TextEditor) {
+  public update(editor: vscode.TextEditor) {
     this.currentEditor = editor;
     this.clearAllDecorations(editor); // 清空旧装饰器
     const mage = LangMage.getInstance();
@@ -88,20 +88,41 @@ export class DecoratorController implements vscode.Disposable {
   }
 
   // 文档变化处理
-  private handleDocumentChange(event: vscode.TextDocumentChangeEvent): void {
+  public handleDocumentChange(event: vscode.TextDocumentChangeEvent): void {
     if (event.contentChanges.length === 0) return;
 
     const editor = vscode.window.activeTextEditor;
     if (editor && editor.document === event.document) {
-      // 只更新受影响的区域
+      let isOnTEntryLine = false;
       const changedLines = new Set<number>();
+      const translationDecRanges: [number, number][] = [];
+      this.currentDecorations.forEach(({ translationDec }) => {
+        translationDecRanges.push([translationDec.range.start.line, translationDec.range.end.line]);
+      });
+      const isInRange = ([start, end]: [number, number], ranges: [number, number][]) => {
+        return ranges.some(([s, e]) => (start >= s && start <= e) || (end >= s && end <= e) || (start <= s && end >= e));
+      };
+      const changedTextLines: string[] = [];
       event.contentChanges.forEach(change => {
         const startLine = change.range.start.line;
         const endLine = change.range.end.line;
+        changedTextLines.push(change.text);
+        if (isInRange([startLine, endLine], translationDecRanges)) {
+          isOnTEntryLine = true;
+        }
         for (let i = startLine; i <= endLine; i++) {
           changedLines.add(i);
         }
       });
+      for (const lineNumber of changedLines) {
+        if (lineNumber >= 0 && lineNumber < event.document.lineCount) {
+          const line = event.document.lineAt(lineNumber);
+          changedTextLines.push(line.text);
+        }
+      }
+      if (isOnTEntryLine || catchTEntries(changedTextLines.join("\n")).length > 0) {
+        this.update(editor);
+      }
     }
   }
 
