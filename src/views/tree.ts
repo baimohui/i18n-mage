@@ -3,7 +3,7 @@ import LangMage from "@/core/LangMage";
 import { catchTEntries, unescapeString, getValueByAmbiguousEntryName } from "@/utils/regex";
 import { getPossibleLangDirs } from "@/utils/fs";
 import { getLangText } from "@/utils/const";
-import { TEntry, LangTree } from "@/types";
+import { LangContextPublic, TEntry, LangTree } from "@/types";
 import { PluginConfiguration } from "@/types";
 
 interface ExtendedTreeItem extends vscode.TreeItem {
@@ -32,6 +32,7 @@ class FileItem extends vscode.TreeItem {
 
 class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
   #mage: LangMage;
+  publicCtx: LangContextPublic;
   isInitialized = false;
   usedEntries: TEntry[] = [];
   definedEntriesInCurrentFile: TEntry[] = [];
@@ -41,10 +42,7 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
 
   constructor() {
     this.#mage = LangMage.getInstance();
-  }
-
-  get publicCtx() {
-    return this.#mage.getPublicContext();
+    this.publicCtx = this.#mage.getPublicContext();
   }
 
   get langInfo() {
@@ -87,6 +85,7 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
   }
 
   refresh(): void {
+    this.publicCtx = this.#mage.getPublicContext();
     this._onDidChangeTreeData.fire();
   }
 
@@ -533,7 +532,9 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
     const lackNum = lackList.reduce((pre, cur) => pre + cur.length, 0);
     const nullList = Object.values(this.langInfo.null);
     const nullNum = nullList.reduce((pre, cur) => pre + cur.length, 0);
-    let total = this.publicCtx.syncBasedOnReferredEntries ? this.langInfo.refer.length : Object.keys(this.dictionary).length;
+    let total = Object.keys(
+      this.publicCtx.syncBasedOnReferredEntries ? this.countryMap[this.publicCtx.referredLang] : this.dictionary
+    ).length;
     total = lackList.length ? total * lackList.length : total;
     return Math.floor(Number((((total - lackNum - nullNum) / total) * 10000).toFixed(0))) / 100 + "%";
   }

@@ -2,7 +2,15 @@ import fs from "fs";
 import path from "path";
 import { LangContextInternal } from "@/types";
 import { printInfo } from "@/utils/print";
-import { catchAllEntries, extractLangDataFromDir, flattenNestedObj, escapeString, unescapeString, getCaseType } from "@/utils/regex";
+import {
+  catchAllEntries,
+  extractLangDataFromDir,
+  flattenNestedObj,
+  escapeString,
+  unescapeString,
+  getCaseType,
+  isIgnoredDir
+} from "@/utils/regex";
 import { getDetectedLangList } from "@/core/tools/contextTools";
 import { EntryTree, LangDictionary, LangTree } from "@/types";
 import { LANG_ENTRY_SPLIT_SYMBOL } from "@/utils/const";
@@ -25,22 +33,12 @@ export class ReadHandler {
     this.ctx.langFileType = langData.fileType;
     this.ctx.langFormatType = langData.formatType;
     this.ctx.fileStructure = langData.fileStructure;
-    this.ctx.referredLang = this.detectedLangList.find(item => item.includes(this.ctx.referredLang))!;
     Object.entries(langTree).forEach(([lang, data]) => {
       this.ctx.langCountryMap[lang] = flattenNestedObj(data);
     });
     const { structure, lookup } = this.mergeTreeToTwoObjectsSemantic(langTree);
     this.ctx.entryTree = structure;
     this.ctx.langDictionary = lookup;
-    if (!this.ctx.referredLang) {
-      // TODO 替换成 getLangCode
-      const cnName = this.detectedLangList.find(lang => /^(zh|cn|chs|cht|zh-cn|zh-tw|zh-hk)$/i.test(lang));
-      const enName = this.detectedLangList.find(lang => /^(en|eng|en-us|en-gb)$/i.test(lang));
-      this.ctx.referredLang = cnName ?? enName ?? this.detectedLangList[0];
-    }
-    this.ctx.referredEntryList = [
-      ...new Set(this.ctx.referredEntryList.concat(Object.keys(this.ctx.langCountryMap[this.ctx.referredLang])))
-    ];
     Object.keys(this.ctx.langDictionary).forEach(key => this._genEntryClassTree(unescapeString(key)));
   }
 
@@ -111,8 +109,7 @@ export class ReadHandler {
       const targetName = results[i].name;
       const tempPath = path.join(dir, targetName);
       const isLangDir = path.resolve(tempPath) === path.resolve(this.ctx.langDir);
-      const ignoredDirList = ["dist", "node_modules", "img", "image", "css", "asset", "langChecker", ".vscode"];
-      if (results[i].isDirectory() && ignoredDirList.every(name => !targetName.includes(name)) && !isLangDir) {
+      if (results[i].isDirectory() && !isIgnoredDir(targetName) && !isLangDir) {
         const tempPathList = this._readAllFiles(tempPath);
         pathList.push(...tempPathList);
       }

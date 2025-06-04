@@ -6,6 +6,11 @@ import { LANG_FORMAT_TYPE, LANG_ENTRY_SPLIT_SYMBOL, getLangCode } from "./const"
 import { LangFileInfo, EntryMap, EntryTree, TEntry, PEntry, CaseType, LangTree, EntryNode, FileExtraInfo } from "../types/common";
 import { printInfo } from "./print";
 
+export function isIgnoredDir(dir: string): boolean {
+  const ignoredDirRegex = /^(dist|node_modules|img|image|css|asset|\.)/i;
+  return ignoredDirRegex.test(dir);
+}
+
 /**
  * 获取当前编辑器最准确的换行符
  * 判断优先级：1. 当前文档实际使用的换行符 > 2. 用户配置的换行符 > 3. 系统默认换行符

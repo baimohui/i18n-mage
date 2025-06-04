@@ -35,7 +35,6 @@ export interface LangContextInternal extends LangContextPublic {
   lackInfo: LackInfo;
   extraInfo: Record<string, string[]>;
   nullInfo: NullInfo;
-  referredEntryList: string[];
   singleLangRepeatTextInfo: Record<string, Record<string, string[]>>;
   multiLangRepeatTextInfo: Record<string, string[]>;
   entryClassTree: Record<string, any>;

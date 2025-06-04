@@ -11,6 +11,7 @@ import { ReadHandler } from "./handlers/ReadHandler";
 import { printInfo } from "@/utils/print";
 import { LangMageOptions } from "@/types";
 import { getDetectedLangList } from "@/core/tools/contextTools";
+import { getLangCode } from "@/utils/const";
 
 class LangMage {
   private static instance: LangMage;
@@ -59,6 +60,12 @@ class LangMage {
         printInfo("请确认检测路径是否为多语言文件所在的目录！", "brain");
         return false;
       }
+      this.ctx.referredLang =
+        this.detectedLangList.find(item => item === this.ctx.referredLang) ??
+        this.detectedLangList.find(lang => getLangCode(lang) === "en") ??
+        this.detectedLangList.find(lang => getLangCode(lang) === "zh") ??
+        this.detectedLangList[0];
+
       if (this.ctx.globalFlag) {
         reader.startCensus();
       }
@@ -141,7 +148,6 @@ class LangMage {
       lack: this.ctx.lackInfo,
       extra: this.ctx.extraInfo,
       null: this.ctx.nullInfo,
-      refer: this.ctx.referredEntryList,
       countryMap: this.ctx.langCountryMap,
       used: this.ctx.usedEntryMap,
       undefined: this.ctx.undefinedEntryMap,
@@ -159,7 +165,6 @@ class LangMage {
     this.ctx.lackInfo = {};
     this.ctx.extraInfo = {};
     this.ctx.nullInfo = {};
-    this.ctx.referredEntryList = [];
     this.ctx.singleLangRepeatTextInfo = {};
     this.ctx.multiLangRepeatTextInfo = {};
     this.ctx.entryClassTree = {};

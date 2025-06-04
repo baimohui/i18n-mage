@@ -28,7 +28,9 @@ export class CheckHandler {
       const translation = this.ctx.langCountryMap[lang];
       const missingTranslations: string[] = [];
       const nullTranslations: string[] = [];
-      const pivotEntryList = this.ctx.syncBasedOnReferredEntries ? this.ctx.referredEntryList : Object.keys(this.ctx.langDictionary);
+      const pivotEntryList = this.ctx.syncBasedOnReferredEntries
+        ? Object.keys(this.ctx.langCountryMap[this.ctx.referredLang])
+        : Object.keys(this.ctx.langDictionary);
       pivotEntryList.forEach(key => {
         if (!Object.hasOwn(translation, key)) {
           missingTranslations.push(key);
@@ -45,7 +47,7 @@ export class CheckHandler {
       const extraTranslations: string[] = [];
       if (this.ctx.syncBasedOnReferredEntries) {
         for (const key in translation) {
-          if (!this.ctx.referredEntryList.includes(key)) {
+          if (!Object.keys(this.ctx.langCountryMap[this.ctx.referredLang]).includes(key)) {
             extraTranslations.push(key);
           }
         }
@@ -126,7 +128,7 @@ export class CheckHandler {
 
   public checkUsage() {
     printTitle("检测条目是否使用");
-    const unusedEntryList = this.ctx.referredEntryList
+    const unusedEntryList = Object.keys(this.ctx.langCountryMap[this.ctx.referredLang])
       .map(key => unescapeString(key))
       .filter(name => !Object.hasOwn(this.ctx.usedEntryMap, name));
     if (unusedEntryList.length > 0) {

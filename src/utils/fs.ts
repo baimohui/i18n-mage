@@ -1,5 +1,6 @@
 import fs from "fs";
 import path from "path";
+import { isIgnoredDir } from "@/utils/regex";
 
 export function deleteFolderRecursive(dirPath: string): void {
   if (fs.existsSync(dirPath)) {
@@ -22,7 +23,6 @@ export function createFolderRecursive(dirPath: string): void {
   fs.mkdirSync(dirPath);
 }
 
-const ignoredDirRegex = /^(dist|node_modules|img|image|css|asset|\.)/i;
 // 只匹配容器目录名：lang、i18n、locale……等关键词
 const langDirRegex = /\b(lang|language|i18n|locale|translation|translate|message|intl|fanyi)s?\b/i;
 // 严格的区域/语言代码格式
@@ -54,7 +54,7 @@ export function getPossibleLangDirs(rootDir: string): string[] {
     }
     // —— 继续递归 ——
     for (const d of subdirs) {
-      if (ignoredDirRegex.test(d.name)) continue;
+      if (isIgnoredDir(d.name)) continue;
       traverse(path.join(dir, d.name));
     }
   }
