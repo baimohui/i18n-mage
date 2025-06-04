@@ -25,7 +25,7 @@ export class DecoratorController implements vscode.Disposable {
       before: {
         color: "#569CD6",
         backgroundColor: "rgba(86, 156, 214, 0.1)",
-        fontStyle: "italic",
+        // fontStyle: "italic",
         margin: "0 0 0 0"
       },
       dark: {
@@ -107,7 +107,7 @@ export class DecoratorController implements vscode.Disposable {
         const startLine = change.range.start.line;
         const endLine = change.range.end.line;
         changedTextLines.push(change.text);
-        if (isInRange([startLine, endLine], translationDecRanges)) {
+        if (!change.range.isSingleLine || isInRange([startLine, endLine], translationDecRanges)) {
           isOnTEntryLine = true;
         }
         for (let i = startLine; i <= endLine; i++) {
@@ -120,7 +120,7 @@ export class DecoratorController implements vscode.Disposable {
           changedTextLines.push(line.text);
         }
       }
-      if (isOnTEntryLine || catchTEntries(changedTextLines.join("\n")).length > 0) {
+      if (isOnTEntryLine || changedTextLines.some(text => /\n/.test(text)) || catchTEntries(changedTextLines.join("\n")).length > 0) {
         this.update(editor);
       }
     }
