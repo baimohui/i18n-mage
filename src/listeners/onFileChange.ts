@@ -7,7 +7,7 @@ export function registerOnFileChange() {
   const decorator = DecoratorController.getInstance();
   const debouncedHandler = debounce((event: vscode.TextDocumentChangeEvent) => {
     decorator.handleDocumentChange(event);
-  }, 100);
+  }, 500);
   const disposable = vscode.workspace.onDidChangeTextDocument(debouncedHandler);
   registerDisposable(decorator);
   registerDisposable(disposable);

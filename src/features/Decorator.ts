@@ -49,7 +49,7 @@ export class DecoratorController implements vscode.Disposable {
   public update(editor: vscode.TextEditor | undefined): void {
     if (!editor) return;
     this.currentEditor = editor;
-    this.clearAllDecorations(editor); // 清空旧装饰器
+    this.currentDecorations.clear();
     const mage = LangMage.getInstance();
     const publicCtx = mage.getPublicContext();
     const { tree, countryMap } = mage.langDetail;
@@ -143,13 +143,6 @@ export class DecoratorController implements vscode.Disposable {
     // 设置装饰器
     editor.setDecorations(this.translationDecoration, translationDecorations);
     editor.setDecorations(this.hiddenKeyDecoration, hiddenKeyDecorations);
-  }
-
-  // 清空所有装饰器
-  private clearAllDecorations(editor: vscode.TextEditor): void {
-    editor.setDecorations(this.translationDecoration, []);
-    editor.setDecorations(this.hiddenKeyDecoration, []);
-    this.currentDecorations.clear();
   }
 
   dispose(): void {
