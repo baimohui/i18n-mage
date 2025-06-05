@@ -7,9 +7,7 @@ import { debounce } from "@/utils/common";
 export function registerOnActiveEditorChange() {
   const decorator = DecoratorController.getInstance();
   const debouncedHandler = debounce((editor: vscode.TextEditor | undefined) => {
-    if (editor) {
-      decorator.update(editor);
-    }
+    decorator.update(editor);
     if (treeInstance.isInitialized) {
       treeInstance.checkUsedInfo();
     }

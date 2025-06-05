@@ -50,7 +50,8 @@ export class DecoratorController implements vscode.Disposable {
     return DecoratorController.instance;
   }
 
-  public update(editor: vscode.TextEditor) {
+  public update(editor: vscode.TextEditor | undefined) {
+    if (!editor) return;
     this.currentEditor = editor;
     this.clearAllDecorations(editor); // 清空旧装饰器
     const mage = LangMage.getInstance();
