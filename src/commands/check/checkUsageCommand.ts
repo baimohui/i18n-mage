@@ -4,12 +4,13 @@ import { treeInstance } from "@/views/tree";
 import { wrapWithProgress } from "@/utils/wrapWithProgress";
 import { registerDisposable } from "@/utils/dispose";
 import { throttle } from "@/utils/common";
+import { t } from "@/utils/i18n";
 
 export function registerCheckUsageCommand() {
   const mage = LangMage.getInstance();
   const throttledHandler = throttle(() => {
     wrapWithProgress({
-      title: "检查中...",
+      title: t("command.check.progress"),
       callback: async () => {
         const config = vscode.workspace.getConfiguration("i18n-mage");
         const ignoredFileList = config.ignoredFileList as string[]; // Ensure proper typing

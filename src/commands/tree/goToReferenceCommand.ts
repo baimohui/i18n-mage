@@ -1,5 +1,6 @@
 import * as vscode from "vscode";
 import { registerDisposable } from "@/utils/dispose";
+import { t } from "@/utils/i18n";
 
 export function registerGoToReferenceCommand() {
   const disposable = vscode.commands.registerCommand(
@@ -7,7 +8,7 @@ export function registerGoToReferenceCommand() {
     async (e: { usedInfo: Record<string, number[]>; label: string }) => {
       const editor = vscode.window.activeTextEditor;
       if (!editor) {
-        vscode.window.showErrorMessage("没有活动的编辑器");
+        vscode.window.showErrorMessage(t("common.noActiveEditorWarn"));
         return;
       }
       const resourceUri = editor.document.uri;

@@ -5,13 +5,14 @@ import { treeInstance } from "@/views/tree";
 import { PluginConfiguration } from "@/types";
 import { wrapWithProgress } from "@/utils/wrapWithProgress";
 import { registerDisposable } from "@/utils/dispose";
+import { t } from "@/utils/i18n";
 
 export function registerIgnoreFileCommand() {
   const mage = LangMage.getInstance();
   const globalConfig = vscode.workspace.getConfiguration();
   const disposable = vscode.commands.registerCommand("i18nMage.ignoreFile", (e: vscode.TreeItem) => {
     wrapWithProgress({
-      title: "刷新中...",
+      title: t("command.ignoreFile.progress"),
       callback: async () => {
         const publicCtx = mage.getPublicContext();
         const config = vscode.workspace.getConfiguration("i18n-mage") as PluginConfiguration;

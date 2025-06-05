@@ -5,13 +5,14 @@ import { PluginConfiguration } from "@/types";
 import previewFixContent from "@/views/previewBeforeFix";
 import { wrapWithProgress } from "@/utils/wrapWithProgress";
 import { registerDisposable } from "@/utils/dispose";
+import { t } from "@/utils/i18n";
 
 export function registerFixCommand() {
   const mage = LangMage.getInstance();
   const config = vscode.workspace.getConfiguration("i18n-mage") as PluginConfiguration;
   const disposable = vscode.commands.registerCommand("i18nMage.fix", () => {
     wrapWithProgress({
-      title: "修复中...",
+      title: t("command.fix.progress"),
       callback: async () => {
         const rewriteFlag = !config.previewBeforeFix;
         mage.setOptions({ task: "fix", globalFlag: true, rewriteFlag });
@@ -33,10 +34,10 @@ export function registerFixCommand() {
                 mage.setOptions({ task: "check", globalFlag: true, clearCache: true, ignoredFileList: config.ignoredFileList });
                 await mage.execute();
                 treeInstance.refresh();
-                vscode.window.showInformationMessage("Fix success");
+                vscode.window.showInformationMessage(t("command.fix.success"));
               });
             } else {
-              vscode.window.showWarningMessage("No updated entries found.");
+              vscode.window.showWarningMessage(t("command.fix.nullWarn"));
             }
           }
         }

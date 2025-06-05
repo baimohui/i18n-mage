@@ -5,6 +5,7 @@ import { wrapWithProgress } from "@/utils/wrapWithProgress";
 import { registerAllCommands } from "@/commands";
 import { registerAllListeners } from "@/listeners";
 import { bindDisposablesToContext } from "@/utils/dispose";
+import { t } from "@/utils/i18n";
 
 /**
  * 插件被激活时触发，所有代码总入口
@@ -17,7 +18,7 @@ export function activate(context: vscode.ExtensionContext): void {
   bindDisposablesToContext(context);
 
   wrapWithProgress({
-    title: "初始化中...",
+    title: t("common.init.progress"),
     callback: async () => {
       await treeInstance.initTree();
       if (vscode.window.activeTextEditor) {

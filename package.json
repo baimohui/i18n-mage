@@ -23,72 +23,68 @@
     "onLanguage:vue"
   ],
   "main": "dist/extension.js",
+  "l10n": "./src/l10n",
   "contributes": {
     "configuration": [
       {
         "type": "object",
-        "title": "通用",
+        "title": "%config.common.title%",
         "properties": {
           "i18n-mage.referenceLanguage": {
             "type": "string",
             "default": "cn",
-            "description": "参考语言"
+            "description": "%config.referenceLanguage.desc%"
           },
           "i18n-mage.previewBeforeFix": {
             "type": "boolean",
             "default": true,
-            "description": "是否需要对修复内容进行预览与选择/修改"
+            "description": "%config.previewBeforeFix.desc%"
           },
           "i18n-mage.syncBasedOnReferredEntries": {
             "type": "boolean",
             "default": false,
-            "description": "在统计词条同步信息时，是否以参考语言文件中定义的词条为基准。若不是，则以所有语言文件中定义的词条为准"
+            "description": "%config.syncBasedOnReferredEntries.desc%"
           },
           "i18n-mage.ignoreEmptyLangFile": {
             "type": "boolean",
             "default": true,
-            "description": "忽略疑似空白的语言文件"
+            "description": "%config.ignoreEmptyLangFile.desc%"
           },
           "i18n-mage.langFileMinLength": {
             "type": "integer",
             "default": 30,
-            "description": "小于该字符数的多语言文件将被视作空白文件"
-          },
-          "i18n-mage.showTip": {
-            "type": "boolean",
-            "default": true,
-            "description": "启动时显示自定义欢迎页"
+            "description": "%config.langFileMinLength.desc%"
           },
           "i18n-mage.ignoredFileList": {
             "type": "array",
             "default": [],
-            "description": "忽略的文件列表"
+            "description": "%config.ignoredFileList.desc%"
           }
         }
       },
       {
         "type": "object",
-        "title": "翻译平台",
+        "title": "%config.translatePlatform.title%",
         "properties": {
           "i18n-mage.baiduAppId": {
             "type": "string",
             "default": "",
-            "description": "百度翻译开放平台开发者 APP ID"
+            "description": "%config.baiduAppId.desc%"
           },
           "i18n-mage.baiduSecretKey": {
             "type": "string",
             "default": "",
-            "description": "百度翻译开放平台开发者密钥"
+            "description": "%config.baiduSecretKey.desc%"
           },
           "i18n-mage.tencentSecretId": {
             "type": "string",
             "default": "",
-            "description": "腾讯云平台账号 SecretId"
+            "description": "%config.tencentSecretId.desc%"
           },
           "i18n-mage.tencentSecretKey": {
             "type": "string",
             "default": "",
-            "description": "腾讯云平台账号 SecretKey"
+            "description": "%config.tencentSecretKey.desc%"
           },
           "i18n-mage.translateApiPriority": {
             "type": "array",
@@ -97,11 +93,11 @@
               "baidu",
               "tencent"
             ],
-            "description": "翻译调用优先级"
+            "description": "%config.translateApiPriority.desc%"
           },
           "i18n-mage.langAliasCustomMappings": {
             "type": "object",
-            "description": "自定义语言别名映射（格式：{ 'lang': ['alias1', 'alias2'] }）",
+            "description": "%config.langAliasCustomMappings.desc%",
             "default": {},
             "additionalProperties": {
               "type": "array",
@@ -111,54 +107,16 @@
             }
           }
         }
-      },
-      {
-        "type": "object",
-        "title": "检查",
-        "properties": {
-          "i18n-mage.defaultCheckedItems": {
-            "type": "string",
-            "default": "unity",
-            "description": "默认检测项目 (unity|repeat|style)"
-          }
-        }
-      },
-      {
-        "type": "object",
-        "title": "排序",
-        "properties": {
-          "i18n-mage.keepSortGlobal": {
-            "type": "boolean",
-            "default": true,
-            "description": "按全局使用范围进行排序"
-          },
-          "i18n-mage.sortWithTrim": {
-            "type": "boolean",
-            "default": false,
-            "description": "排序时是否移除疑似未使用翻译"
-          }
-        }
-      },
-      {
-        "type": "object",
-        "title": "修复",
-        "properties": {
-          "i18n-mage.fixWithTrim": {
-            "type": "boolean",
-            "default": false,
-            "description": "修复时是否移除疑似未使用翻译"
-          }
-        }
       }
     ],
     "commands": [
       {
         "command": "i18nMage.setReferredLang",
-        "title": "设为参考语言"
+        "title": "%command.setReferredLang.title%"
       },
       {
         "command": "i18nMage.markAsKnownLang",
-        "title": "标记为已知语言",
+        "title": "%command.markAsKnownLang.title%",
         "icon": {
           "light": "./images/claim-light.svg",
           "dark": "./images/claim-dark.svg"
@@ -166,7 +124,7 @@
       },
       {
         "command": "i18nMage.checkUsage",
-        "title": "刷新",
+        "title": "%command.refresh.title%",
         "icon": {
           "light": "./images/refresh-light.svg",
           "dark": "./images/refresh-dark.svg"
@@ -174,7 +132,7 @@
       },
       {
         "command": "i18nMage.fix",
-        "title": "修复",
+        "title": "%command.fix.title%",
         "icon": {
           "light": "./images/translate-light.svg",
           "dark": "./images/translate-dark.svg"
@@ -182,7 +140,7 @@
       },
       {
         "command": "i18nMage.export",
-        "title": "导出为 Excel",
+        "title": "%command.export.title%",
         "icon": {
           "light": "./images/share-light.svg",
           "dark": "./images/share-dark.svg"
@@ -190,7 +148,7 @@
       },
       {
         "command": "i18nMage.import",
-        "title": "从 Excel 导入",
+        "title": "%command.import.title%",
         "icon": {
           "light": "./images/import-light.svg",
           "dark": "./images/import-dark.svg"
@@ -198,7 +156,7 @@
       },
       {
         "command": "i18nMage.ignoreFile",
-        "title": "忽略该文件",
+        "title": "%command.ignoreFile.title%",
         "icon": {
           "light": "./images/remove-light.svg",
           "dark": "./images/remove-dark.svg"
@@ -206,7 +164,7 @@
       },
       {
         "command": "i18nMage.copyName",
-        "title": "复制词条名",
+        "title": "%command.copyName.title%",
         "icon": {
           "light": "./images/copy-light.svg",
           "dark": "./images/copy-dark.svg"
@@ -214,7 +172,7 @@
       },
       {
         "command": "i18nMage.copyKeyValue",
-        "title": "复制键值对",
+        "title": "%command.copyKeyValue.title%",
         "icon": {
           "light": "./images/copy-light.svg",
           "dark": "./images/copy-dark.svg"
@@ -222,7 +180,7 @@
       },
       {
         "command": "i18nMage.goToReference",
-        "title": "跳转到引用位置",
+        "title": "%command.goToReference.title%",
         "icon": {
           "light": "./images/source-light.svg",
           "dark": "./images/source-dark.svg"
@@ -230,7 +188,7 @@
       },
       {
         "command": "i18nMage.goToDefinition",
-        "title": "跳转到词条定义",
+        "title": "%command.goToDefinition.title%",
         "icon": {
           "light": "./images/definition-light.svg",
           "dark": "./images/definition-dark.svg"
@@ -238,7 +196,7 @@
       },
       {
         "command": "i18nMage.copyValue",
-        "title": "复制词条值",
+        "title": "%command.copyValue.title%",
         "icon": {
           "light": "./images/copy-light.svg",
           "dark": "./images/copy-dark.svg"
@@ -246,7 +204,7 @@
       },
       {
         "command": "i18nMage.editValue",
-        "title": "编辑词条值",
+        "title": "%command.editValue.title%",
         "icon": {
           "light": "./images/edit-light.svg",
           "dark": "./images/edit-dark.svg"
@@ -254,7 +212,7 @@
       },
       {
         "command": "i18nMage.deleteUnused",
-        "title": "移除",
+        "title": "%command.deleteUnused.title%",
         "icon": {
           "light": "./images/delete-light.svg",
           "dark": "./images/delete-dark.svg"
@@ -361,15 +319,8 @@
     "viewsWelcome": [
       {
         "view": "treeProvider",
-        "contents": "未检测到有效的语言文件",
+        "contents": "%view.welcome.title%",
         "when": "initialized  && !hasValidLangDir"
-      }
-    ],
-    "iconThemes": [
-      {
-        "id": "testIconTheme",
-        "label": "测试图标主题",
-        "path": "./theme/icon-theme.json"
       }
     ]
   },

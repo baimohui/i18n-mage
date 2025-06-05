@@ -24,7 +24,7 @@ export function createFolderRecursive(dirPath: string): void {
 }
 
 // 只匹配容器目录名：lang、i18n、locale……等关键词
-const langDirRegex = /\b(lang|language|i18n|locale|translation|translate|message|intl|fanyi)s?\b/i;
+const langDirRegex = /\b(lang|language|i18n|l10n|locale|translation|translate|message|intl|fanyi)s?\b/i;
 // 严格的区域/语言代码格式
 const localeCodeRegex = /^[a-z]{2,3}([-_][a-z]{2,4})?$/i;
 // 匹配单文件翻译名及后缀

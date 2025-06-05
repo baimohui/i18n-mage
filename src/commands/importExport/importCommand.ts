@@ -5,6 +5,7 @@ import { PluginConfiguration } from "@/types";
 import previewFixContent from "@/views/previewBeforeFix";
 import { wrapWithProgress } from "@/utils/wrapWithProgress";
 import { registerDisposable } from "@/utils/dispose";
+import { t } from "@/utils/i18n";
 
 export function registerImportCommand() {
   const mage = LangMage.getInstance();
@@ -12,7 +13,7 @@ export function registerImportCommand() {
   const disposable = vscode.commands.registerCommand("i18nMage.import", async () => {
     const options: vscode.OpenDialogOptions = {
       canSelectMany: false,
-      openLabel: "Select Excel file",
+      openLabel: t("command.import.dialogTitle"),
       filters: {
         "Excel files": ["xlsx", "xls"]
       }
@@ -20,7 +21,7 @@ export function registerImportCommand() {
     const fileUri = await vscode.window.showOpenDialog(options);
     if (Array.isArray(fileUri) && fileUri.length > 0) {
       wrapWithProgress({
-        title: "导入中...",
+        title: t("command.import.progress"),
         callback: async () => {
           const rewriteFlag = !config.previewBeforeFix;
           const filePath = fileUri[0].fsPath;
@@ -30,7 +31,7 @@ export function registerImportCommand() {
             if (rewriteFlag) {
               mage.setOptions({ task: "check", globalFlag: true, clearCache: true, ignoredFileList: config.ignoredFileList });
               await mage.execute();
-              vscode.window.showInformationMessage("Import success");
+              vscode.window.showInformationMessage(t("command.import.success"));
             } else {
               const publicCtx = mage.getPublicContext();
               const { updatedValues, patchedIds, countryMap } = mage.langDetail;
@@ -41,10 +42,10 @@ export function registerImportCommand() {
                   mage.setOptions({ task: "check", globalFlag: true, clearCache: true, ignoredFileList: config.ignoredFileList });
                   await mage.execute();
                   treeInstance.refresh();
-                  vscode.window.showInformationMessage("Import success");
+                  vscode.window.showInformationMessage(t("command.import.success"));
                 });
               } else {
-                vscode.window.showWarningMessage("No updated entries found.");
+                vscode.window.showWarningMessage(t("command.import.nullWarn"));
               }
             }
           }

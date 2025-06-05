@@ -3,6 +3,7 @@ import LangMage from "@/core/LangMage";
 import { treeInstance } from "@/views/tree";
 import { PluginConfiguration } from "@/types";
 import { registerDisposable } from "@/utils/dispose";
+import { t } from "@/utils/i18n";
 
 export function registerDeleteUnusedCommand() {
   const mage = LangMage.getInstance();
@@ -12,11 +13,11 @@ export function registerDeleteUnusedCommand() {
     async (e: vscode.TreeItem & { data: { name: string; key: string }[] }) => {
       if (typeof e.label !== "string" || e.label.trim() === "" || !Array.isArray(e.data) || e.data.length === 0) return;
       const confirmDelete = await vscode.window.showWarningMessage(
-        "确定删除吗？",
-        { modal: true, detail: `将删除词条：${e.data.map(item => item.name).join(", ")}` },
-        { title: "确定" }
+        t("command.deleteUnused.modalTitle"),
+        { modal: true, detail: t("command.deleteUnused.modalContent", e.data.map(item => item.name).join(", ")) },
+        { title: t("common.confirm") }
       );
-      if (confirmDelete?.title === "确定") {
+      if (confirmDelete?.title === t("common.confirm")) {
         mage.setOptions({
           task: "trim",
           trimKeyList: e.data.map(item => item.key),
@@ -29,7 +30,7 @@ export function registerDeleteUnusedCommand() {
           mage.setOptions({ task: "check", globalFlag: true, clearCache: true, ignoredFileList: config.ignoredFileList });
           await mage.execute();
           treeInstance.refresh();
-          vscode.window.showInformationMessage("删除成功");
+          vscode.window.showInformationMessage(t("command.deleteUnused.success"));
         }
       }
     }

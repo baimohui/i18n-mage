@@ -5,6 +5,7 @@ import { getPossibleLangDirs } from "@/utils/fs";
 import { getLangText } from "@/utils/const";
 import { LangContextPublic, TEntry, LangTree } from "@/types";
 import { PluginConfiguration } from "@/types";
+import { t } from "@/utils/i18n";
 
 interface ExtendedTreeItem extends vscode.TreeItem {
   level?: number;
@@ -142,7 +143,7 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
     let success = false;
 
     if (rootPath === null || rootPath === undefined || rootPath.trim() === "") {
-      vscode.window.showErrorMessage("No workspace opened");
+      vscode.window.showErrorMessage(t("common.noWorkspaceWarn"));
       success = false;
     } else {
       const possibleLangDirs = getPossibleLangDirs(rootPath);
@@ -154,7 +155,7 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
         }
       }
       if (this.#mage.detectedLangList.length === 0) {
-        vscode.window.showInformationMessage("No lang dir in workspace");
+        vscode.window.showInformationMessage(t("common.noLangDirDetectedWarn"));
         vscode.commands.executeCommand("setContext", "hasValidLangDir", false);
         this.#mage.setOptions({ langDir: "" });
         success = false;
@@ -173,7 +174,7 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
     return [
       {
         level: 0,
-        label: "当前文件",
+        label: t("tree.currentFile.title"),
         id: "CURRENT_FILE",
         root: "CURRENT_FILE",
         iconPath: new vscode.ThemeIcon("file"),
@@ -182,7 +183,7 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
       },
       {
         level: 0,
-        label: "同步情况",
+        label: t("tree.syncInfo.title"),
         id: "SYNC_INFO",
         root: "SYNC_INFO",
         iconPath: new vscode.ThemeIcon("sync"),
@@ -191,7 +192,7 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
       },
       {
         level: 0,
-        label: "使用情况",
+        label: t("tree.usedInfo.title"),
         id: "USAGE_INFO",
         root: "USAGE_INFO",
         contextValue: "checkUsage",
@@ -201,7 +202,7 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
       },
       {
         level: 0,
-        label: "词条汇总",
+        label: t("tree.dictionary.title"),
         id: "DICTIONARY",
         root: "DICTIONARY",
         iconPath: new vscode.ThemeIcon("notebook"),
@@ -219,7 +220,7 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
       }
       return [
         {
-          label: "已定义",
+          label: t("tree.currentFile.defined"),
           description: String(this.definedEntriesInCurrentFile.length),
           collapsibleState: vscode.TreeItemCollapsibleState[this.definedEntriesInCurrentFile.length === 0 ? "None" : "Collapsed"],
           data: this.definedEntriesInCurrentFile.map(item => ({
@@ -234,7 +235,7 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
           root: element.root
         },
         {
-          label: "未定义",
+          label: t("tree.currentFile.undefined"),
           description: String(this.undefinedEntriesInCurrentFile.length),
           collapsibleState: vscode.TreeItemCollapsibleState[this.undefinedEntriesInCurrentFile.length === 0 ? "None" : "Collapsed"],
           level: 1,
@@ -275,7 +276,7 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
           data: { name: element.label, key: entryKey, value: entryInfo[lang] ?? "", lang },
           contextValue: contextValueList.join(","),
           id: this.genId(element, lang),
-          tooltip: getLangText(lang) || "未知语种"
+          tooltip: getLangText(lang) || t("common.unknownLang")
         };
       });
     }
@@ -294,7 +295,7 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
           key: lang,
           label: lang,
           root: element.root,
-          tooltip: getLangText(lang) || "未知语种",
+          tooltip: getLangText(lang) || t("common.unknownLang"),
           id: this.genId(element, lang),
           contextValue: contextValueList.join(","),
           description: this.checkLangSyncInfo(lang),
@@ -335,9 +336,9 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
   private async getUsageInfoChildren(element: ExtendedTreeItem): Promise<ExtendedTreeItem[]> {
     if (element.level === 0) {
       return [
-        { type: "used", label: "已使用", num: this.entryUsageInfo.used.length },
-        { type: "unused", label: "未使用", num: this.entryUsageInfo.unused.length },
-        { type: "undefined", label: "未定义", num: Object.keys(this.undefinedEntryMap).length }
+        { type: "used", label: t("tree.usedInfo.used"), num: this.entryUsageInfo.used.length },
+        { type: "unused", label: t("tree.usedInfo.unused"), num: this.entryUsageInfo.unused.length },
+        { type: "undefined", label: t("tree.usedInfo.undefined"), num: Object.keys(this.undefinedEntryMap).length }
       ].map(item => ({
         ...item,
         level: 1,
@@ -421,7 +422,7 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
       return Object.entries(this.dictionary[res]).map(item => ({
         label: item[0],
         description: item[1],
-        tooltip: getLangText(item[0]) || "未知语种",
+        tooltip: getLangText(item[0]) || t("common.unknownLang"),
         id: this.genId(element, item[0]),
         contextValue: contextValueList.join(","),
         data: { key: res, value: item[1], lang: item[0] },
@@ -492,10 +493,10 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
       list.push(`+${extraNum}`);
     }
     if (lackNum === 0 && extraNum === 0 && nullNum === 0) {
-      list.push("已同步");
+      list.push(t("tree.syncInfo.synced"));
     }
     if (lang === this.publicCtx.referredLang) {
-      list.push("参考");
+      list.push(t("tree.syncInfo.referred"));
     }
     return list.join(" ");
   }
@@ -517,12 +518,12 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
     const lackEntries = (this.langInfo.lack?.[lang] ?? []).map(item => [item, this.dictionary[item][this.publicCtx.referredLang]]);
     const nullEntries = nullEntryNameList.map(item => [item, this.dictionary[item][this.publicCtx.referredLang]]);
     const res = [
-      { label: "正常", num: commonEntries.length, data: commonEntries, type: "common" },
-      { label: "空值", num: nullEntries.length, data: nullEntries, type: "null" },
-      { label: "缺失", num: lackEntries.length, data: lackEntries, type: "lack" }
+      { label: t("tree.syncInfo.normal"), num: commonEntries.length, data: commonEntries, type: "common" },
+      { label: t("tree.syncInfo.null"), num: nullEntries.length, data: nullEntries, type: "null" },
+      { label: t("tree.syncInfo.lack"), num: lackEntries.length, data: lackEntries, type: "lack" }
     ];
     if (this.publicCtx.syncBasedOnReferredEntries) {
-      res.push({ label: "多余", num: extraEntries.length, data: extraEntries, type: "extra" });
+      res.push({ label: t("tree.usedInfo.unused"), num: extraEntries.length, data: extraEntries, type: "extra" });
     }
     return res;
   }
