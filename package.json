@@ -23,7 +23,7 @@
     "onLanguage:vue"
   ],
   "main": "dist/extension.js",
-  "l10n": "./src/l10n",
+  "l10n": "./l10n",
   "contributes": {
     "configuration": [
       {
