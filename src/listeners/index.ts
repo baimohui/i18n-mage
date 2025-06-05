@@ -3,6 +3,7 @@ import { registerOnActiveEditorChange } from "./onActiveEditorChange";
 import { registerOnConfigChange } from "./onConfigChange";
 import { registerOnEditorSelectionChange } from "./onEditorSelectionChange";
 import { registerOnFileChange } from "./onFileChange";
+import { registerOnEditorVisibleRangesChange } from "./onEditorVisibleRangesChange";
 
 export function registerAllListeners() {
   registerOnFileSave();
@@ -10,4 +11,5 @@ export function registerAllListeners() {
   registerOnConfigChange();
   registerOnEditorSelectionChange();
   registerOnFileChange();
+  registerOnEditorVisibleRangesChange();
 }
