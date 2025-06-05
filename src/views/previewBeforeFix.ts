@@ -46,8 +46,10 @@ function buildHtml(valueUpdates: EntryValueUpdates, idPatches: EntryIdPatches, l
 </head>
 <body>
   <h1>确认以下修复</h1>
-  ${renderValueSection(valueUpdates, localeMap, baseLocale)}
-  ${renderIdSection(idPatches)}
+  <div class="content">
+    ${renderValueSection(valueUpdates, localeMap, baseLocale)}
+    ${renderIdSection(idPatches)}
+  </div>
   <div class="actions">
     <span id="countDisplay">已选中 <span id="selectedCount">0</span> 项</span>
     <button id="btn-apply">应用</button>
@@ -73,26 +75,135 @@ function buildStyles(): string {
     --btn-fg: var(--vscode-button-foreground);
     --btn-hover: var(--vscode-button-hoverBackground);
   }
-  body { font-family: var(--vscode-font-family); padding: 20px; color: var(--fg); background: var(--bg); }
-  h1, h2 { margin-bottom: 12px; }
-  details { margin-bottom: 24px; }
-  .section { margin-bottom: 24px; padding: 16px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); }
-  .section h2 { margin-top: 0; }
-  .group-head { display: flex; align-items: center; gap: 8px; cursor: pointer; margin-bottom: 12px; }
-  .group { display: flex; flex-direction: column; gap: 12px; }
-  .item { display: flex; align-items: center; gap: 8px; }
-  .item input[type="text"] { flex: 3; padding: 4px 8px; border: 1px solid var(--border); border-radius: 4px; background: var(--input-bg); color: var(--input-fg); }
-  .item label { width: 200px; flex-shrink: 0; word-wrap: break-word; }
-  .old { flex: 2; color: #c00; font-size: 0.9em; }
-  .new { flex: 2; color: #090; font-size: 0.9em; }
-  .actions { text-align: right; }
-  #countDisplay { margin-right: 16px; font-weight: bold; }
-  button { margin-left: 8px; padding: 8px 16px; border: none; border-radius: 4px; cursor: pointer;
-    background: var(--btn-bg); color: var(--btn-fg); }
-  button:hover { background: var(--btn-hover); }
-  #btn-apply { background: #007acc; color: #fff; }
-  #btn-apply:disabled { background: #888 !important; color: #ccc !important; cursor: not-allowed; }
-  #btn-cancel { background: #ccc; color: #333; }
+  body {
+    font-family: var(--vscode-font-family);
+    padding: 20px;
+    color: var(--fg);
+    background: var(--bg);
+    display: flex;
+    flex-direction: column;
+    max-height: 100vh;
+    box-sizing: border-box;
+  }
+  h1,
+  h2 {
+    margin-bottom: 12px;
+  }
+  .content {
+    flex: 1;
+    overflow-y: auto;
+    margin-bottom: 24px;
+  }
+  details {
+    margin-bottom: 24px;
+  }
+  .section {
+    padding: 16px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--bg);
+  }
+  .section:not(:last-child) {
+    margin-bottom: 16px;
+  }
+  .section h2 {
+    margin-top: 0;
+  }
+  .group-head {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    margin-bottom: 12px;
+    position: relative;
+  }
+  .group {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .item input[type="text"] {
+    flex: 3;
+    padding: 4px 8px;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    background: var(--input-bg);
+    color: var(--input-fg);
+  }
+  .value-updates .item label {
+    width: 200px;
+    flex-shrink: 0;
+    word-wrap: break-word;
+  }
+  .item span {
+    flex: 2;
+    font-size: 0.9em;
+  }
+  .old {
+    color: #c00;
+  }
+  .new {
+    color: #090;
+  }
+  .actions {
+    text-align: right;
+  }
+  #countDisplay {
+    margin-right: 16px;
+    font-weight: bold;
+  }
+  button {
+    margin-left: 8px;
+    padding: 8px 16px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    background: var(--btn-bg);
+    color: var(--btn-fg);
+  }
+  button:hover {
+    background: var(--btn-hover);
+  }
+  #btn-apply {
+    background: #007acc;
+    color: #fff;
+  }
+  #btn-apply:disabled {
+    background: #888 !important;
+    color: #ccc !important;
+    cursor: not-allowed;
+  }
+  #btn-cancel {
+    background: #ccc;
+    color: #333;
+  }
+  details summary {
+    list-style-type: none;
+  }
+  details summary::-webkit-details-marker {
+    display: none;
+  }
+  details summary::before {
+    content: "";
+    position: absolute;
+    right: 4px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 0;
+    height: 0;
+    border-left: 0.6em solid currentColor;
+    border-top: 0.6em solid transparent;
+    border-bottom: 0.6em solid transparent;
+    transition: transform 0.2s;
+  }
+  details[open] summary::before {
+    transform: translateY(-50%) rotate(90deg);
+  }
 </style>`;
 }
 
