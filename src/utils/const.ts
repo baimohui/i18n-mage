@@ -175,7 +175,7 @@ const DEFAULT_LANG_ALIAS_MAP: Record<string, string[]> = {
   ur: ["ur-PK", "urd"],
   uz: ["uz-UZ"],
   vi: ["vi-VN", "vie"],
-  zh: ["cn", "zh-cn", "zh-CN", "zh-Hans", "zh-SG"],
+  "zh-CN": ["cn", "zh-cn", "zh-CN", "zh-Hans", "zh-SG"],
   "zh-TW": ["tc", "cn_tc", "zh-tw", "zh_tw", "zh-TW", "zh_HK", "zh-MO", "cht", "zh-Hant"],
   zu: ["zu-ZA"]
 };

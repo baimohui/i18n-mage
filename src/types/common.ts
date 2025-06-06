@@ -46,7 +46,6 @@ export interface TEntry {
   name: string;
   pos: number;
   path?: string;
-  isValid?: boolean;
   fixedRaw?: string;
   var?: Record<string, string>;
 }

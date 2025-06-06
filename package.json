@@ -32,7 +32,7 @@
         "properties": {
           "i18n-mage.referenceLanguage": {
             "type": "string",
-            "default": "cn",
+            "default": "en",
             "description": "%config.referenceLanguage.desc%"
           },
           "i18n-mage.previewBeforeFix": {

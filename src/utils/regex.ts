@@ -326,11 +326,6 @@ export function formatObjectToString(tree: EntryTree, lookup: EntryMap, fileType
   return output.join(lineEnding);
 }
 
-export function deleteEntries({ data, raw }: { data: string[]; raw: string }): string {
-  const entryLineReg = new RegExp(`(^|\\n)\\s*["'\`]?(${data.join("|")})(?!\\w)[^\\n]*`, "g");
-  return raw.replace(entryLineReg, "");
-}
-
 export function formatForFile(str: string): string {
   return '"' + str.replace(/\\/g, "\\\\").replace(/"/g, '\\"').replace(/\r/g, "\\r").replace(/\n/g, "\\n").replace(/\t/g, "\\t") + '"';
 }
@@ -403,19 +398,20 @@ export function catchTEntries(fileContent: string): TEntry[] {
   const entryInfoList: TEntry[] = [];
   let tRes: RegExpExecArray | null;
   while ((tRes = tReg.exec(fileContent)) !== null) {
-    const tStartPos = tRes.index - 1;
-    const tCurPos = tStartPos + tRes[0].length;
-    const symbolStr = tRes[1];
-    const entry = parseTEntry(fileContent, tStartPos, tCurPos, symbolStr);
-    if (entry && (entry.isValid as boolean)) {
+    const startPos = tRes.index - 1; // 起始位
+    const offset = tRes[0].length; // 起始位离 t 函数内首个有效字符的距离
+    const entry = parseTEntry(fileContent, startPos, offset);
+    if (entry) {
       entryInfoList.push(entry);
     }
   }
   return entryInfoList;
 }
 
-export function parseTEntry(fileContent: string, startPos: number, curPos: number, symbolStr: string): TEntry | null {
+export function parseTEntry(fileContent: string, startPos: number, offset: number): TEntry | null {
   let isValid = true;
+  let curPos = startPos + offset;
+  let symbolStr = fileContent[curPos];
   const tFormList: { type: string; value: string }[] = [];
   let entryIndex = 0;
   let entryText = "";
@@ -427,7 +423,7 @@ export function parseTEntry(fileContent: string, startPos: number, curPos: numbe
   let tempList: string[] = [];
   const initSymbolStr = symbolStr;
   while (symbolStr !== ")") {
-    if (/\s\+,/.test(symbolStr)) {
+    if (/[\s+,]/.test(symbolStr)) {
       curPos++;
       symbolStr = fileContent[curPos];
       continue;
@@ -475,7 +471,7 @@ export function parseTEntry(fileContent: string, startPos: number, curPos: numbe
         while ((tRes = tempReg.exec(entryText)) !== null) {
           tempList.push(tRes[1]);
         }
-        tempReg = new RegExp(`{\\s*${("(" + tempList.join("|") + ")\\s*:\\s*([^]*?),?\\s*").repeat(tempStr.length)}}`, "g");
+        tempReg = new RegExp(`{\\s*${("(" + tempList.join("|") + ")\\s*:\\s*([^]*?),?\\s*").repeat(tempList.length)}}`, "g");
         while ((tRes = tempReg.exec(item.value)) !== null) {
           let num = 1;
           while (tRes[num]) {
@@ -483,7 +479,7 @@ export function parseTEntry(fileContent: string, startPos: number, curPos: numbe
             num = num + 2;
           }
         }
-        if (tempStr.length > 0 && Object.keys(entryVar).length === 0) {
+        if (tempList.length > 0 && Object.keys(entryVar).length === 0) {
           isValid = false;
         }
         break;
@@ -507,6 +503,7 @@ export function parseTEntry(fileContent: string, startPos: number, curPos: numbe
     entryReg = `^${entryReg}\\d*$`;
   }
   isValid = isValid && isStringInUncommentedRange(fileContent, entryRaw);
+  if (!isValid) return null;
   return {
     raw: entryRaw,
     text: entryText,
@@ -515,8 +512,7 @@ export function parseTEntry(fileContent: string, startPos: number, curPos: numbe
     id: getIdByStr(entryText),
     class: entryClass,
     name: entryName,
-    pos: startPos + (entryRaw.indexOf(initSymbolStr) + 1),
-    isValid
+    pos: startPos + (entryRaw.indexOf(initSymbolStr) + 1)
   };
 }
 
