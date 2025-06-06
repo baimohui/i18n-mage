@@ -41,14 +41,14 @@ export function getPossibleLangDirs(rootDir: string): string[] {
     const files = entries.filter(d => d.isFile());
     // —— 目录式检测 ——
     // 1. 当前目录名要命中 langDirRegex
-    // 2. 且它下面至少有 2 个符合 localeCodeRegex 的子目录
+    // 2. 且它下面至少有 MIN_ENTRIES 个符合 localeCodeRegex 的子目录
     const validSubdirLen = subdirs.filter(d => localeCodeRegex.test(d.name)).length;
     if (langDirRegex.test(basename) && validSubdirLen >= MIN_ENTRIES && validSubdirLen >= subdirs.length - validSubdirLen) {
       results.add(dir);
       // return;
     }
     // —— 文件式检测 ——
-    // 当前目录下至少 2 个符合 localeFileRegex 的文件
+    // 当前目录下至少 MIN_ENTRIES 个符合 localeFileRegex 的文件
     const validFileLen = files.filter(d => localeFileRegex.test(d.name)).length;
     if (langDirRegex.test(basename) && validFileLen >= MIN_ENTRIES && validFileLen >= files.length - validFileLen) {
       results.add(dir);

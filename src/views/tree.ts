@@ -373,6 +373,7 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
           const entryInfo = this.dictionary[item.key];
           return {
             key: item.key,
+            name: item.name,
             label: item.name,
             description: `<${usedNum}>${entryInfo[this.publicCtx.referredLang]}`,
             level: 2,
@@ -398,7 +399,8 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
         });
       }
     } else if (element.level === 2) {
-      const entryUsedInfo = this[element.type === "used" ? "usedEntryMap" : "undefinedEntryMap"][element.key as string];
+      const entryUsedInfo =
+        element.type === "used" ? this.usedEntryMap[element.name as string] : this.undefinedEntryMap[element.key as string];
       if (Object.keys(entryUsedInfo).length > 0) {
         const list: vscode.TreeItem[] = [];
         for (const filePath in entryUsedInfo) {
