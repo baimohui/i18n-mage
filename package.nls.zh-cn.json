@@ -12,7 +12,7 @@
   "config.tencentSecretId.desc": "腾讯云平台账号 SecretId",
   "config.tencentSecretKey.desc": "腾讯云平台账号 SecretKey",
   "config.translateApiPriority.desc": "翻译 API 优先级",
-  "config.langAliasCustomMappings.desc": "自定义语言别名映射（格式：{ 'lang': ['alias1', 'alias2'] }）",
+  "config.langAliasCustomMappings.desc": "自定义语言别名映射（格式：{ '语言代码': ['别名 1', '别名 2'] }），其中语言代码采用谷歌翻译的国家/地区码标准",
   "command.setReferredLang.title": "设为参考语言",
   "command.markAsKnownLang.title": "标记为已知语言",
   "command.refresh.title": "刷新",

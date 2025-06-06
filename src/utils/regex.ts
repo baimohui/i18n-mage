@@ -127,7 +127,7 @@ export function extractLangDataFromDir(langDir: string): ExtractResult | null {
           hasData = true;
         }
       } else {
-        const [base, ext] = dirent.name.split(".");
+        const [, base, ext] = dirent.name.match(/^(.*)\.([^.]+)$/) as RegExpMatchArray;
         if (!/^(json|js|ts|json5|mjs|cjs)$/.test(ext) || (validFileType && ext !== validFileType) || base === "index") {
           // 非法或不一致的后缀、跳过
           continue;

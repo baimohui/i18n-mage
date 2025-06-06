@@ -32,9 +32,7 @@ class LangMage {
   public setOptions(options: LangMageOptions = {}): void {
     if (Object.prototype.toString.call(options) === "[object Object]") {
       for (const [key, value] of Object.entries(options)) {
-        if (["excludedLangList", "includedLangList"].includes(key)) {
-          this.ctx[key] = (value as string[]).map(lang => lang.split(".")[0]);
-        } else if (key === "checkAimList") {
+        if (key === "checkAimList") {
           this.ctx.checkUnityFlag = (value as string[]).includes("unity");
           this.ctx.checkRepeatFlag = (value as string[]).includes("repeat");
           this.ctx.checkStyleFlag = (value as string[]).includes("style");

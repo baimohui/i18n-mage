@@ -26,11 +26,11 @@ export function createFolderRecursive(dirPath: string): void {
 // 只匹配容器目录名：lang、i18n、locale……等关键词
 const langDirRegex = /\b(lang|language|i18n|l10n|locale|translation|translate|message|intl|fanyi)s?\b/i;
 // 严格的区域/语言代码格式
-const localeCodeRegex = /^[a-z]{2,3}([-_][a-z]{2,4})?$/i;
+const localeCodeRegex = /(^|^\w.*\b)[a-z]{2,3}([-_][a-z]{2,4})?$/i;
 // 匹配单文件翻译名及后缀
-const localeFileRegex = /^([a-z]{2,3}(?:[-_][A-Za-z]{2,4})?)\.(js|ts|json|json5|mjs|cjs)$/i;
+const localeFileRegex = /(^|^\w.*\b)([a-z]{2,3}(?:[-_][a-z]{2,4})?)\.(js|ts|json|json5|mjs|cjs)$/i;
 // 最小文件/目录数限制
-const MIN_ENTRIES = 2;
+const MIN_ENTRIES = 1;
 
 export function getPossibleLangDirs(rootDir: string): string[] {
   const results = new Set<string>();
@@ -42,13 +42,15 @@ export function getPossibleLangDirs(rootDir: string): string[] {
     // —— 目录式检测 ——
     // 1. 当前目录名要命中 langDirRegex
     // 2. 且它下面至少有 2 个符合 localeCodeRegex 的子目录
-    if (langDirRegex.test(basename) && subdirs.filter(d => localeCodeRegex.test(d.name)).length >= MIN_ENTRIES) {
+    const validSubdirLen = subdirs.filter(d => localeCodeRegex.test(d.name)).length;
+    if (langDirRegex.test(basename) && validSubdirLen >= MIN_ENTRIES && validSubdirLen >= subdirs.length - validSubdirLen) {
       results.add(dir);
       // return;
     }
     // —— 文件式检测 ——
     // 当前目录下至少 2 个符合 localeFileRegex 的文件
-    if (langDirRegex.test(basename) && files.filter(d => localeFileRegex.test(d.name)).length >= MIN_ENTRIES) {
+    const validFileLen = files.filter(d => localeFileRegex.test(d.name)).length;
+    if (langDirRegex.test(basename) && validFileLen >= MIN_ENTRIES && validFileLen >= files.length - validFileLen) {
       results.add(dir);
       // return;
     }

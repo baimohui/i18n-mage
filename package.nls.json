@@ -12,7 +12,7 @@
   "config.tencentSecretId.desc": "Tencent Cloud SecretId",
   "config.tencentSecretKey.desc": "Tencent Cloud SecretKey",
   "config.translateApiPriority.desc": "Translation API priority",
-  "config.langAliasCustomMappings.desc": "Custom language alias mappings (format: { 'lang': ['alias1', 'alias2'] })",
+  "config.langAliasCustomMappings.desc": "Custom language alias mapping (format: { 'language_code': ['alias1', 'alias2'] }), where language codes follow Google Translate's country/region code standard",
   "command.setReferredLang.title": "Set as Reference Language",
   "command.markAsKnownLang.title": "Mark as Known Language",
   "command.refresh.title": "Refresh",

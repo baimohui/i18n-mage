@@ -11,16 +11,11 @@ import {
   getCaseType,
   isIgnoredDir
 } from "@/utils/regex";
-import { getDetectedLangList } from "@/core/tools/contextTools";
 import { EntryTree, LangDictionary, LangTree } from "@/types";
 import { LANG_ENTRY_SPLIT_SYMBOL } from "@/utils/const";
 
 export class ReadHandler {
   constructor(private ctx: LangContextInternal) {}
-
-  get detectedLangList() {
-    return getDetectedLangList(this.ctx);
-  }
 
   public readLangFiles(): void {
     const langData = extractLangDataFromDir(this.ctx.langDir);

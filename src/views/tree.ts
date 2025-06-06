@@ -523,7 +523,7 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
       { label: t("tree.syncInfo.lack"), num: lackEntries.length, data: lackEntries, type: "lack" }
     ];
     if (this.publicCtx.syncBasedOnReferredEntries) {
-      res.push({ label: t("tree.usedInfo.unused"), num: extraEntries.length, data: extraEntries, type: "extra" });
+      res.push({ label: t("tree.syncInfo.extra"), num: extraEntries.length, data: extraEntries, type: "extra" });
     }
     return res;
   }
