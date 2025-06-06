@@ -1,10 +1,10 @@
 {
-  "name": "i18n-checker",
+  "name": "i18n-mage",
   "displayName": "i18n Mage",
-  "description": "Detect, repair and sort i18n",
+  "description": "🪄 Your magical i18n assistant for VS Code. Excel import/export, fuzzy matching, and quick fixes with minimal setup!",
   "repository": {
     "type": "git",
-    "url": "https://github.com/baimohui/i18n-checker.git"
+    "url": "https://github.com/baimohui/i18n-mage.git"
   },
   "publisher": "jensenwen",
   "keywords": [
@@ -16,11 +16,12 @@
   "engines": {
     "vscode": "^1.89.0"
   },
+  "icon": "images/icon.png",
   "categories": [
     "Other"
   ],
   "activationEvents": [
-    "onLanguage:vue"
+    "workspaceContains:package.json"
   ],
   "main": "dist/extension.js",
   "l10n": "./l10n",

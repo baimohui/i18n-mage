@@ -143,7 +143,7 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
     let success = false;
 
     if (rootPath === null || rootPath === undefined || rootPath.trim() === "") {
-      vscode.window.showErrorMessage(t("common.noWorkspaceWarn"));
+      vscode.window.showWarningMessage(t("common.noWorkspaceWarn"));
       success = false;
     } else {
       const possibleLangDirs = getPossibleLangDirs(rootPath);
@@ -155,7 +155,7 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
         }
       }
       if (this.#mage.detectedLangList.length === 0) {
-        vscode.window.showInformationMessage(t("common.noLangDirDetectedWarn"));
+        vscode.window.showWarningMessage(t("common.noLangDirDetectedWarn"));
         vscode.commands.executeCommand("setContext", "hasValidLangDir", false);
         this.#mage.setOptions({ langDir: "" });
         success = false;
