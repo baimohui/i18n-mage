@@ -15,15 +15,12 @@ export function registerExportCommand() {
     };
     const fileUri = await vscode.window.showSaveDialog(options);
     if (fileUri) {
-      wrapWithProgress({
-        title: t("command.export.progress"),
-        callback: async () => {
-          const filePath = fileUri.fsPath;
-          mage.setOptions({ task: "export", exportExcelTo: filePath });
-          const success = await mage.execute();
-          if (success) {
-            vscode.window.showInformationMessage(t("command.export.success"));
-          }
+      await wrapWithProgress({ title: t("command.export.progress") }, async () => {
+        const filePath = fileUri.fsPath;
+        mage.setOptions({ task: "export", exportExcelTo: filePath });
+        const success = await mage.execute();
+        if (success) {
+          vscode.window.showInformationMessage(t("command.export.success"));
         }
       });
     }

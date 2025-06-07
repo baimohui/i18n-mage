@@ -8,17 +8,14 @@ import { t } from "@/utils/i18n";
 
 export function registerCheckUsageCommand() {
   const mage = LangMage.getInstance();
-  const throttledHandler = throttle(() => {
-    wrapWithProgress({
-      title: t("command.check.progress"),
-      callback: async () => {
-        const config = vscode.workspace.getConfiguration("i18n-mage");
-        const ignoredFileList = config.ignoredFileList as string[]; // Ensure proper typing
-        mage.setOptions({ task: "check", globalFlag: true, clearCache: true, ignoredFileList });
-        const res = await mage.execute();
-        if (!res) {
-          await treeInstance.initTree();
-        }
+  const throttledHandler = throttle(async () => {
+    await wrapWithProgress({ title: t("command.check.progress") }, async () => {
+      const config = vscode.workspace.getConfiguration("i18n-mage");
+      const ignoredFileList = config.ignoredFileList as string[]; // Ensure proper typing
+      mage.setOptions({ task: "check", globalFlag: true, clearCache: true, ignoredFileList });
+      const res = await mage.execute();
+      if (!res) {
+        await treeInstance.initTree();
       }
     });
   }, 3000);

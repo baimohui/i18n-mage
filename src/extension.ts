@@ -11,20 +11,17 @@ import { t } from "@/utils/i18n";
  * 插件被激活时触发，所有代码总入口
  * @param context 插件上下文
  */
-export function activate(context: vscode.ExtensionContext): void {
+export async function activate(context: vscode.ExtensionContext) {
   vscode.window.registerTreeDataProvider("treeProvider", treeInstance);
   registerAllCommands();
   registerAllListeners();
   bindDisposablesToContext(context);
 
-  wrapWithProgress({
-    title: t("common.init.progress"),
-    callback: async () => {
-      await treeInstance.initTree();
-      if (vscode.window.activeTextEditor) {
-        const decorator = DecoratorController.getInstance();
-        decorator.update(vscode.window.activeTextEditor);
-      }
+  await wrapWithProgress({ title: t("common.init.progress") }, async () => {
+    await treeInstance.initTree();
+    if (vscode.window.activeTextEditor) {
+      const decorator = DecoratorController.getInstance();
+      decorator.update(vscode.window.activeTextEditor);
     }
   });
 }

@@ -6,7 +6,7 @@
     "type": "git",
     "url": "https://github.com/baimohui/i18n-mage.git"
   },
-  "publisher": "jensenwen",
+  "publisher": "Jensen Wen",
   "keywords": [
     "i18n",
     "translate",
@@ -68,26 +68,31 @@
         "title": "%config.translatePlatform.title%",
         "properties": {
           "i18n-mage.baiduAppId": {
+            "order": 7,
             "type": "string",
             "default": "",
             "description": "%config.baiduAppId.desc%"
           },
           "i18n-mage.baiduSecretKey": {
+            "order": 8,
             "type": "string",
             "default": "",
             "description": "%config.baiduSecretKey.desc%"
           },
           "i18n-mage.tencentSecretId": {
+            "order": 11,
             "type": "string",
             "default": "",
             "description": "%config.tencentSecretId.desc%"
           },
           "i18n-mage.tencentSecretKey": {
+            "order": 12,
             "type": "string",
             "default": "",
             "description": "%config.tencentSecretKey.desc%"
           },
           "i18n-mage.translateApiPriority": {
+            "order": 15,
             "type": "array",
             "default": [
               "google",
@@ -97,6 +102,7 @@
             "description": "%config.translateApiPriority.desc%"
           },
           "i18n-mage.langAliasCustomMappings": {
+            "order": 20,
             "type": "object",
             "description": "%config.langAliasCustomMappings.desc%",
             "default": {},

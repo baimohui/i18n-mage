@@ -20,33 +20,30 @@ export function registerImportCommand() {
     };
     const fileUri = await vscode.window.showOpenDialog(options);
     if (Array.isArray(fileUri) && fileUri.length > 0) {
-      wrapWithProgress({
-        title: t("command.import.progress"),
-        callback: async () => {
-          const rewriteFlag = !config.previewBeforeFix;
-          const filePath = fileUri[0].fsPath;
-          mage.setOptions({ task: "import", importExcelFrom: filePath, rewriteFlag });
-          const success = await mage.execute();
-          if (success) {
-            if (rewriteFlag) {
-              mage.setOptions({ task: "check", globalFlag: true, clearCache: true, ignoredFileList: config.ignoredFileList });
-              await mage.execute();
-              vscode.window.showInformationMessage(t("command.import.success"));
+      await wrapWithProgress({ title: t("command.import.progress") }, async () => {
+        const rewriteFlag = !config.previewBeforeFix;
+        const filePath = fileUri[0].fsPath;
+        mage.setOptions({ task: "import", importExcelFrom: filePath, rewriteFlag });
+        const success = await mage.execute();
+        if (success) {
+          if (rewriteFlag) {
+            mage.setOptions({ task: "check", globalFlag: true, clearCache: true, ignoredFileList: config.ignoredFileList });
+            await mage.execute();
+            vscode.window.showInformationMessage(t("command.import.success"));
+          } else {
+            const publicCtx = mage.getPublicContext();
+            const { updatedValues, patchedIds, countryMap } = mage.langDetail;
+            if ([updatedValues, patchedIds].some(item => Object.keys(item).length > 0)) {
+              previewFixContent(updatedValues, patchedIds, countryMap, publicCtx.referredLang, async () => {
+                mage.setOptions({ task: "rewrite" });
+                await mage.execute();
+                mage.setOptions({ task: "check", globalFlag: true, clearCache: true, ignoredFileList: config.ignoredFileList });
+                await mage.execute();
+                treeInstance.refresh();
+                vscode.window.showInformationMessage(t("command.import.success"));
+              });
             } else {
-              const publicCtx = mage.getPublicContext();
-              const { updatedValues, patchedIds, countryMap } = mage.langDetail;
-              if ([updatedValues, patchedIds].some(item => Object.keys(item).length > 0)) {
-                previewFixContent(updatedValues, patchedIds, countryMap, publicCtx.referredLang, async () => {
-                  mage.setOptions({ task: "rewrite" });
-                  await mage.execute();
-                  mage.setOptions({ task: "check", globalFlag: true, clearCache: true, ignoredFileList: config.ignoredFileList });
-                  await mage.execute();
-                  treeInstance.refresh();
-                  vscode.window.showInformationMessage(t("command.import.success"));
-                });
-              } else {
-                vscode.window.showWarningMessage(t("command.import.nullWarn"));
-              }
+              vscode.window.showWarningMessage(t("command.import.nullWarn"));
             }
           }
         }
