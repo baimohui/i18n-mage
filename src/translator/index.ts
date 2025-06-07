@@ -1,9 +1,10 @@
-import { getLangCode } from "../utils/const";
-import { printInfo } from "../utils/print";
+import { getLangCode } from "@/utils/const";
 import tcTranslateTo from "./tencent";
 import bdTranslateTo from "./baidu";
 import ggTranslateTo from "./google";
-import { TranslateParams, TranslateResult, ApiPlatform } from "../types";
+import { TranslateParams, TranslateResult, ApiPlatform } from "@/types";
+import { t } from "@/utils/i18n";
+import { NotificationManager } from "@/utils/notification";
 
 export interface Credentials {
   baiduAppId?: string;
@@ -73,14 +74,13 @@ const translateTo = async (data: TranslateData): Promise<TranslateResult> => {
   if (res.success) {
     // Handle success case
   } else {
-    const failedFixInfo = `${availableApi} 修正失败：${res.message}`;
+    NotificationManager.showError(t("command.fix.error", `[${availableApi}]${res.message}`));
     if (hasBackupApi) {
       availableApi = availableApiList[++curApiId];
-      printInfo(failedFixInfo, "error");
       if (res.langUnsupported === true) {
-        printInfo(`将由 ${availableApi} 尝试翻译该语种`, "brain");
+        NotificationManager.showProgress(t("translator.useOtherApi", availableApi));
       } else {
-        printInfo(`将由 ${availableApi} 继续服务...`, "success");
+        NotificationManager.showProgress(t("translator.useApi", availableApi));
       }
       const newRes = await translateTo({ source, target, sourceTextList, credentials });
       if (res.langUnsupported === true) {
@@ -88,7 +88,7 @@ const translateTo = async (data: TranslateData): Promise<TranslateResult> => {
       }
       return newRes;
     } else {
-      return { success: false, message: failedFixInfo };
+      return { success: false };
     }
   }
   return new Promise(resolve => {

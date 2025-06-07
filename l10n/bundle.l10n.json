@@ -52,5 +52,21 @@
   "tree.usedInfo.undefined": "Undefined",
   "tree.usedInfo.total": "Total",
   "tree.usedInfo.percent": "Percentage",
-  "tree.dictionary.title": "Entry Summary"
+  "tree.dictionary.title": "Entry Summary",
+  "common.none": "None",
+  "command.fix.progressDetail": "Call {1} ​​API to {0}, adding new translation: {2}",
+  "command.fix.error": "Fix failed: {0}",
+  "command.export.title": "Export translation",
+  "command.export.error": "Export failed: {0}",
+  "command.export.wrongPath": "Export path error",
+  "command.import.title": "Import translation",
+  "command.import.wrongPath": "Import path error",
+  "command.import.langDetected": "The valid language column in the table was detected as: {0}",
+  "command.modify.title": "Modify the entry",
+  "command.modify.error": "Failed to modify the entry, and no valid entry name was detected",
+  "command.rewrite.title": "Write entries",
+  "command.trim.title": "Clean up entries",
+  "command.trim.nullWarn": "No entry to be cleaned was detected",
+  "translator.useOtherApi": "The language will be translated by {0}",
+  "translator.useApi": "The language will be translated by {0}"
 }

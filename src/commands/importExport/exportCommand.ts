@@ -3,6 +3,7 @@ import LangMage from "@/core/LangMage";
 import { wrapWithProgress } from "@/utils/wrapWithProgress";
 import { registerDisposable } from "@/utils/dispose";
 import { t } from "@/utils/i18n";
+import { NotificationManager } from "@/utils/notification";
 
 export function registerExportCommand() {
   const mage = LangMage.getInstance();
@@ -20,7 +21,7 @@ export function registerExportCommand() {
         mage.setOptions({ task: "export", exportExcelTo: filePath });
         const success = await mage.execute();
         if (success) {
-          vscode.window.showInformationMessage(t("command.export.success"));
+          NotificationManager.showSuccess(t("command.export.success"));
         }
       });
     }

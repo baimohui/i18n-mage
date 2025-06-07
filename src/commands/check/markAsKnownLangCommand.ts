@@ -3,6 +3,7 @@ import LangMage from "@/core/LangMage";
 import { LANG_INTRO_MAP, getLangIntro } from "@/utils/const";
 import { registerDisposable } from "@/utils/dispose";
 import { t } from "@/utils/i18n";
+import { NotificationManager } from "@/utils/notification";
 
 export function registerMarkAsKnownLangCommand() {
   const mage = LangMage.getInstance();
@@ -30,13 +31,13 @@ export function registerMarkAsKnownLangCommand() {
             { ...mappings, [selectedKey]: Array.from(aliases) },
             vscode.ConfigurationTarget.Global
           );
-          vscode.window.showInformationMessage(t("command.markAsKnownLang.success", langKey, selectedText));
+          NotificationManager.showSuccess(t("command.markAsKnownLang.success", langKey, selectedText));
         } else {
-          vscode.window.showWarningMessage(t("command.markAsKnownLang.existedWarn", langKey, selectedText));
+          NotificationManager.showWarning(t("command.markAsKnownLang.existedWarn", langKey, selectedText));
         }
       }
     } catch (err) {
-      vscode.window.showErrorMessage(t("command.markAsKnownLang.error", err instanceof Error ? err.message : t("common.unknownError")));
+      NotificationManager.showError(t("command.markAsKnownLang.error", err instanceof Error ? err.message : t("common.unknownError")));
     }
   });
 

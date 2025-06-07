@@ -1,7 +1,6 @@
 import fs from "fs";
 import path from "path";
 import { LangContextInternal } from "@/types";
-import { printInfo } from "@/utils/print";
 import {
   catchAllEntries,
   extractLangDataFromDir,
@@ -20,7 +19,6 @@ export class ReadHandler {
   public readLangFiles(): void {
     const langData = extractLangDataFromDir(this.ctx.langDir);
     if (langData === null) {
-      printInfo(`无效路径：${this.ctx.langDir}`, "ghost");
       return;
     }
     const langTree = langData.langTree;
@@ -38,9 +36,6 @@ export class ReadHandler {
   }
 
   public startCensus(): void {
-    if (this.ctx.showPreInfo) {
-      printInfo("正在对条目进行全局捕获，这可能需要一点时间...", "brain");
-    }
     const filePaths = this._readAllFiles(this.ctx.rootPath);
     const pathLevelCountMap: Record<number, number> = {};
     let maxNum = 0;

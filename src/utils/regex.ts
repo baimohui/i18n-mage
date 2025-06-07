@@ -4,7 +4,6 @@ import JSON5 from "json5";
 import * as vscode from "vscode";
 import { LANG_FORMAT_TYPE, LANG_ENTRY_SPLIT_SYMBOL, getLangCode } from "./const";
 import { LangFileInfo, EntryMap, EntryTree, TEntry, PEntry, CaseType, LangTree, EntryNode, FileExtraInfo } from "../types/common";
-import { printInfo } from "./print";
 
 export function isIgnoredDir(dir: string): boolean {
   const ignoredDirRegex = /^(dist|node_modules|img|image|css|asset|\.)/i;
@@ -215,11 +214,7 @@ export function getLangFileInfo(filePath: string): LangFileInfo | null {
       }
     };
   } catch (e) {
-    if (e instanceof Error) {
-      printInfo(`解析异常，出现异常报错：${e.message}`, "demon");
-    } else {
-      printInfo(`解析异常，出现非 Error 类型的报错：${e as string}`, "demon");
-    }
+    console.error(e);
     return null;
   }
 }
@@ -794,8 +789,8 @@ export async function selectProperty(uri: vscode.Uri, key: string) {
     const suffix = isLast ? `` : `\\s*\\{`;
     const pat = new RegExp(lookaround + `\\s*:` + suffix);
     const m = pat.exec(text.slice(searchStart));
+    // 未找到属性 key
     if (!m) {
-      vscode.window.showErrorMessage(`未找到属性 ${key}`);
       return;
     }
     const matchIndex = searchStart + m.index;
@@ -809,8 +804,8 @@ export async function selectProperty(uri: vscode.Uri, key: string) {
       const objStart = matchIndex + m[0].length;
       const subText = text.slice(objStart);
       const closeIdx = findMatchingBrace(subText);
+      // 对象 key 的大括号不匹配
       if (closeIdx < 0) {
-        vscode.window.showErrorMessage(`对象 ${key} 的大括号不匹配`);
         return;
       }
       // 更新下一轮搜索的起点，只在当前对象内部查找

@@ -5,6 +5,7 @@ import { wrapWithProgress } from "@/utils/wrapWithProgress";
 import { registerAllCommands } from "@/commands";
 import { registerAllListeners } from "@/listeners";
 import { bindDisposablesToContext } from "@/utils/dispose";
+import { NotificationManager } from "@/utils/notification";
 import { t } from "@/utils/i18n";
 
 /**
@@ -12,6 +13,7 @@ import { t } from "@/utils/i18n";
  * @param context 插件上下文
  */
 export async function activate(context: vscode.ExtensionContext) {
+  NotificationManager.init();
   vscode.window.registerTreeDataProvider("treeProvider", treeInstance);
   registerAllCommands();
   registerAllListeners();

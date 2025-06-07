@@ -3,6 +3,7 @@ import LangMage from "@/core/LangMage";
 import { wrapWithProgress } from "@/utils/wrapWithProgress";
 import { registerDisposable } from "@/utils/dispose";
 import { t } from "@/utils/i18n";
+import { NotificationManager } from "@/utils/notification";
 
 export function registerSortCommand() {
   const mage = LangMage.getInstance();
@@ -11,7 +12,7 @@ export function registerSortCommand() {
       mage.setOptions({ task: "sort", globalFlag: true, rewriteFlag: true });
       const success = await mage.execute();
       if (success) {
-        vscode.window.showInformationMessage(t("command.sort.success"));
+        NotificationManager.showSuccess(t("command.sort.success"));
       }
     });
   });

@@ -1,9 +1,10 @@
 import fs from "fs";
 import xlsx from "node-xlsx";
-import { printInfo, printTitle } from "@/utils/print";
 import { LangContextInternal } from "@/types";
 import { getDetectedLangList } from "@/core/tools/contextTools";
 import { getLangText } from "@/utils/const";
+import { t } from "@/utils/i18n";
+import { NotificationManager } from "@/utils/notification";
 
 export class ExportHandler {
   constructor(private ctx: LangContextInternal) {}
@@ -13,9 +14,9 @@ export class ExportHandler {
   }
 
   public run() {
-    printTitle("导出翻译");
+    NotificationManager.showTitle(t("command.export.title"));
     if (!this.ctx.exportExcelTo) {
-      printInfo("导出文件路径不存在！", "brain");
+      NotificationManager.showTitle(t("command.export.error", t("command.export.wrongPath")));
       return;
     }
     const tableData = [["Label", ...this.detectedLangList.map(item => getLangText(item, "en") || item)]];
@@ -39,6 +40,5 @@ export class ExportHandler {
     // TODO 非管理员模式创建表格会失败
     fs.writeFileSync(this.ctx.exportExcelTo, buffer);
     fs.writeFileSync(this.ctx.exportExcelTo.replace(".xlsx", "New.xlsx"), buffer);
-    printInfo(`翻译表格已导出到 ${this.ctx.exportExcelTo} 路径`, "rocket");
   }
 }

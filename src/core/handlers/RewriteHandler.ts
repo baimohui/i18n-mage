@@ -1,8 +1,6 @@
 import fs from "fs";
 import path from "path";
 import { LangContextInternal } from "@/types";
-import { printInfo, printTitle } from "@/utils/print";
-import { formatEntriesInTerminal } from "@/utils/print";
 import {
   getFileLocationFromId,
   getContentAtLocation,
@@ -10,12 +8,14 @@ import {
   formatObjectToString,
   getPathSegsFromId
 } from "@/utils/regex";
+import { t } from "@/utils/i18n";
+import { NotificationManager } from "@/utils/notification";
 
 export class RewriteHandler {
   constructor(private ctx: LangContextInternal) {}
 
   public async run() {
-    printTitle("写入翻译条目");
+    NotificationManager.showTitle(t("command.rewrite.title"));
     for (const [lang, entryInfo] of Object.entries(this.ctx.updatedEntryValueInfo)) {
       const filePosSet = new Set<string>();
       for (const [key, value] of Object.entries(entryInfo)) {
@@ -89,11 +89,6 @@ export class RewriteHandler {
         fileContent = fileContent.replaceAll(item.raw, item.fixedRaw as string);
       });
       await this.writeFile(fixPath, fileContent);
-      const fixedEntries = formatEntriesInTerminal(
-        fixList.map(item => `\x1b[31m${item.text}\x1b[0m -> \x1b[32m${item.name}\x1b[0m`),
-        false
-      );
-      printInfo(`文件 ${this.getRelativePath(fixPath)} 修正条目：${fixedEntries}`, "mage");
     }
     this.ctx.patchedEntryIdInfo = {};
   }
@@ -101,18 +96,12 @@ export class RewriteHandler {
   private async writeFile(filePath: string, content: string) {
     try {
       await fs.promises.writeFile(filePath, content);
-      printInfo(`已写入`, "success");
     } catch (e) {
       if (e instanceof Error) {
-        printInfo(`写入失败，出现异常报错：${e.message}`, "demon");
+        NotificationManager.showError(t("common.progress.error", e.message));
       } else {
-        printInfo(`写入失败，出现非 Error 类型的报错：${e as string}`, "demon");
+        NotificationManager.showError(t("common.progress.error", e as string));
       }
     }
-  }
-
-  private getRelativePath(str: string = ""): string {
-    const rootDir = path.resolve(this.ctx.langDir, "../..");
-    return path.relative(rootDir, str) || "ROOT DIRECTORY";
   }
 }

@@ -3,6 +3,7 @@ import LangMage from "@/core/LangMage";
 import { treeInstance } from "@/views/tree";
 import { registerDisposable } from "@/utils/dispose";
 import { t } from "@/utils/i18n";
+import { NotificationManager } from "@/utils/notification";
 
 export function registerEditValueCommand() {
   const mage = LangMage.getInstance();
@@ -27,7 +28,7 @@ export function registerEditValueCommand() {
         if (success) {
           e.description = newValue;
           treeInstance.refresh();
-          vscode.window.showInformationMessage(t("command.editValue.success", newValue));
+          NotificationManager.showSuccess(t("command.editValue.success", newValue));
         }
       }
     }

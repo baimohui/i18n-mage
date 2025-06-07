@@ -6,6 +6,7 @@ import previewFixContent from "@/views/previewBeforeFix";
 import { wrapWithProgress } from "@/utils/wrapWithProgress";
 import { registerDisposable } from "@/utils/dispose";
 import { t } from "@/utils/i18n";
+import { NotificationManager } from "@/utils/notification";
 
 export function registerImportCommand() {
   const mage = LangMage.getInstance();
@@ -29,7 +30,7 @@ export function registerImportCommand() {
           if (rewriteFlag) {
             mage.setOptions({ task: "check", globalFlag: true, clearCache: true, ignoredFileList: config.ignoredFileList });
             await mage.execute();
-            vscode.window.showInformationMessage(t("command.import.success"));
+            NotificationManager.showSuccess(t("command.import.success"));
           } else {
             const publicCtx = mage.getPublicContext();
             const { updatedValues, patchedIds, countryMap } = mage.langDetail;
@@ -40,10 +41,10 @@ export function registerImportCommand() {
                 mage.setOptions({ task: "check", globalFlag: true, clearCache: true, ignoredFileList: config.ignoredFileList });
                 await mage.execute();
                 treeInstance.refresh();
-                vscode.window.showInformationMessage(t("command.import.success"));
+                NotificationManager.showSuccess(t("command.import.success"));
               });
             } else {
-              vscode.window.showWarningMessage(t("command.import.nullWarn"));
+              NotificationManager.showWarning(t("command.import.nullWarn"));
             }
           }
         }

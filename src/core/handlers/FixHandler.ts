@@ -1,12 +1,13 @@
 import { LangContextInternal } from "@/types";
 import { CheckHandler } from "./CheckHandler";
 import { RewriteHandler } from "./RewriteHandler";
-import { printInfo, printTitle } from "@/utils/print";
 import { LANG_FORMAT_TYPE, LANG_ENTRY_SPLIT_SYMBOL, getLangCode } from "@/utils/const";
 import { TEntry } from "@/types";
 import { validateLang, getIdByStr, getValueByAmbiguousEntryName } from "@/utils/regex";
 import { getDetectedLangList, setUpdatedEntryValueInfo } from "@/core/tools/contextTools";
 import translateTo from "@/translator/index";
+import { t } from "@/utils/i18n";
+import { NotificationManager } from "@/utils/notification";
 
 export class FixHandler {
   constructor(private ctx: LangContextInternal) {}
@@ -17,15 +18,11 @@ export class FixHandler {
 
   public async run() {
     const checker = new CheckHandler(this.ctx);
-    checker.checkUnity();
-    printTitle(`补充翻译${this.ctx.globalFlag ? "与修正条目" : ""}`);
+    checker.run();
     if (this.ctx.undefinedEntryList.length > 0) {
       await this.processUndefinedEntries();
     }
-    const needTranslate = await this.fillMissingTranslations();
-    if (!needTranslate) {
-      printInfo("翻译齐全，无需补充！", "success");
-    }
+    await this.fillMissingTranslations();
     if (this.ctx.rewriteFlag) {
       const writer = new RewriteHandler(this.ctx);
       await writer.run();
@@ -69,7 +66,6 @@ export class FixHandler {
           this.printAddedText(enLang, res.data, res.api);
           enNameList = res.data;
         } else {
-          printInfo(res.message, "error");
           return;
         }
       } else {
@@ -136,8 +132,6 @@ export class FixHandler {
           lackEntries.forEach((entryName, index) => {
             setUpdatedEntryValueInfo(this.ctx, entryName, res.data?.[index], lang);
           });
-        } else {
-          printInfo(res.message, "error");
         }
       }
     }
@@ -157,12 +151,11 @@ export class FixHandler {
   }
 
   private printAddedText(lang: string, textList: string[], api?: string): void {
-    printInfo(
-      `语种 ${lang} 补充${api !== undefined && api !== null ? ` ${api} ` : ""}翻译：${textList
-        .map(item => `\x1b[36m${item.replaceAll(/\n/g, "\\n")}\x1b[0m`)
-        .join(", ")}`,
-      "mage"
-    );
+    if (api !== undefined && api !== null) {
+      NotificationManager.showProgress(
+        t("command.fix.progressDetail", lang, api, textList.map(item => item.replace(/\n/g, "\\n")).join(", "))
+      );
+    }
   }
 
   private getPopularClassMap(

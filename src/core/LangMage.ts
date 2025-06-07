@@ -8,10 +8,11 @@ import { ExportHandler } from "./handlers/ExportHandler";
 import { TrimHandler } from "./handlers/TrimHandler";
 import { ModifyHandler } from "./handlers/ModifyHandler";
 import { ReadHandler } from "./handlers/ReadHandler";
-import { printInfo } from "@/utils/print";
 import { LangMageOptions } from "@/types";
 import { getDetectedLangList } from "@/core/tools/contextTools";
 import { getLangCode } from "@/utils/const";
+import { t } from "@/utils/i18n";
+import { NotificationManager } from "@/utils/notification";
 
 class LangMage {
   private static instance: LangMage;
@@ -45,7 +46,7 @@ class LangMage {
 
   public async execute(): Promise<boolean> {
     if (!this.ctx.isVacant) {
-      printInfo("检测器正忙，请稍后再试！", "brain");
+      NotificationManager.showWarning(t("common.progress.processing"));
       return false;
     }
     try {
@@ -55,7 +56,6 @@ class LangMage {
       const reader = new ReadHandler(this.ctx);
       reader.readLangFiles();
       if (this.detectedLangList.length === 0) {
-        printInfo("请确认检测路径是否为多语言文件所在的目录！", "brain");
         return false;
       }
       this.ctx.referredLang =
@@ -89,15 +89,13 @@ class LangMage {
         case "rewrite":
           await new RewriteHandler(this.ctx).run();
           break;
-        default:
-          new CheckHandler(this.ctx).genOverviewTable();
       }
       return true;
     } catch (e: unknown) {
       if (e instanceof Error) {
-        printInfo(`检测中断，出现异常报错：${e.message}`, "demon");
+        NotificationManager.showError(t("common.progress.error", e.message));
       } else {
-        printInfo(`检测中断，出现非 Error 类型的报错：${e as string}`, "demon");
+        NotificationManager.showError(t("common.progress.error", e as string));
       }
       console.error(e);
       return false;

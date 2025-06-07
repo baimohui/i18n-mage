@@ -1,5 +1,7 @@
 import * as vscode from "vscode";
 import { t } from "@/utils/i18n";
+import { ExecutionContext } from "./context";
+import { NotificationManager } from "@/utils/notification";
 
 let isProcessing = false;
 
@@ -15,7 +17,7 @@ export async function wrapWithProgress(
   callback: (progress: vscode.Progress<{ message?: string; increment?: number }>, token: vscode.CancellationToken) => Promise<void>
 ): Promise<void> {
   if (isProcessing) {
-    vscode.window.showWarningMessage(t("common.progress.processing"));
+    NotificationManager.showWarning(t("common.progress.processing"));
     return;
   }
   isProcessing = true;
@@ -26,13 +28,13 @@ export async function wrapWithProgress(
     const timeout = options.timeout ?? 120000;
     timeoutId = setTimeout(() => {
       abortController.abort();
-      vscode.window.showErrorMessage(t("common.progress.timeout", timeout));
+      NotificationManager.showError(t("common.progress.timeout", timeout));
     }, timeout);
     await vscode.window.withProgress(
       {
         location: vscode.ProgressLocation.Notification,
         title: options.title,
-        cancellable: options.cancellable ?? true
+        cancellable: options.cancellable ?? false
       },
       async (progress, token) => {
         // 创建合并的取消令牌
@@ -40,14 +42,16 @@ export async function wrapWithProgress(
         // 监听原始 token 的取消
         token.onCancellationRequested(() => {
           combinedTokenSource.cancel();
-          vscode.window.showInformationMessage(t("common.progress.cancelledByUser"));
+          NotificationManager.showSuccess(t("common.progress.cancelledByUser"));
         });
         // 监听超时取消
         abortController.signal.addEventListener("abort", () => {
           combinedTokenSource.cancel();
-          vscode.window.showInformationMessage(t("common.progress.cancelledByTimeout"));
+          NotificationManager.showSuccess(t("common.progress.cancelledByTimeout"));
         });
         const combinedToken = combinedTokenSource.token;
+        // 绑定合并后的 Token 和 Progress
+        ExecutionContext.bind(progress, combinedTokenSource.token);
         try {
           await callback(options.reportProgress === true ? progress : { report: () => {} }, combinedToken);
           if (combinedToken.isCancellationRequested) {
@@ -59,9 +63,12 @@ export async function wrapWithProgress(
         } catch (error) {
           if (!combinedToken.isCancellationRequested) {
             const errorMessage = error instanceof Error ? error.message : String(error);
-            vscode.window.showErrorMessage(t("common.progress.error"), errorMessage);
+            NotificationManager.showError(t("common.progress.error"), errorMessage);
           }
           throw error;
+        } finally {
+          ExecutionContext.unbind();
+          combinedTokenSource.dispose();
         }
       }
     );

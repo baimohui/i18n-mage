@@ -2,6 +2,7 @@ import * as vscode from "vscode";
 import { formatForFile } from "@/utils/regex";
 import { registerDisposable } from "@/utils/dispose";
 import { t } from "@/utils/i18n";
+import { NotificationManager } from "@/utils/notification";
 
 export function registerCopyKeyValueCommand() {
   const disposable = vscode.commands.registerCommand(
@@ -9,7 +10,7 @@ export function registerCopyKeyValueCommand() {
     async (e: vscode.TreeItem & { data: { name: string; value: string }[] }) => {
       const content = e.data.map(i => `${formatForFile(i.name)}: ${formatForFile(i.value)},`).join("\n");
       await vscode.env.clipboard.writeText(content);
-      vscode.window.showInformationMessage(t("command.copy.success", content));
+      NotificationManager.showSuccess(t("command.copy.success", content));
     }
   );
 

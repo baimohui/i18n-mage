@@ -1,13 +1,14 @@
 import { LangContextInternal } from "@/types";
-import { printInfo, printTitle } from "@/utils/print";
 import { setUpdatedEntryValueInfo } from "@/core/tools/contextTools";
 import { RewriteHandler } from "./RewriteHandler";
+import { t } from "@/utils/i18n";
+import { NotificationManager } from "@/utils/notification";
 
 export class TrimHandler {
   constructor(private ctx: LangContextInternal) {}
 
   public async run() {
-    printTitle("清理翻译条目");
+    NotificationManager.showTitle(t("command.trim.title"));
     if (this.ctx.trimKeyList.length > 0) {
       this.ctx.trimKeyList.forEach(name => {
         setUpdatedEntryValueInfo(this.ctx, name, undefined);
@@ -16,7 +17,7 @@ export class TrimHandler {
         await new RewriteHandler(this.ctx).run();
       }
     } else {
-      printInfo("未检测到需要清理的翻译条目！", "success");
+      NotificationManager.showWarning(t("command.trim.nullWarn"));
     }
   }
 }

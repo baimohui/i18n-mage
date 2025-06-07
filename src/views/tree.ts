@@ -6,6 +6,7 @@ import { getLangText } from "@/utils/const";
 import { LangContextPublic, TEntry, LangTree } from "@/types";
 import { PluginConfiguration } from "@/types";
 import { t } from "@/utils/i18n";
+import { NotificationManager } from "@/utils/notification";
 
 interface ExtendedTreeItem extends vscode.TreeItem {
   level?: number;
@@ -143,7 +144,7 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
     let success = false;
 
     if (rootPath === null || rootPath === undefined || rootPath.trim() === "") {
-      vscode.window.showWarningMessage(t("common.noWorkspaceWarn"));
+      NotificationManager.showWarning(t("common.noWorkspaceWarn"));
       success = false;
     } else {
       const possibleLangDirs = getPossibleLangDirs(rootPath);
@@ -155,7 +156,7 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
         }
       }
       if (this.#mage.detectedLangList.length === 0) {
-        vscode.window.showWarningMessage(t("common.noLangDirDetectedWarn"));
+        NotificationManager.showWarning(t("common.noLangDirDetectedWarn"));
         vscode.commands.executeCommand("setContext", "hasValidLangDir", false);
         this.#mage.setOptions({ langDir: "" });
         success = false;

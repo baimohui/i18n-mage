@@ -1,6 +1,7 @@
 import * as vscode from "vscode";
 import { registerDisposable } from "@/utils/dispose";
 import { t } from "@/utils/i18n";
+import { NotificationManager } from "@/utils/notification";
 
 export function registerGoToReferenceCommand() {
   const disposable = vscode.commands.registerCommand(
@@ -8,7 +9,7 @@ export function registerGoToReferenceCommand() {
     async (e: { usedInfo: Record<string, number[]>; label: string }) => {
       const editor = vscode.window.activeTextEditor;
       if (!editor) {
-        vscode.window.showErrorMessage(t("common.noActiveEditorWarn"));
+        NotificationManager.showError(t("common.noActiveEditorWarn"));
         return;
       }
       const resourceUri = editor.document.uri;

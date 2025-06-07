@@ -2,10 +2,11 @@ import fs from "fs";
 import xlsx from "node-xlsx";
 import { ExcelData } from "@/types";
 import { LangContextInternal } from "@/types";
-import { printInfo, printTitle } from "@/utils/print";
-import { getLangText, getLangIntro } from "@/utils/const";
+import { getLangIntro } from "@/utils/const";
 import { getDetectedLangList, setUpdatedEntryValueInfo } from "@/core/tools/contextTools";
 import { RewriteHandler } from "./RewriteHandler";
+import { t } from "@/utils/i18n";
+import { NotificationManager } from "@/utils/notification";
 
 export class ImportHandler {
   constructor(private ctx: LangContextInternal) {}
@@ -15,13 +16,12 @@ export class ImportHandler {
   }
 
   public async run() {
-    printTitle("导入翻译");
+    NotificationManager.showTitle(t("command.import.title"));
     if (!fs.existsSync(this.ctx.importExcelFrom)) {
-      printInfo("导入文件路径不存在！", "brain");
+      NotificationManager.showError(t("command.import.wrongPath"));
       return;
     }
     const excelData = xlsx.parse(this.ctx.importExcelFrom) as ExcelData;
-    let isModified = false;
     for (let sheetIndex = 0; sheetIndex < excelData.length; sheetIndex++) {
       const sheetData = excelData[sheetIndex].data;
       if (sheetData.length === 0) continue;
@@ -34,14 +34,14 @@ export class ImportHandler {
           headInfo[i] = "NULL";
         }
       }
-      printInfo(
-        `检测到表格内有效的语言列为：${
+      NotificationManager.showSuccess(
+        t(
+          "command.import.langDetected",
           headInfo
-            .map(item => getLangIntro(item as string)?.cnName)
+            .map(item => getLangIntro(item as string)?.enName)
             .filter(item => item !== null && item !== undefined)
-            .join("、") || "无"
-        }`,
-        "brain"
+            .join(", ") || t("common.none")
+        )
       );
       const labelIndex = headInfo.findIndex(item => String(item).toLowerCase() === "label");
       sheetData.forEach(item => {
@@ -60,12 +60,7 @@ export class ImportHandler {
                 headInfo.findIndex(item => langAlias.some(alias => String(alias).toLowerCase() === String(item).toLowerCase()))
               ]?.toString() ?? "";
             if (newLangText.trim() && oldLangText !== newLangText) {
-              printInfo(
-                `条目 ${entryName} ${getLangText(lang) || lang}更改：\x1b[31m${oldLangText}\x1b[0m -> \x1b[32m${newLangText}\x1b[0m`,
-                "mage"
-              );
               setUpdatedEntryValueInfo(this.ctx, entryName, newLangText, lang);
-              isModified = true;
             }
           });
         }
@@ -73,9 +68,6 @@ export class ImportHandler {
     }
     if (this.ctx.rewriteFlag) {
       await new RewriteHandler(this.ctx).run();
-    }
-    if (!isModified) {
-      printInfo("未检测到文案变动的条目", "success");
     }
   }
 }
