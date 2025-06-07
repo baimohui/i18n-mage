@@ -8,7 +8,7 @@ interface LangIntro {
   bdCode: string;
 }
 
-// 多语言文件名/翻译平台语言码映射表
+// 多语言文件名/翻译平台语言码映射表（key 采用谷歌翻译的国家/地区码标准小写格式）
 export const LANG_INTRO_MAP: Record<string, LangIntro> = {
   am: { cnName: "阿姆哈拉语", enName: "Amharic", ggCode: "am", tcCode: "", bdCode: "amh" },
   ar: { cnName: "阿拉伯语", enName: "Arabic", ggCode: "ar", tcCode: "ar", bdCode: "ara" },
@@ -114,8 +114,8 @@ export const LANG_INTRO_MAP: Record<string, LangIntro> = {
   xh: { cnName: "科萨语", enName: "Xhosa", ggCode: "xh", tcCode: "", bdCode: "" },
   yi: { cnName: "意第绪语", enName: "Yiddish", ggCode: "yi", tcCode: "", bdCode: "" },
   yo: { cnName: "约鲁巴语", enName: "Yoruba", ggCode: "yo", tcCode: "", bdCode: "" },
-  "zh-CN": { cnName: "简体中文", enName: "Simplified Chinese", ggCode: "zh-CN", tcCode: "zh", bdCode: "zh" },
-  "zh-TW": { cnName: "繁体中文", enName: "Traditional Chinese", ggCode: "zh-TW", tcCode: "zh-TW", bdCode: "cht" },
+  "zh-cn": { cnName: "简体中文", enName: "Simplified Chinese", ggCode: "zh-CN", tcCode: "zh", bdCode: "zh" },
+  "zh-tw": { cnName: "繁体中文", enName: "Traditional Chinese", ggCode: "zh-TW", tcCode: "zh-TW", bdCode: "cht" },
   zu: { cnName: "祖鲁语", enName: "Zulu", ggCode: "zu", tcCode: "", bdCode: "" }
 };
 
@@ -175,8 +175,8 @@ const DEFAULT_LANG_ALIAS_MAP: Record<string, string[]> = {
   ur: ["ur-PK", "urd"],
   uz: ["uz-UZ"],
   vi: ["vi-VN", "vie"],
-  "zh-CN": ["cn", "zh-cn", "zh-CN", "zh-Hans", "zh-SG"],
-  "zh-TW": ["tc", "cn_tc", "zh-tw", "zh_tw", "zh-TW", "zh_HK", "zh-MO", "cht", "zh-Hant"],
+  "zh-cn": ["cn", "zh-cn", "zh-CN", "zh-Hans", "zh-SG"],
+  "zh-tw": ["tc", "cn_tc", "zh-tw", "zh_tw", "zh-TW", "zh_HK", "zh-MO", "cht", "zh-Hant"],
   zu: ["zu-ZA"]
 };
 
@@ -188,7 +188,8 @@ function getMergedLangMap(): Record<string, string[]> {
   const mergedMap = JSON.parse(JSON.stringify(DEFAULT_LANG_ALIAS_MAP)) as Record<string, string[]>;
   // 合并策略：用户配置覆盖默认值
   for (const [lang, aliases] of Object.entries(customMappings)) {
-    mergedMap[lang] = [...(mergedMap[lang] ?? []), ...aliases];
+    const LangToLowerCase = lang.toLowerCase();
+    mergedMap[LangToLowerCase] = [...(mergedMap[LangToLowerCase] ?? []), ...aliases];
   }
   return mergedMap;
 }
@@ -198,19 +199,18 @@ const REVERSE_MAP = new Map<string, string>();
 const LANG_CODES = new Set<string>();
 
 // 初始化标准代码集合
-Object.keys(LANG_INTRO_MAP).forEach(key => LANG_CODES.add(key.toLowerCase()));
+Object.keys(LANG_INTRO_MAP).forEach(key => LANG_CODES.add(key));
 
 // 构建反向映射（代码 -> 主键）
 Object.entries(LANG_INTRO_MAP).forEach(([key, intro]) => {
   [intro.ggCode, intro.tcCode, intro.bdCode]
     .filter(Boolean)
-    .map(code => code.toLowerCase().replace(/_/g, "-"))
+    .map(code => standardizeName(code))
     .forEach(code => REVERSE_MAP.set(code, key));
 });
 
 // 根据多语言文件名 (不带后缀) 获取对应语种简介
 export function getLangIntro(str: string): LangIntro | null {
-  const standardizeName = (str: string) => str.toLowerCase().replace(/_/g, "-");
   const splitString = (inputStr: string) => {
     const matches = inputStr.toLowerCase().match(/[a-z0-9-]+/g);
     if (matches && matches.length) {
@@ -298,3 +298,8 @@ export const LANG_ENTRY_SPLIT_SYMBOL: Record<LangFormatType, string> = {
   [LANG_FORMAT_TYPE.nonObj]: ".",
   [LANG_FORMAT_TYPE.nestedObj]: "."
 };
+
+// 标准化语言名称（转换为小写并替换下划线为连字符）
+function standardizeName(str: string): string {
+  return str.toLowerCase().replace(/_/g, "-");
+}
