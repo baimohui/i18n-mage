@@ -1,12 +1,14 @@
 # 默认排除所有文件
 *
 
+# 必须在此处立刻兜住 LICENSE
+!LICENSE
+
 # 强制保留必要文件
 !dist/extension.js       # 主入口文件
 !package.json            # 必须包含
 !README.md               # 市场页展示
 !CHANGELOG.md            # 更新日志
-!LICENSE                 # 许可证
 
 # 选择性保留资源文件（如有）
 !images/**
@@ -26,4 +28,3 @@ tsconfig.json
 .husky/**
 test/**
 dist/*.map
-
