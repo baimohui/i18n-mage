@@ -1,24 +1,29 @@
-# 排除源码
+# 默认排除所有文件
+*
+
+# 强制保留必要文件
+!dist/extension.js       # 主入口文件
+!package.json            # 必须包含
+!README.md               # 市场页展示
+!CHANGELOG.md            # 更新日志
+!LICENSE                 # 许可证
+
+# 选择性保留资源文件（如有）
+!images/**
+!package.nls.json
+!package.nls.*.json
+!l10n/**
+
+# 完全排除 node_modules（除非有必须的二方包）
+node_modules/**
+
+# 排除开发配置和源码
 src/**
-*.ts
-*.tsx
-
-# 排除构建脚本
-esbuild.config.js
-webpack.config.js
+.*
+*.config.js
 tsconfig.json
-.vscodeignore
-
-# 排除测试与文档
+.vscode/**
+.husky/**
 test/**
-**/*.test.js
-**/*.md
-.vscode-test
+dist/*.map
 
-# 排除映射文件
-**/*.map
-
-# node_modules 中忽略不需要的文件（可选，提升效果有限）
-**/node_modules/**/test/**
-**/node_modules/**/examples/**
-**/node_modules/**/*.md
