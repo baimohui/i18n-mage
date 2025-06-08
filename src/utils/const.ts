@@ -1,4 +1,4 @@
-import * as vscode from "vscode";
+import { getLangAliasCustomMappings } from "./config";
 
 interface LangIntro {
   cnName: string;
@@ -182,8 +182,7 @@ const DEFAULT_LANG_ALIAS_MAP: Record<string, string[]> = {
 
 // 获取合并后的映射表
 function getMergedLangMap(): Record<string, string[]> {
-  const config = vscode.workspace.getConfiguration("i18n-mage");
-  const customMappings = config.get<Record<string, string[]>>("langAliasCustomMappings") || {};
+  const customMappings = getLangAliasCustomMappings();
   // 深拷贝默认配置
   const mergedMap = JSON.parse(JSON.stringify(DEFAULT_LANG_ALIAS_MAP)) as Record<string, string[]>;
   // 合并策略：用户配置覆盖默认值

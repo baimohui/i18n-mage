@@ -1,11 +1,10 @@
 {
   "compilerOptions": {
-    "types": ["node"],
     "module": "commonjs",
     "target": "ES2022",
-    "sourceMap": true,
     "outDir": "dist",
-    "rootDir": "src",
+    "rootDir": "",
+    "sourceMap": true,
     "strict": true,
     "noImplicitAny": false,
     "strictNullChecks": true,
@@ -13,12 +12,20 @@
     "checkJs": true,
     "esModuleInterop": true,
     "moduleResolution": "node",
+    "types": [
+      "node",
+      "mocha"
+    ],
     "skipLibCheck": true,
     "baseUrl": ".",
     "paths": {
-      "@/*": ["src/*"]
+      "@/*": [
+        "src/*"
+      ]
     }
   },
-  "include": ["src"],
-  "exclude": ["node_modules", "**/*.spec.ts", "**/*.test.ts", "**/__tests__", "**/__mocks__", "dist"]
+  "include": [
+    "src",
+    "test"
+  ],
 }

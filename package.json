@@ -6,7 +6,7 @@
     "type": "git",
     "url": "https://github.com/baimohui/i18n-mage.git"
   },
-  "publisher": "Jensen Wen",
+  "publisher": "jensen-wen",
   "keywords": [
     "i18n",
     "translate",
@@ -333,12 +333,17 @@
   },
   "scripts": {
     "prepare": "husky install",
-    "lint": "eslint \"src/**/*.{ts,tsx,js,jsx}\" --fix",
-    "pretest": "npm run lint",
-    "test": "vscode-test",
+    "lint": "npm run lint:code && npm run lint:test",
+    "lint:code": "eslint \"src/**/*.{ts,tsx,js,jsx}\" --fix",
+    "lint:test": "eslint \"test/**/*.{ts,tsx}\" --no-fix",
+    "test:unit": "mocha --require ts-node/register --require tsconfig-paths/register ./test/setup.ts \"test/**/*.ts\"",
+    "test:integration": "vscode-test --extensionDevelopmentPath=. --extensionTestsPath=test/integration/index.ts",
     "build": "node esbuild.config.js",
     "package": "npm run build && vsce package",
     "format": "prettier --write ."
+  },
+  "mocha": {
+    "timeout": 2000
   },
   "lint-staged": {
     "*.{ts,tsx}": [
@@ -367,20 +372,29 @@
     "@babel/core": "^7.27.1",
     "@babel/eslint-parser": "^7.27.1",
     "@babel/preset-env": "^7.24.8",
-    "@types/mocha": "^10.0.6",
+    "@types/chai": "^5.2.2",
+    "@types/mocha": "^10.0.10",
+    "@types/mock-require": "^3.0.0",
     "@types/node": "^18.19.97",
+    "@types/sinon": "^17.0.4",
     "@types/vscode": "^1.89.0",
     "@typescript-eslint/eslint-plugin": "^8.32.0",
     "@typescript-eslint/parser": "^8.32.0",
     "@vscode/test-cli": "^0.0.9",
-    "@vscode/test-electron": "^2.3.9",
+    "@vscode/test-electron": "^2.5.2",
+    "chai": "^5.2.0",
     "esbuild": "^0.25.4",
     "eslint": "^8.57.1",
     "eslint-config-prettier": "^10.1.5",
     "eslint-plugin-prettier": "^5.4.0",
     "husky": "^9.1.7",
     "lint-staged": "^16.1.0",
+    "mocha": "^11.5.0",
+    "mock-require": "^3.0.3",
     "prettier": "^3.5.3",
+    "sinon": "^20.0.0",
+    "ts-node": "^10.9.2",
+    "tsconfig-paths": "^4.2.0",
     "typescript": "^5.8.3"
   }
 }

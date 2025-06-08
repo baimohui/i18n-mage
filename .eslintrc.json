@@ -44,6 +44,17 @@
   "overrides": [
     {
       "files": [
+        "test/**/*.ts"
+      ],
+      "parserOptions": {
+        "project": "./tsconfig.test.json"
+      },
+      "env": {
+        "mocha": true
+      }
+    },
+    {
+      "files": [
         "*.js",
         "*.jsx"
       ], // JS 文件覆盖配置（避免 TS 规则污染 JS）

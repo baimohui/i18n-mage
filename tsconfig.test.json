@@ -1,0 +1,17 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "rootDir": ".",
+    "outDir": "out-test",
+    "moduleResolution": "node",
+    "esModuleInterop": true,
+    "types": [
+      "node",
+      "mocha"
+    ]
+  },
+  "include": [
+    "test/**/*.ts",
+    "src/**/*.ts"
+  ]
+}
