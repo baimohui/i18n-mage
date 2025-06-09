@@ -1,4 +1,4 @@
-import { LangContextInternal } from "@/types";
+import { LangContextInternal, LackInfo } from "@/types";
 import { CheckHandler } from "./CheckHandler";
 import { RewriteHandler } from "./RewriteHandler";
 import { LANG_FORMAT_TYPE, LANG_ENTRY_SPLIT_SYMBOL, getLangCode } from "@/utils/const";
@@ -8,9 +8,13 @@ import { getDetectedLangList, setUpdatedEntryValueInfo } from "@/core/tools/cont
 import translateTo from "@/translator/index";
 import { t } from "@/utils/i18n";
 import { NotificationManager } from "@/utils/notification";
+import { ExecutionContext } from "@/utils/context";
 
 export class FixHandler {
-  constructor(private ctx: LangContextInternal) {}
+  private lackInfoFromUndefined: LackInfo;
+  constructor(private ctx: LangContextInternal) {
+    this.lackInfoFromUndefined = {};
+  }
 
   get detectedLangList() {
     return getDetectedLangList(this.ctx);
@@ -23,6 +27,9 @@ export class FixHandler {
       await this.processUndefinedEntries();
     }
     await this.fillMissingTranslations();
+    if (ExecutionContext.token.isCancellationRequested) {
+      return;
+    }
     if (this.ctx.rewriteFlag) {
       const writer = new RewriteHandler(this.ctx);
       await writer.run();
@@ -30,6 +37,7 @@ export class FixHandler {
   }
 
   private async processUndefinedEntries(): Promise<void> {
+    this.lackInfoFromUndefined = {};
     const referredLangCode = getLangCode(this.ctx.referredLang);
     const referredLangMap = this.ctx.langCountryMap[this.ctx.referredLang];
     const valueKeyMap = Object.keys(referredLangMap).reduce(
@@ -62,14 +70,14 @@ export class FixHandler {
           credentials: this.ctx.credentials
         });
         if (res.success && res.data) {
-          this.printAddedText(this.ctx.referredLang, enNameList);
-          this.printAddedText(enLang, res.data, res.api);
+          this.notifyAddedText(this.ctx.referredLang, enNameList);
+          this.notifyAddedText(enLang, res.data, res.api);
           enNameList = res.data;
         } else {
           return;
         }
       } else {
-        this.printAddedText(this.ctx.referredLang, enNameList);
+        this.notifyAddedText(this.ctx.referredLang, enNameList);
       }
     }
     const pcList = this.getPopularClassList();
@@ -96,8 +104,8 @@ export class FixHandler {
         if ([this.ctx.referredLang, enLang].includes(lang)) {
           setUpdatedEntryValueInfo(this.ctx, entry.name, lang === this.ctx.referredLang ? entry.text : enNameList[index], lang);
         } else {
-          this.ctx.lackInfo[lang] ??= [];
-          this.ctx.lackInfo[lang].push(entry.name);
+          this.lackInfoFromUndefined[lang] ??= [];
+          this.lackInfoFromUndefined[lang].push(entry.name);
         }
       });
     });
@@ -115,9 +123,13 @@ export class FixHandler {
 
   private async fillMissingTranslations(): Promise<boolean> {
     let needTranslate = false;
-    for (const lang in this.ctx.lackInfo) {
+    const combinedLackInfo = { ...this.ctx.lackInfo, ...this.lackInfoFromUndefined };
+    for (const lang in combinedLackInfo) {
+      if (ExecutionContext.token.isCancellationRequested) {
+        return false;
+      }
       const referredLangMap = this.ctx.langCountryMap[this.ctx.referredLang];
-      const lackEntries = this.ctx.lackInfo[lang].filter(key => referredLangMap[key]);
+      const lackEntries = combinedLackInfo[lang].filter(key => referredLangMap[key]);
       if (lackEntries.length > 0 && this.ctx.credentials !== null) {
         needTranslate = true;
         const referredEntriesText = lackEntries.map(key => referredLangMap[key]);
@@ -128,7 +140,7 @@ export class FixHandler {
           credentials: this.ctx.credentials
         });
         if (res.success && res.data) {
-          this.printAddedText(lang, res.data, res.api);
+          this.notifyAddedText(lang, res.data, res.api);
           lackEntries.forEach((entryName, index) => {
             setUpdatedEntryValueInfo(this.ctx, entryName, res.data?.[index], lang);
           });
@@ -150,7 +162,7 @@ export class FixHandler {
     }
   }
 
-  private printAddedText(lang: string, textList: string[], api?: string): void {
+  private notifyAddedText(lang: string, textList: string[], api?: string): void {
     if (api !== undefined && api !== null) {
       NotificationManager.showProgress(
         t("command.fix.progressDetail", lang, api, textList.map(item => item.replace(/\n/g, "\\n")).join(", "))
