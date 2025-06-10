@@ -410,7 +410,7 @@ export function parseTEntry(fileContent: string, startPos: number, offset: numbe
   const tFormList: { type: string; value: string }[] = [];
   let entryIndex = 0;
   let entryText = "";
-  const entryVar = {};
+  let entryVar = {};
   let entryReg = "";
   let tRes: RegExpExecArray | null = null;
   let tempReg: RegExp | null = null;
@@ -466,14 +466,7 @@ export function parseTEntry(fileContent: string, startPos: number, offset: numbe
         while ((tRes = tempReg.exec(entryText)) !== null) {
           tempList.push(tRes[1]);
         }
-        tempReg = new RegExp(`{\\s*${("(" + tempList.join("|") + ")\\s*:\\s*([^]*?),?\\s*").repeat(tempList.length)}}`, "g");
-        while ((tRes = tempReg.exec(item.value)) !== null) {
-          let num = 1;
-          while (tRes[num]) {
-            entryVar[tRes[num]] = tRes[num + 1];
-            num = num + 2;
-          }
-        }
+        entryVar = extractKeyValuePairs(item.value);
         if (tempList.length > 0 && Object.keys(entryVar).length === 0) {
           isValid = false;
         }
@@ -509,6 +502,65 @@ export function parseTEntry(fileContent: string, startPos: number, offset: numbe
     name: entryName,
     pos: startPos + (entryRaw.indexOf(initSymbolStr) + 1)
   };
+}
+
+export function extractKeyValuePairs(objStr: string) {
+  const result = {};
+  const trimmed = objStr.trim();
+
+  // 去除前后的大括号
+  const content = trimmed.startsWith("{") && trimmed.endsWith("}") ? trimmed.slice(1, -1) : trimmed;
+
+  let current = "";
+  let key = "";
+  const braceStack: string[] = [];
+  let inString = false;
+  let stringChar = "";
+  let isParsingKey = true;
+
+  const commit = () => {
+    if (key.trim()) {
+      result[key.trim()] = current.trim();
+    }
+    key = "";
+    current = "";
+    isParsingKey = true;
+  };
+
+  for (let i = 0; i < content.length; i++) {
+    const char = content[i];
+    const prevChar = content[i - 1];
+
+    if (inString) {
+      if (char === stringChar && prevChar !== "\\") {
+        inString = false;
+      }
+    } else {
+      if (char === '"' || char === "'") {
+        inString = true;
+        stringChar = char;
+      } else if (char === "{" || char === "[" || char === "(") {
+        braceStack.push(char);
+      } else if (char === "}" || char === "]" || char === ")") {
+        braceStack.pop();
+      } else if (char === ":" && isParsingKey && braceStack.length === 0) {
+        isParsingKey = false;
+        continue;
+      } else if (char === "," && braceStack.length === 0) {
+        commit();
+        continue;
+      }
+    }
+
+    if (isParsingKey) {
+      key += char;
+    } else {
+      current += char;
+    }
+  }
+
+  if (key) commit();
+  return result;
 }
 
 export function matchTEntryPart(fileContent: string, startPos: number, symbolStr: string): { type: string; value: string } | null {
