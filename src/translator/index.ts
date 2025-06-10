@@ -1,4 +1,4 @@
-import { getLangCode } from "@/utils/const";
+import { getLangCode } from "@/utils/langKey";
 import tcTranslateTo from "./tencent";
 import bdTranslateTo from "./baidu";
 import ggTranslateTo from "./google";

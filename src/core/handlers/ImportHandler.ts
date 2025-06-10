@@ -2,7 +2,7 @@ import fs from "fs";
 import xlsx from "node-xlsx";
 import { ExcelData } from "@/types";
 import { LangContextInternal } from "@/types";
-import { getLangIntro } from "@/utils/const";
+import { getLangIntro } from "@/utils/langKey";
 import { getDetectedLangList, setUpdatedEntryValueInfo } from "@/core/tools/contextTools";
 import { RewriteHandler } from "./RewriteHandler";
 import { t } from "@/utils/i18n";

@@ -11,7 +11,7 @@ import {
   isIgnoredDir
 } from "@/utils/regex";
 import { EntryTree, LangDictionary, LangTree } from "@/types";
-import { LANG_ENTRY_SPLIT_SYMBOL } from "@/utils/const";
+import { LANG_ENTRY_SPLIT_SYMBOL } from "@/utils/langKey";
 
 export class ReadHandler {
   constructor(private ctx: LangContextInternal) {}

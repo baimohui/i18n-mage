@@ -1,7 +1,7 @@
 import * as assert from "assert";
 import * as sinon from "sinon";
 import * as configModule from "@/utils/config";
-import { LANG_INTRO_MAP, getLangIntro, getLangText, getLangCode, LANG_FORMAT_TYPE, LANG_ENTRY_SPLIT_SYMBOL } from "@/utils/const";
+import { LANG_CODE_MAPPINGS, getLangIntro, getLangText, getLangCode, LANG_FORMAT_TYPE, LANG_ENTRY_SPLIT_SYMBOL } from "@/utils/langKey";
 
 describe("const.js 多语言工具", () => {
   let sandbox: sinon.SinonSandbox;
@@ -22,13 +22,13 @@ describe("const.js 多语言工具", () => {
 
   describe("基础映射数据", () => {
     it("应包含所有支持的语言", () => {
-      assert.ok(Object.hasOwn(LANG_INTRO_MAP, "en"), "应包含英语");
-      assert.ok(Object.hasOwn(LANG_INTRO_MAP, "zh-cn"), "应包含简体中文");
-      assert.ok(Object.hasOwn(LANG_INTRO_MAP, "ja"), "应包含日语");
+      assert.ok(Object.hasOwn(LANG_CODE_MAPPINGS, "en"), "应包含英语");
+      assert.ok(Object.hasOwn(LANG_CODE_MAPPINGS, "zh-cn"), "应包含简体中文");
+      assert.ok(Object.hasOwn(LANG_CODE_MAPPINGS, "ja"), "应包含日语");
     });
 
     it("每种语言应包含完整字段", () => {
-      Object.entries(LANG_INTRO_MAP).forEach(([key, value]) => {
+      Object.entries(LANG_CODE_MAPPINGS).forEach(([key, value]) => {
         assert.ok(key, "语言键不应为空");
         assert.ok(value.cnName, `${key} 应包含中文名`);
         assert.ok(value.enName, `${key} 应包含英文名`);
@@ -39,29 +39,29 @@ describe("const.js 多语言工具", () => {
 
   describe("getLangIntro()", () => {
     it("应正确匹配标准语言代码", () => {
-      assert.deepStrictEqual(getLangIntro("en"), LANG_INTRO_MAP["en"]);
-      assert.deepStrictEqual(getLangIntro("zh-CN"), LANG_INTRO_MAP["zh-cn"]);
+      assert.deepStrictEqual(getLangIntro("en"), LANG_CODE_MAPPINGS["en"]);
+      assert.deepStrictEqual(getLangIntro("zh-CN"), LANG_CODE_MAPPINGS["zh-cn"]);
     });
 
     it("应忽略大小写", () => {
-      assert.deepStrictEqual(getLangIntro("EN"), LANG_INTRO_MAP["en"]);
-      assert.deepStrictEqual(getLangIntro("Zh-Cn"), LANG_INTRO_MAP["zh-cn"]);
+      assert.deepStrictEqual(getLangIntro("EN"), LANG_CODE_MAPPINGS["en"]);
+      assert.deepStrictEqual(getLangIntro("Zh-Cn"), LANG_CODE_MAPPINGS["zh-cn"]);
     });
 
     it("应处理带区域码的情况", () => {
-      assert.deepStrictEqual(getLangIntro("en-US"), LANG_INTRO_MAP["en"]);
-      assert.deepStrictEqual(getLangIntro("zh-TW"), LANG_INTRO_MAP["zh-tw"]);
+      assert.deepStrictEqual(getLangIntro("en-US"), LANG_CODE_MAPPINGS["en"]);
+      assert.deepStrictEqual(getLangIntro("zh-TW"), LANG_CODE_MAPPINGS["zh-tw"]);
     });
 
     it("应匹配平台特定代码", () => {
       // 测试百度代码
-      assert.deepStrictEqual(getLangIntro("jp"), LANG_INTRO_MAP["ja"]);
+      assert.deepStrictEqual(getLangIntro("jp"), LANG_CODE_MAPPINGS["ja"]);
       // 测试腾讯代码
-      assert.deepStrictEqual(getLangIntro("zh"), LANG_INTRO_MAP["zh-cn"]);
+      assert.deepStrictEqual(getLangIntro("zh"), LANG_CODE_MAPPINGS["zh-cn"]);
     });
 
     it("应处理带数字的区域码", () => {
-      assert.deepStrictEqual(getLangIntro("es-419"), LANG_INTRO_MAP["es"]);
+      assert.deepStrictEqual(getLangIntro("es-419"), LANG_CODE_MAPPINGS["es"]);
     });
 
     it("未知语言应返回 null", () => {
@@ -110,8 +110,8 @@ describe("const.js 多语言工具", () => {
 
   describe("自定义别名", () => {
     it("应合并自定义别名", () => {
-      assert.deepStrictEqual(getLangIntro("custom-cn"), LANG_INTRO_MAP["zh-cn"]);
-      assert.deepStrictEqual(getLangIntro("jp-alt"), LANG_INTRO_MAP["ja"]);
+      assert.deepStrictEqual(getLangIntro("custom-cn"), LANG_CODE_MAPPINGS["zh-cn"]);
+      assert.deepStrictEqual(getLangIntro("jp-alt"), LANG_CODE_MAPPINGS["ja"]);
     });
   });
 

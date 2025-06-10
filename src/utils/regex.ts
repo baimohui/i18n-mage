@@ -2,7 +2,7 @@ import fs from "fs";
 import path from "path";
 import JSON5 from "json5";
 import * as vscode from "vscode";
-import { LANG_FORMAT_TYPE, LANG_ENTRY_SPLIT_SYMBOL, getLangCode } from "./const";
+import { LANG_FORMAT_TYPE, LANG_ENTRY_SPLIT_SYMBOL, getLangCode } from "./langKey";
 import { LangFileInfo, EntryMap, EntryTree, TEntry, PEntry, CaseType, LangTree, EntryNode, FileExtraInfo } from "../types/common";
 
 export function isIgnoredDir(dir: string): boolean {

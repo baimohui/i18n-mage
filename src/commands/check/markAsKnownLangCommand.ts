@@ -1,6 +1,6 @@
 import * as vscode from "vscode";
 import LangMage from "@/core/LangMage";
-import { LANG_INTRO_MAP, getLangIntro } from "@/utils/const";
+import { LANG_CODE_MAPPINGS, getLangIntro } from "@/utils/langKey";
 import { registerDisposable } from "@/utils/dispose";
 import { t } from "@/utils/i18n";
 import { NotificationManager } from "@/utils/notification";
@@ -10,7 +10,7 @@ export function registerMarkAsKnownLangCommand() {
   const disposable = vscode.commands.registerCommand("i18nMage.markAsKnownLang", async ({ key: langKey }: { key: string }) => {
     try {
       const reverseMap: Record<string, string> = {};
-      const languageList = Object.entries(LANG_INTRO_MAP)
+      const languageList = Object.entries(LANG_CODE_MAPPINGS)
         .map(([key, info]) => {
           reverseMap[info.cnName] = key;
           return info.cnName;

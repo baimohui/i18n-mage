@@ -1,15 +1,5 @@
-import { getLangAliasCustomMappings } from "./config";
-
-interface LangIntro {
-  cnName: string;
-  enName: string;
-  ggCode: string;
-  tcCode: string;
-  bdCode: string;
-}
-
-// 多语言文件名/翻译平台语言码映射表（key 采用谷歌翻译的国家/地区码标准小写格式）
-export const LANG_INTRO_MAP: Record<string, LangIntro> = {
+// 语言键信息映射表（key 采用谷歌翻译的国家/地区码标准小写格式）
+export const LANG_CODE_MAPPINGS = {
   am: { cnName: "阿姆哈拉语", enName: "Amharic", ggCode: "am", tcCode: "", bdCode: "amh" },
   ar: { cnName: "阿拉伯语", enName: "Arabic", ggCode: "ar", tcCode: "ar", bdCode: "ara" },
   az: { cnName: "阿塞拜疆语", enName: "Azerbaijani", ggCode: "az", tcCode: "", bdCode: "" },
@@ -117,10 +107,12 @@ export const LANG_INTRO_MAP: Record<string, LangIntro> = {
   "zh-cn": { cnName: "简体中文", enName: "Simplified Chinese", ggCode: "zh-CN", tcCode: "zh", bdCode: "zh" },
   "zh-tw": { cnName: "繁体中文", enName: "Traditional Chinese", ggCode: "zh-TW", tcCode: "zh-TW", bdCode: "cht" },
   zu: { cnName: "祖鲁语", enName: "Zulu", ggCode: "zu", tcCode: "", bdCode: "" }
-};
+} as const;
 
-// 多语言文件别名映射表
-const DEFAULT_LANG_ALIAS_MAP: Record<string, string[]> = {
+type LangKey = keyof typeof LANG_CODE_MAPPINGS;
+
+// 语言键别名映射表
+export const DEFAULT_LANG_ALIAS_MAP: Partial<Record<LangKey, string[]>> = {
   am: ["ah", "amh", "am-ET"],
   ar: ["arb", "ar-SA", "ar-EG", "ar-AE"],
   az: ["az-AZ", "azeri"],
@@ -180,108 +172,6 @@ const DEFAULT_LANG_ALIAS_MAP: Record<string, string[]> = {
   zu: ["zu-ZA"]
 };
 
-// 获取合并后的映射表
-function getMergedLangMap(): Record<string, string[]> {
-  const customMappings = getLangAliasCustomMappings();
-  // 深拷贝默认配置
-  const mergedMap = JSON.parse(JSON.stringify(DEFAULT_LANG_ALIAS_MAP)) as Record<string, string[]>;
-  // 合并策略：用户配置覆盖默认值
-  for (const [lang, aliases] of Object.entries(customMappings)) {
-    const LangToLowerCase = lang.toLowerCase();
-    mergedMap[LangToLowerCase] = [...(mergedMap[LangToLowerCase] ?? []), ...aliases];
-  }
-  return mergedMap;
-}
-
-// 预处理：构建反向索引映射
-const REVERSE_MAP = new Map<string, string>();
-const LANG_CODES = new Set<string>();
-
-// 初始化标准代码集合
-Object.keys(LANG_INTRO_MAP).forEach(key => LANG_CODES.add(key));
-
-// 构建反向映射（代码 -> 主键）
-Object.entries(LANG_INTRO_MAP).forEach(([key, intro]) => {
-  [intro.ggCode, intro.tcCode, intro.bdCode]
-    .filter(Boolean)
-    .map(code => standardizeName(code))
-    .forEach(code => REVERSE_MAP.set(code, key));
-});
-
-// 根据多语言文件名 (不带后缀) 获取对应语种简介
-export function getLangIntro(str: string): LangIntro | null {
-  const splitString = (inputStr: string) => {
-    const matches = inputStr.toLowerCase().match(/[a-z0-9-]+/g);
-    if (matches && matches.length) {
-      return matches.length > 1 ? matches : [...matches, matches.join("")];
-    } else {
-      return [];
-    }
-  };
-  // 构建别名映射（别名 -> 主键）
-  const mergedLangMap = getMergedLangMap();
-  Object.entries(mergedLangMap).forEach(([key, aliases]) => {
-    aliases.forEach(alias => {
-      const normalized = standardizeName(alias);
-      REVERSE_MAP.set(normalized, key);
-    });
-  });
-  const baseName = standardizeName(str);
-  const splittedNameList = splitString(baseName);
-
-  // 匹配反向映射（代码 + 别名）
-  if (REVERSE_MAP.has(baseName)) {
-    const mainKey = REVERSE_MAP.get(baseName)!;
-    return LANG_INTRO_MAP[mainKey] ?? null;
-  }
-  for (const splittedName of splittedNameList) {
-    // 精确匹配主键
-    if (LANG_CODES.has(splittedName)) {
-      return LANG_INTRO_MAP[splittedName] ?? null;
-    }
-    // 处理带区域码的情况（如 en-US -> en）
-    const [langPart] = splittedName.split("-");
-    if (langPart && langPart !== splittedName) {
-      if (LANG_CODES.has(langPart)) {
-        return LANG_INTRO_MAP[langPart] ?? null;
-      }
-      if (REVERSE_MAP.has(langPart)) {
-        const mainKey = REVERSE_MAP.get(langPart)!;
-        return LANG_INTRO_MAP[mainKey] ?? null;
-      }
-    }
-    // 处理数字区域码（如 es-419）
-    if (/\d+$/.test(splittedName)) {
-      const langPart = splittedName.split("-").find(part => !/^\d+$/.test(part));
-      if (langPart !== undefined && REVERSE_MAP.has(langPart)) {
-        const mainKey = REVERSE_MAP.get(langPart)!;
-        return LANG_INTRO_MAP[mainKey] ?? null;
-      }
-    }
-  }
-  // 最终尝试直接匹配（兼容非标准键名）
-  return LANG_INTRO_MAP[baseName] ?? null;
-}
-
-// 根据多语言文件名获取对应语种名称
-export function getLangText(str: string, type: "cn" | "en" = "cn"): string {
-  const intro = getLangIntro(str) as LangIntro;
-  if (type === "cn") {
-    return intro?.cnName || "";
-  } else if (type === "en") {
-    return intro?.enName || "";
-  } else {
-    return str;
-  }
-}
-
-// 根据多语言文件名和平台获取对应语种代码
-export function getLangCode(str: string, platform: "google" | "tencent" | "baidu" = "google"): string | null {
-  const intro = getLangIntro(str) as LangIntro;
-  const map: Record<string, keyof LangIntro> = { google: "ggCode", tencent: "tcCode", baidu: "bdCode" };
-  return intro?.[map[platform]] || null;
-}
-
 // 多语言文件内容展示格式
 export const LANG_FORMAT_TYPE = {
   obj: "OBJECT",
@@ -297,8 +187,3 @@ export const LANG_ENTRY_SPLIT_SYMBOL: Record<LangFormatType, string> = {
   [LANG_FORMAT_TYPE.nonObj]: ".",
   [LANG_FORMAT_TYPE.nestedObj]: "."
 };
-
-// 标准化语言名称（转换为小写并替换下划线为连字符）
-function standardizeName(str: string): string {
-  return str.toLowerCase().replace(/_/g, "-");
-}

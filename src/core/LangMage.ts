@@ -10,7 +10,7 @@ import { ModifyHandler } from "./handlers/ModifyHandler";
 import { ReadHandler } from "./handlers/ReadHandler";
 import { LangMageOptions } from "@/types";
 import { getDetectedLangList } from "@/core/tools/contextTools";
-import { getLangCode } from "@/utils/const";
+import { getLangCode } from "@/utils/langKey";
 import { t } from "@/utils/i18n";
 import { NotificationManager } from "@/utils/notification";
 

@@ -2,7 +2,7 @@ import fs from "fs";
 import xlsx from "node-xlsx";
 import { LangContextInternal } from "@/types";
 import { getDetectedLangList } from "@/core/tools/contextTools";
-import { getLangText } from "@/utils/const";
+import { getLangText } from "@/utils/langKey";
 import { t } from "@/utils/i18n";
 import { NotificationManager } from "@/utils/notification";
 

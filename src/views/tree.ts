@@ -2,7 +2,7 @@ import * as vscode from "vscode";
 import LangMage from "@/core/LangMage";
 import { catchTEntries, unescapeString, getValueByAmbiguousEntryName } from "@/utils/regex";
 import { getPossibleLangDirs } from "@/utils/fs";
-import { getLangText } from "@/utils/const";
+import { getLangText } from "@/utils/langKey";
 import { LangContextPublic, TEntry, LangTree } from "@/types";
 import { PluginConfiguration } from "@/types";
 import { t } from "@/utils/i18n";
