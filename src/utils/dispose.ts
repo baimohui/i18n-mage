@@ -1,6 +1,6 @@
 import * as vscode from "vscode";
 
-let subscriptions: vscode.Disposable[] = [];
+const subscriptions: vscode.Disposable[] = [];
 
 export function registerDisposable(disposable: vscode.Disposable) {
   subscriptions.push(disposable);
@@ -8,5 +8,5 @@ export function registerDisposable(disposable: vscode.Disposable) {
 
 export function bindDisposablesToContext(context: vscode.ExtensionContext) {
   subscriptions.forEach(d => context.subscriptions.push(d));
-  subscriptions = []; // 防止重复
+  return subscriptions.splice(0); // 清空防止重复
 }

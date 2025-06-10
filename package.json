@@ -31,35 +31,67 @@
         "type": "object",
         "title": "%config.common.title%",
         "properties": {
+          "i18n-mage.enabled": {
+            "order": 0,
+            "type": "boolean",
+            "default": true,
+            "description": "%config.enabled.desc%"
+          },
+          "i18n-mage.i18nSolution": {
+            "order": 1,
+            "type": "string",
+            "default": "auto",
+            "description": "%config.i18nSolution.desc%",
+            "enum": [
+              "auto",
+              "vue-i18n",
+              "react-intl",
+              "react-i18next",
+              "i18next",
+              "vscode-l10n"
+            ]
+          },
           "i18n-mage.referenceLanguage": {
+            "order": 5,
             "type": "string",
             "default": "en",
             "description": "%config.referenceLanguage.desc%"
           },
-          "i18n-mage.previewBeforeFix": {
-            "type": "boolean",
-            "default": true,
-            "description": "%config.previewBeforeFix.desc%"
+          "i18n-mage.displayLanguage": {
+            "order": 6,
+            "type": "string",
+            "default": "en",
+            "description": "%config.displayLanguage.desc%"
           },
           "i18n-mage.syncBasedOnReferredEntries": {
+            "order": 6,
             "type": "boolean",
             "default": false,
             "description": "%config.syncBasedOnReferredEntries.desc%"
           },
+          "i18n-mage.previewBeforeFix": {
+            "order": 10,
+            "type": "boolean",
+            "default": true,
+            "description": "%config.previewBeforeFix.desc%"
+          },
+          "i18n-mage.ignoredFileList": {
+            "order": 15,
+            "type": "array",
+            "default": [],
+            "description": "%config.ignoredFileList.desc%"
+          },
           "i18n-mage.ignoreEmptyLangFile": {
+            "order": 20,
             "type": "boolean",
             "default": true,
             "description": "%config.ignoreEmptyLangFile.desc%"
           },
           "i18n-mage.langFileMinLength": {
+            "order": 21,
             "type": "integer",
             "default": 30,
             "description": "%config.langFileMinLength.desc%"
-          },
-          "i18n-mage.ignoredFileList": {
-            "type": "array",
-            "default": [],
-            "description": "%config.ignoredFileList.desc%"
           }
         }
       },
@@ -319,7 +351,7 @@
           "icon": "images/i18nMage.png",
           "id": "treeProvider",
           "name": "",
-          "when": "workspaceFolderCount != 0"
+          "when": "workspaceFolderCount != 0 && enabled"
         }
       ]
     },

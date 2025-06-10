@@ -8,22 +8,100 @@ import { bindDisposablesToContext } from "@/utils/dispose";
 import { NotificationManager } from "@/utils/notification";
 import { t } from "@/utils/i18n";
 
-/**
- * 插件被激活时触发，所有代码总入口
- * @param context 插件上下文
- */
-export async function activate(context: vscode.ExtensionContext) {
-  NotificationManager.init();
-  vscode.window.registerTreeDataProvider("treeProvider", treeInstance);
-  registerAllCommands();
-  registerAllListeners();
-  bindDisposablesToContext(context);
+// 全局状态管理
+class ExtensionState {
+  private static instance: ExtensionState | null = null;
+  private _enabled: boolean = true;
+  private _context: vscode.ExtensionContext | null = null;
+  private _extensionSubscriptions: vscode.Disposable[] = []; // 单独保存插件功能相关的订阅
 
-  await wrapWithProgress({ title: t("common.init.progress") }, async () => {
-    await treeInstance.initTree();
-    if (vscode.window.activeTextEditor) {
-      const decorator = DecoratorController.getInstance();
-      decorator.update(vscode.window.activeTextEditor);
+  private constructor() {}
+
+  public static getInstance(): ExtensionState {
+    if (!ExtensionState.instance) {
+      ExtensionState.instance = new ExtensionState();
     }
-  });
+    return ExtensionState.instance;
+  }
+
+  public initialize(context: vscode.ExtensionContext) {
+    this._context = context;
+    this._enabled = vscode.workspace.getConfiguration("i18n-mage").get<boolean>("enabled", true);
+    vscode.commands.executeCommand("setContext", "enabled", this._enabled);
+  }
+
+  get enabled(): boolean {
+    return this._enabled;
+  }
+
+  public async setEnabled(enabled: boolean): Promise<void> {
+    if (this._enabled === enabled) return;
+    this._enabled = enabled;
+    const config = vscode.workspace.getConfiguration("i18n-mage");
+    await config.update("enabled", enabled, vscode.ConfigurationTarget.Global);
+    vscode.commands.executeCommand("setContext", "enabled", enabled);
+    if (enabled) {
+      await this.activateExtensions();
+    } else {
+      this.deactivateExtensions();
+    }
+  }
+
+  public async activateExtensions() {
+    if (!this._context) return;
+    NotificationManager.init();
+    vscode.window.registerTreeDataProvider("treeProvider", treeInstance);
+    registerAllCommands();
+    registerAllListeners();
+    this._extensionSubscriptions = bindDisposablesToContext(this._context);
+    await wrapWithProgress({ title: t("common.init.progress") }, async () => {
+      await treeInstance.initTree();
+      if (vscode.window.activeTextEditor) {
+        const decorator = DecoratorController.getInstance();
+        decorator.update(vscode.window.activeTextEditor);
+      }
+    });
+  }
+
+  public deactivateExtensions() {
+    // 清理所有资源
+    if (this._context) {
+      // 这里手动触发清理
+      this._extensionSubscriptions.forEach(d => {
+        d.dispose();
+      });
+      this._extensionSubscriptions.length = 0; // 清空订阅
+    }
+    // 隐藏树视图
+    vscode.commands.executeCommand("setContext", "i18n-mage.enabled", false);
+    // 清除装饰器
+    const decorator = DecoratorController.getInstance();
+    decorator.dispose();
+    // NotificationManager.showSuccess(t("common.disabled"));
+  }
+}
+
+export async function activate(context: vscode.ExtensionContext) {
+  const extensionState = ExtensionState.getInstance();
+  extensionState.initialize(context);
+  // 监听配置变化
+  context.subscriptions.push(
+    vscode.workspace.onDidChangeConfiguration(async e => {
+      if (e.affectsConfiguration("i18n-mage.enabled")) {
+        const config = vscode.workspace.getConfiguration("i18n-mage");
+        await extensionState.setEnabled(config.get<boolean>("enabled", true));
+      }
+    })
+  );
+  // 初始激活
+  if (extensionState.enabled) {
+    await extensionState.activateExtensions();
+  }
+}
+
+export function deactivate() {
+  const extensionState = ExtensionState.getInstance();
+  if (extensionState.enabled) {
+    extensionState.deactivateExtensions();
+  }
 }
