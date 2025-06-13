@@ -48,6 +48,7 @@ export interface TEntry {
   path?: string;
   fixedRaw?: string;
   var?: Record<string, string>;
+  vars?: Record<string, string>[];
 }
 
 export interface PEntry {

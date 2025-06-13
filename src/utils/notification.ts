@@ -33,7 +33,7 @@ export class NotificationManager {
 
   // 成功信息
   static showSuccess(message: string, ...items: string[]): void {
-    vscode.window.showWarningMessage(`${message}`, ...items);
+    vscode.window.showInformationMessage(`${message}`, ...items);
     vscode.window.setStatusBarMessage(`${message}`, 3000);
     this.logToOutput(`✅ ${message}`);
   }

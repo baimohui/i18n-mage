@@ -84,7 +84,8 @@ export function parseTEntry(fileContent: string, startPos: number, offset: numbe
   let isValid = true;
   let curPos = startPos + offset;
   let symbolStr = fileContent[curPos];
-  const tFormList: { type: string; value: string }[] = [];
+  const entryNameForm: { type: string; value: string }[] = [];
+  const entryVarList: { type: string; value: string }[] = [];
   let entryIndex = 0;
   let entryText = "";
   let entryVar = {};
@@ -94,8 +95,12 @@ export function parseTEntry(fileContent: string, startPos: number, offset: numbe
   let tempStr = "";
   let tempList: string[] = [];
   const initSymbolStr = symbolStr;
+  let isEntryNameParsed = false;
   while (symbolStr !== ")") {
     if (/[\s+,]/.test(symbolStr)) {
+      if (symbolStr === ",") {
+        isEntryNameParsed = true;
+      }
       curPos++;
       symbolStr = fileContent[curPos];
       continue;
@@ -106,15 +111,20 @@ export function parseTEntry(fileContent: string, startPos: number, offset: numbe
       break;
     }
     const { type, value } = matchResult;
-    tFormList.push({ type, value: /["'`]/.test(symbolStr) ? value.slice(1, -1) : value });
+    const tPart = { type, value: /["'`]/.test(value) ? value.slice(1, -1) : value };
+    if (isEntryNameParsed) {
+      entryVarList.push(tPart);
+    } else {
+      entryNameForm.push(tPart);
+    }
     curPos += value.length;
     symbolStr = fileContent[curPos];
   }
-  if (!isValid || tFormList.every(item => !["text", "varText"].includes(item.type))) {
+  if (!isValid || entryNameForm.every(item => !["text", "varText"].includes(item.type))) {
     return null;
   }
 
-  tFormList.forEach(item => {
+  entryNameForm.forEach(item => {
     switch (item.type) {
       case "text":
         entryText += item.value;
@@ -173,6 +183,7 @@ export function parseTEntry(fileContent: string, startPos: number, offset: numbe
     raw: entryRaw,
     text: entryText,
     var: entryVar,
+    vars: entryVarList,
     regex: new RegExp(entryReg),
     id: getIdByStr(entryText),
     class: entryClass,
@@ -239,10 +250,10 @@ export function extractKeyValuePairs(objStr: string) {
   if (key) commit();
   return result;
 }
-
-export function matchTEntryPart(fileContent: string, startPos: number, symbolStr: string): { type: string; value: string } | null {
+type TEntryPartType = "" | "text" | "varText" | "var" | "obj" | "arr";
+export function matchTEntryPart(fileContent: string, startPos: number, symbolStr: string): { type: TEntryPartType; value: string } | null {
   let match: RegExpMatchArray | [number, string] | null = null;
-  let type = "";
+  let type: TEntryPartType = "";
   if (/["'`]/.test(symbolStr)) {
     type = symbolStr === "`" ? "varText" : "text";
     match = fileContent.slice(startPos).match(new RegExp(`(${symbolStr}[^]*?(?<!\\\\)${symbolStr})`));
@@ -256,6 +267,9 @@ export function matchTEntryPart(fileContent: string, startPos: number, symbolStr
   } else if (symbolStr === "{") {
     type = "obj";
     match = matchBrackets(fileContent, startPos, "{", "}");
+  } else if (symbolStr === "[") {
+    type = "arr";
+    match = matchBrackets(fileContent, startPos, "[", "]");
   }
   if (match) {
     return { type, value: match[1] };
