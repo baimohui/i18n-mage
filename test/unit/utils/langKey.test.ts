@@ -10,9 +10,14 @@ describe("const.js 多语言工具", () => {
     sandbox = sinon.createSandbox();
 
     // Mock VS Code 配置
-    sandbox.stub(configModule, "getLangAliasCustomMappings").returns({
-      "zh-cn": ["custom-cn", "my-zh"],
-      ja: ["jp-alt"]
+    sandbox.stub(configModule, "getConfig").callsFake((key: string) => {
+      if (key === "langAliasCustomMappings") {
+        return {
+          "zh-cn": ["custom-cn", "my-zh"],
+          ja: ["jp-alt"]
+        };
+      }
+      return undefined;
     });
   });
 

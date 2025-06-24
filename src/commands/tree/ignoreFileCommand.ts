@@ -2,20 +2,18 @@ import path from "path";
 import * as vscode from "vscode";
 import LangMage from "@/core/LangMage";
 import { treeInstance } from "@/views/tree";
-import { PluginConfiguration } from "@/types";
 import { wrapWithProgress } from "@/utils/wrapWithProgress";
 import { registerDisposable } from "@/utils/dispose";
 import { t } from "@/utils/i18n";
+import { getConfig, setConfig } from "@/utils/config";
 
 export function registerIgnoreFileCommand() {
   const mage = LangMage.getInstance();
-  const globalConfig = vscode.workspace.getConfiguration();
   const disposable = vscode.commands.registerCommand("i18nMage.ignoreFile", async (e: vscode.TreeItem) => {
     await wrapWithProgress({ title: t("command.ignoreFile.progress") }, async () => {
       const publicCtx = mage.getPublicContext();
-      const config = vscode.workspace.getConfiguration("i18n-mage") as PluginConfiguration;
-      const ignoredFileList = (config.ignoredFileList ?? []).concat(path.relative(publicCtx.rootPath, e.resourceUri!.fsPath));
-      await globalConfig.update("i18n-mage.ignoredFileList", ignoredFileList, vscode.ConfigurationTarget.Workspace);
+      const ignoredFileList = getConfig<string[]>("ignoredFileList", []).concat(path.relative(publicCtx.rootPath, e.resourceUri!.fsPath));
+      await setConfig("ignoredFileList", ignoredFileList);
       mage.setOptions({ task: "check", globalFlag: true, clearCache: true, ignoredFileList });
       const res = await mage.execute();
       if (!res) {

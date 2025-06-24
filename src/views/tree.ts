@@ -4,9 +4,9 @@ import { catchTEntries, unescapeString, getValueByAmbiguousEntryName } from "@/u
 import { getPossibleLangDirs } from "@/utils/fs";
 import { getLangText } from "@/utils/langKey";
 import { LangContextPublic, TEntry, LangTree } from "@/types";
-import { PluginConfiguration } from "@/types";
 import { t } from "@/utils/i18n";
 import { NotificationManager } from "@/utils/notification";
+import { getConfig } from "@/utils/config";
 
 interface ExtendedTreeItem extends vscode.TreeItem {
   level?: number;
@@ -123,23 +123,21 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
     if (workspaceFolders !== undefined && workspaceFolders.length > 0) {
       rootPath = workspaceFolders[0].uri.fsPath;
     }
-    const config = vscode.workspace.getConfiguration("i18n-mage") as PluginConfiguration;
-
     this.#mage.setOptions({
       rootPath,
-      referredLang: config.referenceLanguage,
-      ignoredFileList: config.ignoredFileList,
-      langFileMinLength: config.langFileMinLength,
-      ignoreEmptyLangFile: config.ignoreEmptyLangFile,
-      sortWithTrim: config.sortWithTrim,
+      referredLang: getConfig<string>("referenceLanguage", "en"),
+      ignoredFileList: getConfig<string[]>("ignoredFileList", []),
+      langFileMinLength: getConfig<number>("langFileMinLength", 0),
+      ignoreEmptyLangFile: getConfig<boolean>("ignoreEmptyLangFile", true),
+      sortWithTrim: getConfig<boolean>("sortWithTrim", true),
       credentials: {
-        baiduAppId: config.baiduAppId,
-        baiduSecretKey: config.baiduSecretKey,
-        tencentSecretId: config.tencentSecretId,
-        tencentSecretKey: config.tencentSecretKey,
-        translateApiPriority: config.translateApiPriority
+        baiduAppId: getConfig<string>("baiduAppId", ""),
+        baiduSecretKey: getConfig<string>("baiduSecretKey", ""),
+        tencentSecretId: getConfig<string>("tencentSecretId", ""),
+        tencentSecretKey: getConfig<string>("tencentSecretKey", ""),
+        translateApiPriority: getConfig<string[]>("translateApiPriority")
       },
-      syncBasedOnReferredEntries: config.syncBasedOnReferredEntries
+      syncBasedOnReferredEntries: getConfig<boolean>("syncBasedOnReferredEntries", true)
     });
     let success = false;
 

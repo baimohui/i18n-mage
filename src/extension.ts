@@ -7,6 +7,7 @@ import { registerAllListeners } from "@/listeners";
 import { bindDisposablesToContext } from "@/utils/dispose";
 import { NotificationManager } from "@/utils/notification";
 import { t } from "@/utils/i18n";
+import { getConfig, setConfig } from "@/utils/config";
 
 // 全局状态管理
 class ExtensionState {
@@ -26,7 +27,7 @@ class ExtensionState {
 
   public initialize(context: vscode.ExtensionContext) {
     this._context = context;
-    this._enabled = vscode.workspace.getConfiguration("i18n-mage").get<boolean>("enabled", true);
+    this._enabled = getConfig<boolean>("enabled", true);
     vscode.commands.executeCommand("setContext", "enabled", this._enabled);
   }
 
@@ -37,8 +38,7 @@ class ExtensionState {
   public async setEnabled(enabled: boolean): Promise<void> {
     if (this._enabled === enabled) return;
     this._enabled = enabled;
-    const config = vscode.workspace.getConfiguration("i18n-mage");
-    await config.update("enabled", enabled, vscode.ConfigurationTarget.Global);
+    await setConfig("enabled", enabled, "global");
     vscode.commands.executeCommand("setContext", "enabled", enabled);
     if (enabled) {
       await this.activateExtensions();
@@ -88,8 +88,7 @@ export async function activate(context: vscode.ExtensionContext) {
   context.subscriptions.push(
     vscode.workspace.onDidChangeConfiguration(async e => {
       if (e.affectsConfiguration("i18n-mage.enabled")) {
-        const config = vscode.workspace.getConfiguration("i18n-mage");
-        await extensionState.setEnabled(config.get<boolean>("enabled", true));
+        await extensionState.setEnabled(getConfig<boolean>("enabled", true));
       }
     })
   );

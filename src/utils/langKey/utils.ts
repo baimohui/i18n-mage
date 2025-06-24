@@ -1,6 +1,6 @@
 import { LangKey, LangKeyIntro } from "./types";
 import { LANG_CODE_MAPPINGS, DEFAULT_LANG_ALIAS_MAP } from "./constants";
-import { getLangAliasCustomMappings } from "@/utils/config";
+import { getConfig } from "@/utils/config";
 
 // 预处理：构建反向索引映射
 const REVERSE_MAP = new Map<string, LangKey>();
@@ -18,7 +18,7 @@ Object.entries(LANG_CODE_MAPPINGS).forEach(([key, intro]) => {
 });
 
 function getMergedLangMap(): Record<string, string[]> {
-  const customMappings = getLangAliasCustomMappings();
+  const customMappings = getConfig<Record<string, string[]>>("langAliasCustomMappings", {});
   // 深拷贝默认配置
   const mergedMap = JSON.parse(JSON.stringify(DEFAULT_LANG_ALIAS_MAP)) as Record<string, string[]>;
   // 合并策略：用户配置覆盖默认值

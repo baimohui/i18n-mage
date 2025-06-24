@@ -4,16 +4,16 @@ import { treeInstance } from "@/views/tree";
 import { wrapWithProgress } from "@/utils/wrapWithProgress";
 import { registerDisposable } from "@/utils/dispose";
 import { DecoratorController } from "@/features/Decorator";
+import { setConfig } from "@/utils/config";
 
 export function registerSetReferredLangCommand() {
   const mage = LangMage.getInstance();
-  const globalConfig = vscode.workspace.getConfiguration();
   const disposable = vscode.commands.registerCommand("i18nMage.setReferredLang", async (lang: { key: string }) => {
     await wrapWithProgress({ title: "" }, async () => {
       mage.setOptions({ referredLang: lang.key, task: "check", globalFlag: false, clearCache: false });
       await mage.execute();
       const publicCtx = mage.getPublicContext();
-      await globalConfig.update("i18n-mage.referenceLanguage", publicCtx.referredLang, vscode.ConfigurationTarget.Workspace);
+      await setConfig("referenceLanguage", publicCtx.referredLang);
       treeInstance.refresh();
       const decorator = DecoratorController.getInstance();
       decorator.update(vscode.window.activeTextEditor);

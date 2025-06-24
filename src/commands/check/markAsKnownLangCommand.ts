@@ -4,6 +4,7 @@ import { LANG_CODE_MAPPINGS, getLangIntro } from "@/utils/langKey";
 import { registerDisposable } from "@/utils/dispose";
 import { t } from "@/utils/i18n";
 import { NotificationManager } from "@/utils/notification";
+import { getConfig, setConfig } from "@/utils/config";
 
 export function registerMarkAsKnownLangCommand() {
   const mage = LangMage.getInstance();
@@ -21,16 +22,11 @@ export function registerMarkAsKnownLangCommand() {
       });
       if (typeof selectedText === "string" && selectedText.trim()) {
         const selectedKey = reverseMap[selectedText];
-        const config = vscode.workspace.getConfiguration("i18n-mage");
-        const mappings = config.get<Record<string, string[]>>("langAliasCustomMappings") || {};
+        const mappings = getConfig<Record<string, string[]>>("langAliasCustomMappings", {});
         const aliases = new Set(mappings[selectedKey] ?? []);
         if (!aliases.has(langKey)) {
           aliases.add(langKey);
-          await config.update(
-            "langAliasCustomMappings",
-            { ...mappings, [selectedKey]: Array.from(aliases) },
-            vscode.ConfigurationTarget.Global
-          );
+          await setConfig("langAliasCustomMappings", { ...mappings, [selectedKey]: Array.from(aliases) }, "global");
           NotificationManager.showSuccess(t("command.markAsKnownLang.success", langKey, selectedText));
         } else {
           NotificationManager.showWarning(t("command.markAsKnownLang.existedWarn", langKey, selectedText));

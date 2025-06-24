@@ -1,14 +1,13 @@
 import * as vscode from "vscode";
 import LangMage from "@/core/LangMage";
 import { treeInstance } from "@/views/tree";
-import { PluginConfiguration } from "@/types";
 import { registerDisposable } from "@/utils/dispose";
 import { t } from "@/utils/i18n";
 import { NotificationManager } from "@/utils/notification";
+import { getConfig } from "@/utils/config";
 
 export function registerDeleteUnusedCommand() {
   const mage = LangMage.getInstance();
-  const config = vscode.workspace.getConfiguration("i18n-mage") as PluginConfiguration;
   const disposable = vscode.commands.registerCommand(
     "i18nMage.deleteUnused",
     async (e: vscode.TreeItem & { data: { name: string; key: string }[] }) => {
@@ -28,7 +27,12 @@ export function registerDeleteUnusedCommand() {
         });
         const success = await mage.execute();
         if (success) {
-          mage.setOptions({ task: "check", globalFlag: true, clearCache: true, ignoredFileList: config.ignoredFileList });
+          mage.setOptions({
+            task: "check",
+            globalFlag: true,
+            clearCache: true,
+            ignoredFileList: getConfig<string[]>("ignoredFileList", [])
+          });
           await mage.execute();
           treeInstance.refresh();
           NotificationManager.showSuccess(t("command.deleteUnused.success"));
