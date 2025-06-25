@@ -4,6 +4,7 @@ import { LangContextInternal } from "@/types";
 import {
   catchAllEntries,
   extractLangDataFromDir,
+  getValueByAmbiguousEntryName,
   flattenNestedObj,
   escapeString,
   unescapeString,
@@ -45,8 +46,6 @@ export class ReadHandler {
     for (const filePath of filePaths) {
       if (this.ctx.ignoredFileList.some(ifp => path.resolve(filePath) === path.resolve(path.join(this.ctx.rootPath, ifp)))) continue;
       const fileContent = fs.readFileSync(filePath, "utf8");
-      const getLayerLen = (str: string) => str.split(LANG_ENTRY_SPLIT_SYMBOL[this.ctx.langFormatType] as string).length;
-      const isSameLayer = (str0: string, str1: string) => getLayerLen(str0) === getLayerLen(str1);
       const { tItems, existedItems } = catchAllEntries(fileContent, this.ctx.langFormatType, this.ctx.entryClassTree);
       const usedEntryList = existedItems.slice();
       if (usedEntryList.length > maxNum) {
@@ -54,19 +53,20 @@ export class ReadHandler {
         this.ctx.roguePath = filePath;
       }
       for (const item of tItems) {
-        const filterList = totalEntryList.filter(entry => item.regex.test(entry) && isSameLayer(item.text, entry));
-        if (filterList.length === 0) {
-          this.ctx.undefinedEntryList.push({ ...item, path: filePath });
-          this.ctx.undefinedEntryMap[item.text] ??= {};
-          this.ctx.undefinedEntryMap[item.text][filePath] ??= [];
-          this.ctx.undefinedEntryMap[item.text][filePath].push(item.pos);
+        const nameInfo = item.nameInfo;
+        let usedEntryNameList: string[] = [];
+        if (nameInfo.vars.length > 0) {
+          usedEntryNameList = totalEntryList.filter(entry => nameInfo.regex.test(entry));
         } else {
-          usedEntryList.push(
-            ...filterList.map(entryName => ({
-              name: entryName,
-              pos: item.pos
-            }))
-          );
+          usedEntryNameList = getValueByAmbiguousEntryName(this.ctx.entryTree, nameInfo.text) === undefined ? [] : [nameInfo.text];
+        }
+        if (usedEntryNameList.length === 0) {
+          this.ctx.undefinedEntryList.push({ ...item, path: filePath });
+          this.ctx.undefinedEntryMap[nameInfo.text] ??= {};
+          this.ctx.undefinedEntryMap[nameInfo.text][filePath] ??= [];
+          this.ctx.undefinedEntryMap[nameInfo.text][filePath].push(item.pos);
+        } else {
+          usedEntryList.push(...usedEntryNameList.map(entryName => ({ name: entryName, pos: item.pos })));
         }
       }
       // usedEntryList = [...new Set(usedEntryList)];

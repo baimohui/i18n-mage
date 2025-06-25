@@ -1,4 +1,4 @@
-import { TEntry, EntryTree, PEntry } from "@/types";
+import { TEntry, EntryTree, PEntry, TEntryPartType } from "@/types";
 import { LANG_FORMAT_TYPE, LANG_ENTRY_SPLIT_SYMBOL } from "@/utils/langKey";
 import { escapeRegExp, getIdByStr } from "./stringUtils";
 
@@ -84,16 +84,8 @@ export function parseTEntry(fileContent: string, startPos: number, offset: numbe
   let isValid = true;
   let curPos = startPos + offset;
   let symbolStr = fileContent[curPos];
-  const entryNameForm: { type: string; value: string }[] = [];
-  const entryVarList: { type: string; value: string }[] = [];
-  let entryIndex = 0;
-  let entryText = "";
-  let entryVar = {};
-  let entryReg = "";
-  let tRes: RegExpExecArray | null = null;
-  let tempReg: RegExp | null = null;
-  let tempStr = "";
-  let tempList: string[] = [];
+  const entryNameForm: { type: TEntryPartType; value: string }[] = [];
+  const entryVarList: string[] = [];
   const initSymbolStr = symbolStr;
   let isEntryNameParsed = false;
   while (symbolStr !== ")") {
@@ -113,7 +105,7 @@ export function parseTEntry(fileContent: string, startPos: number, offset: numbe
     const { type, value } = matchResult;
     const tPart = { type, value: /["'`]/.test(value) ? value.slice(1, -1) : value };
     if (isEntryNameParsed) {
-      entryVarList.push(tPart);
+      entryVarList.push(value);
     } else {
       entryNameForm.push(tPart);
     }
@@ -123,8 +115,29 @@ export function parseTEntry(fileContent: string, startPos: number, offset: numbe
   if (!isValid || entryNameForm.every(item => !["text", "varText"].includes(item.type))) {
     return null;
   }
+  const entryRaw = fileContent.slice(startPos, curPos + 1);
+  isValid = isValid && isStringInUncommentedRange(fileContent, entryRaw);
+  const nameInfo = getEntryNameInfoByForm(entryNameForm);
+  if (!isValid || !nameInfo) return null;
+  return {
+    raw: entryRaw,
+    vars: entryVarList,
+    nameInfo,
+    pos: startPos + (entryRaw.indexOf(initSymbolStr) + 1)
+  };
+}
 
-  entryNameForm.forEach(item => {
+export function getEntryNameInfoByForm(nameForm: { type: TEntryPartType; value: string }[]) {
+  let entryIndex = 0;
+  let entryText = "";
+  const varList: string[] = [];
+  let entryReg = "";
+  let tRes: RegExpExecArray | null = null;
+  let tempReg: RegExp | null = null;
+  let tempStr = "";
+  let isValid = true;
+  // const tempList: string[] = [];
+  nameForm.forEach(item => {
     switch (item.type) {
       case "text":
         entryText += item.value;
@@ -134,34 +147,29 @@ export function parseTEntry(fileContent: string, startPos: number, offset: numbe
         tempStr = item.value;
         tempReg = /\${\s*([^]*?)\s*}/g;
         while ((tRes = tempReg.exec(item.value)) !== null) {
-          tempStr = tempStr.replace(tRes[0], `{t${entryIndex}}`);
-          entryVar[`t${entryIndex++}`] = tRes[1];
+          tempStr = tempStr.replace(tRes[0], `{${entryIndex++}}`);
+          varList.push(tRes[1]);
         }
         entryText += tempStr;
         entryReg = escapeRegExp(entryText.replace(/\s/g, "")).replace(/\{.*?\}/g, ".*");
         isValid = isValid && entryText.replace(/\{\w*?\}/g, "") !== "";
-
         break;
       case "var":
-        entryText += `{t${entryIndex}}`;
-        entryVar[`t${entryIndex++}`] = item.value;
+        entryText += `{${entryIndex++}}`;
+        varList.push(item.value);
         entryReg += ".*";
         break;
       case "obj":
-        tempList = [];
-        tempReg = /{(\w*?)}/g;
-        while ((tRes = tempReg.exec(entryText)) !== null) {
-          tempList.push(tRes[1]);
-        }
-        entryVar = extractKeyValuePairs(item.value);
-        if (tempList.length > 0 && Object.keys(entryVar).length === 0) {
-          isValid = false;
-        }
+        // tempList = [];
+        // tempReg = /{(\w*?)}/g;
+        // while ((tRes = tempReg.exec(entryText)) !== null) {
+        //   tempList.push(tRes[1]);
+        // }
+        // entryVar = extractKeyValuePairs(item.value);
+        isValid = false;
         break;
     }
   });
-
-  const entryRaw = fileContent.slice(startPos, curPos + 1);
   let entryClass = "";
   let entryName = "";
   const nameRes = entryText.match(/%(\S*?)%([^]*)/);
@@ -174,21 +182,15 @@ export function parseTEntry(fileContent: string, startPos: number, offset: numbe
     entryClass = classRes[1];
     entryText = classRes[2];
   }
-  if (Object.keys(entryVar).length === 0) {
-    entryReg = `^${entryReg}\\d*$`;
-  }
-  isValid = isValid && isStringInUncommentedRange(fileContent, entryRaw);
   if (!isValid) return null;
   return {
-    raw: entryRaw,
     text: entryText,
-    var: entryVar,
-    vars: entryVarList,
-    regex: new RegExp(entryReg),
+    regex: new RegExp(`^${entryReg}$`),
+    vars: varList,
+    name: varList.length ? entryText : "",
     id: getIdByStr(entryText),
-    class: entryClass,
-    name: entryName,
-    pos: startPos + (entryRaw.indexOf(initSymbolStr) + 1)
+    boundName: entryName,
+    boundClass: entryClass
   };
 }
 
@@ -250,7 +252,6 @@ export function extractKeyValuePairs(objStr: string) {
   if (key) commit();
   return result;
 }
-type TEntryPartType = "" | "text" | "varText" | "var" | "obj" | "arr";
 export function matchTEntryPart(fileContent: string, startPos: number, symbolStr: string): { type: TEntryPartType; value: string } | null {
   let match: RegExpMatchArray | [number, string] | null = null;
   let type: TEntryPartType = "";
@@ -296,41 +297,42 @@ export function matchBrackets(str: string, startPos = 0, open = "{", close = "}"
 }
 
 export function catchCustomTEntries(fileContent: string): TEntry[] {
-  const customT = "lc@";
-  const tReg = new RegExp(`(["'\`]){1}${customT}`, "g");
+  console.log("fileContent:", fileContent);
+  // const customT = "lc@";
+  // const tReg = new RegExp(`(["'\`]){1}${customT}`, "g");
   const entryInfoList: TEntry[] = [];
-  let tRes: RegExpMatchArray | null = null;
-  while ((tRes = tReg.exec(fileContent)) !== null) {
-    const tStartPos = tRes.index as number;
-    const symbolStr = tRes[1];
-    let entryText = "";
-    let entryName = "";
-    let entryClass = "";
-    const match = fileContent.slice(tStartPos).match(new RegExp(`${symbolStr}${customT}([^]*?)(?<!\\\\)${symbolStr}`));
-    if (match) {
-      entryText = match[1];
-      const nameRes = entryText.match(/%(\S*?)%([^]*)/);
-      if (nameRes) {
-        entryName = nameRes[1];
-        entryText = nameRes[2];
-      }
-      const classRes = entryText.match(/#(\S*?)#([^]*)/);
-      if (classRes) {
-        entryClass = classRes[1];
-        entryText = classRes[2];
-      }
-      const entryRegex = escapeRegExp(entryText.replace(/\s/g, ""));
-      entryInfoList.push({
-        raw: match[0],
-        text: entryText,
-        regex: new RegExp(entryRegex),
-        id: getIdByStr(entryText),
-        class: entryClass,
-        name: entryName,
-        pos: tStartPos
-      });
-    }
-  }
+  // let tRes: RegExpMatchArray | null = null;
+  // while ((tRes = tReg.exec(fileContent)) !== null) {
+  //   const tStartPos = tRes.index as number;
+  //   const symbolStr = tRes[1];
+  //   let entryText = "";
+  //   let entryName = "";
+  //   let entryClass = "";
+  //   const match = fileContent.slice(tStartPos).match(new RegExp(`${symbolStr}${customT}([^]*?)(?<!\\\\)${symbolStr}`));
+  //   if (match) {
+  //     entryText = match[1];
+  //     const nameRes = entryText.match(/%(\S*?)%([^]*)/);
+  //     if (nameRes) {
+  //       entryName = nameRes[1];
+  //       entryText = nameRes[2];
+  //     }
+  //     const classRes = entryText.match(/#(\S*?)#([^]*)/);
+  //     if (classRes) {
+  //       entryClass = classRes[1];
+  //       entryText = classRes[2];
+  //     }
+  //     const entryRegex = escapeRegExp(entryText.replace(/\s/g, ""));
+  //     entryInfoList.push({
+  //       raw: match[0],
+  //       text: entryText,
+  //       regex: new RegExp(entryRegex),
+  //       id: getIdByStr(entryText),
+  //       class: entryClass,
+  //       name: entryName,
+  //       pos: tStartPos
+  //     });
+  //   }
+  // }
   return entryInfoList;
 }
 

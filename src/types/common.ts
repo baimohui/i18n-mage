@@ -37,18 +37,27 @@ export type LangCountryMap = Record<LangName, EntryMap>;
 
 export type LangDictionary = Record<EntryKey, Record<LangName, EntryValue>>;
 
+export type TEntryPartType = "" | "text" | "varText" | "var" | "obj" | "arr";
+
 export interface TEntry {
   raw: string;
-  text: string;
-  regex: RegExp;
-  id: string;
-  class: string;
-  name: string;
   pos: number;
   path?: string;
-  fixedRaw?: string;
-  var?: Record<string, string>;
-  vars?: Record<string, string>[];
+  nameInfo: {
+    text: string;
+    regex: RegExp;
+    id: string;
+    boundClass: string;
+    boundName: string;
+    vars: string[];
+  };
+  vars: string[];
+}
+
+export interface FixedTEntry {
+  id: string;
+  raw: string;
+  fixedRaw: string;
 }
 
 export interface PEntry {

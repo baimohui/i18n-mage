@@ -71,13 +71,13 @@ export class DecoratorController implements vscode.Disposable {
     const entries = catchTEntries(visibleText);
     entries.forEach(entry => {
       const globalStartOffset = offsetBase + entry.pos;
-      const entryKey = getValueByAmbiguousEntryName(tree, entry.text);
+      const entryKey = getValueByAmbiguousEntryName(tree, entry.nameInfo.text);
       const entryValue = translations[entryKey as string];
       if (entryValue === undefined) return;
       const startPos = editor.document.positionAt(globalStartOffset);
-      const endPos = editor.document.positionAt(globalStartOffset + entry.text.length);
+      const endPos = editor.document.positionAt(globalStartOffset + entry.nameInfo.text.length);
       const range = new vscode.Range(startPos, endPos);
-      const uniqueId = `${globalStartOffset}:${entry.id}`;
+      const uniqueId = `${globalStartOffset}:${entry.nameInfo.id}`;
       const translationDec: vscode.DecorationOptions = { range, renderOptions: { before: { contentText: entryValue } } };
       const hiddenKeyDec: vscode.DecorationOptions = { range };
       this.currentDecorations.set(uniqueId, { translationDec, hiddenKeyDec });

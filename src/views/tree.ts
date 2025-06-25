@@ -224,8 +224,8 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
           description: String(this.definedEntriesInCurrentFile.length),
           collapsibleState: vscode.TreeItemCollapsibleState[this.definedEntriesInCurrentFile.length === 0 ? "None" : "Collapsed"],
           data: this.definedEntriesInCurrentFile.map(item => ({
-            name: item.text,
-            value: this.countryMap[this.publicCtx.referredLang][getValueByAmbiguousEntryName(this.tree, item.text) as string] ?? ""
+            name: item.nameInfo.text,
+            value: this.countryMap[this.publicCtx.referredLang][getValueByAmbiguousEntryName(this.tree, item.nameInfo.text) as string] ?? ""
             // value: this.dictionary[getValueByAmbiguousEntryName(this.tree, item.text) as string]?.[this.#mage.referredLang] ?? ""
           })),
           contextValue: definedContextValueList.join(","),
@@ -246,16 +246,16 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
       ];
     } else if (element.level === 1) {
       return this[element.type === "defined" ? "definedEntriesInCurrentFile" : "undefinedEntriesInCurrentFile"].map(entry => {
-        const entryInfo = this.dictionary[getValueByAmbiguousEntryName(this.tree, entry.text) as string] ?? {};
+        const entryInfo = this.dictionary[getValueByAmbiguousEntryName(this.tree, entry.nameInfo.text) as string] ?? {};
         const contextValueList = [element.type === "defined" ? "definedEntryInCurFile" : "undefinedEntryInCurFile", "COPY_NAME"];
         return {
-          label: entry.text,
+          label: entry.nameInfo.text,
           description: entryInfo[this.publicCtx.referredLang],
           collapsibleState: vscode.TreeItemCollapsibleState[element.type === "defined" ? "Collapsed" : "None"],
           level: 2,
           contextValue: contextValueList.join(","),
-          usedInfo: this[element.type === "defined" ? "usedEntryMap" : "undefinedEntryMap"][entry.text],
-          id: this.genId(element, entry.id || ""),
+          usedInfo: this[element.type === "defined" ? "usedEntryMap" : "undefinedEntryMap"][entry.nameInfo.text],
+          id: this.genId(element, entry.nameInfo.id || ""),
           root: element.root
         };
       });
@@ -462,22 +462,26 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
       const text = editor.document.getText();
       this.usedEntries = catchTEntries(text);
       this.usedEntries.forEach(entry => {
-        if (Object.hasOwn(this.undefinedEntryMap, entry.text)) {
-          if (this.undefinedEntriesInCurrentFile.every(item => item.text !== entry.text)) {
+        const { text, regex } = entry.nameInfo;
+        if (Object.hasOwn(this.undefinedEntryMap, text)) {
+          if (!this.undefinedEntriesInCurrentFile.some(item => item.nameInfo.text === text)) {
             this.undefinedEntriesInCurrentFile.push(entry);
           }
-        } else if (Object.hasOwn(this.usedEntryMap, entry.text)) {
-          if (this.definedEntriesInCurrentFile.every(item => item.text !== entry.text)) {
+          return;
+        }
+        if (Object.hasOwn(this.usedEntryMap, text)) {
+          if (!this.definedEntriesInCurrentFile.some(item => item.nameInfo.text === text)) {
             this.definedEntriesInCurrentFile.push(entry);
           }
-        } else {
-          const matchList = Object.keys(this.usedEntryMap).filter(item => entry.regex.test(item));
-          matchList.forEach(matchItem => {
-            if (this.definedEntriesInCurrentFile.every(item => item.text !== matchItem)) {
-              this.definedEntriesInCurrentFile.push({ ...entry, text: matchItem, id: matchItem });
-            }
-          });
+          return;
         }
+        const matchList = Object.keys(this.usedEntryMap).filter(key => regex.test(key));
+        matchList.forEach(matchItem => {
+          if (!this.definedEntriesInCurrentFile.some(item => item.nameInfo.text === matchItem)) {
+            const newEntry = { ...entry, nameInfo: { ...entry.nameInfo, text: matchItem, id: matchItem } };
+            this.definedEntriesInCurrentFile.push(newEntry);
+          }
+        });
       });
       this.refresh();
     }

@@ -86,7 +86,7 @@ export class RewriteHandler {
       let fileContent = fs.readFileSync(fixPath, "utf8");
       const fixList = this.ctx.patchedEntryIdInfo[fixPath];
       fixList.forEach(item => {
-        fileContent = fileContent.replaceAll(item.raw, item.fixedRaw as string);
+        fileContent = fileContent.replaceAll(item.raw, item.fixedRaw);
       });
       await this.writeFile(fixPath, fileContent);
     }

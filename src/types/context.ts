@@ -1,4 +1,15 @@
-import { EntryTree, LangDictionary, LangCountryMap, EntryClassInfo, TEntry, LackInfo, NullInfo, EntryNode, FileExtraInfo } from "@/types";
+import {
+  EntryTree,
+  LangDictionary,
+  LangCountryMap,
+  EntryClassInfo,
+  TEntry,
+  FixedTEntry,
+  LackInfo,
+  NullInfo,
+  EntryNode,
+  FileExtraInfo
+} from "@/types";
 import { Credentials } from "@/translator/index";
 
 // 外部模块可访问的公共上下文
@@ -48,7 +59,7 @@ export interface LangContextInternal extends LangContextPublic {
   isVacant: boolean;
   entryTree: EntryTree;
   updatedEntryValueInfo: Record<string, Record<string, string | undefined>>;
-  patchedEntryIdInfo: Record<string, TEntry[]>;
+  patchedEntryIdInfo: Record<string, FixedTEntry[]>;
   importExcelFrom: string;
   importSheetData: string;
   exportExcelTo: string;

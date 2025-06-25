@@ -1,7 +1,7 @@
 import { LangContextInternal, LackInfo } from "@/types";
 import { CheckHandler } from "./CheckHandler";
 import { RewriteHandler } from "./RewriteHandler";
-import { LANG_FORMAT_TYPE, LANG_ENTRY_SPLIT_SYMBOL, getLangCode } from "@/utils/langKey";
+import { LANG_FORMAT_TYPE, LANG_ENTRY_SPLIT_SYMBOL, I18N_SOLUTION, getLangCode } from "@/utils/langKey";
 import { TEntry } from "@/types";
 import { validateLang, getIdByStr, getValueByAmbiguousEntryName } from "@/utils/regex";
 import { getDetectedLangList, setUpdatedEntryValueInfo } from "@/core/tools/contextTools";
@@ -9,6 +9,7 @@ import translateTo from "@/translator/index";
 import { t } from "@/utils/i18n";
 import { NotificationManager } from "@/utils/notification";
 import { ExecutionContext } from "@/utils/context";
+import { getConfig } from "@/utils/config";
 
 export class FixHandler {
   private lackInfoFromUndefined: LackInfo;
@@ -45,21 +46,24 @@ export class FixHandler {
       {} as Record<string, string>
     );
     const needTranslateList: TEntry[] = [];
-    const patchedEntryIdList: TEntry[] = [];
+    const patchedEntryIdList: (TEntry & { fixedRaw: string })[] = [];
     this.ctx.undefinedEntryList.forEach(entry => {
-      if (valueKeyMap[entry.id]) {
-        const isFixed = needTranslateList.every(item => item.id !== entry.id);
+      const nameInfo = entry.nameInfo;
+      if (valueKeyMap[nameInfo.id]) {
+        const isFixed = needTranslateList.every(item => item.nameInfo.id !== nameInfo.id);
         if (isFixed) {
-          entry.name = valueKeyMap[entry.id];
-          entry.fixedRaw = this.getFixedRaw(entry, entry.name);
+          const entryName = valueKeyMap[nameInfo.id];
+          entry.nameInfo.boundName = entryName;
+          patchedEntryIdList.push({ ...entry, fixedRaw: this.getFixedRaw(entry, entryName) });
+        } else {
+          patchedEntryIdList.push({ ...entry, fixedRaw: "" });
         }
-        patchedEntryIdList.push(entry);
-      } else if (validateLang(entry.text, getLangCode(this.ctx.referredLang) ?? this.ctx.referredLang)) {
-        valueKeyMap[entry.id] = entry.text;
+      } else if (validateLang(nameInfo.text, getLangCode(this.ctx.referredLang) ?? this.ctx.referredLang)) {
+        valueKeyMap[nameInfo.id] = nameInfo.text;
         needTranslateList.push(entry);
       }
     });
-    let enNameList: string[] = needTranslateList.map(entry => entry.text);
+    let enNameList: string[] = needTranslateList.map(entry => entry.nameInfo.text);
     const enLang = this.detectedLangList.find(item => getLangCode(item) === "en")!;
     if (enNameList.length > 0) {
       if (referredLangCode !== "en" && this.ctx.credentials !== null) {
@@ -85,39 +89,41 @@ export class FixHandler {
     const checkExisted = (id: string) => Boolean(getValueByAmbiguousEntryName(this.ctx.entryTree, id));
     needTranslateList.forEach((entry, index) => {
       let id = getIdByStr(enNameList[index], true);
-      if (!entry.name || checkExisted(entry.name)) {
-        if (entry.class && !entry.class.endsWith(LANG_ENTRY_SPLIT_SYMBOL[this.ctx.langFormatType] as string)) {
-          entry.class += LANG_ENTRY_SPLIT_SYMBOL[this.ctx.langFormatType];
+      const nameInfo = entry.nameInfo;
+      if (!nameInfo.boundName || checkExisted(nameInfo.boundName)) {
+        if (nameInfo.boundClass && !nameInfo.boundClass.endsWith(LANG_ENTRY_SPLIT_SYMBOL[this.ctx.langFormatType] as string)) {
+          nameInfo.boundClass += LANG_ENTRY_SPLIT_SYMBOL[this.ctx.langFormatType];
         }
-        const baseName = entry.class || namePrefix;
+        const baseName = nameInfo.boundClass || namePrefix;
         const needsNewId = id.length > 40 || checkExisted(baseName + id);
         if (needsNewId) {
           const mainName = id.length > 40 ? entry.path!.match(/([a-zA-Z0-9]+)\./)?.[1] + "Text" : id;
           id = this.generateUniqueId(mainName, baseName);
         }
-        entry.name = baseName + id;
+        nameInfo.boundName = baseName + id;
       }
-      entry.fixedRaw = this.getFixedRaw(entry, entry.name);
-      patchedEntryIdList.push(entry);
-      referredLangMap[entry.name] = entry.text;
+      patchedEntryIdList.push({ ...entry, fixedRaw: this.getFixedRaw(entry, nameInfo.boundName) });
+      referredLangMap[nameInfo.boundName] = nameInfo.text;
       this.detectedLangList.forEach(lang => {
         if ([this.ctx.referredLang, enLang].includes(lang)) {
-          setUpdatedEntryValueInfo(this.ctx, entry.name, lang === this.ctx.referredLang ? entry.text : enNameList[index], lang);
+          setUpdatedEntryValueInfo(this.ctx, nameInfo.boundName, lang === this.ctx.referredLang ? nameInfo.text : enNameList[index], lang);
         } else {
           this.lackInfoFromUndefined[lang] ??= [];
-          this.lackInfoFromUndefined[lang].push(entry.name);
+          this.lackInfoFromUndefined[lang].push(nameInfo.boundName);
         }
       });
     });
     this.ctx.patchedEntryIdInfo = {};
     patchedEntryIdList.forEach(entry => {
-      if (entry.fixedRaw === null || entry.fixedRaw === undefined) {
-        const fixedEntryId = patchedEntryIdList.find(item => item.id === entry.id && Boolean(item.fixedRaw))?.name ?? entry.text;
-        entry.name = fixedEntryId;
+      if (entry.fixedRaw === "") {
+        const fixedEntryId =
+          patchedEntryIdList.find(item => item.nameInfo.id === entry.nameInfo.id && item.fixedRaw.length > 0)?.nameInfo.boundName ??
+          entry.nameInfo.text;
+        entry.nameInfo.boundName = fixedEntryId;
         entry.fixedRaw = this.getFixedRaw(entry, fixedEntryId);
       }
       this.ctx.patchedEntryIdInfo[entry.path as string] ??= [];
-      this.ctx.patchedEntryIdInfo[entry.path as string].push(entry);
+      this.ctx.patchedEntryIdInfo[entry.path as string].push({ id: entry.nameInfo.id, raw: entry.raw, fixedRaw: entry.fixedRaw });
     });
   }
 
@@ -154,9 +160,24 @@ export class FixHandler {
     if (this.ctx.langFormatType === LANG_FORMAT_TYPE.nonObj) {
       return name;
     } else {
-      const tempVar = entry.var || {};
-      const varList = Object.entries(tempVar).map(item => `${item[0]}: ${item[1]}`);
-      const varStr = varList.length > 0 ? `, { ${varList.join(", ")} }` : "";
+      const i18nSolution = getConfig<(typeof I18N_SOLUTION)[keyof typeof I18N_SOLUTION]>("i18nSolution");
+      let varStr = "";
+      if (entry.vars.length > 0) {
+        varStr = ", " + entry.vars.join(", ");
+      } else if (entry.nameInfo.vars.length > 0) {
+        const varList = entry.nameInfo.vars;
+        switch (i18nSolution) {
+          case I18N_SOLUTION.vueI18n:
+            varStr = ", [" + varList.join(", ") + "]";
+            break;
+          case I18N_SOLUTION.vscodeL10n:
+            varStr = ", " + varList.join(", ");
+            break;
+          default:
+            varStr = ", { " + varList.map((item, index) => `${index}: ${item}`).join(", ") + " }";
+            break;
+        }
+      }
       const quote = entry.raw.match(/["'`]{1}/)![0];
       return `${entry.raw[0]}t(${quote}${name}${quote}${varStr})`;
     }
