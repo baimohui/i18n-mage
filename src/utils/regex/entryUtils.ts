@@ -151,7 +151,7 @@ export function getEntryNameInfoByForm(nameForm: { type: TEntryPartType; value: 
           varList.push(tRes[1]);
         }
         entryText += tempStr;
-        entryReg = escapeRegExp(entryText.replace(/\s/g, "")).replace(/\{.*?\}/g, ".*");
+        entryReg = escapeRegExp(entryText.replace(/\s/g, "")).replace(/\\\{.*?\\\}/g, ".*");
         isValid = isValid && entryText.replace(/\{\w*?\}/g, "") !== "";
         break;
       case "var":
