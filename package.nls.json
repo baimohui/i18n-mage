@@ -8,6 +8,7 @@
   "config.syncBasedOnReferredEntries.desc": "When syncing entries, use the reference language file as the baseline. Otherwise, all language files are used as the basis.",
   "config.ignoreEmptyLangFile.desc": "Ignore Empty Language Files",
   "config.langFileMinLength.desc": "Minimum Language File Length",
+  "config.manuallyMarkedUsedEntries.desc": "Manually Marked Used Entries",
   "config.ignoredFileList.desc": "Ignored File List",
   "config.translatePlatform.title": "Translation Platform",
   "config.baiduAppId.desc": "Baidu Translate Open Platform APP ID",
@@ -28,6 +29,7 @@
   "command.copyKeyValue.title": "Copy Key-Value Pair",
   "command.editValue.title": "Edit Entry Value",
   "command.deleteUnused.title": "Delete Unused Entries",
+  "command.markAsUsed.title": "Mark as Used",
   "command.goToReference.title": "Go to Reference",
   "command.goToDefinition.title": "Go to Definition",
   "view.welcome.title": "No valid language file detected"

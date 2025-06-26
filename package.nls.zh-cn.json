@@ -8,6 +8,7 @@
   "config.syncBasedOnReferredEntries.desc": "在统计词条同步信息时，是否以参考语言文件中定义的词条为基准。若不是，则以所有语言文件中定义的词条为准",
   "config.ignoreEmptyLangFile.desc": "忽略空语言文件",
   "config.langFileMinLength.desc": "语言文件最小字符数",
+  "config.manuallyMarkedUsedEntries.desc": "手动标记为已使用的词条",
   "config.ignoredFileList.desc": "需要忽略的文件列表",
   "config.translatePlatform.title": "翻译平台",
   "config.baiduAppId.desc": "百度翻译开放平台开发者 APP ID",
@@ -28,6 +29,7 @@
   "command.copyKeyValue.title": "复制键值对",
   "command.editValue.title": "编辑词条值",
   "command.deleteUnused.title": "删除未使用的词条",
+  "command.markAsUsed.title": "标记为已使用",
   "command.goToReference.title": "跳转到引用位置",
   "command.goToDefinition.title": "跳转到定义位置",
   "view.welcome.title": "未检测到有效的语言文件"

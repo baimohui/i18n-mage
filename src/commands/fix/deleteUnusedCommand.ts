@@ -4,7 +4,6 @@ import { treeInstance } from "@/views/tree";
 import { registerDisposable } from "@/utils/dispose";
 import { t } from "@/utils/i18n";
 import { NotificationManager } from "@/utils/notification";
-import { getConfig } from "@/utils/config";
 
 export function registerDeleteUnusedCommand() {
   const mage = LangMage.getInstance();
@@ -27,12 +26,7 @@ export function registerDeleteUnusedCommand() {
         });
         const success = await mage.execute();
         if (success) {
-          mage.setOptions({
-            task: "check",
-            globalFlag: true,
-            clearCache: true,
-            ignoredFileList: getConfig<string[]>("ignoredFileList", [])
-          });
+          mage.setOptions({ task: "check", globalFlag: true, clearCache: true });
           await mage.execute();
           treeInstance.refresh();
           NotificationManager.showSuccess(t("command.deleteUnused.success"));

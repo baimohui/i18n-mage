@@ -82,6 +82,11 @@ export class ReadHandler {
           }
         });
       }
+      this.ctx.manuallyMarkedUsedEntries.forEach(entryName => {
+        if (!Object.hasOwn(this.ctx.usedEntryMap, entryName)) {
+          this.ctx.usedEntryMap[entryName] = {};
+        }
+      });
     }
     let primaryPathLevel = 0;
     Object.entries(pathLevelCountMap).forEach(([key, value]) => {

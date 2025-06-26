@@ -15,15 +15,14 @@ export function registerFixCommand() {
       const rewriteFlag = !getConfig<boolean>("previewBeforeFix", true);
       mage.setOptions({ task: "fix", globalFlag: true, rewriteFlag });
       const success = await mage.execute();
-      const ignoredFileList = getConfig<string[]>("ignoredFileList", []);
       if (success) {
         if (token.isCancellationRequested) {
           return;
         }
         if (rewriteFlag) {
-          mage.setOptions({ task: "rewrite", globalFlag: true, clearCache: false, ignoredFileList });
+          mage.setOptions({ task: "rewrite", globalFlag: true, clearCache: false });
           await mage.execute();
-          mage.setOptions({ task: "check", globalFlag: true, clearCache: true, ignoredFileList });
+          mage.setOptions({ task: "check", globalFlag: true, clearCache: true });
           await mage.execute();
           NotificationManager.showSuccess(t("command.fix.success"));
         } else {
@@ -33,7 +32,7 @@ export function registerFixCommand() {
             previewFixContent(updatedValues, patchedIds, countryMap, publicCtx.referredLang, async () => {
               mage.setOptions({ task: "rewrite", clearCache: false });
               await mage.execute();
-              mage.setOptions({ task: "check", globalFlag: true, clearCache: true, ignoredFileList });
+              mage.setOptions({ task: "check", globalFlag: true, clearCache: true });
               await mage.execute();
               treeInstance.refresh();
               NotificationManager.showSuccess(t("command.fix.success"));

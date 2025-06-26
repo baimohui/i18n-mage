@@ -92,6 +92,12 @@
             "type": "integer",
             "default": 30,
             "description": "%config.langFileMinLength.desc%"
+          },
+          "i18n-mage.manuallyMarkedUsedEntries": {
+            "type": "array",
+            "default": [],
+            "description": "%config.manuallyMarkedUsedEntries.desc%",
+            "scope": "resource"
           }
         }
       },
@@ -256,6 +262,14 @@
           "light": "./images/delete-light.svg",
           "dark": "./images/delete-dark.svg"
         }
+      },
+      {
+        "command": "i18nMage.markAsUsed",
+        "title": "%command.markAsUsed.title%",
+        "icon": {
+          "light": "./images/claim-light.svg",
+          "dark": "./images/claim-dark.svg"
+        }
       }
     ],
     "menus": {
@@ -330,9 +344,14 @@
           "group": "inline@3"
         },
         {
-          "command": "i18nMage.deleteUnused",
+          "command": "i18nMage.markAsUsed",
           "when": "viewItem == unusedGroupHeader || viewItem == unusedGroupItem",
           "group": "inline@1"
+        },
+        {
+          "command": "i18nMage.deleteUnused",
+          "when": "viewItem == unusedGroupHeader || viewItem == unusedGroupItem",
+          "group": "inline@2"
         }
       ]
     },

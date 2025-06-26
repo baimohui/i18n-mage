@@ -22,6 +22,7 @@
   "command.deleteUnused.modalTitle": "确定删除吗？",
   "command.deleteUnused.modalContent": "将删除词条：{0}",
   "command.deleteUnused.success": "删除成功",
+  "command.markAsUsed.success": "已标记为使用中：{0}",
   "command.editValue.prompt": "修改 {0} 的 {1} 文案",
   "command.editValue.success": "已写入：{0}",
   "command.fix.progress": "修复中",

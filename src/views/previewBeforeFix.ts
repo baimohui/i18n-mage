@@ -1,8 +1,8 @@
 import * as vscode from "vscode";
-import { TEntry } from "../types";
+import { FixedTEntry } from "../types";
 
 type EntryValueUpdates = Record<string, Record<string, string | undefined>>;
-type EntryIdPatches = Record<string, TEntry[]>;
+type EntryIdPatches = Record<string, FixedTEntry[]>;
 type LocaleMap = Record<string, Record<string, string>>;
 
 export default function launchFixWebview(

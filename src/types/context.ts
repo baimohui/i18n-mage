@@ -35,6 +35,7 @@ export interface LangContextPublic {
   styleScore: number;
   fileStructure: EntryNode | null;
   syncBasedOnReferredEntries: boolean;
+  manuallyMarkedUsedEntries: string[];
   modifyList: Array<{ key: string; name: string; value: string; lang: string }>;
 }
 

@@ -14,7 +14,7 @@ export function registerIgnoreFileCommand() {
       const publicCtx = mage.getPublicContext();
       const ignoredFileList = getConfig<string[]>("ignoredFileList", []).concat(path.relative(publicCtx.rootPath, e.resourceUri!.fsPath));
       await setConfig("ignoredFileList", ignoredFileList);
-      mage.setOptions({ task: "check", globalFlag: true, clearCache: true, ignoredFileList });
+      mage.setOptions({ task: "check", globalFlag: true, clearCache: true });
       const res = await mage.execute();
       if (!res) {
         await treeInstance.initTree();

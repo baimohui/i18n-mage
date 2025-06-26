@@ -21,6 +21,7 @@
   "command.deleteUnused.modalTitle": "Confirm deletion?",
   "command.deleteUnused.modalContent": "The following entry will be deleted: {0}",
   "command.deleteUnused.success": "Deleted successfully",
+  "command.markAsUsed.success": "Marked as used: {0}",
   "command.editValue.prompt": "Edit the value of {0} in {1}",
   "command.editValue.success": "Saved: {0}",
   "command.fix.progress": "Fixing...",

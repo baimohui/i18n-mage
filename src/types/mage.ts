@@ -26,4 +26,5 @@ export interface LangMageOptions {
   syncBasedOnReferredEntries?: boolean;
   modifyList?: Array<{ key: string; name: string; value: string; lang: string }>;
   trimKeyList?: string[];
+  manuallyMarkedUsedEntries?: string[];
 }

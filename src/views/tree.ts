@@ -6,7 +6,6 @@ import { getLangText } from "@/utils/langKey";
 import { LangContextPublic, TEntry, LangTree } from "@/types";
 import { t } from "@/utils/i18n";
 import { NotificationManager } from "@/utils/notification";
-import { getConfig } from "@/utils/config";
 
 interface ExtendedTreeItem extends vscode.TreeItem {
   level?: number;
@@ -123,22 +122,7 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
     if (workspaceFolders !== undefined && workspaceFolders.length > 0) {
       rootPath = workspaceFolders[0].uri.fsPath;
     }
-    this.#mage.setOptions({
-      rootPath,
-      referredLang: getConfig<string>("referenceLanguage", "en"),
-      ignoredFileList: getConfig<string[]>("ignoredFileList", []),
-      langFileMinLength: getConfig<number>("langFileMinLength", 0),
-      ignoreEmptyLangFile: getConfig<boolean>("ignoreEmptyLangFile", true),
-      sortWithTrim: getConfig<boolean>("sortWithTrim", true),
-      credentials: {
-        baiduAppId: getConfig<string>("baiduAppId", ""),
-        baiduSecretKey: getConfig<string>("baiduSecretKey", ""),
-        tencentSecretId: getConfig<string>("tencentSecretId", ""),
-        tencentSecretKey: getConfig<string>("tencentSecretKey", ""),
-        translateApiPriority: getConfig<string[]>("translateApiPriority")
-      },
-      syncBasedOnReferredEntries: getConfig<boolean>("syncBasedOnReferredEntries", true)
-    });
+    this.#mage.setOptions({ rootPath });
     let success = false;
 
     if (rootPath === null || rootPath === undefined || rootPath.trim() === "") {
@@ -374,12 +358,12 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
             key: item.key,
             name: item.name,
             label: item.name,
-            description: `<${usedNum}>${entryInfo[this.publicCtx.referredLang]}`,
+            description: `<${usedNum || "?"}>${entryInfo[this.publicCtx.referredLang]}`,
             level: 2,
             type: element.type,
             root: element.root,
             id: this.genId(element, item.key),
-            collapsibleState: vscode.TreeItemCollapsibleState.Collapsed
+            collapsibleState: vscode.TreeItemCollapsibleState[usedNum === 0 ? "None" : "Collapsed"]
           };
         });
       } else {

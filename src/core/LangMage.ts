@@ -13,6 +13,7 @@ import { getDetectedLangList } from "@/core/tools/contextTools";
 import { getLangCode } from "@/utils/langKey";
 import { t } from "@/utils/i18n";
 import { NotificationManager } from "@/utils/notification";
+import { getConfig } from "@/utils/config";
 
 class LangMage {
   private static instance: LangMage;
@@ -53,6 +54,7 @@ class LangMage {
       this.ctx.isVacant = false;
       console.time("本次耗时");
       if (this.ctx.clearCache) this.reset();
+      this.setConfigIntoOptions();
       const reader = new ReadHandler(this.ctx);
       reader.readLangFiles();
       if (this.detectedLangList.length === 0) {
@@ -128,6 +130,7 @@ class LangMage {
       styleScore: this.ctx.styleScore,
       fileStructure: this.ctx.fileStructure,
       syncBasedOnReferredEntries: this.ctx.syncBasedOnReferredEntries,
+      manuallyMarkedUsedEntries: this.ctx.manuallyMarkedUsedEntries,
       modifyList: this.ctx.modifyList
     };
   }
@@ -176,6 +179,25 @@ class LangMage {
     this.ctx.entryTree = {};
     this.ctx.updatedEntryValueInfo = {};
     this.ctx.patchedEntryIdInfo = {};
+  }
+
+  private setConfigIntoOptions(): void {
+    this.setOptions({
+      referredLang: getConfig<string>("referenceLanguage", "en"),
+      ignoredFileList: getConfig<string[]>("ignoredFileList", []),
+      langFileMinLength: getConfig<number>("langFileMinLength", 0),
+      ignoreEmptyLangFile: getConfig<boolean>("ignoreEmptyLangFile", true),
+      sortWithTrim: getConfig<boolean>("sortWithTrim", true),
+      manuallyMarkedUsedEntries: getConfig<string[]>("manuallyMarkedUsedEntries", []),
+      credentials: {
+        baiduAppId: getConfig<string>("baiduAppId", ""),
+        baiduSecretKey: getConfig<string>("baiduSecretKey", ""),
+        tencentSecretId: getConfig<string>("tencentSecretId", ""),
+        tencentSecretKey: getConfig<string>("tencentSecretKey", ""),
+        translateApiPriority: getConfig<string[]>("translateApiPriority", ["google", "baidu", "tencent"])
+      },
+      syncBasedOnReferredEntries: getConfig<boolean>("syncBasedOnReferredEntries", true)
+    });
   }
 }
 

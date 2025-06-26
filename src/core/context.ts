@@ -50,5 +50,6 @@ export const createLangContext = (): LangContextInternal => ({
   credentials: null,
   syncBasedOnReferredEntries: false,
   trimKeyList: [],
+  manuallyMarkedUsedEntries: [],
   ignoredFileList: []
 });
