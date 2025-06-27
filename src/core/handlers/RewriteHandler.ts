@@ -61,7 +61,7 @@ export class RewriteHandler {
       const fileContent = formatObjectToString(
         entryTree,
         this.ctx.langCountryMap[lang],
-        this.ctx.langFileType,
+        filePath,
         this.ctx.langFileExtraInfo[filePos ? `${lang}.${filePos}` : lang]
       );
       await this.writeFile(filePath, fileContent);
