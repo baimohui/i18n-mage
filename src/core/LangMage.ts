@@ -33,7 +33,24 @@ class LangMage {
 
   public setOptions(options: LangMageOptions = {}): void {
     if (Object.prototype.toString.call(options) === "[object Object]") {
-      for (const [key, value] of Object.entries(options)) {
+      const combinedOptions: LangMageOptions = {
+        referredLang: getConfig<string>("referenceLanguage", "en"),
+        ignoredFileList: getConfig<string[]>("ignoredFileList", []),
+        langFileMinLength: getConfig<number>("langFileMinLength", 0),
+        ignoreEmptyLangFile: getConfig<boolean>("ignoreEmptyLangFile", true),
+        sortWithTrim: getConfig<boolean>("sortWithTrim", true),
+        manuallyMarkedUsedEntries: getConfig<string[]>("manuallyMarkedUsedEntries", []),
+        credentials: {
+          baiduAppId: getConfig<string>("baiduAppId", ""),
+          baiduSecretKey: getConfig<string>("baiduSecretKey", ""),
+          tencentSecretId: getConfig<string>("tencentSecretId", ""),
+          tencentSecretKey: getConfig<string>("tencentSecretKey", ""),
+          translateApiPriority: getConfig<string[]>("translateApiPriority", ["google", "baidu", "tencent"])
+        },
+        syncBasedOnReferredEntries: getConfig<boolean>("syncBasedOnReferredEntries", true),
+        ...options
+      };
+      for (const [key, value] of Object.entries(combinedOptions)) {
         if (key === "checkAimList") {
           this.ctx.checkUnityFlag = (value as string[]).includes("unity");
           this.ctx.checkRepeatFlag = (value as string[]).includes("repeat");
@@ -54,7 +71,6 @@ class LangMage {
       this.ctx.isVacant = false;
       console.time("本次耗时");
       if (this.ctx.clearCache) this.reset();
-      this.setConfigIntoOptions();
       const reader = new ReadHandler(this.ctx);
       reader.readLangFiles();
       if (this.detectedLangList.length === 0) {
@@ -179,25 +195,6 @@ class LangMage {
     this.ctx.entryTree = {};
     this.ctx.updatedEntryValueInfo = {};
     this.ctx.patchedEntryIdInfo = {};
-  }
-
-  private setConfigIntoOptions(): void {
-    this.setOptions({
-      referredLang: getConfig<string>("referenceLanguage", "en"),
-      ignoredFileList: getConfig<string[]>("ignoredFileList", []),
-      langFileMinLength: getConfig<number>("langFileMinLength", 0),
-      ignoreEmptyLangFile: getConfig<boolean>("ignoreEmptyLangFile", true),
-      sortWithTrim: getConfig<boolean>("sortWithTrim", true),
-      manuallyMarkedUsedEntries: getConfig<string[]>("manuallyMarkedUsedEntries", []),
-      credentials: {
-        baiduAppId: getConfig<string>("baiduAppId", ""),
-        baiduSecretKey: getConfig<string>("baiduSecretKey", ""),
-        tencentSecretId: getConfig<string>("tencentSecretId", ""),
-        tencentSecretKey: getConfig<string>("tencentSecretKey", ""),
-        translateApiPriority: getConfig<string[]>("translateApiPriority", ["google", "baidu", "tencent"])
-      },
-      syncBasedOnReferredEntries: getConfig<boolean>("syncBasedOnReferredEntries", true)
-    });
   }
 }
 
