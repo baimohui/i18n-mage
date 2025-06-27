@@ -11,11 +11,11 @@ import { unescapeString } from "./stringUtils";
  */
 export function getLineEnding(filePath?: string): string {
   const activeDocEol = getDocumentEol(filePath);
-  if (activeDocEol !== null && activeDocEol !== undefined) {
+  if (activeDocEol !== null) {
     return activeDocEol;
   }
   const configuredEol = getConfiguredLineEnding();
-  if (configuredEol !== null && configuredEol !== undefined) {
+  if (configuredEol !== null) {
     return configuredEol;
   }
   return getSystemDefaultEol();
@@ -25,30 +25,25 @@ export function getLineEnding(filePath?: string): string {
  * 获取活动文档实际使用的换行符
  */
 function getDocumentEol(filePath?: string): string | null {
-  const editor = vscode.window.activeTextEditor;
-  if (!editor || filePath === undefined) {
-    return null;
+  let text = "";
+  if (filePath !== undefined) {
+    text = fs.readFileSync(filePath, "utf8");
+  } else {
+    const editor = vscode.window.activeTextEditor;
+    if (!editor) return null;
+    // 尝试直接读取 eol 属性
+    const eol = editor.document.eol;
+    if (eol === vscode.EndOfLine.CRLF) return "\r\n";
+    if (eol === vscode.EndOfLine.LF) return "\n";
+    text = editor.document.getText();
   }
-  // 方式 A：通过 document.eol 属性
-  if (!filePath) {
-    if (editor.document.eol === vscode.EndOfLine.CRLF) {
-      return "\r\n";
-    } else if (editor.document.eol === vscode.EndOfLine.LF) {
-      return "\n";
-    }
+  const crlfMatches = text.match(/\r\n/g);
+  const lfMatches = text.match(/(?<!\r)\n/g);
+  if (crlfMatches && lfMatches) {
+    return crlfMatches.length > lfMatches.length ? "\r\n" : "\n";
   }
-  // 方式 B：通过内容检测（更可靠，特别是新建文件时）
-  const text = filePath ? fs.readFileSync(filePath, "utf8") : editor.document.getText();
-  const hasCRLF = text.indexOf("\r\n") !== -1;
-  const hasLF = text.indexOf("\n") !== -1;
-  // 如果同时存在两种换行符，优先返回出现次数多的
-  if (hasCRLF && hasLF) {
-    const crlfCount = (text.match(/\r\n/g) || []).length;
-    const lfCount = (text.match(/[^\r]\n/g) || []).length;
-    return crlfCount > lfCount ? "\r\n" : "\n";
-  }
-  if (hasCRLF) return "\r\n";
-  if (hasLF) return "\n";
+  if (crlfMatches) return "\r\n";
+  if (lfMatches) return "\n";
   return null;
 }
 
