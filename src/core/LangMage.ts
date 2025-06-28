@@ -72,7 +72,7 @@ class LangMage {
       console.time("本次耗时");
       if (this.ctx.clearCache) this.reset();
       const reader = new ReadHandler(this.ctx);
-      reader.readLangFiles();
+      await reader.readLangFiles();
       if (this.detectedLangList.length === 0) {
         return false;
       }

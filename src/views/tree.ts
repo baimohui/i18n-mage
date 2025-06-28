@@ -152,7 +152,6 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
           }
         });
         vscode.commands.executeCommand("setContext", "hasValidLangDir", false);
-        this.#mage.setOptions({ langDir: "" });
         success = false;
       } else {
         this.checkUsedInfo();

@@ -4,7 +4,6 @@ import { treeInstance } from "@/views/tree";
 import { wrapWithProgress } from "@/utils/wrapWithProgress";
 import { registerDisposable } from "@/utils/dispose";
 import { DecoratorController } from "@/features/Decorator";
-import { setConfig } from "@/utils/config";
 import { t } from "@/utils/i18n";
 import { NotificationManager } from "@/utils/notification";
 
@@ -24,9 +23,7 @@ export function registerSelectLangDirCommand() {
         if (mage.detectedLangList.length === 0) {
           NotificationManager.showWarning(t("command.selectLangDir.error"));
           vscode.commands.executeCommand("setContext", "hasValidLangDir", false);
-          mage.setOptions({ langDir: "" });
         } else {
-          await setConfig("langDir", langDir);
           vscode.window.showInformationMessage(t("command.selectLangDir.success", langDir));
           vscode.commands.executeCommand("setContext", "hasValidLangDir", true);
           treeInstance.refresh();

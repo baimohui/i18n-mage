@@ -13,15 +13,18 @@ import {
 } from "@/utils/regex";
 import { EntryTree, LangDictionary, LangTree } from "@/types";
 import { LANG_ENTRY_SPLIT_SYMBOL } from "@/utils/langKey";
+import { setConfig } from "@/utils/config";
 
 export class ReadHandler {
   constructor(private ctx: LangContextInternal) {}
 
-  public readLangFiles(): void {
+  public async readLangFiles(): Promise<void> {
     const langData = extractLangDataFromDir(this.ctx.langDir);
     if (langData === null) {
+      this.ctx.langDir = "";
       return;
     }
+    await setConfig("langDir", this.ctx.langDir);
     const langTree = langData.langTree;
     this.ctx.langFileExtraInfo = langData.fileExtraInfo;
     this.ctx.langFileType = langData.fileType;
