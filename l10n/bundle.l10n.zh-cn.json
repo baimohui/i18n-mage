@@ -78,6 +78,7 @@
   "preview.itemsSelected": "已选中 {0} 项",
   "preview.termValueUpdate": "词条值更新",
   "preview.termIdPatch": "词条 ID 修正",
+  "diagnostics.undefinedWarn": "未定义的词条：{0}",
   "translator.useOtherApi": "将由 {0} 尝试翻译该语言",
   "translator.useApi": "将由 {0} 继续翻译该语言"
 }

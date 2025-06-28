@@ -1,6 +1,7 @@
 import * as vscode from "vscode";
 import { treeInstance } from "@/views/tree";
 import { DecoratorController } from "@/features/Decorator";
+import { Diagnostics } from "@/features/Diagnostics";
 import { wrapWithProgress } from "@/utils/wrapWithProgress";
 import { registerAllCommands } from "@/commands";
 import { registerAllListeners } from "@/listeners";
@@ -60,6 +61,8 @@ class ExtensionState {
         const decorator = DecoratorController.getInstance();
         decorator.update(vscode.window.activeTextEditor);
       }
+      const diagnostics = Diagnostics.getInstance();
+      vscode.workspace.textDocuments.forEach(doc => diagnostics.update(doc));
     });
   }
 

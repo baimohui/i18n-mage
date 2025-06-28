@@ -63,7 +63,7 @@ export async function wrapWithProgress(
         } catch (error) {
           if (!combinedToken.isCancellationRequested) {
             const errorMessage = error instanceof Error ? error.message : String(error);
-            NotificationManager.showError(t("common.progress.error"), errorMessage);
+            NotificationManager.showError(t("common.progress.error", errorMessage));
           }
           throw error;
         } finally {

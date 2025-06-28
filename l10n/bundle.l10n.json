@@ -64,6 +64,7 @@
   "preview.itemsSelected": "{0} entries selected",
   "preview.termValueUpdate": "Entry Value Update",
   "preview.termIdPatch": "Entry ID Correction",
+  "diagnostics.undefinedWarn": "Undefined entry: {0}",
   "common.none": "None",
   "command.fix.progressDetail": "Call {1} ​​API to {0}, adding new translation: {2}",
   "command.fix.error": "Fix failed: {0}",

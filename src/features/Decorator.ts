@@ -40,7 +40,7 @@ export class DecoratorController implements vscode.Disposable {
   }
 
   public static getInstance(): DecoratorController {
-    if (DecoratorController.instance == null) {
+    if (DecoratorController.instance === undefined) {
       DecoratorController.instance = new DecoratorController();
     }
     return DecoratorController.instance;
