@@ -6,6 +6,7 @@ import { getLangText } from "@/utils/langKey";
 import { LangContextPublic, TEntry, LangTree } from "@/types";
 import { t } from "@/utils/i18n";
 import { NotificationManager } from "@/utils/notification";
+import { getConfig } from "@/utils/config";
 
 interface ExtendedTreeItem extends vscode.TreeItem {
   level?: number;
@@ -129,16 +130,27 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
       NotificationManager.showWarning(t("common.noWorkspaceWarn"));
       success = false;
     } else {
-      const possibleLangDirs = getPossibleLangDirs(rootPath);
-      for (const langDir of possibleLangDirs) {
-        this.#mage.setOptions({ langDir, task: "check", globalFlag: true, clearCache: false });
+      const configLangDir = getConfig<string>("langDir", "");
+      if (configLangDir) {
+        this.#mage.setOptions({ langDir: configLangDir, task: "check", globalFlag: true, clearCache: false });
         await this.#mage.execute();
-        if (this.#mage.detectedLangList.length > 0) {
-          break;
+      }
+      if (this.#mage.detectedLangList.length === 0) {
+        const possibleLangDirs = getPossibleLangDirs(rootPath);
+        for (const langDir of possibleLangDirs) {
+          this.#mage.setOptions({ langDir, task: "check", globalFlag: true, clearCache: false });
+          await this.#mage.execute();
+          if (this.#mage.detectedLangList.length > 0) {
+            break;
+          }
         }
       }
       if (this.#mage.detectedLangList.length === 0) {
-        NotificationManager.showWarning(t("common.noLangDirDetectedWarn"));
+        NotificationManager.showWarning(t("common.noLangDirDetectedWarn"), t("command.selectLangDir.title")).then(selection => {
+          if (selection === t("command.selectLangDir.title")) {
+            vscode.commands.executeCommand("i18nMage.selectLangDir");
+          }
+        });
         vscode.commands.executeCommand("setContext", "hasValidLangDir", false);
         this.#mage.setOptions({ langDir: "" });
         success = false;

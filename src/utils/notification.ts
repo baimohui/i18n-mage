@@ -32,23 +32,23 @@ export class NotificationManager {
   }
 
   // 成功信息
-  static showSuccess(message: string, ...items: string[]): void {
-    vscode.window.showInformationMessage(`${message}`, ...items);
+  static showSuccess(message: string, ...items: string[]): Thenable<string | undefined> {
     vscode.window.setStatusBarMessage(`${message}`, 3000);
     this.logToOutput(`✅ ${message}`);
+    return vscode.window.showInformationMessage(`${message}`, ...items);
   }
 
   // 错误信息
-  static showError(message: string, ...items: string[]): void {
-    vscode.window.showErrorMessage(`${message}`, ...items);
+  static showError(message: string, ...items: string[]): Thenable<string | undefined> {
     this.outputChannel.show();
     this.logToOutput(`❌ ${message}`, "error");
+    return vscode.window.showErrorMessage(`${message}`, ...items);
   }
 
   // 警告信息
-  static showWarning(message: string, ...items: string[]): void {
-    vscode.window.showWarningMessage(`${message}`, ...items);
+  static showWarning(message: string, ...items: string[]): Thenable<string | undefined> {
     this.logToOutput(`⚠️ ${message}`, "warn");
+    return vscode.window.showWarningMessage(`${message}`, ...items);
   }
 
   // 记录到输出通道

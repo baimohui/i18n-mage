@@ -93,6 +93,12 @@
             "default": 30,
             "description": "%config.langFileMinLength.desc%"
           },
+          "i18n-mage.langDir": {
+            "type": "string",
+            "default": "",
+            "description": "%config.langDir.desc%",
+            "scope": "resource"
+          },
           "i18n-mage.manuallyMarkedUsedEntries": {
             "type": "array",
             "default": [],
