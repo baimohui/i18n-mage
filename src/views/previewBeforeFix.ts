@@ -1,5 +1,6 @@
 import * as vscode from "vscode";
-import { FixedTEntry } from "../types";
+import { FixedTEntry } from "@/types";
+import { t } from "@/utils/i18n";
 
 type EntryValueUpdates = Record<string, Record<string, string | undefined>>;
 type EntryIdPatches = Record<string, FixedTEntry[]>;
@@ -12,7 +13,7 @@ export default function launchFixWebview(
   baseLocale: string,
   onComplete: () => Promise<void>
 ) {
-  const panel = vscode.window.createWebviewPanel("fixProblems", "修复确认", vscode.ViewColumn.One, { enableScripts: true });
+  const panel = vscode.window.createWebviewPanel("fixProblems", t("preview.title"), vscode.ViewColumn.One, { enableScripts: true });
   panel.webview.html = buildHtml(valueUpdates, idPatches, localeMap, baseLocale);
 
   panel.webview.onDidReceiveMessage(async (msg: WebviewMessage) => {
@@ -41,19 +42,19 @@ function buildHtml(valueUpdates: EntryValueUpdates, idPatches: EntryIdPatches, l
   <meta charset="UTF-8">
   <meta http-equiv="Content-Security-Policy"
     content="default-src 'none'; style-src 'unsafe-inline'; script-src 'nonce-${nonce}';">
-  <title>确认修复</title>
+  <title>${t("preview.title")}</title>
   ${buildStyles()}
 </head>
 <body>
-  <h1>确认以下修复</h1>
+  <h1>${t("preview.confirm")}</h1>
   <div class="content">
     ${renderValueSection(valueUpdates, localeMap, baseLocale)}
     ${renderIdSection(idPatches)}
   </div>
   <div class="actions">
-    <span id="countDisplay">已选中 <span id="selectedCount">0</span> 项</span>
-    <button id="btn-apply">应用</button>
-    <button id="btn-cancel">取消</button>
+    <span id="countDisplay">${t("preview.itemsSelected", 0)}</span>
+    <button id="btn-apply">${t("preview.apply")}</button>
+    <button id="btn-cancel">${t("preview.cancel")}</button>
   </div>
   <script nonce="${nonce}">
     ${buildClientScript()}
@@ -211,7 +212,7 @@ function renderValueSection(updates: EntryValueUpdates, localeMap: LocaleMap, ba
   if (!Object.keys(updates).length) return "";
   return /* html */ `
   <div class="section value-updates">
-    <h2>词条值更新</h2>
+    <h2>${t("preview.termValueUpdate")}</h2>
     ${Object.entries(updates)
       .map(
         ([locale, entries]) => /* html */ `
@@ -249,7 +250,7 @@ function renderIdSection(patches: EntryIdPatches): string {
   if (!Object.keys(patches).length) return "";
   return /* html */ `
   <div class="section id-patches">
-    <h2>词条 ID 修正</h2>
+    <h2>${t("preview.termIdPatch")}</h2>
     ${Object.entries(patches)
       .map(
         ([file, changes], idx) => /* html */ `
@@ -282,7 +283,8 @@ const applyBtn = document.getElementById('btn-apply');
 
 const updateCount = () => {
   const count = document.querySelectorAll('.item input[type=checkbox]:checked').length;
-  document.getElementById('selectedCount').textContent = count;
+  const textContent = document.getElementById('countDisplay').textContent;
+  document.getElementById('countDisplay').textContent = textContent.replace(/\\d+/, count.toString());
   applyBtn.disabled = (count === 0);
 };
 updateCount();

@@ -71,6 +71,13 @@
   "tree.usedInfo.total": "总计",
   "tree.usedInfo.percent": "占比",
   "tree.dictionary.title": "词条汇总",
+  "preview.title": "修复确认",
+  "preview.confirm": "确认以下修复",
+  "preview.apply": "应用",
+  "preview.cancel": "取消",
+  "preview.itemsSelected": "已选中 {0} 项",
+  "preview.termValueUpdate": "词条值更新",
+  "preview.termIdPatch": "词条 ID 修正",
   "translator.useOtherApi": "将由 {0} 尝试翻译该语言",
   "translator.useApi": "将由 {0} 继续翻译该语言"
 }
