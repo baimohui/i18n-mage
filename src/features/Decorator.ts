@@ -1,6 +1,7 @@
 import * as vscode from "vscode";
 import LangMage from "@/core/LangMage";
 import { getValueByAmbiguousEntryName, catchTEntries, getLineEnding } from "@/utils/regex";
+import { getConfig } from "@/utils/config";
 
 export class DecoratorController implements vscode.Disposable {
   private static instance: DecoratorController;
@@ -21,18 +22,7 @@ export class DecoratorController implements vscode.Disposable {
 
   constructor() {
     // 初始化翻译文本装饰器
-    this.translationDecoration = vscode.window.createTextEditorDecorationType({
-      before: {
-        color: "#569CD6",
-        backgroundColor: "rgba(86, 156, 214, 0.1)",
-        // fontStyle: "italic",
-        margin: "0 0 0 0"
-      },
-      dark: {
-        color: "#4EC9B0",
-        backgroundColor: "rgba(78, 201, 176, 0.1)"
-      }
-    });
+    this.translationDecoration = this.setTranslationDecoration();
     // 初始化隐藏原始 key 的装饰器
     this.hiddenKeyDecoration = vscode.window.createTextEditorDecorationType({
       textDecoration: "none; opacity: 0; position: absolute; width: 0; height: 0; overflow: hidden;"
@@ -47,7 +37,7 @@ export class DecoratorController implements vscode.Disposable {
   }
 
   public update(editor: vscode.TextEditor | undefined): void {
-    if (!editor) return;
+    if (!editor || !getConfig<boolean>("translationHints.enabled", true)) return;
     this.currentEditor = editor;
     this.currentDecorations.clear();
     const mage = LangMage.getInstance();
@@ -78,7 +68,8 @@ export class DecoratorController implements vscode.Disposable {
       const endPos = editor.document.positionAt(globalStartOffset + entry.nameInfo.text.length);
       const range = new vscode.Range(startPos, endPos);
       const uniqueId = `${globalStartOffset}:${entry.nameInfo.id}`;
-      const translationDec: vscode.DecorationOptions = { range, renderOptions: { before: { contentText: entryValue } } };
+      const formattedEntryValue = this.formatEntryValue(entryValue);
+      const translationDec: vscode.DecorationOptions = { range, renderOptions: { before: { contentText: formattedEntryValue } } };
       const hiddenKeyDec: vscode.DecorationOptions = { range };
       this.currentDecorations.set(uniqueId, { translationDec, hiddenKeyDec });
     });
@@ -127,6 +118,17 @@ export class DecoratorController implements vscode.Disposable {
     this.update(this.currentEditor);
   }
 
+  public updateTranslationDecoration() {
+    this.translationDecoration.dispose();
+    this.translationDecoration = this.setTranslationDecoration();
+  }
+
+  private formatEntryValue(entryValue: string, maxLen?: number): string {
+    const clean = entryValue.replace(/\n/g, " ");
+    if (maxLen === undefined || clean.length <= maxLen) return clean;
+    return clean.slice(0, maxLen) + "...";
+  }
+
   // 应用装饰器（根据光标位置切换状态）
   private applyDecorations(editor: vscode.TextEditor): void {
     if (!this.currentEditor) return;
@@ -143,6 +145,46 @@ export class DecoratorController implements vscode.Disposable {
     // 设置装饰器
     editor.setDecorations(this.translationDecoration, translationDecorations);
     editor.setDecorations(this.hiddenKeyDecoration, hiddenKeyDecorations);
+  }
+
+  private setTranslationDecoration() {
+    return vscode.window.createTextEditorDecorationType({
+      before: {
+        color: this.getDecorationColor("light").color,
+        backgroundColor: this.getDecorationColor("light").backgroundColor,
+        // fontStyle: "italic",
+        margin: "0 0 0 0"
+      },
+      dark: {
+        before: this.getDecorationColor("dark")
+      }
+    });
+  }
+
+  private getDecorationColor(theme: "light" | "dark"): { color: string; backgroundColor: string } {
+    let hex = getConfig<string>(`translationHints.${theme}.backgroundColor`);
+    const alpha = getConfig<number>(`translationHints.${theme}.backgroundAlpha`);
+    let color = getConfig<string>(`translationHints.${theme}.fontColor`);
+    const isValidHexColor = (value: string): boolean => {
+      return /^#([0-9a-fA-F]{6})$/.test(value.trim());
+    };
+    if (!isValidHexColor(hex)) {
+      hex = theme === "light" ? "#569CD6" : "#4EC9B0";
+    }
+    if (!isValidHexColor(color)) {
+      color = theme === "light" ? "#569CD6" : "#4EC9B0";
+    }
+    return {
+      color,
+      backgroundColor: this.hexToRgba(hex, alpha)
+    };
+  }
+
+  private hexToRgba(hex: string, alpha: number): string {
+    const r = parseInt(hex.slice(1, 3), 16);
+    const g = parseInt(hex.slice(3, 5), 16);
+    const b = parseInt(hex.slice(5, 7), 16);
+    return `rgba(${r}, ${g}, ${b}, ${alpha})`;
   }
 
   dispose(): void {
