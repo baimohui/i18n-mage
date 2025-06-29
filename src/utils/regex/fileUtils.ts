@@ -6,7 +6,7 @@ import { LANG_FORMAT_TYPE } from "@/utils/langKey";
 import { LangTree, FileExtraInfo, LangFileInfo, EntryNode, EntryMap, EntryTree } from "@/types";
 
 export function isIgnoredDir(dir: string): boolean {
-  const ignoredDirRegex = /^(dist|node_modules|img|image|css|asset|\.)/i;
+  const ignoredDirRegex = /^(dist|node_modules|img|image|css|asset|build|out|\.)/i;
   return ignoredDirRegex.test(dir);
 }
 

@@ -3,6 +3,8 @@ import { registerMarkAsKnownLangCommand } from "./check/markAsKnownLangCommand";
 import { registerSetReferredLangCommand } from "./check/setReferredLangCommand";
 import { registerMarkAsUsedCommand } from "./check/markAsUsedCommand";
 import { registerSelectLangDirCommand } from "./check/selectLangDirCommand";
+import { registerSetLangDirCommand } from "./check/setLangDirCommand";
+import { registerSetProjectRootCommand } from "./check/setProjectRootCommand";
 import { registerCopyKeyValueCommand } from "./copy/copyKeyValueCommand";
 import { registerCopyNameCommand } from "./copy/copyNameCommand";
 import { registerCopyValueCommand } from "./copy/copyValueCommand";
@@ -22,6 +24,8 @@ export function registerAllCommands() {
   registerSetReferredLangCommand();
   registerMarkAsUsedCommand();
   registerSelectLangDirCommand();
+  registerSetLangDirCommand();
+  registerSetProjectRootCommand();
   registerCopyKeyValueCommand();
   registerCopyNameCommand();
   registerCopyValueCommand();

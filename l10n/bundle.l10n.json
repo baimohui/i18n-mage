@@ -79,6 +79,7 @@
   "command.rewrite.title": "Write entries",
   "command.trim.title": "Clean up entries",
   "command.trim.nullWarn": "No entry to be cleaned was detected",
+  "command.setProjectRoot.invalidFolder": "Invalid project root path",
   "translator.useOtherApi": "The language will be translated by {0}",
   "translator.useApi": "The language will be translated by {0}"
 }

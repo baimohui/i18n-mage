@@ -9,6 +9,7 @@
   "config.ignoreEmptyLangFile.desc": "忽略空语言文件",
   "config.langFileMinLength.desc": "语言文件最小字符数",
   "config.manuallyMarkedUsedEntries.desc": "手动标记为已使用的词条",
+  "config.projectRoot.title": "项目根路径",
   "config.langDir.desc": "翻译文件目录",
   "config.ignoredFileList.desc": "需要忽略的文件列表",
   "config.translatePlatform.title": "翻译平台",
@@ -42,5 +43,7 @@
   "command.markAsUsed.title": "标记为已使用",
   "command.goToReference.title": "跳转到引用位置",
   "command.goToDefinition.title": "跳转到定义位置",
+  "command.setProjectRoot.title": "设置为项目根路径",
+  "command.setLangDir.title": "设置为翻译文件目录",
   "view.welcome.title": "尚未检测到翻译文件目录\n[选择翻译文件目录](command:i18nMage.selectLangDir)"
 }

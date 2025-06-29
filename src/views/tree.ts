@@ -1,7 +1,7 @@
 import * as vscode from "vscode";
 import LangMage from "@/core/LangMage";
 import { catchTEntries, unescapeString, getValueByAmbiguousEntryName } from "@/utils/regex";
-import { getPossibleLangDirs } from "@/utils/fs";
+import { getPossibleLangDirs, isLikelyProjectRoot } from "@/utils/fs";
 import { getLangText } from "@/utils/langKey";
 import { LangContextPublic, TEntry, LangTree } from "@/types";
 import { t } from "@/utils/i18n";
@@ -117,11 +117,15 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
   }
 
   async initTree(): Promise<boolean> {
-    let rootPath = "";
+    let rootPath = getConfig<string>("projectRoot", "");
     this.refresh();
     const workspaceFolders = vscode.workspace.workspaceFolders;
     if (workspaceFolders !== undefined && workspaceFolders.length > 0) {
       rootPath = workspaceFolders[0].uri.fsPath;
+    }
+    if (!(await isLikelyProjectRoot(rootPath))) {
+      NotificationManager.showError(t("command.setProjectRoot.invalidFolder"));
+      return false;
     }
     this.#mage.setOptions({ rootPath });
     let success = false;
@@ -136,7 +140,7 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
         await this.#mage.execute();
       }
       if (this.#mage.detectedLangList.length === 0) {
-        const possibleLangDirs = getPossibleLangDirs(rootPath);
+        const possibleLangDirs = await getPossibleLangDirs(rootPath);
         for (const langDir of possibleLangDirs) {
           this.#mage.setOptions({ langDir, task: "check", globalFlag: true, clearCache: false });
           await this.#mage.execute();

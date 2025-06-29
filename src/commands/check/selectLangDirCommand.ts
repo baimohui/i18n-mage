@@ -18,7 +18,7 @@ export function registerSelectLangDirCommand() {
     if (selectedUri && selectedUri.length > 0) {
       await wrapWithProgress({ title: t("command.check.progress") }, async () => {
         const langDir = selectedUri[0].fsPath;
-        mage.setOptions({ langDir, task: "check", globalFlag: true, clearCache: false });
+        mage.setOptions({ langDir, task: "check", globalFlag: true, clearCache: true });
         await mage.execute();
         if (mage.detectedLangList.length === 0) {
           NotificationManager.showWarning(t("command.selectLangDir.error"));

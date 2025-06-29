@@ -1,69 +1,75 @@
-import fs from "fs";
+import * as fs from "fs/promises";
 import path from "path";
+import { t } from "@/utils/i18n";
+import { NotificationManager } from "@/utils/notification";
 import { isIgnoredDir } from "@/utils/regex";
 
-export function deleteFolderRecursive(dirPath: string): void {
-  if (fs.existsSync(dirPath)) {
-    fs.readdirSync(dirPath).forEach(file => {
-      const curPath = path.join(dirPath, file);
-      if (fs.lstatSync(curPath).isDirectory()) {
-        deleteFolderRecursive(curPath);
-      } else {
-        fs.unlinkSync(curPath);
-      }
-    });
-    fs.rmdirSync(dirPath);
-  }
-}
-
-export function createFolderRecursive(dirPath: string): void {
-  if (fs.existsSync(dirPath)) return;
-  const parentPath = path.dirname(dirPath);
-  if (!fs.existsSync(parentPath)) createFolderRecursive(parentPath);
-  fs.mkdirSync(dirPath);
-}
-
-// 只匹配容器目录名：lang、i18n、locale……等关键词
 const langDirRegex = /\b(lang|language|i18n|l10n|locale|translation|translate|message|intl|fanyi)s?\b/i;
-// 严格的区域/语言代码格式
 const localeCodeRegex = /(^|^\w.*\b)[a-z]{2,3}([-_][a-z]{2,4})?$/i;
-// 匹配单文件翻译名及后缀
 const localeFileRegex = /(^|^\w.*\b)([a-z]{2,3}(?:[-_][a-z]{2,4})?)\.(js|ts|json|json5|mjs|cjs)$/i;
-// 最小文件/目录数限制
+
 const MIN_ENTRIES = 1;
 
-export function getPossibleLangDirs(rootDir: string): string[] {
+export async function deleteFolderRecursive(dirPath: string): Promise<void> {
+  try {
+    const entries = await fs.readdir(dirPath, { withFileTypes: true });
+    await Promise.all(
+      entries.map(async entry => {
+        const fullPath = path.join(dirPath, entry.name);
+        if (entry.isDirectory()) {
+          await deleteFolderRecursive(fullPath);
+        } else {
+          await fs.unlink(fullPath);
+        }
+      })
+    );
+    await fs.rmdir(dirPath);
+  } catch (err) {
+    NotificationManager.showError(t("common.progress.error", err instanceof Error ? err.message : t("common.unknownError")));
+  }
+}
+
+export async function createFolderRecursive(dirPath: string): Promise<void> {
+  try {
+    await fs.mkdir(dirPath, { recursive: true });
+  } catch (err) {
+    NotificationManager.showError(t("common.progress.error", err instanceof Error ? err.message : t("common.unknownError")));
+  }
+}
+
+export async function getPossibleLangDirs(rootDir: string): Promise<string[]> {
   const results = new Set<string>();
-  function traverse(dir: string) {
-    const basename = path.basename(dir);
-    const entries = fs.readdirSync(dir, { withFileTypes: true });
-    const subdirs = entries.filter(d => d.isDirectory() && !d.isSymbolicLink());
-    const files = entries.filter(d => d.isFile());
-    // —— 目录式检测 ——
-    // 1. 当前目录名要命中 langDirRegex
-    // 2. 且它下面至少有 MIN_ENTRIES 个符合 localeCodeRegex 的子目录
-    const validSubdirLen = subdirs.filter(d => localeCodeRegex.test(d.name)).length;
-    if (langDirRegex.test(basename) && validSubdirLen >= MIN_ENTRIES && validSubdirLen >= subdirs.length - validSubdirLen) {
-      results.add(dir);
-      // return;
-    }
-    // —— 文件式检测 ——
-    // 当前目录下至少 MIN_ENTRIES 个符合 localeFileRegex 的文件
-    const validFileLen = files.filter(d => localeFileRegex.test(d.name)).length;
-    if (langDirRegex.test(basename) && validFileLen >= MIN_ENTRIES && validFileLen >= files.length - validFileLen) {
-      results.add(dir);
-      // return;
-    }
-    // —— 继续递归 ——
-    for (const d of subdirs) {
-      if (isIgnoredDir(d.name)) continue;
-      traverse(path.join(dir, d.name));
+
+  async function traverse(dir: string) {
+    try {
+      const entries = await fs.readdir(dir, { withFileTypes: true });
+      const basename = path.basename(dir);
+      const subdirs = entries.filter(e => e.isDirectory());
+      const files = entries.filter(e => e.isFile());
+
+      const validSubdirLen = subdirs.filter(d => localeCodeRegex.test(d.name)).length;
+      const validFileLen = files.filter(f => localeFileRegex.test(f.name)).length;
+
+      if (
+        langDirRegex.test(basename) &&
+        ((validSubdirLen >= MIN_ENTRIES && validSubdirLen >= subdirs.length - validSubdirLen) ||
+          (validFileLen >= MIN_ENTRIES && validFileLen >= files.length - validFileLen))
+      ) {
+        results.add(dir);
+      }
+
+      for (const sub of subdirs) {
+        if (isIgnoredDir(sub.name)) continue;
+        await traverse(path.join(dir, sub.name));
+      }
+    } catch {
+      return;
     }
   }
-  traverse(rootDir);
-  // 去掉彼此包含的父目录，只保留最深那层
+
+  await traverse(rootDir);
+
   const dirs = Array.from(results);
-  // TODO path.sep 路径分隔符，统一用这个
   return dirs.filter(a => !dirs.some(b => a !== b && b.startsWith(a + path.sep)));
 }
 
@@ -76,4 +82,19 @@ export function isPathInsideDirectory(dir: string, targetPath: string): boolean 
   // 如果相对路径不以 ".." 开头，则 targetPath 是在 dir 目录下
   const isInside = !relativePath.startsWith("..") && !path.isAbsolute(relativePath);
   return isInside;
+}
+
+export async function isLikelyProjectRoot(dirPath: string): Promise<boolean> {
+  try {
+    const stat = await fs.stat(dirPath);
+    if (!stat.isDirectory()) return false;
+    const packageJsonPath = path.join(dirPath, "package.json");
+    const srcPath = path.join(dirPath, "src");
+    const checks = await Promise.allSettled([fs.stat(packageJsonPath), fs.stat(srcPath)]);
+    const hasPkg = checks[0].status === "fulfilled" && checks[0].value.isFile();
+    const hasSrc = checks[1].status === "fulfilled" && checks[1].value.isDirectory();
+    return hasPkg || hasSrc;
+  } catch {
+    return false;
+  }
 }

@@ -93,6 +93,12 @@
             "default": 30,
             "description": "%config.langFileMinLength.desc%"
           },
+          "i18n-mage.projectRoot": {
+            "type": "string",
+            "default": "",
+            "description": "%config.projectRoot.title%",
+            "scope": "resource"
+          },
           "i18n-mage.langDir": {
             "type": "string",
             "default": "",
@@ -330,6 +336,14 @@
           "light": "./images/claim-light.svg",
           "dark": "./images/claim-dark.svg"
         }
+      },
+      {
+        "command": "i18nMage.setProjectRoot",
+        "title": "%command.setProjectRoot.title%"
+      },
+      {
+        "command": "i18nMage.setLangDir",
+        "title": "%command.setLangDir.title%"
       }
     ],
     "menus": {
@@ -413,8 +427,33 @@
           "when": "viewItem == unusedGroupHeader || viewItem == unusedGroupItem",
           "group": "inline@2"
         }
+      ],
+      "explorer/context": [
+        {
+          "submenu": "i18nMage.menu",
+          "when": "enabled",
+          "group": "z_i18n@1"
+        }
+      ],
+      "i18nMage.menu": [
+        {
+          "command": "i18nMage.setProjectRoot",
+          "when": "explorerResourceIsFolder",
+          "group": "navigation"
+        },
+        {
+          "command": "i18nMage.setLangDir",
+          "when": "explorerResourceIsFolder",
+          "group": "navigation"
+        }
       ]
     },
+    "submenus": [
+      {
+        "id": "i18nMage.menu",
+        "label": "i18n Mage"
+      }
+    ],
     "viewsContainers": {
       "activitybar": [
         {
