@@ -166,6 +166,9 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
     this.isInitialized = true;
     vscode.commands.executeCommand("setContext", "initialized", true);
     this.publicCtx = this.#mage.getPublicContext();
+    const inspect = vscode.workspace.getConfiguration().inspect("i18n-mage.manuallyMarkedUsedEntries");
+    console.log(inspect);
+
     return success;
   }
 

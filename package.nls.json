@@ -28,6 +28,7 @@
   "config.translateHintsBackgroundColorInDark.desc": "Hint background base color in dark theme (hexadecimal)",
   "config.translateHintsBackgroundAlphaInDark.desc": "Hint background transparency in dark theme (0-1)",
   "config.langAliasCustomMappings.desc": "Custom language alias mapping (format: { 'language_code': ['alias1', 'alias2'] }), where language codes follow Google Translate's country/region code standard",
+  "config.workspace.title": "Workspace Configuration Only",
   "command.setReferredLang.title": "Set as Reference Language",
   "command.markAsKnownLang.title": "Mark as Known Language",
   "command.refresh.title": "Refresh",

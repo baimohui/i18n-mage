@@ -28,6 +28,7 @@
   "config.translateHintsFontColorInDark.desc": "深色主题下提示文字颜色（十六进制）",
   "config.translateHintsBackgroundColorInDark.desc": "深色主题下提示背景基色（十六进制）",
   "config.translateHintsBackgroundAlphaInDark.desc": "深色主题下提示背景透明度（0-1）",
+  "config.workspace.title": "仅限工作区配置",
   "command.setReferredLang.title": "设为参考语言",
   "command.markAsKnownLang.title": "标记为已知语言",
   "command.refresh.title": "刷新",

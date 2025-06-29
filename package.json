@@ -92,24 +92,6 @@
             "type": "integer",
             "default": 30,
             "description": "%config.langFileMinLength.desc%"
-          },
-          "i18n-mage.projectRoot": {
-            "type": "string",
-            "default": "",
-            "description": "%config.projectRoot.title%",
-            "scope": "resource"
-          },
-          "i18n-mage.langDir": {
-            "type": "string",
-            "default": "",
-            "description": "%config.langDir.desc%",
-            "scope": "resource"
-          },
-          "i18n-mage.manuallyMarkedUsedEntries": {
-            "type": "array",
-            "default": [],
-            "description": "%config.manuallyMarkedUsedEntries.desc%",
-            "scope": "resource"
           }
         }
       },
@@ -215,7 +197,34 @@
             "order": 17,
             "type": "number",
             "default": 0.1,
-            "description": "%config.translateHintsBackgroundColorInDark.desc%"
+            "description": "%config.translateHintsBackgroundAlphaInDark.desc%"
+          }
+        }
+      },
+      {
+        "type": "object",
+        "title": "%config.workspace.title%",
+        "properties": {
+          "i18n-mage.projectRoot": {
+            "order": 3,
+            "type": "string",
+            "default": "",
+            "description": "%config.projectRoot.title%",
+            "scope": "resource"
+          },
+          "i18n-mage.langDir": {
+            "order": 5,
+            "type": "string",
+            "default": "",
+            "description": "%config.langDir.desc%",
+            "scope": "resource"
+          },
+          "i18n-mage.manuallyMarkedUsedEntries": {
+            "order": 7,
+            "type": "array",
+            "default": [],
+            "description": "%config.manuallyMarkedUsedEntries.desc%",
+            "scope": "resource"
           }
         }
       }
