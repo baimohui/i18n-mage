@@ -9,7 +9,6 @@ import translateTo from "@/translator/index";
 import { t } from "@/utils/i18n";
 import { NotificationManager } from "@/utils/notification";
 import { ExecutionContext } from "@/utils/context";
-import { getConfig } from "@/utils/config";
 
 export class FixHandler {
   private lackInfoFromUndefined: LackInfo;
@@ -160,13 +159,12 @@ export class FixHandler {
     if (this.ctx.langFormatType === LANG_FORMAT_TYPE.nonObj) {
       return name;
     } else {
-      const i18nSolution = getConfig<(typeof I18N_SOLUTION)[keyof typeof I18N_SOLUTION]>("i18nSolution");
       let varStr = "";
       if (entry.vars.length > 0) {
         varStr = ", " + entry.vars.join(", ");
       } else if (entry.nameInfo.vars.length > 0) {
         const varList = entry.nameInfo.vars;
-        switch (i18nSolution) {
+        switch (this.ctx.i18nSolution) {
           case I18N_SOLUTION.vueI18n:
             varStr = ", [" + varList.join(", ") + "]";
             break;

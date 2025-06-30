@@ -10,7 +10,7 @@ import { ModifyHandler } from "./handlers/ModifyHandler";
 import { ReadHandler } from "./handlers/ReadHandler";
 import { LangMageOptions } from "@/types";
 import { getDetectedLangList } from "@/core/tools/contextTools";
-import { getLangCode } from "@/utils/langKey";
+import { getLangCode, I18N_SOLUTION } from "@/utils/langKey";
 import { t } from "@/utils/i18n";
 import { NotificationManager } from "@/utils/notification";
 import { getConfig } from "@/utils/config";
@@ -35,6 +35,7 @@ class LangMage {
     if (Object.prototype.toString.call(options) === "[object Object]") {
       const combinedOptions: LangMageOptions = {
         referredLang: getConfig<string>("referenceLanguage", "en"),
+        i18nSolution: getConfig<(typeof I18N_SOLUTION)[keyof typeof I18N_SOLUTION]>("i18nSolution"),
         ignoredFileList: getConfig<string[]>("ignoredFileList", []),
         langFileMinLength: getConfig<number>("langFileMinLength", 0),
         ignoreEmptyLangFile: getConfig<boolean>("ignoreEmptyLangFile", true),
@@ -147,7 +148,8 @@ class LangMage {
       fileStructure: this.ctx.fileStructure,
       syncBasedOnReferredEntries: this.ctx.syncBasedOnReferredEntries,
       manuallyMarkedUsedEntries: this.ctx.manuallyMarkedUsedEntries,
-      modifyList: this.ctx.modifyList
+      modifyList: this.ctx.modifyList,
+      i18nSolution: this.ctx.i18nSolution
     };
   }
 

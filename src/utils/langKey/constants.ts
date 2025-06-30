@@ -174,6 +174,7 @@ export const DEFAULT_LANG_ALIAS_MAP: Partial<Record<LangKey, string[]>> = {
 
 // 国际化框架
 export const I18N_SOLUTION = {
+  none: "none",
   vueI18n: "vue-i18n",
   reactIntl: "react-intl",
   reactI18next: "react-i18next",

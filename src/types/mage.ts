@@ -1,4 +1,5 @@
 import { Credentials } from "@/translator/index";
+import { I18N_SOLUTION } from "@/utils/langKey";
 
 export interface LangMageOptions {
   task?: string;
@@ -27,4 +28,5 @@ export interface LangMageOptions {
   modifyList?: Array<{ key: string; name: string; value: string; lang: string }>;
   trimKeyList?: string[];
   manuallyMarkedUsedEntries?: string[];
+  i18nSolution?: (typeof I18N_SOLUTION)[keyof typeof I18N_SOLUTION];
 }

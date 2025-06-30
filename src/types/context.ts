@@ -11,6 +11,7 @@ import {
   FileExtraInfo
 } from "@/types";
 import { Credentials } from "@/translator/index";
+import { I18N_SOLUTION } from "@/utils/langKey";
 
 // 外部模块可访问的公共上下文
 export interface LangContextPublic {
@@ -37,6 +38,7 @@ export interface LangContextPublic {
   syncBasedOnReferredEntries: boolean;
   manuallyMarkedUsedEntries: string[];
   modifyList: Array<{ key: string; name: string; value: string; lang: string }>;
+  i18nSolution: (typeof I18N_SOLUTION)[keyof typeof I18N_SOLUTION];
 }
 
 // 内部模块才能访问的完整上下文
