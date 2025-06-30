@@ -2,6 +2,7 @@ import * as vscode from "vscode";
 import LangMage from "@/core/LangMage";
 import { getValueByAmbiguousEntryName, catchTEntries, getLineEnding } from "@/utils/regex";
 import { getConfig } from "@/utils/config";
+import { isSamePath } from "@/utils/fs";
 
 export class DecoratorController implements vscode.Disposable {
   private static instance: DecoratorController;
@@ -38,10 +39,12 @@ export class DecoratorController implements vscode.Disposable {
 
   public update(editor: vscode.TextEditor | undefined): void {
     if (!editor || !getConfig<boolean>("translationHints.enabled", true)) return;
-    this.currentEditor = editor;
-    this.currentDecorations.clear();
     const mage = LangMage.getInstance();
     const publicCtx = mage.getPublicContext();
+    const ignoredFileList = getConfig<string[]>("ignoredFileList", []);
+    if (ignoredFileList.some(ifp => isSamePath(editor.document.uri.fsPath, ifp, publicCtx.rootPath))) return;
+    this.currentEditor = editor;
+    this.currentDecorations.clear();
     const { tree, countryMap } = mage.langDetail;
     const translations = countryMap[publicCtx.referredLang];
     // 获取可视区域范围

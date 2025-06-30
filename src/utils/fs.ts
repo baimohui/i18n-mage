@@ -84,6 +84,21 @@ export function isPathInsideDirectory(dir: string, targetPath: string): boolean 
   return isInside;
 }
 
+export function isSamePath(absolutePath: string, relativePath: string, rootDir: string): boolean {
+  if (!path.isAbsolute(absolutePath)) {
+    throw new Error("absolutePath must be an absolute path");
+  }
+  if (!path.isAbsolute(rootDir)) {
+    throw new Error("rootDir must be an absolute path");
+  }
+  const resolvedPath = path.normalize(path.resolve(rootDir, relativePath));
+  const normalizedAbsolute = path.normalize(absolutePath);
+  if (process.platform === "win32") {
+    return resolvedPath.toLowerCase() === normalizedAbsolute.toLowerCase();
+  }
+  return resolvedPath === normalizedAbsolute;
+}
+
 export async function isLikelyProjectRoot(dirPath: string): Promise<boolean> {
   try {
     const stat = await fs.stat(dirPath);

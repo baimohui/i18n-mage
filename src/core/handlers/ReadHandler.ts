@@ -13,6 +13,7 @@ import {
 } from "@/utils/regex";
 import { EntryTree, LangDictionary, LangTree } from "@/types";
 import { LANG_ENTRY_SPLIT_SYMBOL } from "@/utils/langKey";
+import { isSamePath } from "@/utils/fs";
 
 export class ReadHandler {
   constructor(private ctx: LangContextInternal) {}
@@ -45,7 +46,7 @@ export class ReadHandler {
     this.ctx.undefinedEntryList = [];
     this.ctx.undefinedEntryMap = {};
     for (const filePath of filePaths) {
-      if (this.ctx.ignoredFileList.some(ifp => path.resolve(filePath) === path.resolve(path.join(this.ctx.rootPath, ifp)))) continue;
+      if (this.ctx.ignoredFileList.some(ifp => isSamePath(filePath, ifp, this.ctx.rootPath))) continue;
       const fileContent = fs.readFileSync(filePath, "utf8");
       const { tItems, existedItems } = catchAllEntries(fileContent, this.ctx.langFormatType, this.ctx.entryClassTree);
       const usedEntryList = existedItems.slice();

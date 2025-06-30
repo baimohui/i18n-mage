@@ -1,6 +1,8 @@
 import * as vscode from "vscode";
 import { t } from "@/utils/i18n";
 import LangMage from "@/core/LangMage";
+import { getConfig } from "@/utils/config";
+import { isSamePath } from "@/utils/fs";
 import { getValueByAmbiguousEntryName, catchTEntries } from "@/utils/regex";
 
 export class Diagnostics {
@@ -22,12 +24,15 @@ export class Diagnostics {
     // if (document.languageId !== "javascript" && document.languageId !== "typescript") {
     //   return;
     // }
+    if (!getConfig<boolean>("translationHints.enabled", true)) return;
+    const mage = LangMage.getInstance();
+    const publicCtx = mage.getPublicContext();
+    const ignoredFileList = getConfig<string[]>("ignoredFileList", []);
+    if (ignoredFileList.some(ifp => isSamePath(document.uri.fsPath, ifp, publicCtx.rootPath))) return;
 
     const text = document.getText();
     const entries = catchTEntries(text); // 你已有的解析函数
     const diagnostics: vscode.Diagnostic[] = [];
-    const mage = LangMage.getInstance();
-    const publicCtx = mage.getPublicContext();
     const { tree, countryMap } = mage.langDetail;
     const translations = countryMap[publicCtx.referredLang];
 
