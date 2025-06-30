@@ -6,7 +6,7 @@ import { getLangText } from "@/utils/langKey";
 import { LangContextPublic, TEntry, LangTree } from "@/types";
 import { t } from "@/utils/i18n";
 import { NotificationManager } from "@/utils/notification";
-import { getConfig } from "@/utils/config";
+import { getConfig, setConfig } from "@/utils/config";
 
 interface ExtendedTreeItem extends vscode.TreeItem {
   level?: number;
@@ -166,8 +166,13 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
     this.isInitialized = true;
     vscode.commands.executeCommand("setContext", "initialized", true);
     this.publicCtx = this.#mage.getPublicContext();
-    const inspect = vscode.workspace.getConfiguration().inspect("i18n-mage.manuallyMarkedUsedEntries");
-    console.log(inspect);
+    if (getConfig("langDir", "") !== this.publicCtx.langDir) {
+      setTimeout(() => {
+        setConfig("langDir", this.publicCtx.langDir).catch(error => {
+          console.error("Failed to set config for langDir:", error);
+        });
+      }, 3000);
+    }
 
     return success;
   }
