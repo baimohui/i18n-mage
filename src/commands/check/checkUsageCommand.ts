@@ -11,8 +11,10 @@ export function registerCheckUsageCommand() {
   const throttledHandler = throttle(async () => {
     await wrapWithProgress({ title: t("command.check.progress") }, async () => {
       mage.setOptions({ task: "check", globalFlag: true, clearCache: true });
-      const res = await mage.execute();
-      if (!res) {
+      const success = await mage.execute();
+      if (success) {
+        treeInstance.refresh();
+      } else {
         await treeInstance.initTree();
       }
     });
