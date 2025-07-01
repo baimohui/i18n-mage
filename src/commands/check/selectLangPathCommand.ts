@@ -7,25 +7,25 @@ import { DecoratorController } from "@/features/Decorator";
 import { t } from "@/utils/i18n";
 import { NotificationManager } from "@/utils/notification";
 
-export function registerSelectLangDirCommand() {
+export function registerSelectLangPathCommand() {
   const mage = LangMage.getInstance();
-  const disposable = vscode.commands.registerCommand("i18nMage.selectLangDir", async () => {
+  const disposable = vscode.commands.registerCommand("i18nMage.selectLangPath", async () => {
     const selectedUri = await vscode.window.showOpenDialog({
       canSelectFolders: true,
-      openLabel: t("command.selectLangDir.title"),
+      openLabel: t("command.selectLangPath.title"),
       canSelectMany: false
     });
     if (selectedUri && selectedUri.length > 0) {
       await wrapWithProgress({ title: t("command.check.progress") }, async () => {
-        const langDir = selectedUri[0].fsPath;
-        mage.setOptions({ langDir, task: "check", globalFlag: true, clearCache: true });
+        const langPath = selectedUri[0].fsPath;
+        mage.setOptions({ langPath, task: "check", globalFlag: true, clearCache: true });
         await mage.execute();
         if (mage.detectedLangList.length === 0) {
-          NotificationManager.showWarning(t("command.selectLangDir.error"));
-          vscode.commands.executeCommand("setContext", "hasValidLangDir", false);
+          NotificationManager.showWarning(t("command.selectLangPath.error"));
+          vscode.commands.executeCommand("setContext", "hasValidLangPath", false);
         } else {
-          vscode.window.showInformationMessage(t("command.selectLangDir.success", langDir));
-          vscode.commands.executeCommand("setContext", "hasValidLangDir", true);
+          vscode.window.showInformationMessage(t("command.selectLangPath.success", langPath));
+          vscode.commands.executeCommand("setContext", "hasValidLangPath", true);
           treeInstance.refresh();
           const decorator = DecoratorController.getInstance();
           decorator.update(vscode.window.activeTextEditor);

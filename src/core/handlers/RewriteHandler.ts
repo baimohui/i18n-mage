@@ -71,12 +71,12 @@ export class RewriteHandler {
   private getLangFilePath(lang: string, filePos: string): string {
     if (filePos === "") {
       // 根文件：zh-CN.json
-      return path.join(this.ctx.langDir, `${lang}.${this.ctx.langFileType}`);
+      return path.join(this.ctx.langPath, `${lang}.${this.ctx.langFileType}`);
     } else {
       const pathSegs = getPathSegsFromId(filePos);
       // 先拼出不带扩展名的完整路径，再在末尾加上 .json
-      // 类似： /…/langDir/zh-CN/demos/textA + ".json"
-      const withoutExt = path.join(this.ctx.langDir, lang, ...pathSegs);
+      // 类似： /…/langPath/zh-CN/demos/textA + ".json"
+      const withoutExt = path.join(this.ctx.langPath, lang, ...pathSegs);
       return withoutExt + `.${this.ctx.langFileType}`;
     }
   }

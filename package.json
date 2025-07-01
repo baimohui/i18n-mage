@@ -40,10 +40,10 @@
           "i18n-mage.i18nSolution": {
             "order": 1,
             "type": "string",
-            "default": "auto",
+            "default": "none",
             "description": "%config.i18nSolution.desc%",
             "enum": [
-              "auto",
+              "none",
               "vue-i18n",
               "react-intl",
               "react-i18next",
@@ -205,18 +205,18 @@
         "type": "object",
         "title": "%config.workspace.title%",
         "properties": {
-          "i18n-mage.projectRoot": {
+          "i18n-mage.projectPath": {
             "order": 3,
             "type": "string",
             "default": "",
-            "description": "%config.projectRoot.title%",
+            "description": "%config.projectPath.title%",
             "scope": "resource"
           },
-          "i18n-mage.langDir": {
+          "i18n-mage.langPath": {
             "order": 5,
             "type": "string",
             "default": "",
-            "description": "%config.langDir.desc%",
+            "description": "%config.langPath.desc%",
             "scope": "resource"
           },
           "i18n-mage.manuallyMarkedUsedEntries": {
@@ -347,34 +347,34 @@
         }
       },
       {
-        "command": "i18nMage.setProjectRoot",
-        "title": "%command.setProjectRoot.title%"
+        "command": "i18nMage.setProjectPath",
+        "title": "%command.setProjectPath.title%"
       },
       {
-        "command": "i18nMage.setLangDir",
-        "title": "%command.setLangDir.title%"
+        "command": "i18nMage.setLangPath",
+        "title": "%command.setLangPath.title%"
       }
     ],
     "menus": {
       "view/title": [
         {
           "command": "i18nMage.checkUsage",
-          "when": "view == treeProvider && hasValidLangDir",
+          "when": "view == treeProvider && hasValidLangPath",
           "group": "navigation@1"
         },
         {
           "command": "i18nMage.export",
-          "when": "view == treeProvider && hasValidLangDir",
+          "when": "view == treeProvider && hasValidLangPath",
           "group": "navigation@2"
         },
         {
           "command": "i18nMage.import",
-          "when": "view == treeProvider && hasValidLangDir",
+          "when": "view == treeProvider && hasValidLangPath",
           "group": "navigation@3"
         },
         {
           "command": "i18nMage.fix",
-          "when": "view == treeProvider && hasValidLangDir",
+          "when": "view == treeProvider && hasValidLangPath",
           "group": "navigation@4"
         }
       ],
@@ -446,12 +446,12 @@
       ],
       "i18nMage.menu": [
         {
-          "command": "i18nMage.setProjectRoot",
+          "command": "i18nMage.setProjectPath",
           "when": "explorerResourceIsFolder",
           "group": "navigation"
         },
         {
-          "command": "i18nMage.setLangDir",
+          "command": "i18nMage.setLangPath",
           "when": "explorerResourceIsFolder",
           "group": "navigation"
         }
@@ -486,7 +486,7 @@
       {
         "view": "treeProvider",
         "contents": "%view.welcome.title%",
-        "when": "initialized  && !hasValidLangDir"
+        "when": "initialized  && !hasValidLangPath"
       }
     ]
   },

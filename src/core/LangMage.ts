@@ -127,9 +127,9 @@ class LangMage {
   public getPublicContext(): LangContextPublic {
     return {
       task: this.ctx.task,
-      langDir: this.ctx.langDir,
+      langPath: this.ctx.langPath,
       langFileType: this.ctx.langFileType,
-      rootPath: this.ctx.rootPath,
+      projectPath: this.ctx.projectPath,
       referredLang: this.ctx.referredLang,
       checkUnityFlag: this.ctx.checkUnityFlag,
       checkRepeatFlag: this.ctx.checkRepeatFlag,

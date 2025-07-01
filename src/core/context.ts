@@ -2,9 +2,9 @@ import { LangContextInternal } from "@/types/context";
 
 export const createLangContext = (): LangContextInternal => ({
   task: "",
-  langDir: "",
+  langPath: "",
   langFileType: "",
-  rootPath: "",
+  projectPath: "",
   checkUnityFlag: true,
   checkRepeatFlag: false,
   checkStyleFlag: false,

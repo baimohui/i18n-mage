@@ -1,7 +1,7 @@
 import * as vscode from "vscode";
 import LangMage from "@/core/LangMage";
 import { catchTEntries, unescapeString, getValueByAmbiguousEntryName } from "@/utils/regex";
-import { getPossibleLangDirs, isLikelyProjectRoot } from "@/utils/fs";
+import { getPossibleLangPaths, isLikelyProjectPath, toAbsolutePath, toRelativePath } from "@/utils/fs";
 import { getLangText } from "@/utils/langKey";
 import { LangContextPublic, TEntry, LangTree } from "@/types";
 import { t } from "@/utils/i18n";
@@ -96,7 +96,7 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
   }
 
   getChildren(element?: ExtendedTreeItem): vscode.ProviderResult<vscode.TreeItem[]> {
-    if (!this.publicCtx.langDir) {
+    if (!this.publicCtx.langPath) {
       return [];
     }
     if (!element) {
@@ -117,32 +117,31 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
   }
 
   async initTree(): Promise<boolean> {
-    let rootPath = getConfig<string>("projectRoot", "");
+    const projectPath = toAbsolutePath(getConfig<string>("projectPath", ""));
     this.refresh();
-    const workspaceFolders = vscode.workspace.workspaceFolders;
-    if (workspaceFolders !== undefined && workspaceFolders.length > 0) {
-      rootPath = workspaceFolders[0].uri.fsPath;
-    }
-    if (!(await isLikelyProjectRoot(rootPath))) {
-      NotificationManager.showError(t("command.setProjectRoot.invalidFolder"));
-      return false;
-    }
-    this.#mage.setOptions({ rootPath });
+    // const workspaceFolders = vscode.workspace.workspaceFolders;
+    // if (workspaceFolders !== undefined && workspaceFolders.length > 0) {
+    //   projectPath = workspaceFolders[0].uri.fsPath;
+    // }
     let success = false;
 
-    if (rootPath === null || rootPath === undefined || rootPath.trim() === "") {
+    if (projectPath.trim() === "") {
       NotificationManager.showWarning(t("common.noWorkspaceWarn"));
-      success = false;
+      return false;
+    } else if (!(await isLikelyProjectPath(projectPath))) {
+      NotificationManager.showError(t("command.setProjectPath.invalidFolder"));
+      return false;
     } else {
-      const configLangDir = getConfig<string>("langDir", "");
-      if (configLangDir) {
-        this.#mage.setOptions({ langDir: configLangDir, task: "check", globalFlag: true, clearCache: false });
+      this.#mage.setOptions({ projectPath });
+      const configLangPath = getConfig<string>("langPath", "");
+      if (configLangPath) {
+        this.#mage.setOptions({ langPath: toAbsolutePath(configLangPath), task: "check", globalFlag: true, clearCache: true });
         await this.#mage.execute();
       }
       if (this.#mage.detectedLangList.length === 0) {
-        const possibleLangDirs = await getPossibleLangDirs(rootPath);
-        for (const langDir of possibleLangDirs) {
-          this.#mage.setOptions({ langDir, task: "check", globalFlag: true, clearCache: false });
+        const possibleLangPaths = await getPossibleLangPaths(projectPath);
+        for (const langPath of possibleLangPaths) {
+          this.#mage.setOptions({ langPath, task: "check", globalFlag: true, clearCache: false });
           await this.#mage.execute();
           if (this.#mage.detectedLangList.length > 0) {
             break;
@@ -150,26 +149,27 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
         }
       }
       if (this.#mage.detectedLangList.length === 0) {
-        NotificationManager.showWarning(t("common.noLangDirDetectedWarn"), t("command.selectLangDir.title")).then(selection => {
-          if (selection === t("command.selectLangDir.title")) {
-            vscode.commands.executeCommand("i18nMage.selectLangDir");
+        NotificationManager.showWarning(t("common.noLangPathDetectedWarn"), t("command.selectLangPath.title")).then(selection => {
+          if (selection === t("command.selectLangPath.title")) {
+            vscode.commands.executeCommand("i18nMage.selectLangPath");
           }
         });
-        vscode.commands.executeCommand("setContext", "hasValidLangDir", false);
+        vscode.commands.executeCommand("setContext", "hasValidLangPath", false);
         success = false;
       } else {
         this.checkUsedInfo();
-        vscode.commands.executeCommand("setContext", "hasValidLangDir", true);
+        vscode.commands.executeCommand("setContext", "hasValidLangPath", true);
         success = true;
       }
     }
     this.isInitialized = true;
     vscode.commands.executeCommand("setContext", "initialized", true);
     this.publicCtx = this.#mage.getPublicContext();
-    if (getConfig("langDir", "") !== this.publicCtx.langDir) {
+    const langPath = toRelativePath(this.publicCtx.langPath);
+    if (getConfig("langPath", "") !== langPath) {
       setTimeout(() => {
-        setConfig("langDir", this.publicCtx.langDir).catch(error => {
-          console.error("Failed to set config for langDir:", error);
+        setConfig("langPath", langPath).catch(error => {
+          console.error("Failed to set config for langPath:", error);
         });
       }, 3000);
     }

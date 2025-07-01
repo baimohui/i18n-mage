@@ -1,10 +1,11 @@
 import * as fs from "fs/promises";
 import path from "path";
+import * as vscode from "vscode";
 import { t } from "@/utils/i18n";
 import { NotificationManager } from "@/utils/notification";
 import { isIgnoredDir } from "@/utils/regex";
 
-const langDirRegex = /\b(lang|language|i18n|l10n|locale|translation|translate|message|intl|fanyi)s?\b/i;
+const langPathRegex = /\b(lang|language|i18n|l10n|locale|translation|translate|message|intl|fanyi)s?\b/i;
 const localeCodeRegex = /(^|^\w.*\b)[a-z]{2,3}([-_][a-z]{2,4})?$/i;
 const localeFileRegex = /(^|^\w.*\b)([a-z]{2,3}(?:[-_][a-z]{2,4})?)\.(js|ts|json|json5|mjs|cjs)$/i;
 
@@ -37,7 +38,7 @@ export async function createFolderRecursive(dirPath: string): Promise<void> {
   }
 }
 
-export async function getPossibleLangDirs(rootDir: string): Promise<string[]> {
+export async function getPossibleLangPaths(rootDir: string): Promise<string[]> {
   const results = new Set<string>();
 
   async function traverse(dir: string) {
@@ -51,7 +52,7 @@ export async function getPossibleLangDirs(rootDir: string): Promise<string[]> {
       const validFileLen = files.filter(f => localeFileRegex.test(f.name)).length;
 
       if (
-        langDirRegex.test(basename) &&
+        langPathRegex.test(basename) &&
         ((validSubdirLen >= MIN_ENTRIES && validSubdirLen >= subdirs.length - validSubdirLen) ||
           (validFileLen >= MIN_ENTRIES && validFileLen >= files.length - validFileLen))
       ) {
@@ -84,22 +85,7 @@ export function isPathInsideDirectory(dir: string, targetPath: string): boolean 
   return isInside;
 }
 
-export function isSamePath(absolutePath: string, relativePath: string, rootDir: string): boolean {
-  if (!path.isAbsolute(absolutePath)) {
-    throw new Error("absolutePath must be an absolute path");
-  }
-  if (!path.isAbsolute(rootDir)) {
-    throw new Error("rootDir must be an absolute path");
-  }
-  const resolvedPath = path.normalize(path.resolve(rootDir, relativePath));
-  const normalizedAbsolute = path.normalize(absolutePath);
-  if (process.platform === "win32") {
-    return resolvedPath.toLowerCase() === normalizedAbsolute.toLowerCase();
-  }
-  return resolvedPath === normalizedAbsolute;
-}
-
-export async function isLikelyProjectRoot(dirPath: string): Promise<boolean> {
+export async function isLikelyProjectPath(dirPath: string): Promise<boolean> {
   try {
     const stat = await fs.stat(dirPath);
     if (!stat.isDirectory()) return false;
@@ -112,4 +98,44 @@ export async function isLikelyProjectRoot(dirPath: string): Promise<boolean> {
   } catch {
     return false;
   }
+}
+
+/**
+ * 将相对路径（相对于工作区根目录）解析为绝对路径。
+ * @param relativePath 相对路径
+ */
+export function toAbsolutePath(relativePath: string): string {
+  if (path.isAbsolute(relativePath)) {
+    return relativePath;
+  }
+  const root = vscode.workspace.workspaceFolders?.[0].uri.fsPath;
+  if (root === undefined) return "";
+  return path.resolve(root, relativePath);
+}
+
+/**
+ * 将绝对路径转换为相对于当前 workspace 的相对路径。
+ * @param absolutePath 要转换的绝对路径
+ */
+export function toRelativePath(absolutePath: string): string {
+  const root = vscode.workspace.workspaceFolders?.[0].uri.fsPath;
+  if (root === undefined) return "";
+  return path.relative(root, absolutePath).split(path.sep).join("/");
+}
+
+export function isSamePath(absolutePath: string, relativePath: string): boolean {
+  if (!path.isAbsolute(absolutePath)) {
+    throw new Error("absolutePath must be an absolute path");
+  }
+  const root = vscode.workspace.workspaceFolders?.[0].uri.fsPath;
+  if (root === undefined) return false;
+  if (!path.isAbsolute(root)) {
+    throw new Error("rootDir must be an absolute path");
+  }
+  const resolvedPath = path.normalize(path.resolve(root, relativePath));
+  const normalizedAbsolute = path.normalize(absolutePath);
+  if (process.platform === "win32") {
+    return resolvedPath.toLowerCase() === normalizedAbsolute.toLowerCase();
+  }
+  return resolvedPath === normalizedAbsolute;
 }

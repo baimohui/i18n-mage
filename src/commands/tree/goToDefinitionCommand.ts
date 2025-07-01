@@ -14,7 +14,7 @@ export function registerGoToDefinitionCommand() {
       filePathSegs = getFileLocationFromId(key, publicCtx.fileStructure.children[lang]) ?? [];
     }
     const realKey = filePathSegs.length > 0 ? key.replace(`${filePathSegs.join(".")}.`, "") : key;
-    const resourceUri = vscode.Uri.file(path.join(publicCtx.langDir, lang, ...filePathSegs) + `.${publicCtx.langFileType}`);
+    const resourceUri = vscode.Uri.file(path.join(publicCtx.langPath, lang, ...filePathSegs) + `.${publicCtx.langFileType}`);
     await selectProperty(resourceUri, realKey);
   });
 

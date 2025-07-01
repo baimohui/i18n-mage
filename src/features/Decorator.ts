@@ -42,7 +42,7 @@ export class DecoratorController implements vscode.Disposable {
     const mage = LangMage.getInstance();
     const publicCtx = mage.getPublicContext();
     const ignoredFileList = getConfig<string[]>("ignoredFileList", []);
-    if (ignoredFileList.some(ifp => isSamePath(editor.document.uri.fsPath, ifp, publicCtx.rootPath))) return;
+    if (ignoredFileList.some(ifp => isSamePath(editor.document.uri.fsPath, ifp))) return;
     this.currentEditor = editor;
     this.currentDecorations.clear();
     const { tree, countryMap } = mage.langDetail;

@@ -3,8 +3,8 @@ import { I18N_SOLUTION } from "@/utils/langKey";
 
 export interface LangMageOptions {
   task?: string;
-  langDir?: string;
-  rootPath?: string;
+  langPath?: string;
+  projectPath?: string;
   checkUnityFlag?: boolean;
   checkRepeatFlag?: boolean;
   checkStyleFlag?: boolean;

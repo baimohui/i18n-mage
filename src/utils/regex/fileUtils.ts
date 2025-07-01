@@ -99,7 +99,7 @@ export interface ExtractResult {
   fileStructure: EntryNode; // 带 type 标记的文件树
 }
 
-export function extractLangDataFromDir(langDir: string): ExtractResult | null {
+export function extractLangDataFromDir(langPath: string): ExtractResult | null {
   let validFileType = "";
   let validFormatType = "";
   const fileExtraInfo: Record<string, FileExtraInfo> = {};
@@ -154,7 +154,7 @@ export function extractLangDataFromDir(langDir: string): ExtractResult | null {
     return { tree, node, hasData };
   }
 
-  const { tree: langTree, node: fileStructure, hasData } = traverse(langDir, []);
+  const { tree: langTree, node: fileStructure, hasData } = traverse(langPath, []);
   if (!hasData) return null;
 
   return {

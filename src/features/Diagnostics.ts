@@ -28,7 +28,7 @@ export class Diagnostics {
     const mage = LangMage.getInstance();
     const publicCtx = mage.getPublicContext();
     const ignoredFileList = getConfig<string[]>("ignoredFileList", []);
-    if (ignoredFileList.some(ifp => isSamePath(document.uri.fsPath, ifp, publicCtx.rootPath))) return;
+    if (ignoredFileList.some(ifp => isSamePath(document.uri.fsPath, ifp))) return;
 
     const text = document.getText();
     const entries = catchTEntries(text); // 你已有的解析函数

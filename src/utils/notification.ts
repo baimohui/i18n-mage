@@ -1,6 +1,7 @@
 import * as vscode from "vscode";
 import { ExecutionContext } from "./context";
 
+const PREFIX = "[i18nMage] ";
 /**
  * VS Code 信息通知管理器
  */
@@ -9,7 +10,7 @@ export class NotificationManager {
 
   // 初始化输出通道
   static init() {
-    this.outputChannel = vscode.window.createOutputChannel("LangMage");
+    this.outputChannel = vscode.window.createOutputChannel("i18nMage");
   }
 
   // 显示主标题
@@ -18,7 +19,7 @@ export class NotificationManager {
     this.outputChannel.appendLine(`\n${divider}`);
     this.outputChannel.appendLine(`  ${title}  `);
     this.outputChannel.appendLine(`${divider}\n`);
-    vscode.window.setStatusBarMessage(`LangMage: ${title}`, 3000);
+    vscode.window.setStatusBarMessage(`i18nMage: ${title}`, 3000);
   }
 
   // 进度信息
@@ -35,20 +36,20 @@ export class NotificationManager {
   static showSuccess(message: string, ...items: string[]): Thenable<string | undefined> {
     vscode.window.setStatusBarMessage(`${message}`, 3000);
     this.logToOutput(`✅ ${message}`);
-    return vscode.window.showInformationMessage(`${message}`, ...items);
+    return vscode.window.showInformationMessage(`${PREFIX}${message}`, ...items);
   }
 
   // 错误信息
   static showError(message: string, ...items: string[]): Thenable<string | undefined> {
     this.outputChannel.show();
     this.logToOutput(`❌ ${message}`, "error");
-    return vscode.window.showErrorMessage(`${message}`, ...items);
+    return vscode.window.showErrorMessage(`${PREFIX}${message}`, ...items);
   }
 
   // 警告信息
   static showWarning(message: string, ...items: string[]): Thenable<string | undefined> {
     this.logToOutput(`⚠️ ${message}`, "warn");
-    return vscode.window.showWarningMessage(`${message}`, ...items);
+    return vscode.window.showWarningMessage(`${PREFIX}${message}`, ...items);
   }
 
   // 记录到输出通道

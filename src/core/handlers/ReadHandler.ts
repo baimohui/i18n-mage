@@ -19,9 +19,9 @@ export class ReadHandler {
   constructor(private ctx: LangContextInternal) {}
 
   public readLangFiles(): void {
-    const langData = extractLangDataFromDir(this.ctx.langDir);
+    const langData = extractLangDataFromDir(this.ctx.langPath);
     if (langData === null) {
-      this.ctx.langDir = "";
+      this.ctx.langPath = "";
       return;
     }
     const langTree = langData.langTree;
@@ -39,14 +39,14 @@ export class ReadHandler {
   }
 
   public startCensus(): void {
-    const filePaths = this._readAllFiles(this.ctx.rootPath);
+    const filePaths = this._readAllFiles(this.ctx.projectPath);
     const pathLevelCountMap: Record<number, number> = {};
     let maxNum = 0;
     const totalEntryList = Object.keys(this.ctx.langDictionary).map(key => unescapeString(key));
     this.ctx.undefinedEntryList = [];
     this.ctx.undefinedEntryMap = {};
     for (const filePath of filePaths) {
-      if (this.ctx.ignoredFileList.some(ifp => isSamePath(filePath, ifp, this.ctx.rootPath))) continue;
+      if (this.ctx.ignoredFileList.some(ifp => isSamePath(filePath, ifp))) continue;
       const fileContent = fs.readFileSync(filePath, "utf8");
       const { tItems, existedItems } = catchAllEntries(fileContent, this.ctx.langFormatType, this.ctx.entryClassTree);
       const usedEntryList = existedItems.slice();
@@ -105,8 +105,8 @@ export class ReadHandler {
     for (let i = 0; i < results.length; i++) {
       const targetName = results[i].name;
       const tempPath = path.join(dir, targetName);
-      const isLangDir = path.resolve(tempPath) === path.resolve(this.ctx.langDir);
-      if (results[i].isDirectory() && !isIgnoredDir(targetName) && !isLangDir) {
+      const isLangPath = path.resolve(tempPath) === path.resolve(this.ctx.langPath);
+      if (results[i].isDirectory() && !isIgnoredDir(targetName) && !isLangPath) {
         const tempPathList = this._readAllFiles(tempPath);
         pathList.push(...tempPathList);
       }

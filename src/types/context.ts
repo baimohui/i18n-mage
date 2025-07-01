@@ -16,9 +16,9 @@ import { I18N_SOLUTION } from "@/utils/langKey";
 // 外部模块可访问的公共上下文
 export interface LangContextPublic {
   task: string;
-  langDir: string;
+  langPath: string;
   langFileType: string;
-  rootPath: string;
+  projectPath: string;
   referredLang: string;
   checkUnityFlag: boolean;
   checkRepeatFlag: boolean;
