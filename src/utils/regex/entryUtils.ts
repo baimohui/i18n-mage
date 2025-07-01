@@ -88,9 +88,11 @@ export function parseTEntry(fileContent: string, startPos: number, offset: numbe
   const entryVarList: string[] = [];
   const initSymbolStr = symbolStr;
   let isEntryNameParsed = false;
+  let isApart = false;
   while (symbolStr !== ")") {
     if (/[\s+,]/.test(symbolStr)) {
       if (symbolStr === ",") {
+        isApart = true;
         isEntryNameParsed = true;
       }
       curPos++;
@@ -105,7 +107,13 @@ export function parseTEntry(fileContent: string, startPos: number, offset: numbe
     const { type, value } = matchResult;
     const tPart = { type, value: /["'`]/.test(value) ? value.slice(1, -1) : value };
     if (isEntryNameParsed) {
-      entryVarList.push(value);
+      if (isApart) {
+        entryVarList.push(value);
+        isApart = false;
+      } else {
+        const item = entryVarList.pop();
+        entryVarList.push(item + value);
+      }
     } else {
       entryNameForm.push(tPart);
     }
@@ -258,7 +266,7 @@ export function matchTEntryPart(fileContent: string, startPos: number, symbolStr
   if (/["'`]/.test(symbolStr)) {
     type = symbolStr === "`" ? "varText" : "text";
     match = fileContent.slice(startPos).match(new RegExp(`(${symbolStr}[^]*?(?<!\\\\)${symbolStr})`));
-  } else if (/[\w(]/.test(symbolStr)) {
+  } else if (/[\w(.]/.test(symbolStr)) {
     type = "var";
     if (symbolStr === "(") {
       match = matchBrackets(fileContent, startPos, "(", ")");

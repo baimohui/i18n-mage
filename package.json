@@ -441,19 +441,19 @@
         {
           "submenu": "i18nMage.menu",
           "when": "enabled",
-          "group": "z_i18n@1"
+          "group": "3_i18n@1"
         }
       ],
       "i18nMage.menu": [
         {
-          "command": "i18nMage.setProjectPath",
-          "when": "explorerResourceIsFolder",
-          "group": "navigation"
-        },
-        {
           "command": "i18nMage.setLangPath",
           "when": "explorerResourceIsFolder",
-          "group": "navigation"
+          "group": "navigation@4"
+        },
+        {
+          "command": "i18nMage.setProjectPath",
+          "when": "explorerResourceIsFolder",
+          "group": "navigation@6"
         }
       ]
     },
