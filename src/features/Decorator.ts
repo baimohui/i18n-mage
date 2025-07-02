@@ -3,6 +3,7 @@ import LangMage from "@/core/LangMage";
 import { getValueByAmbiguousEntryName, catchTEntries, getLineEnding } from "@/utils/regex";
 import { getConfig } from "@/utils/config";
 import { isSamePath } from "@/utils/fs";
+import { TEntry } from "@/types";
 
 export class DecoratorController implements vscode.Disposable {
   private static instance: DecoratorController;
@@ -20,6 +21,8 @@ export class DecoratorController implements vscode.Disposable {
   >();
   private lastCursorLine: number = -1;
   private currentEditor?: vscode.TextEditor;
+  public entries: TEntry[] = [];
+  public offsetBase: number = 0;
 
   constructor() {
     // 初始化翻译文本装饰器
@@ -60,10 +63,11 @@ export class DecoratorController implements vscode.Disposable {
     }
     const lineEnding = getLineEnding();
     const visibleText = visibleLines.join(lineEnding);
-    const offsetBase = editor.document.offsetAt(new vscode.Position(visibleStart, 0));
+    this.offsetBase = editor.document.offsetAt(new vscode.Position(visibleStart, 0));
     const entries = catchTEntries(visibleText);
+    this.entries = entries;
     entries.forEach(entry => {
-      const globalStartOffset = offsetBase + entry.pos;
+      const globalStartOffset = this.offsetBase + entry.pos;
       const entryKey = getValueByAmbiguousEntryName(tree, entry.nameInfo.text);
       const entryValue = translations[entryKey as string];
       if (entryValue === undefined) return;
@@ -71,7 +75,8 @@ export class DecoratorController implements vscode.Disposable {
       const endPos = editor.document.positionAt(globalStartOffset + entry.nameInfo.text.length);
       const range = new vscode.Range(startPos, endPos);
       const uniqueId = `${globalStartOffset}:${entry.nameInfo.id}`;
-      const formattedEntryValue = this.formatEntryValue(entryValue);
+      const maxLen = getConfig<number>("translationHints.maxLength");
+      const formattedEntryValue = this.formatEntryValue(entryValue, maxLen);
       const translationDec: vscode.DecorationOptions = { range, renderOptions: { before: { contentText: formattedEntryValue } } };
       const hiddenKeyDec: vscode.DecorationOptions = { range };
       this.currentDecorations.set(uniqueId, { translationDec, hiddenKeyDec });

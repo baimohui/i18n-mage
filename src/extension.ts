@@ -9,6 +9,8 @@ import { bindDisposablesToContext } from "@/utils/dispose";
 import { NotificationManager } from "@/utils/notification";
 import { t } from "@/utils/i18n";
 import { getConfig, setConfig } from "@/utils/config";
+import { HoverProvider } from "./features/HoverProvider";
+import { registerDisposable } from "@/utils/dispose";
 
 // 全局状态管理
 class ExtensionState {
@@ -54,6 +56,8 @@ class ExtensionState {
     vscode.window.registerTreeDataProvider("treeProvider", treeInstance);
     registerAllCommands();
     registerAllListeners();
+    // TODO 更换文件类型判断
+    registerDisposable(vscode.languages.registerHoverProvider("*", new HoverProvider()));
     this._extensionSubscriptions = bindDisposablesToContext(this._context);
     await wrapWithProgress({ title: t("common.init.progress") }, async () => {
       await treeInstance.initTree();

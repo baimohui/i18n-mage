@@ -31,7 +31,7 @@ export class Diagnostics {
     if (ignoredFileList.some(ifp => isSamePath(document.uri.fsPath, ifp))) return;
 
     const text = document.getText();
-    const entries = catchTEntries(text); // 你已有的解析函数
+    const entries = catchTEntries(text);
     const diagnostics: vscode.Diagnostic[] = [];
     const { tree, countryMap } = mage.langDetail;
     const translations = countryMap[publicCtx.referredLang];
