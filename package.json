@@ -31,11 +31,11 @@
         "type": "object",
         "title": "%config.common.title%",
         "properties": {
-          "i18n-mage.enabled": {
+          "i18n-mage.enable": {
             "order": 0,
             "type": "boolean",
             "default": true,
-            "description": "%config.enabled.desc%"
+            "description": "%config.enable.desc%"
           },
           "i18n-mage.i18nSolution": {
             "order": 1,
@@ -151,11 +151,17 @@
         "type": "object",
         "title": "%config.translationHints.title%",
         "properties": {
-          "i18n-mage.translationHints.enabled": {
+          "i18n-mage.translationHints.enable": {
             "order": 0,
             "type": "boolean",
             "default": true,
             "description": "%config.translateHintsEnabled.desc%"
+          },
+          "i18n-mage.translationHints.enableLooseKeyMatch": {
+            "order": 3,
+            "type": "boolean",
+            "default": true,
+            "description": "%config.translateHintsEnableLooseKeyMatch.desc%"
           },
           "i18n-mage.translationHints.maxLength": {
             "order": 5,

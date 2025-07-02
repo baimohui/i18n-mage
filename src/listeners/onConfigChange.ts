@@ -16,7 +16,8 @@ export function registerOnConfigChange() {
     } else if (
       event.affectsConfiguration("i18n-mage.translationHints.light") ||
       event.affectsConfiguration("i18n-mage.translationHints.dark") ||
-      event.affectsConfiguration("i18n-mage.translationHints.maxLength")
+      event.affectsConfiguration("i18n-mage.translationHints.maxLength") ||
+      event.affectsConfiguration("i18n-mage.translationHints.enableLooseKeyMatch")
     ) {
       decorator.updateTranslationDecoration();
     }

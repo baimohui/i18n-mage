@@ -1,6 +1,6 @@
 {
   "config.common.title": "Common",
-  "config.enabled.desc": "Enable/disable i18n Mage",
+  "config.enable.desc": "Enable/disable i18n Mage",
   "config.i18nSolution.desc": "i18n Solution",
   "config.referenceLanguage.desc": "Reference Language",
   "config.displayLanguage.desc": "Display Language",
@@ -20,6 +20,7 @@
   "config.translateApiPriority.desc": "Translation API priority",
   "config.translationHints.title": "Translate Inline Hints",
   "config.translateHintsEnabled.desc": "Enable/disable translate inline hints",
+  "config.translateHintsEnableLooseKeyMatch.desc": "Enable fuzzy matching for dynamically constructed keys (e.g. t(`prefix.${key}.suffix`)`). When multiple translations match, only the first result will be displayed. Recommended only if such patterns are widely used in your project, as false positives may occur",
   "config.translateHintsMaxLength.desc": "Maximum number of characters for inline translation hints",
   "config.translateHintsFontColorInLight.desc": "Hint text color in light theme (hexadecimal)",
   "config.translateHintsBackgroundColorInLight.desc": "Hint background base color in light theme (hexadecimal)",

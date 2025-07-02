@@ -3,7 +3,7 @@ import { t } from "@/utils/i18n";
 import LangMage from "@/core/LangMage";
 import { getConfig } from "@/utils/config";
 import { isSamePath } from "@/utils/fs";
-import { getValueByAmbiguousEntryName, catchTEntries } from "@/utils/regex";
+import { getValueByAmbiguousEntryName, catchTEntries, unescapeString } from "@/utils/regex";
 
 export class Diagnostics {
   private static instance: Diagnostics;
@@ -24,7 +24,7 @@ export class Diagnostics {
     // if (document.languageId !== "javascript" && document.languageId !== "typescript") {
     //   return;
     // }
-    if (!getConfig<boolean>("translationHints.enabled", true)) return;
+    if (!getConfig<boolean>("translationHints.enable", true)) return;
     const mage = LangMage.getInstance();
     const publicCtx = mage.getPublicContext();
     const ignoredFileList = getConfig<string[]>("ignoredFileList", []);
@@ -35,12 +35,16 @@ export class Diagnostics {
     const diagnostics: vscode.Diagnostic[] = [];
     const { tree, countryMap } = mage.langDetail;
     const translations = countryMap[publicCtx.referredLang];
+    const totalEntryList = Object.keys(mage.langDetail.dictionary).map(key => unescapeString(key));
 
     for (const entry of entries) {
       const entryText = entry.nameInfo.text;
       const entryKey = getValueByAmbiguousEntryName(tree, entryText);
       const entryValue = translations[entryKey as string];
       if (entryValue === undefined) {
+        if (entry.nameInfo.vars.length > 0 && totalEntryList.some(entryName => entry.nameInfo.regex.test(entryName))) {
+          continue;
+        }
         const startPos = document.positionAt(entry.pos);
         const endPos = document.positionAt(entry.pos + entryText.length);
         const range = new vscode.Range(startPos, endPos);

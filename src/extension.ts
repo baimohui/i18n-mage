@@ -30,7 +30,7 @@ class ExtensionState {
 
   public initialize(context: vscode.ExtensionContext) {
     this._context = context;
-    this._enabled = getConfig<boolean>("enabled", true);
+    this._enabled = getConfig<boolean>("enable", true);
     vscode.commands.executeCommand("setContext", "enabled", this._enabled);
   }
 
@@ -41,7 +41,7 @@ class ExtensionState {
   public async setEnabled(enabled: boolean): Promise<void> {
     if (this._enabled === enabled) return;
     this._enabled = enabled;
-    await setConfig("enabled", enabled, "global");
+    await setConfig("enable", enabled, "global");
     vscode.commands.executeCommand("setContext", "enabled", enabled);
     if (enabled) {
       await this.activateExtensions();
@@ -80,7 +80,7 @@ class ExtensionState {
       this._extensionSubscriptions.length = 0; // 清空订阅
     }
     // 隐藏树视图
-    vscode.commands.executeCommand("setContext", "i18n-mage.enabled", false);
+    vscode.commands.executeCommand("setContext", "i18n-mage.enable", false);
     // 清除装饰器
     const decorator = DecoratorController.getInstance();
     decorator.dispose();
@@ -94,8 +94,8 @@ export async function activate(context: vscode.ExtensionContext) {
   // 监听配置变化
   context.subscriptions.push(
     vscode.workspace.onDidChangeConfiguration(async e => {
-      if (e.affectsConfiguration("i18n-mage.enabled")) {
-        await extensionState.setEnabled(getConfig<boolean>("enabled", true));
+      if (e.affectsConfiguration("i18n-mage.enable")) {
+        await extensionState.setEnabled(getConfig<boolean>("enable", true));
       }
     })
   );

@@ -1,6 +1,6 @@
 import * as vscode from "vscode";
 import LangMage from "@/core/LangMage";
-import { getValueByAmbiguousEntryName, catchTEntries, getLineEnding } from "@/utils/regex";
+import { getValueByAmbiguousEntryName, catchTEntries, getLineEnding, unescapeString } from "@/utils/regex";
 import { getConfig } from "@/utils/config";
 import { isSamePath } from "@/utils/fs";
 import { TEntry } from "@/types";
@@ -41,7 +41,7 @@ export class DecoratorController implements vscode.Disposable {
   }
 
   public update(editor: vscode.TextEditor | undefined): void {
-    if (!editor || !getConfig<boolean>("translationHints.enabled", true)) return;
+    if (!editor || !getConfig<boolean>("translationHints.enable", true)) return;
     const mage = LangMage.getInstance();
     const publicCtx = mage.getPublicContext();
     const ignoredFileList = getConfig<string[]>("ignoredFileList", []);
@@ -66,16 +66,27 @@ export class DecoratorController implements vscode.Disposable {
     this.offsetBase = editor.document.offsetAt(new vscode.Position(visibleStart, 0));
     const entries = catchTEntries(visibleText);
     this.entries = entries;
+    const maxLen = getConfig<number>("translationHints.maxLength");
+    const enableLooseKeyMatch = getConfig<boolean>("translationHints.enableLooseKeyMatch", true);
+    const totalEntryList = Object.keys(mage.langDetail.dictionary).map(key => unescapeString(key));
     entries.forEach(entry => {
-      const globalStartOffset = this.offsetBase + entry.pos;
+      let startPos = entry.pos;
+      let endPos = entry.pos + entry.nameInfo.text.length;
       const entryKey = getValueByAmbiguousEntryName(tree, entry.nameInfo.text);
-      const entryValue = translations[entryKey as string];
-      if (entryValue === undefined) return;
-      const startPos = editor.document.positionAt(globalStartOffset);
-      const endPos = editor.document.positionAt(globalStartOffset + entry.nameInfo.text.length);
-      const range = new vscode.Range(startPos, endPos);
-      const uniqueId = `${globalStartOffset}:${entry.nameInfo.id}`;
-      const maxLen = getConfig<number>("translationHints.maxLength");
+      let entryValue = translations[entryKey as string];
+      if (entryValue === undefined) {
+        if (!enableLooseKeyMatch || entry.nameInfo.vars.length === 0) return;
+        const matchedEntryName = totalEntryList.find(entryName => entry.nameInfo.regex.test(entryName)) ?? "";
+        const matchedEntryKey = getValueByAmbiguousEntryName(tree, matchedEntryName);
+        if (matchedEntryKey === undefined) return;
+        entryValue = `"${translations[matchedEntryKey]}"`;
+        startPos = entry.pos - 1;
+        endPos = entry.pos + entry.raw.length - 4;
+      }
+      const globalStartPos = editor.document.positionAt(this.offsetBase + startPos);
+      const globalEndPos = editor.document.positionAt(this.offsetBase + endPos);
+      const range = new vscode.Range(globalStartPos, globalEndPos);
+      const uniqueId = `${this.offsetBase + startPos}:${entry.nameInfo.id}`;
       const formattedEntryValue = this.formatEntryValue(entryValue, maxLen);
       const translationDec: vscode.DecorationOptions = { range, renderOptions: { before: { contentText: formattedEntryValue } } };
       const hiddenKeyDec: vscode.DecorationOptions = { range };
