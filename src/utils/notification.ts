@@ -1,7 +1,7 @@
 import * as vscode from "vscode";
 import { ExecutionContext } from "./context";
 
-const PREFIX = "[i18nMage] ";
+const PREFIX = "🪄 i18n Mage: ";
 /**
  * VS Code 信息通知管理器
  */

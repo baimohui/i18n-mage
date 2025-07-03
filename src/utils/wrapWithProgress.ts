@@ -4,6 +4,7 @@ import { ExecutionContext } from "./context";
 import { NotificationManager } from "@/utils/notification";
 
 let isProcessing = false;
+const PREFIX = "🪄 i18n Mage: ";
 
 interface ProgressOptions {
   title: string;
@@ -33,7 +34,7 @@ export async function wrapWithProgress(
     await vscode.window.withProgress(
       {
         location: vscode.ProgressLocation.Notification,
-        title: options.title,
+        title: options.title ? `${PREFIX}${options.title}` : "",
         cancellable: options.cancellable ?? false
       },
       async (progress, token) => {

@@ -8,13 +8,14 @@ import { getValueByAmbiguousEntryName, catchTEntries, unescapeString } from "@/u
 export class Diagnostics {
   private static instance: Diagnostics;
   private collection: vscode.DiagnosticCollection;
+  private disposed = false;
 
   constructor() {
     this.collection = vscode.languages.createDiagnosticCollection("i18nMage");
   }
 
   public static getInstance(): Diagnostics {
-    if (Diagnostics.instance === undefined) {
+    if (Diagnostics.instance === undefined || Diagnostics.instance.disposed) {
       Diagnostics.instance = new Diagnostics();
     }
     return Diagnostics.instance;
@@ -24,6 +25,7 @@ export class Diagnostics {
     // if (document.languageId !== "javascript" && document.languageId !== "typescript") {
     //   return;
     // }
+    if (this.disposed) return;
     if (!getConfig<boolean>("translationHints.enable", true)) return;
     const mage = LangMage.getInstance();
     const publicCtx = mage.getPublicContext();
@@ -63,5 +65,6 @@ export class Diagnostics {
 
   public dispose() {
     this.collection.dispose();
+    this.disposed = true;
   }
 }

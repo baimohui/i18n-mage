@@ -10,6 +10,7 @@ export class DecoratorController implements vscode.Disposable {
   // 核心装饰器类型
   private translationDecoration: vscode.TextEditorDecorationType;
   private hiddenKeyDecoration: vscode.TextEditorDecorationType;
+  private disposed = false;
 
   // 状态管理
   private currentDecorations = new Map<
@@ -34,14 +35,14 @@ export class DecoratorController implements vscode.Disposable {
   }
 
   public static getInstance(): DecoratorController {
-    if (DecoratorController.instance === undefined) {
+    if (DecoratorController.instance === undefined || DecoratorController.instance.disposed) {
       DecoratorController.instance = new DecoratorController();
     }
     return DecoratorController.instance;
   }
 
   public update(editor: vscode.TextEditor | undefined): void {
-    if (!editor || !getConfig<boolean>("translationHints.enable", true)) return;
+    if (this.disposed || !editor || !getConfig<boolean>("translationHints.enable", true)) return;
     const mage = LangMage.getInstance();
     const publicCtx = mage.getPublicContext();
     const ignoredFileList = getConfig<string[]>("ignoredFileList", []);
@@ -210,5 +211,6 @@ export class DecoratorController implements vscode.Disposable {
     this.translationDecoration.dispose();
     this.hiddenKeyDecoration.dispose();
     this.currentDecorations.clear();
+    this.disposed = true;
   }
 }
