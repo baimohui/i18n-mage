@@ -82,7 +82,7 @@ export class DecoratorController implements vscode.Disposable {
         if (matchedEntryKey === undefined) return;
         entryValue = `"${translations[matchedEntryKey]}"`;
         startPos = entry.pos - 1;
-        endPos = entry.pos + entry.raw.length - 4;
+        endPos = entry.pos + entry.raw.length - 5;
       }
       const globalStartPos = editor.document.positionAt(this.offsetBase + startPos);
       const globalEndPos = editor.document.positionAt(this.offsetBase + endPos);

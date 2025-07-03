@@ -9,7 +9,7 @@ export function registerSortCommand() {
   const mage = LangMage.getInstance();
   const disposable = vscode.commands.registerCommand("i18nMage.sort", async () => {
     await wrapWithProgress({ title: t("command.sort.progress") }, async () => {
-      mage.setOptions({ task: "sort", globalFlag: true, rewriteFlag: true });
+      mage.setOptions({ task: "sort", globalFlag: true, clearCache: false });
       const success = await mage.execute();
       if (success) {
         NotificationManager.showSuccess(t("command.sort.success"));

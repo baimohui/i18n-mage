@@ -20,6 +20,9 @@ export function registerOnConfigChange() {
       event.affectsConfiguration("i18n-mage.translationHints.enableLooseKeyMatch")
     ) {
       decorator.updateTranslationDecoration();
+    } else if (event.affectsConfiguration("i18n-mage.sorting.writeMode")) {
+      const sortMode = getConfig<string>("sorting.writeMode");
+      vscode.commands.executeCommand("setContext", "allowSort", mage.langDetail.isFlat && sortMode !== "none");
     }
   });
   registerDisposable(decorator);

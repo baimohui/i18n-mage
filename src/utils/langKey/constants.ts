@@ -172,16 +172,6 @@ export const DEFAULT_LANG_ALIAS_MAP: Partial<Record<LangKey, string[]>> = {
   zu: ["zu-ZA"]
 };
 
-// 国际化框架
-export const I18N_SOLUTION = {
-  none: "none",
-  vueI18n: "vue-i18n",
-  reactIntl: "react-intl",
-  reactI18next: "react-i18next",
-  i18nNext: "i18next",
-  vscodeL10n: "vscode-l10n"
-} as const;
-
 // 多语言文件内容展示格式
 export const LANG_FORMAT_TYPE = {
   obj: "OBJECT",

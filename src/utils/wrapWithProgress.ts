@@ -4,7 +4,7 @@ import { ExecutionContext } from "./context";
 import { NotificationManager } from "@/utils/notification";
 
 let isProcessing = false;
-const PREFIX = "🪄 i18n Mage: ";
+const PREFIX = "i18n Mage 🪄 ";
 
 interface ProgressOptions {
   title: string;

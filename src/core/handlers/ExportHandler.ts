@@ -1,10 +1,12 @@
 import fs from "fs";
 import xlsx from "node-xlsx";
-import { LangContextInternal } from "@/types";
+import { LangContextInternal, SortMode } from "@/types";
 import { getDetectedLangList } from "@/core/tools/contextTools";
 import { getLangText } from "@/utils/langKey";
 import { t } from "@/utils/i18n";
 import { NotificationManager } from "@/utils/notification";
+import { getConfig } from "@/utils/config";
+import { SortHandler } from "./SortHandler";
 
 export class ExportHandler {
   constructor(private ctx: LangContextInternal) {}
@@ -19,15 +21,18 @@ export class ExportHandler {
       NotificationManager.showTitle(t("command.export.error", t("command.export.wrongPath")));
       return;
     }
-    const tableData = [["Label", ...this.detectedLangList.map(item => getLangText(item, "en") || item)]];
-    for (const key in this.ctx.langDictionary) {
+    const tableData = [["Key", ...this.detectedLangList.map(item => getLangText(item, "en") || item)]];
+    const sortMode = getConfig<SortMode>("sorting.exportMode");
+    const sortedKeys = new SortHandler(this.ctx).getSortedKeys(sortMode);
+    const keys = sortedKeys.length > 0 ? sortedKeys : Object.keys(this.ctx.langDictionary);
+    keys.forEach(key => {
       const itemList = [key];
       const entryMap = this.ctx.langDictionary[key];
       this.detectedLangList.forEach(lang => {
         itemList.push(entryMap[lang]);
       });
       tableData.push(itemList);
-    }
+    });
     const sheetOptions = {
       "!cols": [
         { wch: 24 },

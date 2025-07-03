@@ -8,10 +8,10 @@ import {
   LackInfo,
   NullInfo,
   EntryNode,
+  I18N_SOLUTION,
   FileExtraInfo
 } from "@/types";
 import { Credentials } from "@/translator/index";
-import { I18N_SOLUTION } from "@/utils/langKey";
 
 // 外部模块可访问的公共上下文
 export interface LangContextPublic {
@@ -54,11 +54,12 @@ export interface LangContextInternal extends LangContextPublic {
   entryClassTree: Record<string, any>;
   entryClassInfo: EntryClassInfo;
   undefinedEntryList: TEntry[];
-  undefinedEntryMap: Record<string, Record<string, number[]>>;
-  usedEntryMap: Record<string, Record<string, number[]>>;
+  undefinedEntryMap: Record<string, Record<string, Set<number>>>;
+  usedEntryMap: Record<string, Record<string, Set<number>>>;
+  usedKeySet: Set<string>;
+  unusedKeySet: Set<string>;
+  isFlat: boolean;
   langFileExtraInfo: Record<string, FileExtraInfo>;
-  primaryPathLevel: number;
-  roguePath: string;
   isVacant: boolean;
   entryTree: EntryTree;
   updatedEntryValueInfo: Record<string, Record<string, string | undefined>>;

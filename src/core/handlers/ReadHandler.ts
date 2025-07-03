@@ -30,7 +30,11 @@ export class ReadHandler {
     this.ctx.langFormatType = langData.formatType;
     this.ctx.fileStructure = langData.fileStructure;
     Object.entries(langTree).forEach(([lang, data]) => {
-      this.ctx.langCountryMap[lang] = flattenNestedObj(data);
+      const flatObj = flattenNestedObj(data);
+      this.ctx.langCountryMap[lang] = flatObj;
+      if (Object.keys(flatObj).length !== Object.keys(data).length) {
+        this.ctx.isFlat = false;
+      }
     });
     const { structure, lookup } = this.mergeTreeToTwoObjectsSemantic(langTree);
     this.ctx.entryTree = structure;
@@ -40,9 +44,8 @@ export class ReadHandler {
 
   public startCensus(): void {
     const filePaths = this._readAllFiles(this.ctx.projectPath);
-    const pathLevelCountMap: Record<number, number> = {};
-    let maxNum = 0;
     const totalEntryList = Object.keys(this.ctx.langDictionary).map(key => unescapeString(key));
+    this.ctx.usedEntryMap = {};
     this.ctx.undefinedEntryList = [];
     this.ctx.undefinedEntryMap = {};
     for (const filePath of filePaths) {
@@ -50,10 +53,6 @@ export class ReadHandler {
       const fileContent = fs.readFileSync(filePath, "utf8");
       const { tItems, existedItems } = catchAllEntries(fileContent, this.ctx.langFormatType, this.ctx.entryClassTree);
       const usedEntryList = existedItems.slice();
-      if (usedEntryList.length > maxNum) {
-        maxNum = usedEntryList.length;
-        this.ctx.roguePath = filePath;
-      }
       for (const item of tItems) {
         const nameInfo = item.nameInfo;
         let usedEntryNameList: string[] = [];
@@ -65,38 +64,37 @@ export class ReadHandler {
         if (usedEntryNameList.length === 0) {
           this.ctx.undefinedEntryList.push({ ...item, path: filePath });
           this.ctx.undefinedEntryMap[nameInfo.text] ??= {};
-          this.ctx.undefinedEntryMap[nameInfo.text][filePath] ??= [];
-          this.ctx.undefinedEntryMap[nameInfo.text][filePath].push(item.pos);
+          this.ctx.undefinedEntryMap[nameInfo.text][filePath] ??= new Set<number>();
+          this.ctx.undefinedEntryMap[nameInfo.text][filePath].add(item.pos);
         } else {
           usedEntryList.push(...usedEntryNameList.map(entryName => ({ name: entryName, pos: item.pos })));
         }
       }
-      // usedEntryList = [...new Set(usedEntryList)];
-      if (usedEntryList.length > 0) {
-        const count = filePath.split("\\").length - 1;
-        pathLevelCountMap[count] ??= 0;
-        pathLevelCountMap[count]++;
-        usedEntryList.forEach(entry => {
+      usedEntryList
+        .sort((a, b) => a.pos - b.pos)
+        .forEach(entry => {
           this.ctx.usedEntryMap[entry.name] ??= {};
-          this.ctx.usedEntryMap[entry.name][filePath] ??= [];
-          if (!this.ctx.usedEntryMap[entry.name][filePath].includes(entry.pos)) {
-            this.ctx.usedEntryMap[entry.name][filePath].push(entry.pos);
-          }
+          this.ctx.usedEntryMap[entry.name][filePath] ??= new Set<number>();
+          this.ctx.usedEntryMap[entry.name][filePath].add(entry.pos);
         });
-      }
-      this.ctx.manuallyMarkedUsedEntries.forEach(entryName => {
-        if (!Object.hasOwn(this.ctx.usedEntryMap, entryName)) {
-          this.ctx.usedEntryMap[entryName] = {};
-        }
-      });
     }
-    let primaryPathLevel = 0;
-    Object.entries(pathLevelCountMap).forEach(([key, value]) => {
-      if (value > (pathLevelCountMap[primaryPathLevel] || 0)) {
-        primaryPathLevel = Number(key);
+    this.ctx.manuallyMarkedUsedEntries.forEach(entryName => {
+      if (!Object.hasOwn(this.ctx.usedEntryMap, entryName)) {
+        this.ctx.usedEntryMap[entryName] = {};
       }
     });
-    this.ctx.primaryPathLevel = primaryPathLevel;
+    for (const name in this.ctx.usedEntryMap) {
+      const key = getValueByAmbiguousEntryName(this.ctx.entryTree, name);
+      if (key !== undefined) {
+        this.ctx.usedKeySet.add(key);
+      }
+    }
+    for (const key in this.ctx.langDictionary) {
+      const name = unescapeString(key);
+      if (!Object.hasOwn(this.ctx.usedEntryMap, name)) {
+        this.ctx.unusedKeySet.add(key);
+      }
+    }
   }
 
   private _readAllFiles(dir: string): string[] {

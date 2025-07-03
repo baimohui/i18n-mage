@@ -43,9 +43,9 @@ export class ImportHandler {
             .join(", ") || t("common.none")
         )
       );
-      const labelIndex = headInfo.findIndex(item => String(item).toLowerCase() === "label");
+      const keyIndex = headInfo.findIndex(item => String(item).toLowerCase() === "key");
       sheetData.forEach(item => {
-        let entryName = item[labelIndex] ?? "";
+        let entryName = item[keyIndex] ?? "";
         entryName = entryName.toString().trim();
         if (entryName in this.ctx.langDictionary) {
           this.detectedLangList.forEach(lang => {

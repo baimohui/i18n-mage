@@ -75,11 +75,37 @@
             "default": true,
             "description": "%config.previewBeforeFix.desc%"
           },
-          "i18n-mage.ignoredFileList": {
+          "i18n-mage.sorting.writeMode": {
             "order": 15,
-            "type": "array",
-            "default": [],
-            "description": "%config.ignoredFileList.desc%"
+            "type": "string",
+            "enum": [
+              "none",
+              "byKey",
+              "byPosition"
+            ],
+            "default": "none",
+            "enumDescriptions": [
+              "%config.sortBy.none%",
+              "%config.sortBy.byKey%",
+              "%config.sortBy.byPosition%"
+            ],
+            "description": "%config.sorting.writeCode%"
+          },
+          "i18n-mage.sorting.exportMode": {
+            "order": 16,
+            "type": "string",
+            "enum": [
+              "none",
+              "byKey",
+              "byPosition"
+            ],
+            "default": "byKey",
+            "enumDescriptions": [
+              "%config.sortBy.none%",
+              "%config.sortBy.byKey%",
+              "%config.sortBy.byPosition%"
+            ],
+            "description": "%config.sorting.exportMode%"
           },
           "i18n-mage.ignoreEmptyLangFile": {
             "order": 20,
@@ -231,6 +257,12 @@
             "default": [],
             "description": "%config.manuallyMarkedUsedEntries.desc%",
             "scope": "resource"
+          },
+          "i18n-mage.ignoredFileList": {
+            "order": 15,
+            "type": "array",
+            "default": [],
+            "description": "%config.ignoredFileList.desc%"
           }
         }
       }
@@ -262,6 +294,14 @@
         "icon": {
           "light": "./images/translate-light.svg",
           "dark": "./images/translate-dark.svg"
+        }
+      },
+      {
+        "command": "i18nMage.sort",
+        "title": "%command.sort.title%",
+        "icon": {
+          "light": "./images/sort-light.svg",
+          "dark": "./images/sort-dark.svg"
         }
       },
       {
@@ -379,9 +419,14 @@
           "group": "navigation@3"
         },
         {
+          "command": "i18nMage.sort",
+          "when": "view == treeProvider && hasValidLangPath && allowSort",
+          "group": "navigation@4"
+        },
+        {
           "command": "i18nMage.fix",
           "when": "view == treeProvider && hasValidLangPath",
-          "group": "navigation@4"
+          "group": "navigation@5"
         }
       ],
       "view/item/context": [

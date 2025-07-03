@@ -1,6 +1,6 @@
 import fs from "fs";
 import path from "path";
-import { LangContextInternal } from "@/types";
+import { LangContextInternal, SortMode, EntryTree } from "@/types";
 import {
   getFileLocationFromId,
   getContentAtLocation,
@@ -10,6 +10,8 @@ import {
 } from "@/utils/regex";
 import { t } from "@/utils/i18n";
 import { NotificationManager } from "@/utils/notification";
+import { getConfig } from "@/utils/config";
+import { SortHandler } from "./SortHandler";
 
 export class RewriteHandler {
   constructor(private ctx: LangContextInternal) {}
@@ -57,9 +59,21 @@ export class RewriteHandler {
   private async rewriteTranslationFile(lang: string, filePos: string): Promise<void> {
     const filePath = this.getLangFilePath(lang, filePos);
     const entryTree = getContentAtLocation(filePos, this.ctx.entryTree);
-    if (entryTree) {
+    const sortMode = getConfig<SortMode>("sorting.writeMode");
+    const sortedKeys = new SortHandler(this.ctx).getSortedKeys(sortMode);
+    if (entryTree !== null) {
+      let needSort = false;
+      const tree: EntryTree = {};
+      if (Object.keys(entryTree).length === sortedKeys.length && sortedKeys.length > 0) {
+        needSort = true;
+        sortedKeys.forEach(key => {
+          if (Object.hasOwn(entryTree, key)) {
+            tree[key] = entryTree[key];
+          }
+        });
+      }
       const fileContent = formatObjectToString(
-        entryTree,
+        needSort ? tree : entryTree,
         this.ctx.langCountryMap[lang],
         filePath,
         this.ctx.langFileExtraInfo[filePos ? `${lang}.${filePos}` : lang]

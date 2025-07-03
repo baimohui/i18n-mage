@@ -1,5 +1,5 @@
 import { Credentials } from "@/translator/index";
-import { I18N_SOLUTION } from "@/utils/langKey";
+import { I18N_SOLUTION } from "@/types";
 
 export interface LangMageOptions {
   task?: string;

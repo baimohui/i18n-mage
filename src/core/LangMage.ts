@@ -5,12 +5,13 @@ import { FixHandler } from "./handlers/FixHandler";
 import { RewriteHandler } from "./handlers/RewriteHandler";
 import { ImportHandler } from "./handlers/ImportHandler";
 import { ExportHandler } from "./handlers/ExportHandler";
+import { SortHandler } from "./handlers/SortHandler";
 import { TrimHandler } from "./handlers/TrimHandler";
 import { ModifyHandler } from "./handlers/ModifyHandler";
 import { ReadHandler } from "./handlers/ReadHandler";
-import { LangMageOptions } from "@/types";
+import { LangMageOptions, I18N_SOLUTION } from "@/types";
 import { getDetectedLangList } from "@/core/tools/contextTools";
-import { getLangCode, I18N_SOLUTION } from "@/utils/langKey";
+import { getLangCode } from "@/utils/langKey";
 import { t } from "@/utils/i18n";
 import { NotificationManager } from "@/utils/notification";
 import { getConfig } from "@/utils/config";
@@ -99,6 +100,9 @@ class LangMage {
         case "import":
           await new ImportHandler(this.ctx).run();
           break;
+        case "sort":
+          await new SortHandler(this.ctx).run();
+          break;
         case "modify":
           await new ModifyHandler(this.ctx).run();
           break;
@@ -168,6 +172,9 @@ class LangMage {
       countryMap: this.ctx.langCountryMap,
       used: this.ctx.usedEntryMap,
       undefined: this.ctx.undefinedEntryMap,
+      usedKeySet: this.ctx.usedKeySet,
+      unusedKeySet: this.ctx.unusedKeySet,
+      isFlat: this.ctx.isFlat,
       tree: this.ctx.entryTree,
       updatedValues: this.ctx.updatedEntryValueInfo,
       patchedIds: this.ctx.patchedEntryIdInfo
@@ -191,8 +198,9 @@ class LangMage {
     this.ctx.undefinedEntryMap = {};
     this.ctx.usedEntryMap = {};
     this.ctx.langFileExtraInfo = {};
-    this.ctx.primaryPathLevel = 0;
-    this.ctx.roguePath = "";
+    this.ctx.usedKeySet = new Set();
+    this.ctx.unusedKeySet = new Set();
+    this.ctx.isFlat = true;
     this.ctx.isVacant = true;
     this.ctx.entryTree = {};
     this.ctx.updatedEntryValueInfo = {};

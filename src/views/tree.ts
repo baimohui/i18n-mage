@@ -3,7 +3,7 @@ import LangMage from "@/core/LangMage";
 import { catchTEntries, unescapeString, getValueByAmbiguousEntryName } from "@/utils/regex";
 import { getPossibleLangPaths, isLikelyProjectPath, toAbsolutePath, toRelativePath } from "@/utils/fs";
 import { getLangText } from "@/utils/langKey";
-import { LangContextPublic, TEntry, LangTree } from "@/types";
+import { LangContextPublic, TEntry, LangTree, SORT_MODE } from "@/types";
 import { t } from "@/utils/i18n";
 import { NotificationManager } from "@/utils/notification";
 import { getConfig, setConfig } from "@/utils/config";
@@ -71,19 +71,12 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
     return this.langInfo.undefined ?? {};
   }
 
-  get entryUsageInfo() {
-    const dictionary = this.langInfo.dictionary;
-    const unusedEntries: { key: string; name: string }[] = [];
-    const usedEntries: { key: string; name: string }[] = [];
-    for (const key in dictionary) {
-      const name = unescapeString(key);
-      if (Object.hasOwn(this.usedEntryMap, name)) {
-        usedEntries.push({ name, key });
-      } else {
-        unusedEntries.push({ name, key });
-      }
-    }
-    return { used: usedEntries, unused: unusedEntries };
+  get usedKeySet() {
+    return this.langInfo.usedKeySet;
+  }
+
+  get unusedKeySet() {
+    return this.langInfo.unusedKeySet;
   }
 
   refresh(): void {
@@ -164,6 +157,8 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
     }
     this.isInitialized = true;
     vscode.commands.executeCommand("setContext", "initialized", true);
+    const sortMode = getConfig<string>("sorting.writeMode");
+    vscode.commands.executeCommand("setContext", "allowSort", this.langInfo.isFlat && sortMode !== SORT_MODE.None);
     this.publicCtx = this.#mage.getPublicContext();
     const langPath = toRelativePath(this.publicCtx.langPath);
     if (getConfig("langPath", "") !== langPath) {
@@ -171,7 +166,7 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
         setConfig("langPath", langPath).catch(error => {
           console.error("Failed to set config for langPath:", error);
         });
-      }, 3000);
+      }, 10000);
     }
 
     return success;
@@ -343,8 +338,8 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
   private async getUsageInfoChildren(element: ExtendedTreeItem): Promise<ExtendedTreeItem[]> {
     if (element.level === 0) {
       return [
-        { type: "used", label: t("tree.usedInfo.used"), num: this.entryUsageInfo.used.length },
-        { type: "unused", label: t("tree.usedInfo.unused"), num: this.entryUsageInfo.unused.length },
+        { type: "used", label: t("tree.usedInfo.used"), num: this.usedKeySet.size },
+        { type: "unused", label: t("tree.usedInfo.unused"), num: this.unusedKeySet.size },
         { type: "undefined", label: t("tree.usedInfo.undefined"), num: Object.keys(this.undefinedEntryMap).length }
       ].map(item => ({
         ...item,
@@ -352,7 +347,7 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
         root: element.root,
         description: String(item.num),
         id: this.genId(element, item.type),
-        data: this.entryUsageInfo[item.type as "used" | "unused"],
+        data: Array.from(item.type === "used" ? this.usedKeySet : this.unusedKeySet).map(key => ({ key, name: unescapeString(key) })),
         contextValue: item.num === 0 ? `${item.type}GroupHeader-None` : `${item.type}GroupHeader`,
         collapsibleState: vscode.TreeItemCollapsibleState[item.num === 0 ? "None" : "Collapsed"]
       }));
@@ -374,32 +369,34 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
             };
           });
       } else if (element.type === "used") {
-        return this.entryUsageInfo.used.sort().map(item => {
-          const usedNum = Object.values(this.usedEntryMap[item.name]).flat().length;
-          const entryInfo = this.dictionary[item.key];
+        return Array.from(this.usedKeySet).map(key => {
+          const name = unescapeString(key);
+          const usedNum = Object.values(this.usedEntryMap[name]).flat().length;
+          const entryInfo = this.dictionary[key];
           return {
-            key: item.key,
-            name: item.name,
-            label: item.name,
+            key,
+            name,
+            label: name,
             description: `<${usedNum || "?"}>${entryInfo[this.publicCtx.referredLang]}`,
             level: 2,
             type: element.type,
             root: element.root,
-            id: this.genId(element, item.key),
+            id: this.genId(element, key),
             collapsibleState: vscode.TreeItemCollapsibleState[usedNum === 0 ? "None" : "Collapsed"]
           };
         });
       } else {
-        return this.entryUsageInfo.unused.sort().map(item => {
-          const entryInfo = this.dictionary[item.key];
+        return Array.from(this.unusedKeySet).map(key => {
+          const name = unescapeString(key);
+          const entryInfo = this.dictionary[key];
           return {
-            label: item.name,
+            label: name,
             description: entryInfo[this.publicCtx.referredLang],
             level: 2,
             root: element.root,
-            data: [item],
+            data: [key],
             contextValue: "unusedGroupItem",
-            id: this.genId(element, item.key),
+            id: this.genId(element, key),
             collapsibleState: vscode.TreeItemCollapsibleState.None
           };
         });
@@ -412,7 +409,7 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
         for (const filePath in entryUsedInfo) {
           const fileUri = vscode.Uri.file(filePath);
           const document = await vscode.workspace.openTextDocument(fileUri);
-          entryUsedInfo[filePath].sort().forEach((offset: number) => {
+          entryUsedInfo[filePath].forEach((offset: number) => {
             const pos = document.positionAt(offset);
             list.push(new FileItem(fileUri, pos, element.key as string));
           });
@@ -556,7 +553,7 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
   private getUsagePercent(): string {
     const total = Object.keys(this.dictionary).length;
     if (total === 0) return "";
-    return Math.floor(Number(((this.entryUsageInfo.used.length / total) * 10000).toFixed(0))) / 100 + "%";
+    return Math.floor(Number(((this.usedKeySet.size / total) * 10000).toFixed(0))) / 100 + "%";
   }
 
   private genId(element: ExtendedTreeItem, name: string): string {

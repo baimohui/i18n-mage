@@ -1,8 +1,8 @@
 import { LangContextInternal, LackInfo } from "@/types";
 import { CheckHandler } from "./CheckHandler";
 import { RewriteHandler } from "./RewriteHandler";
-import { LANG_FORMAT_TYPE, LANG_ENTRY_SPLIT_SYMBOL, I18N_SOLUTION, getLangCode } from "@/utils/langKey";
-import { TEntry } from "@/types";
+import { LANG_FORMAT_TYPE, LANG_ENTRY_SPLIT_SYMBOL, getLangCode } from "@/utils/langKey";
+import { TEntry, I18N_SOLUTION } from "@/types";
 import { validateLang, getIdByStr, getValueByAmbiguousEntryName } from "@/utils/regex";
 import { getDetectedLangList, setUpdatedEntryValueInfo } from "@/core/tools/contextTools";
 import translateTo from "@/translator/index";
