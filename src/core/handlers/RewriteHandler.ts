@@ -1,6 +1,6 @@
 import fs from "fs";
 import path from "path";
-import { LangContextInternal, SortMode, EntryTree } from "@/types";
+import { LangContextInternal, EntryTree } from "@/types";
 import {
   getFileLocationFromId,
   getContentAtLocation,
@@ -10,7 +10,6 @@ import {
 } from "@/utils/regex";
 import { t } from "@/utils/i18n";
 import { NotificationManager } from "@/utils/notification";
-import { getConfig } from "@/utils/config";
 import { SortHandler } from "./SortHandler";
 
 export class RewriteHandler {
@@ -59,8 +58,7 @@ export class RewriteHandler {
   private async rewriteTranslationFile(lang: string, filePos: string): Promise<void> {
     const filePath = this.getLangFilePath(lang, filePos);
     const entryTree = getContentAtLocation(filePos, this.ctx.entryTree);
-    const sortMode = getConfig<SortMode>("sorting.writeMode");
-    const sortedKeys = new SortHandler(this.ctx).getSortedKeys(sortMode);
+    const sortedKeys = new SortHandler(this.ctx).getSortedKeys(this.ctx.sortingWriteMode);
     if (entryTree !== null) {
       let needSort = false;
       const tree: EntryTree = {};

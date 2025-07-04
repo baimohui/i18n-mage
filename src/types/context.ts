@@ -8,8 +8,9 @@ import {
   LackInfo,
   NullInfo,
   EntryNode,
-  I18N_SOLUTION,
-  FileExtraInfo
+  I18nSolution,
+  FileExtraInfo,
+  SortMode
 } from "@/types";
 import { Credentials } from "@/translator/index";
 
@@ -20,9 +21,6 @@ export interface LangContextPublic {
   langFileType: string;
   projectPath: string;
   referredLang: string;
-  checkUnityFlag: boolean;
-  checkRepeatFlag: boolean;
-  checkStyleFlag: boolean;
   excludedLangList: string[];
   includedLangList: string[];
   globalFlag: boolean;
@@ -31,14 +29,15 @@ export interface LangContextPublic {
   cachePath: string;
   ignoreEmptyLangFile: boolean;
   langFileMinLength: number;
-  sortWithTrim: boolean;
   showPreInfo: boolean;
   styleScore: number;
   fileStructure: EntryNode | null;
   syncBasedOnReferredEntries: boolean;
+  sortingWriteMode: SortMode;
+  sortingExportMode: SortMode;
   manuallyMarkedUsedEntries: string[];
   modifyList: Array<{ key: string; name: string; value: string; lang: string }>;
-  i18nSolution: (typeof I18N_SOLUTION)[keyof typeof I18N_SOLUTION];
+  i18nSolution: I18nSolution;
 }
 
 // 内部模块才能访问的完整上下文

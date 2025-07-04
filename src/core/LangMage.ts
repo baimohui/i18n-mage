@@ -1,4 +1,4 @@
-import type { LangContextInternal, LangContextPublic } from "@/types";
+import type { LangContextInternal, LangContextPublic, SortMode } from "@/types";
 import { createLangContext } from "@/core/context";
 import { CheckHandler } from "./handlers/CheckHandler";
 import { FixHandler } from "./handlers/FixHandler";
@@ -9,7 +9,7 @@ import { SortHandler } from "./handlers/SortHandler";
 import { TrimHandler } from "./handlers/TrimHandler";
 import { ModifyHandler } from "./handlers/ModifyHandler";
 import { ReadHandler } from "./handlers/ReadHandler";
-import { LangMageOptions, I18N_SOLUTION } from "@/types";
+import { LangMageOptions, I18nSolution } from "@/types";
 import { getDetectedLangList } from "@/core/tools/contextTools";
 import { getLangCode } from "@/utils/langKey";
 import { t } from "@/utils/i18n";
@@ -36,11 +36,10 @@ class LangMage {
     if (Object.prototype.toString.call(options) === "[object Object]") {
       const combinedOptions: LangMageOptions = {
         referredLang: getConfig<string>("referenceLanguage", "en"),
-        i18nSolution: getConfig<(typeof I18N_SOLUTION)[keyof typeof I18N_SOLUTION]>("i18nSolution"),
+        i18nSolution: getConfig<I18nSolution>("i18nSolution"),
         ignoredFileList: getConfig<string[]>("ignoredFileList", []),
         langFileMinLength: getConfig<number>("langFileMinLength", 0),
         ignoreEmptyLangFile: getConfig<boolean>("ignoreEmptyLangFile", true),
-        sortWithTrim: getConfig<boolean>("sortWithTrim", true),
         manuallyMarkedUsedEntries: getConfig<string[]>("manuallyMarkedUsedEntries", []),
         credentials: {
           baiduAppId: getConfig<string>("baiduAppId", ""),
@@ -50,14 +49,12 @@ class LangMage {
           translateApiPriority: getConfig<string[]>("translateApiPriority", ["google", "baidu", "tencent"])
         },
         syncBasedOnReferredEntries: getConfig<boolean>("syncBasedOnReferredEntries", true),
+        sortingWriteMode: getConfig<SortMode>("sorting.writeMode"),
+        sortingExportMode: getConfig<SortMode>("sorting.exportMode"),
         ...options
       };
       for (const [key, value] of Object.entries(combinedOptions)) {
-        if (key === "checkAimList") {
-          this.ctx.checkUnityFlag = (value as string[]).includes("unity");
-          this.ctx.checkRepeatFlag = (value as string[]).includes("repeat");
-          this.ctx.checkStyleFlag = (value as string[]).includes("style");
-        } else if (Object.hasOwn(this.ctx, key)) {
+        if (Object.hasOwn(this.ctx, key)) {
           this.ctx[key] = value as string;
         }
       }
@@ -135,9 +132,6 @@ class LangMage {
       langFileType: this.ctx.langFileType,
       projectPath: this.ctx.projectPath,
       referredLang: this.ctx.referredLang,
-      checkUnityFlag: this.ctx.checkUnityFlag,
-      checkRepeatFlag: this.ctx.checkRepeatFlag,
-      checkStyleFlag: this.ctx.checkStyleFlag,
       excludedLangList: this.ctx.excludedLangList,
       includedLangList: this.ctx.includedLangList,
       globalFlag: this.ctx.globalFlag,
@@ -146,7 +140,8 @@ class LangMage {
       cachePath: this.ctx.cachePath,
       ignoreEmptyLangFile: this.ctx.ignoreEmptyLangFile,
       langFileMinLength: this.ctx.langFileMinLength,
-      sortWithTrim: this.ctx.sortWithTrim,
+      sortingWriteMode: this.ctx.sortingWriteMode,
+      sortingExportMode: this.ctx.sortingExportMode,
       showPreInfo: this.ctx.showPreInfo,
       styleScore: this.ctx.styleScore,
       fileStructure: this.ctx.fileStructure,

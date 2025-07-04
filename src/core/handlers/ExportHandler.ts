@@ -1,11 +1,10 @@
 import fs from "fs";
 import xlsx from "node-xlsx";
-import { LangContextInternal, SortMode } from "@/types";
+import { LangContextInternal } from "@/types";
 import { getDetectedLangList } from "@/core/tools/contextTools";
 import { getLangText } from "@/utils/langKey";
 import { t } from "@/utils/i18n";
 import { NotificationManager } from "@/utils/notification";
-import { getConfig } from "@/utils/config";
 import { SortHandler } from "./SortHandler";
 
 export class ExportHandler {
@@ -22,8 +21,7 @@ export class ExportHandler {
       return;
     }
     const tableData = [["Key", ...this.detectedLangList.map(item => getLangText(item, "en") || item)]];
-    const sortMode = getConfig<SortMode>("sorting.exportMode");
-    const sortedKeys = new SortHandler(this.ctx).getSortedKeys(sortMode);
+    const sortedKeys = new SortHandler(this.ctx).getSortedKeys(this.ctx.sortingExportMode);
     const keys = sortedKeys.length > 0 ? sortedKeys : Object.keys(this.ctx.langDictionary);
     keys.forEach(key => {
       const itemList = [key];

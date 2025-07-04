@@ -2,7 +2,8 @@ import fs from "fs";
 import path from "path";
 import { LangContextInternal } from "@/types";
 import {
-  catchAllEntries,
+  catchTEntries,
+  catchPossibleEntries,
   extractLangDataFromDir,
   getValueByAmbiguousEntryName,
   flattenNestedObj,
@@ -51,7 +52,8 @@ export class ReadHandler {
     for (const filePath of filePaths) {
       if (this.ctx.ignoredFileList.some(ifp => isSamePath(filePath, ifp))) continue;
       const fileContent = fs.readFileSync(filePath, "utf8");
-      const { tItems, existedItems } = catchAllEntries(fileContent, this.ctx.langFormatType, this.ctx.entryClassTree);
+      const tItems = catchTEntries(fileContent);
+      const existedItems = catchPossibleEntries(fileContent, this.ctx.langFormatType, this.ctx.entryClassTree);
       const usedEntryList = existedItems.slice();
       for (const item of tItems) {
         const nameInfo = item.nameInfo;

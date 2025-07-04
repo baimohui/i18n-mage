@@ -1,17 +1,7 @@
-import { TEntry, EntryTree, PEntry, TEntryPartType } from "@/types";
+import { TEntry, EntryTree, PEntry, TEntryPartType, I18N_SOLUTION, I18nSolution } from "@/types";
 import { LANG_FORMAT_TYPE, LANG_ENTRY_SPLIT_SYMBOL } from "@/utils/langKey";
 import { escapeRegExp, getIdByStr } from "./stringUtils";
-
-export function catchAllEntries(fileContent: string, langType: string, entryTree: EntryTree) {
-  let tItems: TEntry[] = [];
-  if (langType === LANG_FORMAT_TYPE.nonObj) {
-    tItems = catchCustomTEntries(fileContent);
-  } else {
-    tItems = catchTEntries(fileContent);
-  }
-  const existedItems = catchPossibleEntries(fileContent, langType, entryTree);
-  return { tItems, existedItems };
-}
+import { getConfig } from "@/utils/config";
 
 export function catchPossibleEntries(fileContent: string, langType: string, entryTree: EntryTree): { name: string; pos: number }[] {
   const primaryClassList = Object.keys(entryTree).filter(i => !!i);
@@ -66,7 +56,14 @@ export function catchPossibleEntries(fileContent: string, langType: string, entr
 }
 
 export function catchTEntries(fileContent: string): TEntry[] {
-  const tReg = /(?<=[$\s.[({:=]{1})t\s*\(\s*(\S)/g;
+  let tFuncNames = getConfig<string[]>("translationFunctionNames", ["t"]);
+  const i18nSolution = getConfig<I18nSolution>("i18nSolution");
+  if (!tFuncNames.length) tFuncNames = ["t"];
+  if (i18nSolution === I18N_SOLUTION.vueI18n) {
+    tFuncNames.push("t", "tc");
+  }
+  const funcNamePattern = tFuncNames.map(fn => `\\b${fn}\\b`).join("|");
+  const tReg = new RegExp(`(?<=[$\\s.[({:=]{1})(${funcNamePattern})\\s*\\(\\s*(\\S)`, "g");
   const entryInfoList: TEntry[] = [];
   let tRes: RegExpExecArray | null;
   while ((tRes = tReg.exec(fileContent)) !== null) {
@@ -302,46 +299,6 @@ export function matchBrackets(str: string, startPos = 0, open = "{", close = "}"
     }
   }
   return null;
-}
-
-export function catchCustomTEntries(fileContent: string): TEntry[] {
-  console.log("fileContent:", fileContent);
-  // const customT = "lc@";
-  // const tReg = new RegExp(`(["'\`]){1}${customT}`, "g");
-  const entryInfoList: TEntry[] = [];
-  // let tRes: RegExpMatchArray | null = null;
-  // while ((tRes = tReg.exec(fileContent)) !== null) {
-  //   const tStartPos = tRes.index as number;
-  //   const symbolStr = tRes[1];
-  //   let entryText = "";
-  //   let entryName = "";
-  //   let entryClass = "";
-  //   const match = fileContent.slice(tStartPos).match(new RegExp(`${symbolStr}${customT}([^]*?)(?<!\\\\)${symbolStr}`));
-  //   if (match) {
-  //     entryText = match[1];
-  //     const nameRes = entryText.match(/%(\S*?)%([^]*)/);
-  //     if (nameRes) {
-  //       entryName = nameRes[1];
-  //       entryText = nameRes[2];
-  //     }
-  //     const classRes = entryText.match(/#(\S*?)#([^]*)/);
-  //     if (classRes) {
-  //       entryClass = classRes[1];
-  //       entryText = classRes[2];
-  //     }
-  //     const entryRegex = escapeRegExp(entryText.replace(/\s/g, ""));
-  //     entryInfoList.push({
-  //       raw: match[0],
-  //       text: entryText,
-  //       regex: new RegExp(entryRegex),
-  //       id: getIdByStr(entryText),
-  //       class: entryClass,
-  //       name: entryName,
-  //       pos: tStartPos
-  //     });
-  //   }
-  // }
-  return entryInfoList;
 }
 
 export function isStringInUncommentedRange(code: string, searchString: string): boolean {
