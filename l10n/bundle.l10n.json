@@ -81,5 +81,9 @@
   "command.trim.nullWarn": "No entry to be cleaned was detected",
   "command.setProjectPath.invalidFolder": "Invalid project root path",
   "translator.useOtherApi": "The language will be translated by {0}",
-  "translator.useApi": "The language will be translated by {0}"
+  "translator.useApi": "The language will be translated by {0}",
+  "translator.noAvailableApi": "No available translation service was detected, please configure it and try again!",
+  "translator.invalidSourceCode": "Source language {0} does not support {1} translation",
+  "translator.invalidTargetCode": "Target language {0} does not support {1} translation",
+  "translator.unknownService": "Unknown translation service!"
 }

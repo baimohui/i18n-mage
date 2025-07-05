@@ -133,6 +133,12 @@
         "type": "object",
         "title": "%config.translatePlatform.title%",
         "properties": {
+          "i18n-mage.deepseekApiKey": {
+            "order": 5,
+            "type": "string",
+            "default": "",
+            "description": "%config.deepseekApiKey.desc%"
+          },
           "i18n-mage.baiduAppId": {
             "order": 7,
             "type": "string",
@@ -161,6 +167,7 @@
             "order": 15,
             "type": "array",
             "default": [
+              "deepseek",
               "google",
               "baidu",
               "tencent"

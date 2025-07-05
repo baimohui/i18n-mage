@@ -1,4 +1,5 @@
 import { LangKey, LangKeyIntro } from "./types";
+import { ApiPlatform } from "@/types";
 import { LANG_CODE_MAPPINGS, DEFAULT_LANG_ALIAS_MAP } from "./constants";
 import { getConfig } from "@/utils/config";
 
@@ -97,9 +98,9 @@ export function getLangText(str: string, type: "cn" | "en" = "cn"): string {
 }
 
 // 根据多语言文件名和平台获取对应语种代码
-export function getLangCode(str: string, platform: "google" | "tencent" | "baidu" = "google"): string | null {
+export function getLangCode(str: string, platform: ApiPlatform = "google"): string | null {
   const intro = getLangIntro(str) as LangKeyIntro;
-  const map: Record<string, keyof LangKeyIntro> = { google: "ggCode", tencent: "tcCode", baidu: "bdCode" };
+  const map: Record<string, keyof LangKeyIntro> = { google: "ggCode", tencent: "tcCode", baidu: "bdCode", deepseek: "ggCode" };
   return intro?.[map[platform]] || null;
 }
 

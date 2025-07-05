@@ -1,4 +1,4 @@
-export type ApiPlatform = "google" | "baidu" | "tencent";
+export type ApiPlatform = "deepseek" | "google" | "baidu" | "tencent";
 
 export interface TranslateParams {
   source: string;
