@@ -47,17 +47,23 @@ const translateTo = async (data: TranslateData): Promise<TranslateResult> => {
   let availableApi = availableApiList[curApiId];
   const hasBackupApi = availableApiList.length > curApiId + 1;
   if (!availableApi) {
-    return { success: false, message: t("translator.noAvailableApi") };
+    const message = t("translator.noAvailableApi");
+    NotificationManager.showWarning(message);
+    return { success: false, message };
   }
 
   let res: TranslateResult;
   const sourceLangCode = getLangCode(source, availableApi);
   const targetLangCode = getLangCode(target, availableApi);
   if (sourceLangCode === null) {
-    return { success: false, message: t(`translator.invalidSourceCode`, source, availableApi) };
+    const message = t(`translator.invalidSourceCode`, source, availableApi);
+    NotificationManager.showWarning(message);
+    return { success: false, message };
   }
   if (targetLangCode === null) {
-    return { success: false, message: t(`translator.invalidTargetCode`, target, availableApi) };
+    const message = t(`translator.invalidTargetCode`, target, availableApi);
+    NotificationManager.showWarning(message);
+    return { success: false, message };
   }
   const params: TranslateParams = {
     source: sourceLangCode,
@@ -83,7 +89,9 @@ const translateTo = async (data: TranslateData): Promise<TranslateResult> => {
       return { success: false, message: t("translator.unknownService") };
   }
   if (res.success) {
-    // Handle success case
+    NotificationManager.showProgress(
+      t("command.fix.progressDetail", target, availableApi, res?.data?.map(item => item.replace(/\n/g, "\\n")).join(", ") ?? "")
+    );
   } else {
     NotificationManager.showError(t("command.fix.error", `[${availableApi}]${res.message}`));
     if (hasBackupApi) {

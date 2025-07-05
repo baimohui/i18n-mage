@@ -10,34 +10,39 @@ import {
   unescapeString
 } from "@/utils/regex";
 import { t } from "@/utils/i18n";
-import { NotificationManager } from "@/utils/notification";
 import { SortHandler } from "./SortHandler";
+import { ExecutionResult, EXECUTION_RESULT_CODE } from "@/types";
 
 export class RewriteHandler {
   constructor(private ctx: LangContextInternal) {}
 
-  public async run() {
-    NotificationManager.showTitle(t("command.rewrite.title"));
-    for (const [lang, entryInfo] of Object.entries(this.ctx.updatedEntryValueInfo)) {
-      const filePosSet = new Set<string>();
-      for (const [key, value] of Object.entries(entryInfo)) {
-        this.updateEntryValue(key, value, lang);
-        const structure = this.ctx.fileStructure?.children?.[lang];
-        if (!structure) continue;
-        const filePos = getFileLocationFromId(key, structure);
-        if (Array.isArray(filePos) && filePos.length > 0) filePosSet.add(filePos.join("."));
-      }
-      const filePosList = Array.from(filePosSet);
-      if (filePosList.length === 0) {
-        await this.rewriteTranslationFile(lang, "");
-      } else {
-        for (const filePos of filePosList) {
-          await this.rewriteTranslationFile(lang, filePos);
+  public async run(): Promise<ExecutionResult> {
+    try {
+      for (const [lang, entryInfo] of Object.entries(this.ctx.updatedEntryValueInfo)) {
+        const filePosSet = new Set<string>();
+        for (const [key, value] of Object.entries(entryInfo)) {
+          this.updateEntryValue(key, value, lang);
+          const structure = this.ctx.fileStructure?.children?.[lang];
+          if (!structure) continue;
+          const filePos = getFileLocationFromId(key, structure);
+          if (Array.isArray(filePos) && filePos.length > 0) filePosSet.add(filePos.join("."));
+        }
+        const filePosList = Array.from(filePosSet);
+        if (filePosList.length === 0) {
+          await this.rewriteTranslationFile(lang, "");
+        } else {
+          for (const filePos of filePosList) {
+            await this.rewriteTranslationFile(lang, filePos);
+          }
         }
       }
+      this.ctx.updatedEntryValueInfo = {};
+      await this.applyGlobalFixes();
+      return { success: true, message: "", code: EXECUTION_RESULT_CODE.Success };
+    } catch (e: unknown) {
+      const errorMessage = t("common.progress.error", e instanceof Error ? e.message : (e as string));
+      return { success: false, message: errorMessage, code: EXECUTION_RESULT_CODE.UnknownRewriteError };
     }
-    this.ctx.updatedEntryValueInfo = {};
-    await this.applyGlobalFixes();
   }
 
   private updateEntryValue(key: string, value: string | undefined, lang: string): void {
@@ -78,7 +83,7 @@ export class RewriteHandler {
         filePath,
         this.ctx.langFileExtraInfo[filePos ? `${lang}.${filePos}` : lang]
       );
-      await this.writeFile(filePath, fileContent);
+      await fs.promises.writeFile(filePath, fileContent);
     }
   }
 
@@ -102,20 +107,8 @@ export class RewriteHandler {
       fixList.forEach(item => {
         fileContent = fileContent.replaceAll(item.raw, item.fixedRaw);
       });
-      await this.writeFile(fixPath, fileContent);
+      await fs.promises.writeFile(fixPath, fileContent);
     }
     this.ctx.patchedEntryIdInfo = {};
-  }
-
-  private async writeFile(filePath: string, content: string) {
-    try {
-      await fs.promises.writeFile(filePath, content);
-    } catch (e) {
-      if (e instanceof Error) {
-        NotificationManager.showError(t("common.progress.error", e.message));
-      } else {
-        NotificationManager.showError(t("common.progress.error", e as string));
-      }
-    }
   }
 }

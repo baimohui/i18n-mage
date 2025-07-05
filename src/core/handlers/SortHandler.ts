@@ -9,7 +9,7 @@ export class SortHandler {
       acc[lang] = {};
       return acc;
     }, {});
-    await new RewriteHandler(this.ctx).run();
+    return await new RewriteHandler(this.ctx).run();
   }
 
   public getSortedKeys(type: SortMode) {

@@ -10,7 +10,16 @@ import { getConfig } from "@/utils/config";
 
 export function registerImportCommand() {
   const mage = LangMage.getInstance();
+  const importData = async () => {
+    mage.setOptions({ task: "rewrite" });
+    const res = await mage.execute();
+    mage.setOptions({ task: "check", globalFlag: true, clearCache: true });
+    await mage.execute();
+    treeInstance.refresh();
+    NotificationManager.showResult(res, t("command.import.success"));
+  };
   const disposable = vscode.commands.registerCommand("i18nMage.import", async () => {
+    NotificationManager.showTitle(t("command.import.title"));
     const options: vscode.OpenDialogOptions = {
       canSelectMany: false,
       openLabel: t("command.import.dialogTitle"),
@@ -24,23 +33,16 @@ export function registerImportCommand() {
         const rewriteFlag = !getConfig<boolean>("previewBeforeFix", true);
         const filePath = fileUri[0].fsPath;
         mage.setOptions({ task: "import", importExcelFrom: filePath, rewriteFlag });
-        const success = await mage.execute();
-        if (success) {
+        const res = await mage.execute();
+        if (res.success) {
           if (rewriteFlag) {
-            mage.setOptions({ task: "check", globalFlag: true, clearCache: true });
-            await mage.execute();
-            NotificationManager.showSuccess(t("command.import.success"));
+            await importData();
           } else {
             const publicCtx = mage.getPublicContext();
             const { updatedValues, patchedIds, countryMap } = mage.langDetail;
             if ([updatedValues, patchedIds].some(item => Object.keys(item).length > 0)) {
               previewFixContent(updatedValues, patchedIds, countryMap, publicCtx.referredLang, async () => {
-                mage.setOptions({ task: "rewrite" });
-                await mage.execute();
-                mage.setOptions({ task: "check", globalFlag: true, clearCache: true });
-                await mage.execute();
-                treeInstance.refresh();
-                NotificationManager.showSuccess(t("command.import.success"));
+                await importData();
               });
             } else {
               NotificationManager.showWarning(t("command.import.nullWarn"));

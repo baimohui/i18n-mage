@@ -24,13 +24,13 @@ export function registerDeleteUnusedCommand() {
           clearCache: false,
           rewriteFlag: true
         });
-        const success = await mage.execute();
-        if (success) {
+        const res = await mage.execute();
+        if (res.success) {
           mage.setOptions({ task: "check", globalFlag: true, clearCache: true });
           await mage.execute();
           treeInstance.refresh();
-          NotificationManager.showSuccess(t("command.deleteUnused.success"));
         }
+        NotificationManager.showResult(res, t("command.deleteUnused.success"));
       }
     }
   );

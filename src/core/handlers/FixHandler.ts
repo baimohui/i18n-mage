@@ -7,8 +7,8 @@ import { validateLang, getIdByStr, getValueByAmbiguousEntryName } from "@/utils/
 import { getDetectedLangList, setUpdatedEntryValueInfo } from "@/core/tools/contextTools";
 import translateTo from "@/translator/index";
 import { t } from "@/utils/i18n";
-import { NotificationManager } from "@/utils/notification";
 import { ExecutionContext } from "@/utils/context";
+import { ExecutionResult, EXECUTION_RESULT_CODE } from "@/types";
 
 export class FixHandler {
   private lackInfoFromUndefined: LackInfo;
@@ -20,19 +20,25 @@ export class FixHandler {
     return getDetectedLangList(this.ctx);
   }
 
-  public async run() {
-    const checker = new CheckHandler(this.ctx);
-    checker.run();
-    if (this.ctx.undefinedEntryList.length > 0) {
-      await this.processUndefinedEntries();
-    }
-    await this.fillMissingTranslations();
-    if (ExecutionContext.token.isCancellationRequested) {
-      return;
-    }
-    if (this.ctx.rewriteFlag) {
-      const writer = new RewriteHandler(this.ctx);
-      await writer.run();
+  public async run(): Promise<ExecutionResult> {
+    try {
+      const checker = new CheckHandler(this.ctx);
+      checker.run();
+      if (this.ctx.undefinedEntryList.length > 0) {
+        await this.processUndefinedEntries();
+      }
+      const res = await this.fillMissingTranslations();
+      if (ExecutionContext.token.isCancellationRequested) {
+        return { success: false, message: t("common.progress.cancelledByUser"), code: EXECUTION_RESULT_CODE.Cancelled };
+      }
+      if (this.ctx.rewriteFlag && res.success && res.message === "") {
+        const writer = new RewriteHandler(this.ctx);
+        return await writer.run();
+      }
+      return res;
+    } catch (e: unknown) {
+      const errorMessage = t("common.progress.error", e instanceof Error ? e.message : (e as string));
+      return { success: false, message: errorMessage, code: EXECUTION_RESULT_CODE.UnknownFixError };
     }
   }
 
@@ -65,22 +71,17 @@ export class FixHandler {
     let enNameList: string[] = needTranslateList.map(entry => entry.nameInfo.text);
     const enLang = this.detectedLangList.find(item => getLangCode(item) === "en")!;
     if (enNameList.length > 0) {
-      if (referredLangCode !== "en" && this.ctx.credentials !== null) {
+      if (referredLangCode !== "en") {
         const res = await translateTo({
           source: this.ctx.referredLang,
           target: "en",
-          sourceTextList: enNameList,
-          credentials: this.ctx.credentials
+          sourceTextList: enNameList
         });
         if (res.success && res.data) {
-          this.notifyAddedText(this.ctx.referredLang, enNameList);
-          this.notifyAddedText(enLang, res.data, res.api);
           enNameList = res.data;
         } else {
           return;
         }
-      } else {
-        this.notifyAddedText(this.ctx.referredLang, enNameList);
       }
     }
     const pcList = this.getPopularClassList();
@@ -126,33 +127,41 @@ export class FixHandler {
     });
   }
 
-  private async fillMissingTranslations(): Promise<boolean> {
+  private async fillMissingTranslations(): Promise<ExecutionResult> {
     let needTranslate = false;
-    const combinedLackInfo = { ...this.ctx.lackInfo, ...this.lackInfoFromUndefined };
-    for (const lang in combinedLackInfo) {
+    for (const lang in this.lackInfoFromUndefined) {
+      if (Object.hasOwn(this.ctx.lackInfo, lang)) {
+        this.ctx.lackInfo[lang].push(...this.lackInfoFromUndefined[lang]);
+      } else {
+        this.ctx.lackInfo[lang] = this.lackInfoFromUndefined[lang];
+      }
+    }
+    for (const lang in this.ctx.lackInfo) {
       if (ExecutionContext.token.isCancellationRequested) {
-        return false;
+        return { success: false, message: t("common.progress.cancelledByUser"), code: EXECUTION_RESULT_CODE.Cancelled };
       }
       const referredLangMap = this.ctx.langCountryMap[this.ctx.referredLang];
-      const lackEntries = combinedLackInfo[lang].filter(key => referredLangMap[key]);
-      if (lackEntries.length > 0 && this.ctx.credentials !== null) {
+      const lackEntries = this.ctx.lackInfo[lang].filter(key => referredLangMap[key]);
+      if (lackEntries.length > 0) {
         needTranslate = true;
         const referredEntriesText = lackEntries.map(key => referredLangMap[key]);
         const res = await translateTo({
           source: this.ctx.referredLang,
           target: lang,
-          sourceTextList: referredEntriesText,
-          credentials: this.ctx.credentials
+          sourceTextList: referredEntriesText
         });
         if (res.success && res.data) {
-          this.notifyAddedText(lang, res.data, res.api);
           lackEntries.forEach((entryName, index) => {
             setUpdatedEntryValueInfo(this.ctx, entryName, res.data?.[index], lang);
           });
         }
       }
     }
-    return needTranslate;
+    return {
+      success: true,
+      message: needTranslate ? "" : t("command.fix.nullWarn"),
+      code: needTranslate ? EXECUTION_RESULT_CODE.Success : EXECUTION_RESULT_CODE.NoLackEntries
+    };
   }
 
   private getFixedRaw(entry: TEntry, name: string): string {
@@ -178,14 +187,6 @@ export class FixHandler {
       }
       const quote = entry.raw.match(/["'`]{1}/)![0];
       return `${entry.raw[0]}t(${quote}${name}${quote}${varStr})`;
-    }
-  }
-
-  private notifyAddedText(lang: string, textList: string[], api?: string): void {
-    if (api !== undefined && api !== null) {
-      NotificationManager.showProgress(
-        t("command.fix.progressDetail", lang, api, textList.map(item => item.replace(/\n/g, "\\n")).join(", "))
-      );
     }
   }
 

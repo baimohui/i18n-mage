@@ -125,12 +125,14 @@ export function toRelativePath(absolutePath: string): string {
 
 export function isSamePath(absolutePath: string, relativePath: string): boolean {
   if (!path.isAbsolute(absolutePath)) {
-    throw new Error("absolutePath must be an absolute path");
+    return false;
+    // throw new Error("absolutePath must be an absolute path");
   }
   const root = vscode.workspace.workspaceFolders?.[0].uri.fsPath;
   if (root === undefined) return false;
   if (!path.isAbsolute(root)) {
-    throw new Error("rootDir must be an absolute path");
+    return false;
+    // throw new Error("rootDir must be an absolute path");
   }
   const resolvedPath = path.normalize(path.resolve(root, relativePath));
   const normalizedAbsolute = path.normalize(absolutePath);

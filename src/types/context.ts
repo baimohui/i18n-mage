@@ -12,7 +12,6 @@ import {
   FileExtraInfo,
   SortMode
 } from "@/types";
-import { Credentials } from "@/translator/index";
 
 // 外部模块可访问的公共上下文
 export interface LangContextPublic {
@@ -67,7 +66,6 @@ export interface LangContextInternal extends LangContextPublic {
   importSheetData: string;
   exportExcelTo: string;
   clearCache: boolean;
-  credentials: Credentials | null;
   trimKeyList: string[];
   ignoredFileList: string[];
 }

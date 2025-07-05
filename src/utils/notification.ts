@@ -1,5 +1,6 @@
 import * as vscode from "vscode";
 import { ExecutionContext } from "./context";
+import { ExecutionResult } from "@/types";
 
 const PREFIX = "i18n Mage 🪄 ";
 /**
@@ -30,6 +31,24 @@ export class NotificationManager {
       vscode.window.setStatusBarMessage(message, 2000);
     }
     this.logToOutput(`⏳ ${message}`);
+  }
+
+  static showResult(result: ExecutionResult, successMessage: string = "", errorMessage: string = ""): Thenable<string | undefined> | void {
+    const typeNum = Math.floor(result.code / 100);
+    this.logToOutput(`📢 code: ${result.code}`);
+    if (result.message === "" && successMessage === "" && errorMessage === "") return;
+    switch (typeNum) {
+      case 1:
+        return this.showSuccess(`${result.message || successMessage}`);
+      case 2:
+        return this.showSuccess(result.message || successMessage);
+      case 3:
+        return this.showWarning(`${result.message}`);
+      case 4:
+        return this.showError(`${result.message || errorMessage}`);
+      default:
+        return this.showSuccess(result.message || successMessage);
+    }
   }
 
   // 成功信息

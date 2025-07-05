@@ -47,7 +47,6 @@ export const createLangContext = (): LangContextInternal => ({
   importSheetData: "",
   exportExcelTo: "",
   clearCache: true,
-  credentials: null,
   syncBasedOnReferredEntries: false,
   trimKeyList: [],
   manuallyMarkedUsedEntries: [],

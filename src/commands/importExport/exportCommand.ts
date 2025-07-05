@@ -8,6 +8,7 @@ import { NotificationManager } from "@/utils/notification";
 export function registerExportCommand() {
   const mage = LangMage.getInstance();
   const disposable = vscode.commands.registerCommand("i18nMage.export", async () => {
+    NotificationManager.showTitle(t("command.export.title"));
     const options: vscode.SaveDialogOptions = {
       saveLabel: t("command.export.dialogTitle"),
       filters: {
@@ -19,10 +20,8 @@ export function registerExportCommand() {
       await wrapWithProgress({ title: t("command.export.progress") }, async () => {
         const filePath = fileUri.fsPath;
         mage.setOptions({ task: "export", exportExcelTo: filePath });
-        const success = await mage.execute();
-        if (success) {
-          NotificationManager.showSuccess(t("command.export.success"));
-        }
+        const res = await mage.execute();
+        NotificationManager.showResult(res, t("command.export.success"));
       });
     }
   });

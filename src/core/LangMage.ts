@@ -9,11 +9,10 @@ import { SortHandler } from "./handlers/SortHandler";
 import { TrimHandler } from "./handlers/TrimHandler";
 import { ModifyHandler } from "./handlers/ModifyHandler";
 import { ReadHandler } from "./handlers/ReadHandler";
-import { LangMageOptions, I18nSolution } from "@/types";
+import { LangMageOptions, I18nSolution, ExecutionResult, EXECUTION_RESULT_CODE } from "@/types";
 import { getDetectedLangList } from "@/core/tools/contextTools";
 import { getLangCode } from "@/utils/langKey";
 import { t } from "@/utils/i18n";
-import { NotificationManager } from "@/utils/notification";
 import { getConfig } from "@/utils/config";
 
 class LangMage {
@@ -41,13 +40,6 @@ class LangMage {
         langFileMinLength: getConfig<number>("langFileMinLength", 0),
         ignoreEmptyLangFile: getConfig<boolean>("ignoreEmptyLangFile", true),
         manuallyMarkedUsedEntries: getConfig<string[]>("manuallyMarkedUsedEntries", []),
-        credentials: {
-          baiduAppId: getConfig<string>("baiduAppId", ""),
-          baiduSecretKey: getConfig<string>("baiduSecretKey", ""),
-          tencentSecretId: getConfig<string>("tencentSecretId", ""),
-          tencentSecretKey: getConfig<string>("tencentSecretKey", ""),
-          translateApiPriority: getConfig<string[]>("translateApiPriority", ["google", "baidu", "tencent"])
-        },
         syncBasedOnReferredEntries: getConfig<boolean>("syncBasedOnReferredEntries", true),
         sortingWriteMode: getConfig<SortMode>("sorting.writeMode"),
         sortingExportMode: getConfig<SortMode>("sorting.exportMode"),
@@ -61,19 +53,18 @@ class LangMage {
     }
   }
 
-  public async execute(): Promise<boolean> {
+  public async execute(): Promise<ExecutionResult> {
     if (!this.ctx.isVacant) {
-      NotificationManager.showWarning(t("common.progress.processing"));
-      return false;
+      return { success: true, message: t("common.progress.processing"), code: EXECUTION_RESULT_CODE.Processing };
     }
     try {
       this.ctx.isVacant = false;
-      console.time("本次耗时");
+      console.time("elapsed");
       if (this.ctx.clearCache) this.reset();
       const reader = new ReadHandler(this.ctx);
       reader.readLangFiles();
       if (this.detectedLangList.length === 0) {
-        return false;
+        return { success: true, message: t("common.noLangPathDetectedWarn"), code: EXECUTION_RESULT_CODE.NoLangPathDetected };
       }
       this.ctx.referredLang =
         this.detectedLangList.find(item => item === this.ctx.referredLang) ??
@@ -84,44 +75,41 @@ class LangMage {
       if (this.ctx.globalFlag) {
         reader.startCensus();
       }
+      let res = { success: true, message: "", code: EXECUTION_RESULT_CODE.Success };
       switch (this.ctx.task) {
         case "check":
-          new CheckHandler(this.ctx).run();
+          res = new CheckHandler(this.ctx).run();
           break;
         case "fix":
-          await new FixHandler(this.ctx).run();
+          res = await new FixHandler(this.ctx).run();
           break;
         case "export":
-          new ExportHandler(this.ctx).run();
+          res = new ExportHandler(this.ctx).run();
           break;
         case "import":
-          await new ImportHandler(this.ctx).run();
+          res = await new ImportHandler(this.ctx).run();
           break;
         case "sort":
-          await new SortHandler(this.ctx).run();
+          res = await new SortHandler(this.ctx).run();
           break;
         case "modify":
-          await new ModifyHandler(this.ctx).run();
+          res = await new ModifyHandler(this.ctx).run();
           break;
         case "trim":
           await new TrimHandler(this.ctx).run();
           break;
         case "rewrite":
-          await new RewriteHandler(this.ctx).run();
+          res = await new RewriteHandler(this.ctx).run();
           break;
       }
-      return true;
+      return res;
     } catch (e: unknown) {
-      if (e instanceof Error) {
-        NotificationManager.showError(t("common.progress.error", e.message));
-      } else {
-        NotificationManager.showError(t("common.progress.error", e as string));
-      }
+      const errorMessage = t("common.progress.error", e instanceof Error ? e.message : (e as string));
       console.error(e);
-      return false;
+      return { success: false, message: errorMessage, code: EXECUTION_RESULT_CODE.UnknownError };
     } finally {
       this.ctx.isVacant = true;
-      console.timeEnd("本次耗时");
+      console.timeEnd("elapsed");
     }
   }
 

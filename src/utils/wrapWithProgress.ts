@@ -4,7 +4,6 @@ import { ExecutionContext } from "./context";
 import { NotificationManager } from "@/utils/notification";
 
 let isProcessing = false;
-const PREFIX = "i18n Mage 🪄 ";
 
 interface ProgressOptions {
   title: string;
@@ -34,7 +33,7 @@ export async function wrapWithProgress(
     await vscode.window.withProgress(
       {
         location: vscode.ProgressLocation.Notification,
-        title: options.title ? `${PREFIX}${options.title}` : "",
+        title: options.title,
         cancellable: options.cancellable ?? false
       },
       async (progress, token) => {
@@ -54,13 +53,14 @@ export async function wrapWithProgress(
         // 绑定合并后的 Token 和 Progress
         ExecutionContext.bind(progress, combinedTokenSource.token);
         try {
-          await callback(options.reportProgress === true ? progress : { report: () => {} }, combinedToken);
+          const res = await callback(options.reportProgress === true ? progress : { report: () => {} }, combinedToken);
           if (combinedToken.isCancellationRequested) {
             return; // 操作已被取消，不需要抛出错误
           }
           if (options.reportProgress === true) {
             progress.report({ message: t("common.progress.completed"), increment: 100 });
           }
+          return res;
         } catch (error) {
           if (!combinedToken.isCancellationRequested) {
             const errorMessage = error instanceof Error ? error.message : String(error);

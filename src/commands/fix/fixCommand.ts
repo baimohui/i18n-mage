@@ -7,42 +7,41 @@ import { registerDisposable } from "@/utils/dispose";
 import { t } from "@/utils/i18n";
 import { NotificationManager } from "@/utils/notification";
 import { getConfig } from "@/utils/config";
+import { ExecutionResult } from "@/types";
 
 export function registerFixCommand() {
   const mage = LangMage.getInstance();
+  const rewrite = async () => {
+    mage.setOptions({ task: "rewrite", globalFlag: true, clearCache: false });
+    const res = await mage.execute();
+    mage.setOptions({ task: "check", globalFlag: true, clearCache: true });
+    await mage.execute();
+    treeInstance.refresh();
+    return res;
+  };
   const disposable = vscode.commands.registerCommand("i18nMage.fix", async () => {
-    await wrapWithProgress({ title: t("command.fix.progress"), cancellable: true }, async (progress, token) => {
+    let res: ExecutionResult | null = null;
+    await wrapWithProgress({ title: t("command.fix.progress"), cancellable: true }, async () => {
       const rewriteFlag = !getConfig<boolean>("previewBeforeFix", true);
       mage.setOptions({ task: "fix", globalFlag: true, rewriteFlag });
-      const success = await mage.execute();
-      if (success) {
-        if (token.isCancellationRequested) {
-          return;
-        }
+      res = await mage.execute();
+      if (res.success && res.message === "") {
         if (rewriteFlag) {
-          mage.setOptions({ task: "rewrite", globalFlag: true, clearCache: false });
-          await mage.execute();
-          mage.setOptions({ task: "check", globalFlag: true, clearCache: true });
-          await mage.execute();
-          NotificationManager.showSuccess(t("command.fix.success"));
+          res = await rewrite();
         } else {
           const publicCtx = mage.getPublicContext();
           const { updatedValues, patchedIds, countryMap } = mage.langDetail;
           if ([updatedValues, patchedIds].some(item => Object.keys(item).length > 0)) {
             previewFixContent(updatedValues, patchedIds, countryMap, publicCtx.referredLang, async () => {
-              mage.setOptions({ task: "rewrite", clearCache: false });
-              await mage.execute();
-              mage.setOptions({ task: "check", globalFlag: true, clearCache: true });
-              await mage.execute();
-              treeInstance.refresh();
-              NotificationManager.showSuccess(t("command.fix.success"));
+              res = await rewrite();
             });
-          } else {
-            NotificationManager.showWarning(t("command.fix.nullWarn"));
           }
         }
       }
     });
+    setTimeout(() => {
+      if (res !== null) NotificationManager.showResult(res);
+    }, 1000);
   });
 
   registerDisposable(disposable);

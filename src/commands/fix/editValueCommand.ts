@@ -11,6 +11,7 @@ export function registerEditValueCommand() {
     "i18nMage.editValue",
     async (e: vscode.TreeItem & { data: { name: string; key: string; value: string; lang: string } }) => {
       if (typeof e.data !== "object" || Object.keys(e.data).length === 0) return;
+      NotificationManager.showTitle(t("command.modify.title"));
       const { name, value, lang } = e.data;
       const newValue = await vscode.window.showInputBox({
         prompt: t("command.editValue.prompt", name, lang),
@@ -24,12 +25,12 @@ export function registerEditValueCommand() {
           clearCache: false,
           rewriteFlag: true
         });
-        const success = await mage.execute();
-        if (success) {
+        const res = await mage.execute();
+        if (res.success) {
           e.description = newValue;
           treeInstance.refresh();
-          NotificationManager.showSuccess(t("command.editValue.success", newValue));
         }
+        NotificationManager.showResult(res, t("command.editValue.success", newValue));
       }
     }
   );

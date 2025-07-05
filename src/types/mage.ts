@@ -1,4 +1,3 @@
-import { Credentials } from "@/translator/index";
 import { I18nSolution, SortMode } from "@/types";
 
 export interface LangMageOptions {
@@ -19,7 +18,6 @@ export interface LangMageOptions {
   importExcelFrom?: string;
   exportExcelTo?: string;
   clearCache?: boolean;
-  credentials?: Credentials;
   syncBasedOnReferredEntries?: boolean;
   sortingWriteMode?: SortMode;
   sortingExportMode?: SortMode;
@@ -27,4 +25,32 @@ export interface LangMageOptions {
   trimKeyList?: string[];
   manuallyMarkedUsedEntries?: string[];
   i18nSolution?: I18nSolution;
+}
+
+export const EXECUTION_RESULT_CODE = {
+  NoLackEntries: 104,
+  NoTrimEntries: 105,
+  Success: 200,
+  Processing: 301,
+  Cancelled: 302,
+  NoLangPathDetected: 303,
+  ImportNoKey: 304,
+  ImportNoLang: 305,
+  UnknownError: 400,
+  UnknownCheckError: 401,
+  UnknownFixError: 402,
+  UnknownRewriteError: 403,
+  UnknownExportError: 404,
+  UnknownImportError: 405,
+  UnknownModifyError: 406,
+  InvalidExportPath: 420,
+  InvalidEntryName: 421
+};
+
+export type ExecutionResultCode = (typeof EXECUTION_RESULT_CODE)[keyof typeof EXECUTION_RESULT_CODE];
+
+export interface ExecutionResult {
+  success: boolean;
+  message: string;
+  code: ExecutionResultCode;
 }
