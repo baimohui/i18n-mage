@@ -6,7 +6,8 @@ import {
   getContentAtLocation,
   setValueByEscapedEntryName,
   formatObjectToString,
-  getPathSegsFromId
+  getPathSegsFromId,
+  unescapeString
 } from "@/utils/regex";
 import { t } from "@/utils/i18n";
 import { NotificationManager } from "@/utils/notification";
@@ -65,8 +66,9 @@ export class RewriteHandler {
       if (Object.keys(entryTree).length === sortedKeys.length && sortedKeys.length > 0) {
         needSort = true;
         sortedKeys.forEach(key => {
-          if (Object.hasOwn(entryTree, key)) {
-            tree[key] = entryTree[key];
+          const name = unescapeString(key);
+          if (Object.hasOwn(entryTree, name)) {
+            tree[name] = entryTree[name];
           }
         });
       }
