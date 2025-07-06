@@ -1,6 +1,7 @@
 import * as vscode from "vscode";
 import { FixedTEntry } from "@/types";
 import { t } from "@/utils/i18n";
+import { unescapeString } from "@/utils/regex";
 
 type EntryValueUpdates = Record<string, Record<string, string | undefined>>;
 type EntryIdPatches = Record<string, FixedTEntry[]>;
@@ -128,7 +129,10 @@ function buildStyles(): string {
     align-items: center;
     gap: 8px;
   }
-  .item input[type="text"] {
+  textarea {
+    resize: vertical;
+  }
+  .item input[type="text"], .item textarea {
     flex: 3;
     padding: 4px 8px;
     border: 1px solid var(--border);
@@ -227,8 +231,8 @@ function renderValueSection(updates: EntryValueUpdates, localeMap: LocaleMap, ba
               ([key, val]) => /* html */ `
           <div class="item">
             <input type="checkbox" data-key="${key}" data-locale="${locale}" checked>
-            <label>${key}</label>
-            <input type="text" value="${val ?? ""}">
+            <label>${unescapeString(key)}</label>
+            <textarea rows="1">${val ?? ""}</textarea>
             ${
               localeMap[locale][key] && localeMap[locale][key] !== val
                 ? `<span class="old">${localeMap[locale][key]}</span>`
@@ -303,7 +307,7 @@ document.querySelectorAll('.group-head input[type=checkbox]').forEach(chk => {
   }
 })
 
-document.querySelectorAll(".value-updates .item input[type=text]").forEach(input => {
+document.querySelectorAll(".value-updates .item textarea").forEach(input => {
   const chk = input.closest('.item').querySelector('input');
   input.addEventListener("input", () => {
     if (chk && chk instanceof HTMLInputElement) {
