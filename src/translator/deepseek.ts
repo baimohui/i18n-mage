@@ -3,26 +3,11 @@ import { TranslateParams, TranslateResult } from "../types";
 
 const baseUrl = "https://api.deepseek.com/v1/chat/completions";
 
-// const errorCodeMap: Record<number, string> = {
-//   52001: "请求超时，请重试",
-//   52002: "系统错误，请重试",
-//   52003: "未授权用户，请检查 appid 是否正确或者服务是否开通",
-//   54000: "必填参数为空，请检查是否少传参数",
-//   54001: "签名错误，请检查您的签名生成方法",
-//   54003: "访问频率受限，请降低您的调用频率，或进行身份认证后切换为高级版/尊享版",
-//   54004: "账户余额不足，请前往管理控制台为账户充值",
-//   54005: "长 query 请求频繁，请降低长 query 的发送频率，3s 后再试",
-//   58000: "客户端 IP 非法，请检查个人资料里填写的 IP 地址是否正确，可前往开发者信息 - 基本信息修改",
-//   58001: "译文语言方向不支持，请检查译文语言是否在语言列表里",
-//   58002: "服务当前已关闭，请前往管理控制台开启服务",
-//   90107: "认证未通过或未生效，请前往查看认证进度"
-// };
-
 let deepseekApiKey = "";
 
 const translateTo = async ({ source, target, sourceTextList, apiKey }: TranslateParams): Promise<TranslateResult> => {
   deepseekApiKey = apiKey;
-  const translateLenLimit = 2000; // a request content max length
+  const translateLenLimit = 10000; // a request content max length
   const secondRequestLimit = 10; // the max times per second to request
   let sum = 0;
   let pack: string[] = [];

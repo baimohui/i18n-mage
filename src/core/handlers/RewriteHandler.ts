@@ -68,7 +68,7 @@ export class RewriteHandler {
     if (entryTree !== null) {
       let needSort = false;
       const tree: EntryTree = {};
-      if (Object.keys(entryTree).length === sortedKeys.length && sortedKeys.length > 0) {
+      if (this.ctx.isFlat && sortedKeys.length > 0) {
         needSort = true;
         sortedKeys.forEach(key => {
           const name = unescapeString(key);
@@ -105,7 +105,9 @@ export class RewriteHandler {
       let fileContent = fs.readFileSync(fixPath, "utf8");
       const fixList = this.ctx.patchedEntryIdInfo[fixPath];
       fixList.forEach(item => {
-        fileContent = fileContent.replaceAll(item.raw, item.fixedRaw);
+        if (item.fixedRaw) {
+          fileContent = fileContent.replaceAll(item.raw, item.fixedRaw);
+        }
       });
       await fs.promises.writeFile(fixPath, fileContent);
     }

@@ -77,18 +77,23 @@ export function getNestedValues(obj: EntryTree): string[] {
   return values;
 }
 
-export function flattenNestedObj(obj: EntryTree, res: EntryMap = {}, className = ""): EntryMap {
+export function flattenNestedObj(obj: EntryTree, className = ""): { data: EntryMap; isFlat: boolean } {
+  const result: EntryMap = {};
+  let isFlat = true;
   for (const key in obj) {
-    if (key.trim() === "") break;
+    if (key.trim() === "") continue;
     const value = obj[key];
-    const keyName = className ? `${className}.${escapeString(key)}` : escapeString(key);
-    if (typeof obj[key] === "object") {
-      flattenNestedObj(value as EntryTree, res, keyName);
+    const escapedKey = escapeString(key);
+    const keyName = className ? `${className}.${escapedKey}` : escapedKey;
+    if (value != null && typeof value === "object" && !Array.isArray(value)) {
+      const child = flattenNestedObj(value, keyName);
+      Object.assign(result, child.data);
+      isFlat = false;
     } else {
-      res[keyName] = value as string;
+      result[keyName] = value as string;
     }
   }
-  return res;
+  return { data: result, isFlat };
 }
 
 export interface ExtractResult {

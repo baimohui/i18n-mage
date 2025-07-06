@@ -30,12 +30,10 @@ export class ReadHandler {
     this.ctx.langFileType = langData.fileType;
     this.ctx.langFormatType = langData.formatType;
     this.ctx.fileStructure = langData.fileStructure;
-    Object.entries(langTree).forEach(([lang, data]) => {
-      const flatObj = flattenNestedObj(data);
-      this.ctx.langCountryMap[lang] = flatObj;
-      if (Object.keys(flatObj).length !== Object.keys(data).length) {
-        this.ctx.isFlat = false;
-      }
+    Object.entries(langTree).forEach(([lang, tree]) => {
+      const { data, isFlat } = flattenNestedObj(tree);
+      this.ctx.langCountryMap[lang] = data;
+      if (!isFlat) this.ctx.isFlat = false;
     });
     const { structure, lookup } = this.mergeTreeToTwoObjectsSemantic(langTree);
     this.ctx.entryTree = structure;

@@ -3,7 +3,7 @@ import { CheckHandler } from "./CheckHandler";
 import { RewriteHandler } from "./RewriteHandler";
 import { LANG_FORMAT_TYPE, LANG_ENTRY_SPLIT_SYMBOL, getLangCode } from "@/utils/langKey";
 import { TEntry, I18N_SOLUTION } from "@/types";
-import { validateLang, getIdByStr, getValueByAmbiguousEntryName } from "@/utils/regex";
+import { validateLang, getIdByStr, getValueByAmbiguousEntryName, escapeString } from "@/utils/regex";
 import { getDetectedLangList, setUpdatedEntryValueInfo } from "@/core/tools/contextTools";
 import translateTo from "@/translator/index";
 import { t } from "@/utils/i18n";
@@ -12,6 +12,7 @@ import { ExecutionResult, EXECUTION_RESULT_CODE } from "@/types";
 
 export class FixHandler {
   private lackInfoFromUndefined: LackInfo;
+  private needFix: boolean = false;
   constructor(private ctx: LangContextInternal) {
     this.lackInfoFromUndefined = {};
   }
@@ -22,6 +23,7 @@ export class FixHandler {
 
   public async run(): Promise<ExecutionResult> {
     try {
+      this.needFix = false;
       const checker = new CheckHandler(this.ctx);
       checker.run();
       if (this.ctx.undefinedEntryList.length > 0) {
@@ -52,19 +54,18 @@ export class FixHandler {
     );
     const needTranslateList: TEntry[] = [];
     const patchedEntryIdList: (TEntry & { fixedRaw: string })[] = [];
+    const undefinedEntryIdSet = new Set<string>();
     this.ctx.undefinedEntryList.forEach(entry => {
       const nameInfo = entry.nameInfo;
       if (valueKeyMap[nameInfo.id]) {
-        const isFixed = needTranslateList.every(item => item.nameInfo.id !== nameInfo.id);
-        if (isFixed) {
-          const entryName = valueKeyMap[nameInfo.id];
-          entry.nameInfo.boundName = entryName;
-          patchedEntryIdList.push({ ...entry, fixedRaw: this.getFixedRaw(entry, entryName) });
-        } else {
-          patchedEntryIdList.push({ ...entry, fixedRaw: "" });
-        }
+        this.needFix = true;
+        const entryName = valueKeyMap[nameInfo.id];
+        entry.nameInfo.boundName = entryName;
+        patchedEntryIdList.push({ ...entry, fixedRaw: this.getFixedRaw(entry, entryName) });
+      } else if (undefinedEntryIdSet.has(nameInfo.id)) {
+        patchedEntryIdList.push({ ...entry, fixedRaw: "" });
       } else if (validateLang(nameInfo.text, getLangCode(this.ctx.referredLang) ?? this.ctx.referredLang)) {
-        valueKeyMap[nameInfo.id] = nameInfo.text;
+        undefinedEntryIdSet.add(nameInfo.id);
         needTranslateList.push(entry);
       }
     });
@@ -102,6 +103,10 @@ export class FixHandler {
         }
         nameInfo.boundName = baseName + id;
       }
+      this.needFix = true;
+      if (this.ctx.isFlat) {
+        nameInfo.boundName = escapeString(nameInfo.boundName);
+      }
       patchedEntryIdList.push({ ...entry, fixedRaw: this.getFixedRaw(entry, nameInfo.boundName) });
       referredLangMap[nameInfo.boundName] = nameInfo.text;
       this.detectedLangList.forEach(lang => {
@@ -128,7 +133,6 @@ export class FixHandler {
   }
 
   private async fillMissingTranslations(): Promise<ExecutionResult> {
-    let needTranslate = false;
     for (const lang in this.lackInfoFromUndefined) {
       if (Object.hasOwn(this.ctx.lackInfo, lang)) {
         this.ctx.lackInfo[lang].push(...this.lackInfoFromUndefined[lang]);
@@ -143,7 +147,6 @@ export class FixHandler {
       const referredLangMap = this.ctx.langCountryMap[this.ctx.referredLang];
       const lackEntries = this.ctx.lackInfo[lang].filter(key => referredLangMap[key]);
       if (lackEntries.length > 0) {
-        needTranslate = true;
         const referredEntriesText = lackEntries.map(key => referredLangMap[key]);
         const res = await translateTo({
           source: this.ctx.referredLang,
@@ -151,6 +154,7 @@ export class FixHandler {
           sourceTextList: referredEntriesText
         });
         if (res.success && res.data) {
+          this.needFix = true;
           lackEntries.forEach((entryName, index) => {
             setUpdatedEntryValueInfo(this.ctx, entryName, res.data?.[index], lang);
           });
@@ -159,8 +163,8 @@ export class FixHandler {
     }
     return {
       success: true,
-      message: needTranslate ? "" : t("command.fix.nullWarn"),
-      code: needTranslate ? EXECUTION_RESULT_CODE.Success : EXECUTION_RESULT_CODE.NoLackEntries
+      message: this.needFix ? "" : t("command.fix.nullWarn"),
+      code: this.needFix ? EXECUTION_RESULT_CODE.Success : EXECUTION_RESULT_CODE.NoLackEntries
     };
   }
 
