@@ -103,11 +103,11 @@ export class FixHandler {
         }
         nameInfo.boundName = baseName + id;
       }
+      patchedEntryIdList.push({ ...entry, fixedRaw: this.getFixedRaw(entry, nameInfo.boundName) });
       this.needFix = true;
       if (this.ctx.isFlat) {
         nameInfo.boundName = escapeString(nameInfo.boundName);
       }
-      patchedEntryIdList.push({ ...entry, fixedRaw: this.getFixedRaw(entry, nameInfo.boundName) });
       referredLangMap[nameInfo.boundName] = nameInfo.text;
       this.detectedLangList.forEach(lang => {
         if ([this.ctx.referredLang, enLang].includes(lang)) {

@@ -347,7 +347,7 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
         root: element.root,
         description: String(item.num),
         id: this.genId(element, item.type),
-        data: Array.from(item.type === "used" ? this.usedKeySet : this.unusedKeySet).map(key => ({ key, name: unescapeString(key) })),
+        data: Array.from(item.type === "used" ? this.usedKeySet : this.unusedKeySet),
         contextValue: item.num === 0 ? `${item.type}GroupHeader-None` : `${item.type}GroupHeader`,
         collapsibleState: vscode.TreeItemCollapsibleState[item.num === 0 ? "None" : "Collapsed"]
       }));
