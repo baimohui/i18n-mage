@@ -8,7 +8,7 @@ import { registerAllListeners } from "@/listeners";
 import { bindDisposablesToContext } from "@/utils/dispose";
 import { NotificationManager } from "@/utils/notification";
 import { t } from "@/utils/i18n";
-import { getConfig, setConfig } from "@/utils/config";
+import { getConfig } from "@/utils/config";
 import { HoverProvider } from "./features/HoverProvider";
 import { registerDisposable } from "@/utils/dispose";
 
@@ -41,7 +41,6 @@ class ExtensionState {
   public async setEnabled(enabled: boolean): Promise<void> {
     if (this._enabled === enabled) return;
     this._enabled = enabled;
-    await setConfig("enable", enabled, "global");
     vscode.commands.executeCommand("setContext", "enabled", enabled);
     if (enabled) {
       await this.activateExtensions();
@@ -80,7 +79,7 @@ class ExtensionState {
       this._extensionSubscriptions.length = 0; // 清空订阅
     }
     // 隐藏树视图
-    vscode.commands.executeCommand("setContext", "i18n-mage.enable", false);
+    vscode.commands.executeCommand("setContext", "enabled", false);
     // 清除装饰器
     const decorator = DecoratorController.getInstance();
     decorator.dispose();
