@@ -71,6 +71,7 @@
   "translator.unknownService": "未知的翻译服务！",
   "translator.useApi": "将由 {0} 继续翻译该语言",
   "translator.useOtherApi": "将由 {0} 尝试翻译该语言",
+  "translator.exceedTextLenPerRequest": "翻译文本长度超过单次请求限制：{0}",
   "tree.currentFile.defined": "已定义",
   "tree.currentFile.title": "当前文件",
   "tree.currentFile.undefined": "未定义",

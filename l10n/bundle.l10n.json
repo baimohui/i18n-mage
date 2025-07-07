@@ -71,6 +71,7 @@
   "translator.unknownService": "Unknown translation service!",
   "translator.useApi": "The language will be translated by {0}",
   "translator.useOtherApi": "The language will be translated by {0}",
+  "translator.exceedTextLenPerRequest": "The translation text length exceeds the single request limit: {0}",
   "tree.currentFile.defined": "Defined",
   "tree.currentFile.title": "Current File",
   "tree.currentFile.undefined": "Undefined",

@@ -263,19 +263,19 @@ export function matchTEntryPart(fileContent: string, startPos: number, symbolStr
   if (/["'`]/.test(symbolStr)) {
     type = symbolStr === "`" ? "varText" : "text";
     match = fileContent.slice(startPos).match(new RegExp(`(${symbolStr}[^]*?(?<!\\\\)${symbolStr})`));
-  } else if (/[\w(.]/.test(symbolStr)) {
-    type = "var";
-    if (symbolStr === "(") {
-      match = matchBrackets(fileContent, startPos, "(", ")");
-    } else {
-      match = fileContent.slice(startPos).match(new RegExp(`(${symbolStr}[\\w.]*)`));
-    }
   } else if (symbolStr === "{") {
     type = "obj";
     match = matchBrackets(fileContent, startPos, "{", "}");
   } else if (symbolStr === "[") {
     type = "arr";
     match = matchBrackets(fileContent, startPos, "[", "]");
+  } else if (symbolStr) {
+    type = "var";
+    if (symbolStr === "(") {
+      match = matchBrackets(fileContent, startPos, "(", ")");
+    } else {
+      match = fileContent.slice(startPos).match(new RegExp(`(${escapeRegExp(symbolStr)}[^"'\`{}[\\]\\s,(]*)`));
+    }
   }
   if (match) {
     return { type, value: match[1] };

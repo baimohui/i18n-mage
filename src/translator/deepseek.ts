@@ -1,4 +1,5 @@
 import axios from "axios";
+import { t } from "@/utils/i18n";
 import { TranslateParams, TranslateResult } from "../types";
 
 const baseUrl = "https://api.deepseek.com/v1/chat/completions";
@@ -15,7 +16,7 @@ const translateTo = async ({ source, target, sourceTextList, apiKey }: Translate
   sourceTextList.forEach(text => {
     sum += text.length;
     if (text.length > translateLenLimit) {
-      throw new Error(`文本字符数超出单次翻译请求限制：${text}`);
+      return { success: false, message: t("translator.exceedTextLenPerRequest", text) };
     }
     if (sum > translateLenLimit) {
       packList.push(pack);

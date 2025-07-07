@@ -77,6 +77,30 @@ describe("regex.js 正则方法", () => {
         {
           code: 't("command.deleteUnused.modalContent", e.data.map(item => item.name).join(", "))',
           expected: { text: "command.deleteUnused.modalContent", vars: ['e.data.map(item => item.name).join(", ")'] }
+        },
+        {
+          code: 'NotificationManager.showError(t("common.progress.error", err instanceof Error ? err.message : t("common.unknownError")));',
+          expected: { text: "common.progress.error", vars: ['err instanceof Error ? err.message : t("common.unknownError")'] }
+        },
+        {
+          code: `NotificationManager.showSuccess(
+            t(
+              "command.import.langDetected",
+              headInfo
+                .map(item => getLangIntro(item as string)?.enName)
+                .filter(item => item !== null && item !== undefined)
+                .join(", ") || t("common.none")
+            )
+          );`,
+          expected: {
+            text: "command.import.langDetected",
+            vars: [
+              `headInfo
+                .map(item => getLangIntro(item as string)?.enName)
+                .filter(item => item !== null && item !== undefined)
+                .join(", ") || t("common.none")`
+            ]
+          }
         }
       ];
       testCases.forEach((testCase, i) => {
