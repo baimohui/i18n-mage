@@ -37,7 +37,7 @@ export type LangCountryMap = Record<LangName, EntryMap>;
 
 export type LangDictionary = Record<EntryKey, Record<LangName, EntryValue>>;
 
-export type TEntryPartType = "" | "text" | "varText" | "var" | "obj" | "arr";
+export type TEntryPartType = "" | "text" | "varText" | "var" | "obj" | "arr" | "logic";
 
 export interface TEntry {
   raw: string;

@@ -78,7 +78,6 @@ export function catchTEntries(fileContent: string): TEntry[] {
 }
 
 export function parseTEntry(fileContent: string, startPos: number, offset: number): TEntry | null {
-  let isValid = true;
   let curPos = startPos + offset;
   let symbolStr = fileContent[curPos];
   const entryNameForm: { type: TEntryPartType; value: string }[] = [];
@@ -97,10 +96,7 @@ export function parseTEntry(fileContent: string, startPos: number, offset: numbe
       continue;
     }
     const matchResult = matchTEntryPart(fileContent, curPos, symbolStr);
-    if (!matchResult) {
-      isValid = false;
-      break;
-    }
+    if (!matchResult) return null;
     const { type, value } = matchResult;
     const tPart = { type, value: /["'`]/.test(value) ? value.slice(1, -1) : value };
     if (isEntryNameParsed) {
@@ -117,13 +113,12 @@ export function parseTEntry(fileContent: string, startPos: number, offset: numbe
     curPos += value.length;
     symbolStr = fileContent[curPos];
   }
-  if (!isValid || entryNameForm.every(item => !["text", "varText"].includes(item.type))) {
-    return null;
-  }
+  if (entryNameForm.every(item => !["text", "varText"].includes(item.type))) return null;
+  if (entryNameForm.some(item => item.type === "logic")) return null;
   const entryRaw = fileContent.slice(startPos, curPos + 1);
-  isValid = isValid && isStringInUncommentedRange(fileContent, entryRaw);
+  if (!isStringInUncommentedRange(fileContent, entryRaw)) return null;
   const nameInfo = getEntryNameInfoByForm(entryNameForm);
-  if (!isValid || !nameInfo) return null;
+  if (!nameInfo) return null;
   return {
     raw: entryRaw,
     vars: entryVarList,
@@ -269,12 +264,15 @@ export function matchTEntryPart(fileContent: string, startPos: number, symbolStr
   } else if (symbolStr === "[") {
     type = "arr";
     match = matchBrackets(fileContent, startPos, "[", "]");
+  } else if (/[?:&|]/.test(symbolStr)) {
+    type = "logic";
+    match = [0, symbolStr];
   } else if (symbolStr) {
     type = "var";
     if (symbolStr === "(") {
       match = matchBrackets(fileContent, startPos, "(", ")");
     } else {
-      match = fileContent.slice(startPos).match(new RegExp(`(${escapeRegExp(symbolStr)}[^"'\`{}[\\]\\s,(]*)`));
+      match = fileContent.slice(startPos).match(new RegExp(`(${escapeRegExp(symbolStr)}[^"'\`{}[\\]\\s,?:&|(]*)`));
     }
   }
   if (match) {
