@@ -3,7 +3,7 @@ import path from "path";
 import JSON5 from "json5";
 import { escapeString } from "./stringUtils";
 import { LANG_FORMAT_TYPE } from "@/utils/langKey";
-import { LangTree, FileExtraInfo, LangFileInfo, EntryNode, EntryMap, EntryTree } from "@/types";
+import { LangTree, FileExtraInfo, LangFileInfo, EntryNode, EntryMap, EntryTree, I18nSolution, I18N_SOLUTION } from "@/types";
 
 export function isIgnoredDir(dir: string): boolean {
   const ignoredDirRegex = /^(dist|node_modules|img|image|css|asset|build|out|\.)/i;
@@ -169,4 +169,32 @@ export function extractLangDataFromDir(langPath: string): ExtractResult | null {
     fileExtraInfo,
     fileStructure
   };
+}
+
+export function detectI18nFramework(projectRoot: string): I18nSolution | null {
+  const pkgPath = path.join(projectRoot, "package.json");
+  if (!fs.existsSync(pkgPath)) {
+    return null;
+  }
+  const pkg: { dependencies: Record<string, string>; devDependencies: Record<string, string>; engines?: Record<string, string> } =
+    JSON5.parse(fs.readFileSync(pkgPath, "utf-8"));
+  const deps = {
+    ...pkg.dependencies,
+    ...pkg.devDependencies
+  };
+  const checks = [
+    { name: I18N_SOLUTION.vueI18n, key: "vue-i18n" },
+    { name: I18N_SOLUTION.reactIntl, key: "react-intl" },
+    { name: I18N_SOLUTION.reactI18next, key: "react-i18next" },
+    { name: I18N_SOLUTION.i18nNext, key: "i18next" }
+  ];
+  for (const check of checks) {
+    if (deps[check.key]) {
+      return check.name;
+    }
+  }
+  if (pkg.engines?.vscode !== undefined && typeof pkg.engines.vscode === "string") {
+    return I18N_SOLUTION.vscodeL10n;
+  }
+  return null;
 }

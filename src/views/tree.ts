@@ -1,9 +1,9 @@
 import * as vscode from "vscode";
 import LangMage from "@/core/LangMage";
-import { catchTEntries, unescapeString, getValueByAmbiguousEntryName } from "@/utils/regex";
+import { catchTEntries, unescapeString, getValueByAmbiguousEntryName, detectI18nFramework } from "@/utils/regex";
 import { getPossibleLangPaths, isLikelyProjectPath, toAbsolutePath, toRelativePath } from "@/utils/fs";
 import { getLangText } from "@/utils/langKey";
-import { LangContextPublic, TEntry, LangTree, SORT_MODE } from "@/types";
+import { LangContextPublic, TEntry, LangTree, SORT_MODE, I18nSolution } from "@/types";
 import { t } from "@/utils/i18n";
 import { NotificationManager } from "@/utils/notification";
 import { getConfig, setConfig } from "@/utils/config";
@@ -161,13 +161,19 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
     vscode.commands.executeCommand("setContext", "allowSort", this.langInfo.isFlat && sortMode !== SORT_MODE.None);
     this.publicCtx = this.#mage.getPublicContext();
     const langPath = toRelativePath(this.publicCtx.langPath);
-    if (getConfig("langPath", "") !== langPath) {
-      setTimeout(() => {
+    const i18nSolution = detectI18nFramework(projectPath);
+    setTimeout(() => {
+      if (getConfig("langPath", "") !== langPath) {
         setConfig("langPath", langPath).catch(error => {
           console.error("Failed to set config for langPath:", error);
         });
-      }, 10000);
-    }
+      }
+      if (i18nSolution !== null && i18nSolution !== getConfig<I18nSolution>("i18nSolution")) {
+        setConfig("i18nSolution", i18nSolution).catch(error => {
+          console.error("Failed to set config for i18nSolution:", error);
+        });
+      }
+    }, 10000);
 
     return success;
   }

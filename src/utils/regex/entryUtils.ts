@@ -272,7 +272,7 @@ export function matchTEntryPart(fileContent: string, startPos: number, symbolStr
     if (symbolStr === "(") {
       match = matchBrackets(fileContent, startPos, "(", ")");
     } else {
-      match = fileContent.slice(startPos).match(new RegExp(`(${escapeRegExp(symbolStr)}[^"'\`{}[\\]\\s,?:&|(]*)`));
+      match = fileContent.slice(startPos).match(new RegExp(`(${escapeRegExp(symbolStr)}[^"'\`{}[\\]\\s,?:&|()]*)`));
     }
   }
   if (match) {

@@ -8,7 +8,7 @@ let deepseekApiKey = "";
 
 const translateTo = async ({ source, target, sourceTextList, apiKey }: TranslateParams): Promise<TranslateResult> => {
   deepseekApiKey = apiKey;
-  const translateLenLimit = 10000; // a request content max length
+  const translateLenLimit = 6000; // a request content max length
   const secondRequestLimit = 10; // the max times per second to request
   let sum = 0;
   let pack: string[] = [];
@@ -99,7 +99,7 @@ const send = async (source: string, target: string, sourceTextList: string[]): P
       {
         model: "deepseek-chat", // 或 "deepseek-reasoner"
         messages: [{ role: "user", content: prompt }],
-        temperature: 0.7
+        temperature: 1.3
       },
       {
         headers: {
