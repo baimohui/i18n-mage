@@ -9,9 +9,9 @@ export function registerOnConfigChange() {
   const decorator = DecoratorController.getInstance();
   const disposable = vscode.workspace.onDidChangeConfiguration(event => {
     if (!event.affectsConfiguration("i18n-mage")) return;
-    if (event.affectsConfiguration("i18n-mage.syncBasedOnReferredEntries")) {
+    if (event.affectsConfiguration("i18n-mage.general.syncBasedOnReferredEntries")) {
       const publicCtx = mage.getPublicContext();
-      mage.setOptions({ syncBasedOnReferredEntries: getConfig<boolean>("syncBasedOnReferredEntries", false) });
+      mage.setOptions({ syncBasedOnReferredEntries: getConfig<boolean>("general.syncBasedOnReferredEntries", false) });
       vscode.commands.executeCommand("i18nMage.setReferredLang", publicCtx.referredLang);
     } else if (
       event.affectsConfiguration("i18n-mage.translationHints.light") ||
@@ -20,8 +20,8 @@ export function registerOnConfigChange() {
       event.affectsConfiguration("i18n-mage.translationHints.enableLooseKeyMatch")
     ) {
       decorator.updateTranslationDecoration();
-    } else if (event.affectsConfiguration("i18n-mage.sorting.writeMode")) {
-      const sortMode = getConfig<string>("sorting.writeMode");
+    } else if (event.affectsConfiguration("i18n-mage.general.sortOnWrite")) {
+      const sortMode = getConfig<string>("general.sortOnWrite");
       vscode.commands.executeCommand("setContext", "allowSort", mage.langDetail.isFlat && sortMode !== "none");
     }
   });

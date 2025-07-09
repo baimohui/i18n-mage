@@ -9,7 +9,7 @@ import { SortHandler } from "./handlers/SortHandler";
 import { TrimHandler } from "./handlers/TrimHandler";
 import { ModifyHandler } from "./handlers/ModifyHandler";
 import { ReadHandler } from "./handlers/ReadHandler";
-import { LangMageOptions, I18nSolution, ExecutionResult, EXECUTION_RESULT_CODE } from "@/types";
+import { LangMageOptions, I18nFramework, ExecutionResult, EXECUTION_RESULT_CODE } from "@/types";
 import { getDetectedLangList } from "@/core/tools/contextTools";
 import { getLangCode } from "@/utils/langKey";
 import { t } from "@/utils/i18n";
@@ -34,15 +34,15 @@ class LangMage {
   public setOptions(options: LangMageOptions = {}): void {
     if (Object.prototype.toString.call(options) === "[object Object]") {
       const combinedOptions: LangMageOptions = {
-        referredLang: getConfig<string>("referenceLanguage", "en"),
-        i18nSolution: getConfig<I18nSolution>("i18nSolution"),
-        ignoredFileList: getConfig<string[]>("ignoredFileList", []),
-        langFileMinLength: getConfig<number>("langFileMinLength", 0),
-        ignoreEmptyLangFile: getConfig<boolean>("ignoreEmptyLangFile", true),
-        manuallyMarkedUsedEntries: getConfig<string[]>("manuallyMarkedUsedEntries", []),
-        syncBasedOnReferredEntries: getConfig<boolean>("syncBasedOnReferredEntries", true),
-        sortingWriteMode: getConfig<SortMode>("sorting.writeMode"),
-        sortingExportMode: getConfig<SortMode>("sorting.exportMode"),
+        referredLang: getConfig<string>("translationServices.referenceLanguage", "en"),
+        i18nFramework: getConfig<I18nFramework>("i18nFeatures.framework"),
+        ignoredFileList: getConfig<string[]>("workspace.ignoredFileList", []),
+        langFileMinLength: getConfig<number>("general.langFileMinLength", 0),
+        ignoreEmptyLangFile: getConfig<boolean>("general.ignoreEmptyLangFile", true),
+        manuallyMarkedUsedEntries: getConfig<string[]>("workspace.manuallyMarkedUsedEntries", []),
+        syncBasedOnReferredEntries: getConfig<boolean>("general.syncBasedOnReferredEntries", true),
+        sortingWriteMode: getConfig<SortMode>("general.sortOnWrite"),
+        sortingExportMode: getConfig<SortMode>("general.sortOnExport"),
         ...options
       };
       for (const [key, value] of Object.entries(combinedOptions)) {
@@ -136,7 +136,7 @@ class LangMage {
       syncBasedOnReferredEntries: this.ctx.syncBasedOnReferredEntries,
       manuallyMarkedUsedEntries: this.ctx.manuallyMarkedUsedEntries,
       modifyList: this.ctx.modifyList,
-      i18nSolution: this.ctx.i18nSolution
+      i18nFramework: this.ctx.i18nFramework
     };
   }
 

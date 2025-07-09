@@ -20,7 +20,7 @@ export function registerSetProjectPathCommand() {
       }
       mage.setOptions({ task: "check", projectPath, globalFlag: true, clearCache: true });
       await mage.execute();
-      await setConfig("projectPath", toRelativePath(projectPath));
+      await setConfig("workspace.projectPath", toRelativePath(projectPath));
       treeInstance.refresh();
       const decorator = DecoratorController.getInstance();
       decorator.update(vscode.window.activeTextEditor);

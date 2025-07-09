@@ -8,7 +8,7 @@ import {
   LackInfo,
   NullInfo,
   EntryNode,
-  I18nSolution,
+  I18nFramework,
   FileExtraInfo,
   SortMode
 } from "@/types";
@@ -36,7 +36,7 @@ export interface LangContextPublic {
   sortingExportMode: SortMode;
   manuallyMarkedUsedEntries: string[];
   modifyList: Array<{ key: string; name: string; value: string; lang: string }>;
-  i18nSolution: I18nSolution;
+  i18nFramework: I18nFramework;
 }
 
 // 内部模块才能访问的完整上下文

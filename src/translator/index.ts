@@ -29,12 +29,12 @@ let curApiId = 0;
 
 const translateTo = async (data: TranslateData): Promise<TranslateResult> => {
   const { source = "", target = "", sourceTextList = [] } = data;
-  const baiduAppId = getConfig<string>("baiduAppId", "");
-  const baiduSecretKey = getConfig<string>("baiduSecretKey", "");
-  const tencentSecretId = getConfig<string>("tencentSecretId", "");
-  const tencentSecretKey = getConfig<string>("tencentSecretKey", "");
-  const deepseekApiKey = getConfig<string>("deepseekApiKey", "");
-  const translateApiPriority = getConfig<string[]>("translateApiPriority", ["google", "baidu", "tencent"]);
+  const baiduAppId = getConfig<string>("translationServices.baiduAppId", "");
+  const baiduSecretKey = getConfig<string>("translationServices.baiduSecretKey", "");
+  const tencentSecretId = getConfig<string>("translationServices.tencentSecretId", "");
+  const tencentSecretKey = getConfig<string>("translationServices.tencentSecretKey", "");
+  const deepseekApiKey = getConfig<string>("translationServices.deepseekApiKey", "");
+  const translateApiPriority = getConfig<string[]>("translationServices.translateApiPriority", ["google", "baidu", "tencent"]);
   const apiMap: ApiMap = {
     google: [],
     baidu: [baiduAppId, baiduSecretKey],

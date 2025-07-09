@@ -45,7 +45,7 @@ export class DecoratorController implements vscode.Disposable {
     if (this.disposed || !editor || !getConfig<boolean>("translationHints.enable", true)) return;
     const mage = LangMage.getInstance();
     const publicCtx = mage.getPublicContext();
-    const ignoredFileList = getConfig<string[]>("ignoredFileList", []);
+    const ignoredFileList = getConfig<string[]>("workspace.ignoredFileList", []);
     if (ignoredFileList.some(ifp => isSamePath(editor.document.uri.fsPath, ifp))) return;
     this.currentEditor = editor;
     this.currentDecorations.clear();

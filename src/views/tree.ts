@@ -3,7 +3,7 @@ import LangMage from "@/core/LangMage";
 import { catchTEntries, unescapeString, getValueByAmbiguousEntryName, detectI18nFramework } from "@/utils/regex";
 import { getPossibleLangPaths, isLikelyProjectPath, toAbsolutePath, toRelativePath } from "@/utils/fs";
 import { getLangText } from "@/utils/langKey";
-import { LangContextPublic, TEntry, LangTree, SORT_MODE, I18nSolution } from "@/types";
+import { LangContextPublic, TEntry, LangTree, SORT_MODE, I18nFramework } from "@/types";
 import { t } from "@/utils/i18n";
 import { NotificationManager } from "@/utils/notification";
 import { getConfig, setConfig } from "@/utils/config";
@@ -110,7 +110,7 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
   }
 
   async initTree(): Promise<boolean> {
-    const projectPath = toAbsolutePath(getConfig<string>("projectPath", ""));
+    const projectPath = toAbsolutePath(getConfig<string>("workspace.projectPath", ""));
     this.refresh();
     // const workspaceFolders = vscode.workspace.workspaceFolders;
     // if (workspaceFolders !== undefined && workspaceFolders.length > 0) {
@@ -126,7 +126,7 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
       return false;
     } else {
       this.#mage.setOptions({ projectPath });
-      const configLangPath = getConfig<string>("langPath", "");
+      const configLangPath = getConfig<string>("workspace.langPath", "");
       if (configLangPath) {
         this.#mage.setOptions({ langPath: toAbsolutePath(configLangPath), task: "check", globalFlag: true, clearCache: true });
         await this.#mage.execute();
@@ -157,20 +157,20 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
     }
     this.isInitialized = true;
     vscode.commands.executeCommand("setContext", "initialized", true);
-    const sortMode = getConfig<string>("sorting.writeMode");
+    const sortMode = getConfig<string>("general.sortOnWrite");
     vscode.commands.executeCommand("setContext", "allowSort", this.langInfo.isFlat && sortMode !== SORT_MODE.None);
     this.publicCtx = this.#mage.getPublicContext();
     const langPath = toRelativePath(this.publicCtx.langPath);
-    const i18nSolution = detectI18nFramework(projectPath);
+    const i18nFramework = detectI18nFramework(projectPath);
     setTimeout(() => {
-      if (getConfig("langPath", "") !== langPath) {
-        setConfig("langPath", langPath).catch(error => {
+      if (getConfig("workspace.langPath", "") !== langPath) {
+        setConfig("workspace.langPath", langPath).catch(error => {
           console.error("Failed to set config for langPath:", error);
         });
       }
-      if (i18nSolution !== null && i18nSolution !== getConfig<I18nSolution>("i18nSolution")) {
-        setConfig("i18nSolution", i18nSolution).catch(error => {
-          console.error("Failed to set config for i18nSolution:", error);
+      if (i18nFramework !== null && i18nFramework !== getConfig<I18nFramework>("i18nFeatures.framework")) {
+        setConfig("i18nFeatures.framework", i18nFramework).catch(error => {
+          console.error("Failed to set config for i18nFramework:", error);
         });
       }
     }, 10000);

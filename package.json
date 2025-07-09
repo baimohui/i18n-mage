@@ -29,55 +29,27 @@
     "configuration": [
       {
         "type": "object",
-        "title": "%config.common.title%",
+        "title": "%config.general.title%",
         "properties": {
-          "i18n-mage.enable": {
+          "i18n-mage.general.enable": {
             "order": 0,
             "type": "boolean",
             "default": true,
             "description": "%config.enable.desc%"
           },
-          "i18n-mage.i18nSolution": {
-            "order": 1,
-            "type": "string",
-            "default": "none",
-            "description": "%config.i18nSolution.desc%",
-            "enum": [
-              "none",
-              "vue-i18n",
-              "react-intl",
-              "react-i18next",
-              "i18next",
-              "vscode-l10n"
-            ]
-          },
-          "i18n-mage.referenceLanguage": {
-            "order": 5,
-            "type": "string",
-            "default": "en",
-            "description": "%config.referenceLanguage.desc%"
-          },
-          "i18n-mage.displayLanguage": {
+          "i18n-mage.general.displayLanguage": {
             "order": 6,
             "type": "string",
             "default": "en",
             "description": "%config.displayLanguage.desc%"
           },
-          "i18n-mage.previewBeforeFix": {
+          "i18n-mage.general.previewBeforeFix": {
             "order": 10,
             "type": "boolean",
             "default": true,
             "description": "%config.previewBeforeFix.desc%"
           },
-          "i18n-mage.translationFunctionNames": {
-            "order": 12,
-            "type": "array",
-            "default": [
-              "t"
-            ],
-            "description": "%config.translationFunctionNames.desc%"
-          },
-          "i18n-mage.sorting.writeMode": {
+          "i18n-mage.general.sortOnWrite": {
             "order": 15,
             "type": "string",
             "enum": [
@@ -93,7 +65,7 @@
             ],
             "description": "%config.sorting.writeCode%"
           },
-          "i18n-mage.sorting.exportMode": {
+          "i18n-mage.general.sortOnExport": {
             "order": 16,
             "type": "string",
             "enum": [
@@ -109,19 +81,19 @@
             ],
             "description": "%config.sorting.exportMode%"
           },
-          "i18n-mage.syncBasedOnReferredEntries": {
+          "i18n-mage.general.syncBasedOnReferredEntries": {
             "order": 18,
             "type": "boolean",
             "default": false,
             "description": "%config.syncBasedOnReferredEntries.desc%"
           },
-          "i18n-mage.ignoreEmptyLangFile": {
+          "i18n-mage.general.ignoreEmptyLangFile": {
             "order": 20,
             "type": "boolean",
             "default": true,
             "description": "%config.ignoreEmptyLangFile.desc%"
           },
-          "i18n-mage.langFileMinLength": {
+          "i18n-mage.general.langFileMinLength": {
             "order": 21,
             "type": "integer",
             "default": 30,
@@ -131,39 +103,89 @@
       },
       {
         "type": "object",
-        "title": "%config.translatePlatform.title%",
+        "title": "%config.i18nFeatures.title%",
         "properties": {
-          "i18n-mage.deepseekApiKey": {
+          "i18n-mage.i18nFeatures.framework": {
+            "order": 1,
+            "type": "string",
+            "default": "none",
+            "description": "%config.i18nFramework.desc%",
+            "enum": [
+              "none",
+              "vue-i18n",
+              "react-intl",
+              "react-i18next",
+              "i18next",
+              "vscode-l10n"
+            ]
+          },
+          "i18n-mage.i18nFeatures.translationFunctionNames": {
+            "order": 5,
+            "type": "array",
+            "default": [
+              "t"
+            ],
+            "description": "%config.translationFunctionNames.desc%"
+          },
+          "i18n-mage.i18nFeatures.interpolationBrackets": {
+            "order": 8,
+            "type": "string",
+            "default": "auto",
+            "enum": [
+              "auto",
+              "single",
+              "double"
+            ],
+            "enumDescriptions": [
+              "%config.i18nFeatures.auto%",
+              "%config.i18nFeatures.singleBrackets%",
+              "%config.i18nFeatures.doubleBrackets%"
+            ],
+            "description": "%config.interpolationBrackets.desc%"
+          }
+        }
+      },
+      {
+        "type": "object",
+        "title": "%config.translateServices.title%",
+        "properties": {
+          "i18n-mage.translationServices.referenceLanguage": {
+            "order": 2,
+            "type": "string",
+            "default": "en",
+            "description": "%config.referenceLanguage.desc%"
+          },
+          "i18n-mage.translationServices.deepseekApiKey": {
             "order": 5,
             "type": "string",
             "default": "",
             "description": "%config.deepseekApiKey.desc%"
           },
-          "i18n-mage.baiduAppId": {
+          "i18n-mage.translationServices.baiduAppId": {
             "order": 7,
             "type": "string",
             "default": "",
             "description": "%config.baiduAppId.desc%"
           },
-          "i18n-mage.baiduSecretKey": {
+          "i18n-mage.translationServices.baiduSecretKey": {
             "order": 8,
             "type": "string",
             "default": "",
             "description": "%config.baiduSecretKey.desc%"
           },
-          "i18n-mage.tencentSecretId": {
+          "i18n-mage.translationServices.tencentSecretId": {
             "order": 11,
             "type": "string",
             "default": "",
             "description": "%config.tencentSecretId.desc%"
           },
-          "i18n-mage.tencentSecretKey": {
+          "i18n-mage.translationServices.tencentSecretKey": {
             "order": 12,
             "type": "string",
             "default": "",
             "description": "%config.tencentSecretKey.desc%"
           },
-          "i18n-mage.translateApiPriority": {
+          "i18n-mage.translationServices.translateApiPriority": {
             "order": 15,
             "type": "array",
             "default": [
@@ -174,7 +196,7 @@
             ],
             "description": "%config.translateApiPriority.desc%"
           },
-          "i18n-mage.langAliasCustomMappings": {
+          "i18n-mage.translationServices.langAliasCustomMappings": {
             "order": 20,
             "type": "object",
             "description": "%config.langAliasCustomMappings.desc%",
@@ -252,28 +274,28 @@
         "type": "object",
         "title": "%config.workspace.title%",
         "properties": {
-          "i18n-mage.projectPath": {
+          "i18n-mage.workspace.projectPath": {
             "order": 3,
             "type": "string",
             "default": "",
             "description": "%config.projectPath.title%",
             "scope": "resource"
           },
-          "i18n-mage.langPath": {
+          "i18n-mage.workspace.langPath": {
             "order": 5,
             "type": "string",
             "default": "",
             "description": "%config.langPath.desc%",
             "scope": "resource"
           },
-          "i18n-mage.manuallyMarkedUsedEntries": {
+          "i18n-mage.workspace.manuallyMarkedUsedEntries": {
             "order": 7,
             "type": "array",
             "default": [],
             "description": "%config.manuallyMarkedUsedEntries.desc%",
             "scope": "resource"
           },
-          "i18n-mage.ignoredFileList": {
+          "i18n-mage.workspace.ignoredFileList": {
             "order": 15,
             "type": "array",
             "default": [],

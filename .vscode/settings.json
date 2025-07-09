@@ -14,13 +14,13 @@
   "[typescript]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode"
   },
-  "i18n-mage.langPath": "l10n",
-  "i18n-mage.ignoredFileList": [
+  "i18n-mage.workspace.langPath": "l10n",
+  "i18n-mage.workspace.ignoredFileList": [
     "test/unit/utils/regex.test.ts"
   ],
-  "i18n-mage.i18nSolution": "vscode-l10n",
-  "i18n-mage.referenceLanguage": "bundle.l10n.zh-cn",
-  "i18n-mage.langAliasCustomMappings": {
+  "i18n-mage.i18nFeatures.framework": "vscode-l10n",
+  "i18n-mage.translationServices.referenceLanguage": "bundle.l10n.zh-cn",
+  "i18n-mage.translationServices.langAliasCustomMappings": {
     "en": [
       "bundle.l10n"
     ],
@@ -28,5 +28,5 @@
       "bundle.l10n.zh-cn"
     ]
   },
-  "i18n-mage.sorting.writeMode": "byKey"
+  "i18n-mage.general.sortOnWrite": "byKey"
 }

@@ -1,4 +1,4 @@
-export const I18N_SOLUTION = {
+export const I18N_FRAMEWORK = {
   none: "none",
   vueI18n: "vue-i18n",
   reactIntl: "react-intl",
@@ -7,7 +7,7 @@ export const I18N_SOLUTION = {
   vscodeL10n: "vscode-l10n"
 } as const;
 
-export type I18nSolution = (typeof I18N_SOLUTION)[keyof typeof I18N_SOLUTION];
+export type I18nFramework = (typeof I18N_FRAMEWORK)[keyof typeof I18N_FRAMEWORK];
 
 export const SORT_MODE = {
   None: "none",

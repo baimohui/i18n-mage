@@ -17,7 +17,7 @@ export const createLangContext = (): LangContextInternal => ({
   styleScore: 0,
   fileStructure: null,
   modifyList: [],
-  i18nSolution: "none",
+  i18nFramework: "none",
   sortingWriteMode: "none",
   sortingExportMode: "none",
 

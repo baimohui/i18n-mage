@@ -19,7 +19,7 @@ Object.entries(LANG_CODE_MAPPINGS).forEach(([key, intro]) => {
 });
 
 function getMergedLangMap(): Record<string, string[]> {
-  const customMappings = getConfig<Record<string, string[]>>("langAliasCustomMappings", {});
+  const customMappings = getConfig<Record<string, string[]>>("translationServices.langAliasCustomMappings", {});
   // 深拷贝默认配置
   const mergedMap = JSON.parse(JSON.stringify(DEFAULT_LANG_ALIAS_MAP)) as Record<string, string[]>;
   // 合并策略：用户配置覆盖默认值

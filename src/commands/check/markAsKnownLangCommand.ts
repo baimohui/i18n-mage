@@ -22,11 +22,11 @@ export function registerMarkAsKnownLangCommand() {
       });
       if (typeof selectedText === "string" && selectedText.trim()) {
         const selectedKey = reverseMap[selectedText];
-        const mappings = getConfig<Record<string, string[]>>("langAliasCustomMappings", {});
+        const mappings = getConfig<Record<string, string[]>>("translationServices.langAliasCustomMappings", {});
         const aliases = new Set(mappings[selectedKey] ?? []);
         if (!aliases.has(langKey)) {
           aliases.add(langKey);
-          await setConfig("langAliasCustomMappings", { ...mappings, [selectedKey]: Array.from(aliases) }, "global");
+          await setConfig("translationServices.langAliasCustomMappings", { ...mappings, [selectedKey]: Array.from(aliases) }, "global");
           NotificationManager.showSuccess(t("command.markAsKnownLang.success", langKey, selectedText));
         } else {
           NotificationManager.showWarning(t("command.markAsKnownLang.existedWarn", langKey, selectedText));

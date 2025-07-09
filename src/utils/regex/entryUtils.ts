@@ -1,4 +1,4 @@
-import { TEntry, EntryTree, PEntry, TEntryPartType, I18N_SOLUTION, I18nSolution } from "@/types";
+import { TEntry, EntryTree, PEntry, TEntryPartType, I18N_FRAMEWORK, I18nFramework } from "@/types";
 import { LANG_FORMAT_TYPE, LANG_ENTRY_SPLIT_SYMBOL } from "@/utils/langKey";
 import { escapeRegExp, getIdByStr } from "./stringUtils";
 import { getConfig } from "@/utils/config";
@@ -56,10 +56,10 @@ export function catchPossibleEntries(fileContent: string, langType: string, entr
 }
 
 export function catchTEntries(fileContent: string): TEntry[] {
-  let tFuncNames = getConfig<string[]>("translationFunctionNames", ["t"]);
-  const i18nSolution = getConfig<I18nSolution>("i18nSolution");
+  let tFuncNames = getConfig<string[]>("i18nFeatures.translationFunctionNames", ["t"]);
+  const i18nFramework = getConfig<I18nFramework>("i18nFeatures.framework");
   if (!tFuncNames.length) tFuncNames = ["t"];
-  if (i18nSolution === I18N_SOLUTION.vueI18n) {
+  if (i18nFramework === I18N_FRAMEWORK.vueI18n) {
     tFuncNames.push("t", "tc");
   }
   const funcNamePattern = tFuncNames.map(fn => `\\b${fn}\\b`).join("|");

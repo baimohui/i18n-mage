@@ -2,7 +2,7 @@ import { LangContextInternal, LackInfo } from "@/types";
 import { CheckHandler } from "./CheckHandler";
 import { RewriteHandler } from "./RewriteHandler";
 import { LANG_FORMAT_TYPE, LANG_ENTRY_SPLIT_SYMBOL, getLangCode } from "@/utils/langKey";
-import { TEntry, I18N_SOLUTION } from "@/types";
+import { TEntry, I18N_FRAMEWORK } from "@/types";
 import { validateLang, getIdByStr, getValueByAmbiguousEntryName, escapeString } from "@/utils/regex";
 import { getDetectedLangList, setUpdatedEntryValueInfo } from "@/core/tools/contextTools";
 import translateTo from "@/translator/index";
@@ -177,11 +177,11 @@ export class FixHandler {
         varStr = ", " + entry.vars.join(", ");
       } else if (entry.nameInfo.vars.length > 0) {
         const varList = entry.nameInfo.vars;
-        switch (this.ctx.i18nSolution) {
-          case I18N_SOLUTION.vueI18n:
+        switch (this.ctx.i18nFramework) {
+          case I18N_FRAMEWORK.vueI18n:
             varStr = ", [" + varList.join(", ") + "]";
             break;
-          case I18N_SOLUTION.vscodeL10n:
+          case I18N_FRAMEWORK.vscodeL10n:
             varStr = ", " + varList.join(", ");
             break;
           default:

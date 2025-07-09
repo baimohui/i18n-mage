@@ -11,10 +11,10 @@ export function registerMarkAsUsedCommand() {
   const mage = LangMage.getInstance();
   const disposable = vscode.commands.registerCommand("i18nMage.markAsUsed", async (e: vscode.TreeItem & { data: string[] }) => {
     if (typeof e.label !== "string" || e.label.trim() === "" || !Array.isArray(e.data) || e.data.length === 0) return;
-    const manuallyMarkedUsedEntries = getConfig<string[]>("manuallyMarkedUsedEntries", []);
+    const manuallyMarkedUsedEntries = getConfig<string[]>("workspace.manuallyMarkedUsedEntries", []);
     const usedNameList = e.data.map(key => unescapeString(key));
     manuallyMarkedUsedEntries.push(...usedNameList);
-    await setConfig("manuallyMarkedUsedEntries", manuallyMarkedUsedEntries);
+    await setConfig("workspace.manuallyMarkedUsedEntries", manuallyMarkedUsedEntries);
     mage.setOptions({ task: "check", globalFlag: true, clearCache: true });
     const res = await mage.execute();
     treeInstance.refresh();

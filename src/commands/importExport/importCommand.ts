@@ -30,7 +30,7 @@ export function registerImportCommand() {
     const fileUri = await vscode.window.showOpenDialog(options);
     if (Array.isArray(fileUri) && fileUri.length > 0) {
       await wrapWithProgress({ title: t("command.import.progress") }, async () => {
-        const rewriteFlag = !getConfig<boolean>("previewBeforeFix", true);
+        const rewriteFlag = !getConfig<boolean>("general.previewBeforeFix", true);
         const filePath = fileUri[0].fsPath;
         mage.setOptions({ task: "import", importExcelFrom: filePath, rewriteFlag });
         const res = await mage.execute();

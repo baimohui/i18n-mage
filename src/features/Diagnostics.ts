@@ -29,7 +29,7 @@ export class Diagnostics {
     if (!getConfig<boolean>("translationHints.enable", true)) return;
     const mage = LangMage.getInstance();
     const publicCtx = mage.getPublicContext();
-    const ignoredFileList = getConfig<string[]>("ignoredFileList", []);
+    const ignoredFileList = getConfig<string[]>("workspace.ignoredFileList", []);
     if (ignoredFileList.some(ifp => isSamePath(document.uri.fsPath, ifp))) return;
 
     const text = document.getText();

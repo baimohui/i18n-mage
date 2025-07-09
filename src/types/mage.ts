@@ -1,4 +1,4 @@
-import { I18nSolution, SortMode } from "@/types";
+import { I18nFramework, SortMode } from "@/types";
 
 export interface LangMageOptions {
   task?: string;
@@ -24,7 +24,7 @@ export interface LangMageOptions {
   modifyList?: Array<{ key: string; name: string; value: string; lang: string }>;
   trimKeyList?: string[];
   manuallyMarkedUsedEntries?: string[];
-  i18nSolution?: I18nSolution;
+  i18nFramework?: I18nFramework;
 }
 
 export const EXECUTION_RESULT_CODE = {

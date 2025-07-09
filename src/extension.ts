@@ -30,7 +30,7 @@ class ExtensionState {
 
   public initialize(context: vscode.ExtensionContext) {
     this._context = context;
-    this._enabled = getConfig<boolean>("enable", true);
+    this._enabled = getConfig<boolean>("general.enable", true);
     vscode.commands.executeCommand("setContext", "enabled", this._enabled);
   }
 
@@ -93,8 +93,8 @@ export async function activate(context: vscode.ExtensionContext) {
   // 监听配置变化
   context.subscriptions.push(
     vscode.workspace.onDidChangeConfiguration(async e => {
-      if (e.affectsConfiguration("i18n-mage.enable")) {
-        await extensionState.setEnabled(getConfig<boolean>("enable", true));
+      if (e.affectsConfiguration("i18n-mage.general.enable")) {
+        await extensionState.setEnabled(getConfig<boolean>("general.enable", true));
       }
     })
   );

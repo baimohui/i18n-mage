@@ -13,7 +13,7 @@ export function registerSetReferredLangCommand() {
       mage.setOptions({ referredLang: lang.key, task: "check", globalFlag: false, clearCache: false });
       await mage.execute();
       const publicCtx = mage.getPublicContext();
-      await setConfig("referenceLanguage", publicCtx.referredLang);
+      await setConfig("translationServices.referenceLanguage", publicCtx.referredLang);
       treeInstance.refresh();
       const decorator = DecoratorController.getInstance();
       decorator.update(vscode.window.activeTextEditor);
