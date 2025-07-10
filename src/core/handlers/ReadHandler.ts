@@ -10,6 +10,7 @@ import {
   escapeString,
   unescapeString,
   getCaseType,
+  normalizeEntryName,
   isIgnoredDir
 } from "@/utils/regex";
 import { EntryTree, LangDictionary, LangTree } from "@/types";
@@ -47,10 +48,16 @@ export class ReadHandler {
     this.ctx.usedEntryMap = {};
     this.ctx.undefinedEntryList = [];
     this.ctx.undefinedEntryMap = {};
+    const i18nFeatures = {
+      framework: this.ctx.i18nFramework,
+      defaultNamespace: this.ctx.defaultNamespace,
+      tFuncNames: this.ctx.tFuncNames,
+      interpolationBrackets: this.ctx.interpolationBrackets
+    };
     for (const filePath of filePaths) {
       if (this.ctx.ignoredFileList.some(ifp => isSamePath(filePath, ifp))) continue;
       const fileContent = fs.readFileSync(filePath, "utf8");
-      const tItems = catchTEntries(fileContent);
+      const tItems = catchTEntries(fileContent, i18nFeatures);
       const existedItems = catchPossibleEntries(fileContent, this.ctx.langFormatType, this.ctx.entryClassTree);
       const usedEntryList = existedItems.slice();
       for (const item of tItems) {
@@ -59,22 +66,23 @@ export class ReadHandler {
         if (nameInfo.vars.length > 0) {
           usedEntryNameList = totalEntryList.filter(entry => nameInfo.regex.test(entry));
         } else {
-          usedEntryNameList = getValueByAmbiguousEntryName(this.ctx.entryTree, nameInfo.text) === undefined ? [] : [nameInfo.text];
+          const entryName = normalizeEntryName(nameInfo.text, i18nFeatures);
+          usedEntryNameList = getValueByAmbiguousEntryName(this.ctx.entryTree, entryName) === undefined ? [] : [entryName];
         }
         if (usedEntryNameList.length === 0) {
           this.ctx.undefinedEntryList.push({ ...item, path: filePath });
           this.ctx.undefinedEntryMap[nameInfo.text] ??= {};
-          this.ctx.undefinedEntryMap[nameInfo.text][filePath] ??= new Set<number>();
+          this.ctx.undefinedEntryMap[nameInfo.text][filePath] ??= new Set<[number, number]>();
           this.ctx.undefinedEntryMap[nameInfo.text][filePath].add(item.pos);
         } else {
           usedEntryList.push(...usedEntryNameList.map(entryName => ({ name: entryName, pos: item.pos })));
         }
       }
       usedEntryList
-        .sort((a, b) => a.pos - b.pos)
+        .sort((a, b) => a.pos[0] - b.pos[0])
         .forEach(entry => {
           this.ctx.usedEntryMap[entry.name] ??= {};
-          this.ctx.usedEntryMap[entry.name][filePath] ??= new Set<number>();
+          this.ctx.usedEntryMap[entry.name][filePath] ??= new Set<[number, number]>();
           this.ctx.usedEntryMap[entry.name][filePath].add(entry.pos);
         });
     }

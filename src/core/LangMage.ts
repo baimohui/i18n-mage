@@ -43,6 +43,9 @@ class LangMage {
         syncBasedOnReferredEntries: getConfig<boolean>("general.syncBasedOnReferredEntries", true),
         sortingWriteMode: getConfig<SortMode>("general.sortOnWrite"),
         sortingExportMode: getConfig<SortMode>("general.sortOnExport"),
+        defaultNamespace: getConfig<string>("i18nFeatures.defaultNamespace", ""),
+        tFuncNames: getConfig<string[]>("i18nFeatures.translationFunctionNames", ["t"]),
+        interpolationBrackets: getConfig<"auto" | "single" | "double">("i18nFeatures.interpolationBrackets", "auto"),
         ...options
       };
       for (const [key, value] of Object.entries(combinedOptions)) {
@@ -130,6 +133,9 @@ class LangMage {
       langFileMinLength: this.ctx.langFileMinLength,
       sortingWriteMode: this.ctx.sortingWriteMode,
       sortingExportMode: this.ctx.sortingExportMode,
+      defaultNamespace: this.ctx.defaultNamespace,
+      tFuncNames: this.ctx.tFuncNames,
+      interpolationBrackets: this.ctx.interpolationBrackets,
       showPreInfo: this.ctx.showPreInfo,
       styleScore: this.ctx.styleScore,
       fileStructure: this.ctx.fileStructure,
@@ -161,6 +167,15 @@ class LangMage {
       tree: this.ctx.entryTree,
       updatedValues: this.ctx.updatedEntryValueInfo,
       patchedIds: this.ctx.patchedEntryIdInfo
+    };
+  }
+
+  public get i18nFeatures() {
+    return {
+      framework: this.ctx.i18nFramework,
+      defaultNamespace: this.ctx.defaultNamespace,
+      tFuncNames: this.ctx.tFuncNames,
+      interpolationBrackets: this.ctx.interpolationBrackets
     };
   }
 

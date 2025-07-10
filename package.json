@@ -142,6 +142,12 @@
               "%config.i18nFeatures.doubleBrackets%"
             ],
             "description": "%config.interpolationBrackets.desc%"
+          },
+          "i18n-mage.i18nFeatures.defaultNamespace": {
+            "order": 12,
+            "type": "string",
+            "default": "translation",
+            "description": "%config.defaultNamespace.desc%"
           }
         }
       },

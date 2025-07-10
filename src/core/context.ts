@@ -20,6 +20,9 @@ export const createLangContext = (): LangContextInternal => ({
   i18nFramework: "none",
   sortingWriteMode: "none",
   sortingExportMode: "none",
+  defaultNamespace: "translation",
+  tFuncNames: ["t"],
+  interpolationBrackets: "auto",
 
   langFormatType: "",
   langDictionary: {},

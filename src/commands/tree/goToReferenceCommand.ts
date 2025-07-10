@@ -6,7 +6,7 @@ import { NotificationManager } from "@/utils/notification";
 export function registerGoToReferenceCommand() {
   const disposable = vscode.commands.registerCommand(
     "i18nMage.goToReference",
-    async (e: { usedInfo: Record<string, number[]>; label: string }) => {
+    async (e: { usedInfo: Record<string, Set<[number, number]>>; label: string }) => {
       const editor = vscode.window.activeTextEditor;
       if (!editor) {
         NotificationManager.showError(t("common.noActiveEditorWarn"));
@@ -16,9 +16,14 @@ export function registerGoToReferenceCommand() {
       if (typeof e.usedInfo === "object" && Object.keys(e.usedInfo).length > 0) {
         const matchedPath = Object.keys(e.usedInfo).find(filePath => vscode.Uri.file(filePath).fsPath === resourceUri.fsPath);
         const document = await vscode.workspace.openTextDocument(resourceUri);
-        const pos = document.positionAt(e.usedInfo[matchedPath!][0]);
-        const selection = new vscode.Range(pos, pos.translate(0, e.label.length));
-        vscode.window.showTextDocument(resourceUri, { selection });
+        const set = e.usedInfo[matchedPath!];
+        const pos = set.size > 0 ? set.values().next().value : undefined;
+        if (pos !== undefined) {
+          const startPos = document.positionAt(pos[0]);
+          const endPos = document.positionAt(pos[1]);
+          const selection = new vscode.Range(startPos, endPos);
+          vscode.window.showTextDocument(resourceUri, { selection });
+        }
       }
     }
   );

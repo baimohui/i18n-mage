@@ -21,6 +21,9 @@ export interface LangMageOptions {
   syncBasedOnReferredEntries?: boolean;
   sortingWriteMode?: SortMode;
   sortingExportMode?: SortMode;
+  defaultNamespace?: string;
+  tFuncNames?: string[];
+  interpolationBrackets?: "auto" | "single" | "double";
   modifyList?: Array<{ key: string; name: string; value: string; lang: string }>;
   trimKeyList?: string[];
   manuallyMarkedUsedEntries?: string[];
@@ -53,4 +56,11 @@ export interface ExecutionResult {
   success: boolean;
   message: string;
   code: ExecutionResultCode;
+}
+
+export interface I18nFeaturesInfo {
+  framework: I18nFramework;
+  defaultNamespace: string;
+  tFuncNames: string[];
+  interpolationBrackets: "auto" | "single" | "double";
 }

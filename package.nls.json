@@ -42,6 +42,7 @@
   "config.i18nFeatures.auto": "Follows the default behavior of the selected i18n framework",
   "config.i18nFeatures.singleBrackets": "Uses single curly braces (e.g. {name})",
   "config.i18nFeatures.doubleBrackets": "Uses double curly braces (e.g. {{name}})",
+  "config.defaultNamespace.desc": "Specifies the default namespace used in frameworks like react-i18next and i18next. If no namespace is explicitly provided in t() calls, this default will be used. Make sure the namespace is properly loaded",
   "command.setReferredLang.title": "Set as Reference Language",
   "command.markAsKnownLang.title": "Mark as Known Language",
   "command.refresh.title": "Refresh",

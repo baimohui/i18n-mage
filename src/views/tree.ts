@@ -19,15 +19,15 @@ interface ExtendedTreeItem extends vscode.TreeItem {
 }
 
 class FileItem extends vscode.TreeItem {
-  constructor(resourceUri: vscode.Uri, pos: vscode.Position, label: string) {
+  constructor(resourceUri: vscode.Uri, range: vscode.Range) {
     super(resourceUri, vscode.TreeItemCollapsibleState.None);
     this.contextValue = "fileItem";
     this.tooltip = `${resourceUri.fsPath}`;
-    this.description = `${pos.line + 1}:${pos.character + 1}`;
+    this.description = `${range.start.line + 1}:${range.start.character + 1}`;
     this.command = {
       command: "vscode.open",
       title: "Open File",
-      arguments: [resourceUri, { selection: new vscode.Range(pos, pos.translate(0, label.length)) }]
+      arguments: [resourceUri, { selection: range }]
     };
   }
 }
@@ -77,6 +77,10 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
 
   get unusedKeySet() {
     return this.langInfo.unusedKeySet;
+  }
+
+  get i18nFeatures() {
+    return this.#mage.i18nFeatures;
   }
 
   refresh(): void {
@@ -415,9 +419,11 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
         for (const filePath in entryUsedInfo) {
           const fileUri = vscode.Uri.file(filePath);
           const document = await vscode.workspace.openTextDocument(fileUri);
-          entryUsedInfo[filePath].forEach((offset: number) => {
-            const pos = document.positionAt(offset);
-            list.push(new FileItem(fileUri, pos, element.key as string));
+          entryUsedInfo[filePath].forEach(offset => {
+            const startPos = document.positionAt(offset[0]);
+            const endPos = document.positionAt(offset[1]);
+            const range = new vscode.Range(startPos, endPos);
+            list.push(new FileItem(fileUri, range));
           });
         }
         return list;
@@ -470,7 +476,7 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
     const editor = vscode.window.activeTextEditor;
     if (editor) {
       const text = editor.document.getText();
-      this.usedEntries = catchTEntries(text);
+      this.usedEntries = catchTEntries(text, this.i18nFeatures);
       this.usedEntries.forEach(entry => {
         const { text, regex } = entry.nameInfo;
         if (Object.hasOwn(this.undefinedEntryMap, text)) {

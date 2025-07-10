@@ -34,6 +34,9 @@ export interface LangContextPublic {
   syncBasedOnReferredEntries: boolean;
   sortingWriteMode: SortMode;
   sortingExportMode: SortMode;
+  defaultNamespace: string;
+  tFuncNames: string[];
+  interpolationBrackets: "auto" | "single" | "double";
   manuallyMarkedUsedEntries: string[];
   modifyList: Array<{ key: string; name: string; value: string; lang: string }>;
   i18nFramework: I18nFramework;
@@ -52,8 +55,8 @@ export interface LangContextInternal extends LangContextPublic {
   entryClassTree: Record<string, any>;
   entryClassInfo: EntryClassInfo;
   undefinedEntryList: TEntry[];
-  undefinedEntryMap: Record<string, Record<string, Set<number>>>;
-  usedEntryMap: Record<string, Record<string, Set<number>>>;
+  undefinedEntryMap: Record<string, Record<string, Set<[number, number]>>>;
+  usedEntryMap: Record<string, Record<string, Set<[number, number]>>>;
   usedKeySet: Set<string>;
   unusedKeySet: Set<string>;
   isFlat: boolean;

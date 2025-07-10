@@ -3,7 +3,7 @@ import { t } from "@/utils/i18n";
 import LangMage from "@/core/LangMage";
 import { getConfig } from "@/utils/config";
 import { isSamePath } from "@/utils/fs";
-import { getValueByAmbiguousEntryName, catchTEntries, unescapeString } from "@/utils/regex";
+import { getValueByAmbiguousEntryName, catchTEntries, unescapeString, normalizeEntryName } from "@/utils/regex";
 
 export class Diagnostics {
   private static instance: Diagnostics;
@@ -33,24 +33,28 @@ export class Diagnostics {
     if (ignoredFileList.some(ifp => isSamePath(document.uri.fsPath, ifp))) return;
 
     const text = document.getText();
-    const entries = catchTEntries(text);
+    const entries = catchTEntries(text, mage.i18nFeatures);
     const diagnostics: vscode.Diagnostic[] = [];
     const { tree, countryMap } = mage.langDetail;
     const translations = countryMap[publicCtx.referredLang];
     const totalEntryList = Object.keys(mage.langDetail.dictionary).map(key => unescapeString(key));
 
     for (const entry of entries) {
-      const entryText = entry.nameInfo.text;
-      const entryKey = getValueByAmbiguousEntryName(tree, entryText);
+      const entryName = normalizeEntryName(entry.nameInfo.text, mage.i18nFeatures);
+      const entryKey = getValueByAmbiguousEntryName(tree, entryName);
       const entryValue = translations[entryKey as string];
       if (entryValue === undefined) {
         if (entry.nameInfo.vars.length > 0 && totalEntryList.some(entryName => entry.nameInfo.regex.test(entryName))) {
           continue;
         }
-        const startPos = document.positionAt(entry.pos);
-        const endPos = document.positionAt(entry.pos + entryText.length);
+        const startPos = document.positionAt(entry.pos[0]);
+        const endPos = document.positionAt(entry.pos[1]);
         const range = new vscode.Range(startPos, endPos);
-        const diagnostic = new vscode.Diagnostic(range, t("diagnostics.undefinedWarn", entryText), vscode.DiagnosticSeverity.Warning);
+        const diagnostic = new vscode.Diagnostic(
+          range,
+          t("diagnostics.undefinedWarn", entry.nameInfo.text),
+          vscode.DiagnosticSeverity.Warning
+        );
         diagnostic.source = "i18n Mage";
         diagnostics.push(diagnostic);
       }

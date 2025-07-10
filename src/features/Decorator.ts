@@ -1,6 +1,6 @@
 import * as vscode from "vscode";
 import LangMage from "@/core/LangMage";
-import { getValueByAmbiguousEntryName, catchTEntries, getLineEnding, unescapeString } from "@/utils/regex";
+import { getValueByAmbiguousEntryName, catchTEntries, getLineEnding, unescapeString, normalizeEntryName } from "@/utils/regex";
 import { getConfig } from "@/utils/config";
 import { isSamePath } from "@/utils/fs";
 import { TEntry } from "@/types";
@@ -65,15 +65,16 @@ export class DecoratorController implements vscode.Disposable {
     const lineEnding = getLineEnding();
     const visibleText = visibleLines.join(lineEnding);
     this.offsetBase = editor.document.offsetAt(new vscode.Position(visibleStart, 0));
-    const entries = catchTEntries(visibleText);
+    const entries = catchTEntries(visibleText, mage.i18nFeatures);
     this.entries = entries;
     const maxLen = getConfig<number>("translationHints.maxLength");
     const enableLooseKeyMatch = getConfig<boolean>("translationHints.enableLooseKeyMatch", true);
     const totalEntryList = Object.keys(mage.langDetail.dictionary).map(key => unescapeString(key));
     entries.forEach(entry => {
-      let startPos = entry.pos;
-      let endPos = entry.pos + entry.nameInfo.text.length;
-      const entryKey = getValueByAmbiguousEntryName(tree, entry.nameInfo.text);
+      let startPos = entry.pos[0] + 1;
+      let endPos = entry.pos[1] - 1;
+      const entryName = normalizeEntryName(entry.nameInfo.text, mage.i18nFeatures);
+      const entryKey = getValueByAmbiguousEntryName(tree, entryName);
       let entryValue = translations[entryKey as string];
       if (entryValue === undefined) {
         if (!enableLooseKeyMatch || entry.nameInfo.vars.length === 0) return;
@@ -81,8 +82,8 @@ export class DecoratorController implements vscode.Disposable {
         const matchedEntryKey = getValueByAmbiguousEntryName(tree, matchedEntryName);
         if (matchedEntryKey === undefined) return;
         entryValue = `"${translations[matchedEntryKey]}"`;
-        startPos = entry.pos - 1;
-        endPos = entry.pos + entry.raw.length - 5;
+        startPos--;
+        endPos++;
       }
       const globalStartPos = editor.document.positionAt(this.offsetBase + startPos);
       const globalEndPos = editor.document.positionAt(this.offsetBase + endPos);
@@ -128,7 +129,8 @@ export class DecoratorController implements vscode.Disposable {
     }
     // 如果改动在可视区域内 或者包含换行/潜在 TEntry，触发更新
     const fullText = changedTextSnippets.join("\n");
-    if (affected || fullText.includes("\n") || catchTEntries(fullText).length > 0) {
+    const mage = LangMage.getInstance();
+    if (affected || fullText.includes("\n") || catchTEntries(fullText, mage.i18nFeatures).length > 0) {
       this.update(editor);
     }
   }

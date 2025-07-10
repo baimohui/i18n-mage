@@ -9,6 +9,28 @@ export const I18N_FRAMEWORK = {
 
 export type I18nFramework = (typeof I18N_FRAMEWORK)[keyof typeof I18N_FRAMEWORK];
 
+export interface I18nFrameworkConfig {
+  singleBrackets: boolean;
+}
+
+export const I18N_FRAMEWORK_DEFAULT_CONFIG: Record<Exclude<I18nFramework, typeof I18N_FRAMEWORK.none>, I18nFrameworkConfig> = {
+  [I18N_FRAMEWORK.vueI18n]: {
+    singleBrackets: true
+  },
+  [I18N_FRAMEWORK.reactIntl]: {
+    singleBrackets: true
+  },
+  [I18N_FRAMEWORK.reactI18next]: {
+    singleBrackets: false
+  },
+  [I18N_FRAMEWORK.i18nNext]: {
+    singleBrackets: false
+  },
+  [I18N_FRAMEWORK.vscodeL10n]: {
+    singleBrackets: true
+  }
+} as const;
+
 export const SORT_MODE = {
   None: "none",
   ByKey: "byKey",

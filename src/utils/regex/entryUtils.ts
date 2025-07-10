@@ -1,9 +1,12 @@
-import { TEntry, EntryTree, PEntry, TEntryPartType, I18N_FRAMEWORK, I18nFramework } from "@/types";
+import { TEntry, EntryTree, PEntry, TEntryPartType, I18N_FRAMEWORK, I18N_FRAMEWORK_DEFAULT_CONFIG, I18nFeaturesInfo } from "@/types";
 import { LANG_FORMAT_TYPE, LANG_ENTRY_SPLIT_SYMBOL } from "@/utils/langKey";
 import { escapeRegExp, getIdByStr } from "./stringUtils";
-import { getConfig } from "@/utils/config";
 
-export function catchPossibleEntries(fileContent: string, langType: string, entryTree: EntryTree): { name: string; pos: number }[] {
+export function catchPossibleEntries(
+  fileContent: string,
+  langType: string,
+  entryTree: EntryTree
+): { name: string; pos: [number, number] }[] {
   const primaryClassList = Object.keys(entryTree).filter(i => !!i);
   if (primaryClassList.length === 0) return [];
   const primaryClassReg = new RegExp(
@@ -15,6 +18,7 @@ export function catchPossibleEntries(fileContent: string, langType: string, entr
   while ((primaryClassRes = primaryClassReg.exec(fileContent)) !== null) {
     const startPos = primaryClassRes.index;
     const entryName = primaryClassRes[0];
+    const endPos = startPos + entryName.length;
     const entryFormList = entryName.split(LANG_ENTRY_SPLIT_SYMBOL[langType] as string);
     let curItem = "";
     let curTree = entryTree;
@@ -35,7 +39,7 @@ export function catchPossibleEntries(fileContent: string, langType: string, entr
       }
     }
     if (isValid) {
-      entryInfoList.push({ name: entryName, pos: startPos });
+      entryInfoList.push({ name: entryName, pos: [startPos, endPos] });
     } else {
       let matchItems: any[] = [];
       const entryPrefixList = entryFormList.slice(0, -1);
@@ -45,21 +49,20 @@ export function catchPossibleEntries(fileContent: string, langType: string, entr
         entryPrefixList.push(curItem);
         matchItems = catchPossibleEntries(fileContent, langType, curTree);
       } else {
-        entryInfoList.push({ name: entryName, pos: startPos });
+        entryInfoList.push({ name: entryName, pos: [startPos, endPos] });
       }
       matchItems.forEach(item => {
-        entryInfoList.push({ name: [...entryPrefixList, item].join(LANG_ENTRY_SPLIT_SYMBOL[langType] as string), pos: startPos });
+        entryInfoList.push({ name: [...entryPrefixList, item].join(LANG_ENTRY_SPLIT_SYMBOL[langType] as string), pos: [startPos, endPos] });
       });
     }
   }
   return entryInfoList;
 }
 
-export function catchTEntries(fileContent: string): TEntry[] {
-  let tFuncNames = getConfig<string[]>("i18nFeatures.translationFunctionNames", ["t"]);
-  const i18nFramework = getConfig<I18nFramework>("i18nFeatures.framework");
+export function catchTEntries(fileContent: string, i18nFeatures: I18nFeaturesInfo): TEntry[] {
+  let tFuncNames = i18nFeatures.tFuncNames.slice();
   if (!tFuncNames.length) tFuncNames = ["t"];
-  if (i18nFramework === I18N_FRAMEWORK.vueI18n) {
+  if (i18nFeatures.framework === I18N_FRAMEWORK.vueI18n) {
     tFuncNames.push("t", "tc");
   }
   const funcNamePattern = tFuncNames.map(fn => `\\b${fn}\\b`).join("|");
@@ -69,7 +72,7 @@ export function catchTEntries(fileContent: string): TEntry[] {
   while ((tRes = tReg.exec(fileContent)) !== null) {
     const startPos = tRes.index - 1; // 起始位
     const offset = tRes[0].length; // 起始位离 t 函数内首个有效字符的距离
-    const entry = parseTEntry(fileContent, startPos, offset);
+    const entry = parseTEntry(fileContent, startPos, offset, i18nFeatures);
     if (entry) {
       entryInfoList.push(entry);
     }
@@ -77,12 +80,13 @@ export function catchTEntries(fileContent: string): TEntry[] {
   return entryInfoList;
 }
 
-export function parseTEntry(fileContent: string, startPos: number, offset: number): TEntry | null {
+export function parseTEntry(fileContent: string, startPos: number, offset: number, i18nFeatures: I18nFeaturesInfo): TEntry | null {
   let curPos = startPos + offset;
+  const nameStartPos = curPos;
+  let nameEndPos = curPos;
   let symbolStr = fileContent[curPos];
   const entryNameForm: { type: TEntryPartType; value: string }[] = [];
   const entryVarList: string[] = [];
-  const initSymbolStr = symbolStr;
   let isEntryNameParsed = false;
   let isApart = false;
   while (symbolStr !== ")") {
@@ -109,6 +113,7 @@ export function parseTEntry(fileContent: string, startPos: number, offset: numbe
       }
     } else {
       entryNameForm.push(tPart);
+      nameEndPos = curPos + value.length;
     }
     curPos += value.length;
     symbolStr = fileContent[curPos];
@@ -117,17 +122,17 @@ export function parseTEntry(fileContent: string, startPos: number, offset: numbe
   if (entryNameForm.some(item => item.type === "logic")) return null;
   const entryRaw = fileContent.slice(startPos, curPos + 1);
   if (!isStringInUncommentedRange(fileContent, entryRaw)) return null;
-  const nameInfo = getEntryNameInfoByForm(entryNameForm);
+  const nameInfo = getEntryNameInfoByForm(entryNameForm, i18nFeatures);
   if (!nameInfo) return null;
   return {
     raw: entryRaw,
     vars: entryVarList,
     nameInfo,
-    pos: startPos + (entryRaw.indexOf(initSymbolStr) + 1)
+    pos: [nameStartPos, nameEndPos]
   };
 }
 
-export function getEntryNameInfoByForm(nameForm: { type: TEntryPartType; value: string }[]) {
+export function getEntryNameInfoByForm(nameForm: { type: TEntryPartType; value: string }[], i18nFeatures: I18nFeaturesInfo) {
   let entryIndex = 0;
   let entryText = "";
   const varList: string[] = [];
@@ -137,6 +142,16 @@ export function getEntryNameInfoByForm(nameForm: { type: TEntryPartType; value: 
   let tempStr = "";
   let isValid = true;
   // const tempList: string[] = [];
+  let varPrefix = "{";
+  let varSuffix = "}";
+  const { interpolationBrackets, framework, defaultNamespace } = i18nFeatures;
+  const useDoubleBrackets =
+    interpolationBrackets === "double" ||
+    (interpolationBrackets === "auto" && framework !== I18N_FRAMEWORK.none && !I18N_FRAMEWORK_DEFAULT_CONFIG[framework].singleBrackets);
+  if (useDoubleBrackets) {
+    varPrefix = "{{";
+    varSuffix = "}}";
+  }
   nameForm.forEach(item => {
     switch (item.type) {
       case "text":
@@ -147,15 +162,20 @@ export function getEntryNameInfoByForm(nameForm: { type: TEntryPartType; value: 
         tempStr = item.value;
         tempReg = /\${\s*([^]*?)\s*}/g;
         while ((tRes = tempReg.exec(item.value)) !== null) {
-          tempStr = tempStr.replace(tRes[0], `{${entryIndex++}}`);
+          tempStr = tempStr.replace(tRes[0], `${varPrefix}${entryIndex++}${varSuffix}`);
           varList.push(tRes[1]);
         }
         entryText += tempStr;
-        entryReg = escapeRegExp(entryText.replace(/\s/g, "")).replace(/\\\{.*?\\\}/g, ".*");
-        isValid = isValid && entryText.replace(/\{\w*?\}/g, "") !== "";
+        entryReg = escapeRegExp(entryText.replace(/\s/g, "")).replace(
+          new RegExp(`${escapeRegExp(escapeRegExp(varPrefix))}.*?${escapeRegExp(escapeRegExp(varSuffix))}`, "g"),
+          ".*"
+        );
+        isValid = isValid && entryText.replace(new RegExp(`${escapeRegExp(varPrefix)}\\w*?${escapeRegExp(varSuffix)}`, "g"), "") !== "";
+        // entryReg = escapeRegExp(entryText.replace(/\s/g, "")).replace(/\\\{.*?\\\}/g, ".*");
+        // isValid = isValid && entryText.replace(/\{\w*?\}/g, "") !== "";
         break;
       case "var":
-        entryText += `{${entryIndex++}}`;
+        entryText += `${varPrefix}${entryIndex++}${varSuffix}`;
         varList.push(item.value);
         entryReg += ".*";
         break;
@@ -183,6 +203,13 @@ export function getEntryNameInfoByForm(nameForm: { type: TEntryPartType; value: 
     entryText = classRes[2];
   }
   if (!isValid) return null;
+  if (framework === I18N_FRAMEWORK.i18nNext || framework === I18N_FRAMEWORK.reactI18next) {
+    if (entryReg.includes(":")) {
+      entryReg = entryReg.replace(/:/, "\\.");
+    } else if (defaultNamespace) {
+      entryReg = `${defaultNamespace}\\.${entryReg}`;
+    }
+  }
   return {
     text: entryText,
     regex: new RegExp(`^${entryReg}$`),
@@ -304,4 +331,12 @@ export function isStringInUncommentedRange(code: string, searchString: string): 
     .replace(/lc-disable([^]*?)(lc-enable|$)/g, "")
     .replace(/\/\*[^]*?\*\/|(?<!:\s*)\/\/[^\n]*|<!--[^]*?-->/g, "");
   return uncommentedCode.includes(searchString);
+}
+
+export function normalizeEntryName(name: string, i18nFeatures: I18nFeaturesInfo) {
+  const { framework, defaultNamespace } = i18nFeatures;
+  if (framework === I18N_FRAMEWORK.i18nNext || framework === I18N_FRAMEWORK.reactI18next) {
+    return name.includes(":") ? name.replace(":", ".") : `${defaultNamespace}.${name}`;
+  }
+  return name;
 }
