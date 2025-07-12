@@ -25,7 +25,7 @@ export async function wrapWithProgress(
   let timeoutId: NodeJS.Timeout | undefined;
   try {
     // 设置超时
-    const timeout = options.timeout ?? 120000;
+    const timeout = options.timeout ?? 1000 * 60 * 3;
     timeoutId = setTimeout(() => {
       abortController.abort();
       NotificationManager.showError(t("common.progress.timeout", timeout));

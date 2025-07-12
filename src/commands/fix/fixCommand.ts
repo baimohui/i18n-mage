@@ -21,7 +21,7 @@ export function registerFixCommand() {
   };
   const disposable = vscode.commands.registerCommand("i18nMage.fix", async () => {
     let res: ExecutionResult | null = null;
-    await wrapWithProgress({ title: t("command.fix.progress"), cancellable: true }, async () => {
+    await wrapWithProgress({ title: t("command.fix.progress"), cancellable: true, timeout: 1000 * 60 * 10 }, async () => {
       const rewriteFlag = !getConfig<boolean>("general.previewBeforeFix", true);
       mage.setOptions({ task: "fix", globalFlag: true, rewriteFlag });
       res = await mage.execute();
