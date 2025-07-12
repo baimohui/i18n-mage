@@ -58,7 +58,7 @@ export class ReadHandler {
       if (this.ctx.ignoredFileList.some(ifp => isSamePath(filePath, ifp))) continue;
       const fileContent = fs.readFileSync(filePath, "utf8");
       const tItems = catchTEntries(fileContent, i18nFeatures);
-      const existedItems = catchPossibleEntries(fileContent, this.ctx.langFormatType, this.ctx.entryClassTree);
+      const existedItems = catchPossibleEntries(fileContent, this.ctx.entryTree, i18nFeatures);
       const usedEntryList = existedItems.slice();
       for (const item of tItems) {
         const nameInfo = item.nameInfo;

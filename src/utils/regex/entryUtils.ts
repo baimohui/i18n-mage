@@ -1,60 +1,21 @@
 import { TEntry, EntryTree, PEntry, TEntryPartType, I18N_FRAMEWORK, I18N_FRAMEWORK_DEFAULT_CONFIG, I18nFeaturesInfo } from "@/types";
-import { LANG_FORMAT_TYPE, LANG_ENTRY_SPLIT_SYMBOL } from "@/utils/langKey";
 import { escapeRegExp, getIdByStr } from "./stringUtils";
+import { getValueByAmbiguousEntryName } from "./treeUtils";
 
 export function catchPossibleEntries(
   fileContent: string,
-  langType: string,
-  entryTree: EntryTree
+  entryTree: EntryTree,
+  i18nFeatures: I18nFeaturesInfo
 ): { name: string; pos: [number, number] }[] {
-  const primaryClassList = Object.keys(entryTree).filter(i => !!i);
-  if (primaryClassList.length === 0) return [];
-  const primaryClassReg = new RegExp(
-    `${langType === LANG_FORMAT_TYPE.nonObj ? "(?<![a-zA-Z0-9\\-]+)" : "(?<=[\"`']{1})"}(${primaryClassList.join("|")})[\\w.]*(?![:=/]{1})`,
-    "g"
-  );
-  let primaryClassRes: RegExpExecArray | null = null;
+  const regex = /(["'`])(?:\\[\s\S]|(?!\1)[^\\])*?\1/g;
+  let res: RegExpExecArray | null = null;
   const entryInfoList: PEntry[] = [];
-  while ((primaryClassRes = primaryClassReg.exec(fileContent)) !== null) {
-    const startPos = primaryClassRes.index;
-    const entryName = primaryClassRes[0];
-    const endPos = startPos + entryName.length;
-    const entryFormList = entryName.split(LANG_ENTRY_SPLIT_SYMBOL[langType] as string);
-    let curItem = "";
-    let curTree = entryTree;
-    let isValid = false;
-    let isUndefined = false;
-    const entryFormLen = entryFormList.length;
-    for (let i = 0; i < entryFormLen; i++) {
-      curItem = entryFormList[i];
-      if (Object.hasOwn(curTree, curItem)) {
-        if (curTree[curItem] === null) {
-          isValid = true;
-        } else {
-          curTree = curTree[curItem] as EntryTree;
-        }
-      } else {
-        isUndefined = i + 1 === entryFormLen;
-        break;
-      }
-    }
-    if (isValid) {
-      entryInfoList.push({ name: entryName, pos: [startPos, endPos] });
-    } else {
-      let matchItems: any[] = [];
-      const entryPrefixList = entryFormList.slice(0, -1);
-      if (isUndefined) {
-        matchItems = Object.keys(curTree).filter(item => curTree[item] === null && RegExp(`^${curItem}\\d*$`).test(item));
-      } else if (curTree !== entryTree && langType === LANG_FORMAT_TYPE.nonObj) {
-        entryPrefixList.push(curItem);
-        matchItems = catchPossibleEntries(fileContent, langType, curTree);
-      } else {
-        entryInfoList.push({ name: entryName, pos: [startPos, endPos] });
-      }
-      matchItems.forEach(item => {
-        entryInfoList.push({ name: [...entryPrefixList, item].join(LANG_ENTRY_SPLIT_SYMBOL[langType] as string), pos: [startPos, endPos] });
-      });
-    }
+  while ((res = regex.exec(fileContent)) !== null) {
+    const entryName = normalizeEntryName(res[0].slice(1, -1), i18nFeatures);
+    if (!isValidI18nVarName(entryName) || getValueByAmbiguousEntryName(entryTree, entryName) === undefined) continue;
+    const startPos = res.index;
+    const endPos = startPos + res[0].length;
+    entryInfoList.push({ name: entryName, pos: [startPos, endPos] });
   }
   return entryInfoList;
 }
@@ -326,9 +287,10 @@ export function matchBrackets(str: string, startPos = 0, open = "{", close = "}"
   return null;
 }
 
+// TODO searchString 应替换为具体的方位
 export function isStringInUncommentedRange(code: string, searchString: string): boolean {
   const uncommentedCode = code
-    .replace(/lc-disable([^]*?)(lc-enable|$)/g, "")
+    .replace(/i18n-mage-disable([^]*?)(i18n-mage-enable|$)/g, "")
     .replace(/\/\*[^]*?\*\/|(?<!:\s*)\/\/[^\n]*|<!--[^]*?-->/g, "");
   return uncommentedCode.includes(searchString);
 }
@@ -339,4 +301,9 @@ export function normalizeEntryName(name: string, i18nFeatures: I18nFeaturesInfo)
     return name.includes(":") ? name.replace(":", ".") : `${defaultNamespace}.${name}`;
   }
   return name;
+}
+
+export function isValidI18nVarName(name: string) {
+  const validI18nVarNameRegex = /^[a-zA-Z_-][a-zA-Z0-9.:_-]*$/;
+  return validI18nVarNameRegex.test(name);
 }
