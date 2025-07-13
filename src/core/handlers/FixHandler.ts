@@ -27,7 +27,8 @@ export class FixHandler {
       const checker = new CheckHandler(this.ctx);
       checker.run();
       if (this.ctx.undefinedEntryList.length > 0) {
-        await this.processUndefinedEntries();
+        const res = await this.processUndefinedEntries();
+        if (!res.success) return res;
       }
       const res = await this.fillMissingTranslations();
       if (ExecutionContext.token.isCancellationRequested) {
@@ -44,7 +45,7 @@ export class FixHandler {
     }
   }
 
-  private async processUndefinedEntries(): Promise<void> {
+  private async processUndefinedEntries(): Promise<ExecutionResult> {
     this.lackInfoFromUndefined = {};
     const referredLangCode = getLangCode(this.ctx.referredLang);
     const referredLangMap = this.ctx.langCountryMap[this.ctx.referredLang];
@@ -81,7 +82,11 @@ export class FixHandler {
         if (res.success && res.data) {
           enNameList = res.data;
         } else {
-          return;
+          return {
+            success: false,
+            message: t("command.fix.translatorFailed"),
+            code: EXECUTION_RESULT_CODE.TranslatorFailed
+          };
         }
       }
     }
@@ -130,9 +135,15 @@ export class FixHandler {
       this.ctx.patchedEntryIdInfo[entry.path as string] ??= [];
       this.ctx.patchedEntryIdInfo[entry.path as string].push({ id: entry.nameInfo.id, raw: entry.raw, fixedRaw: entry.fixedRaw });
     });
+    return {
+      success: true,
+      message: "",
+      code: EXECUTION_RESULT_CODE.Success
+    };
   }
 
   private async fillMissingTranslations(): Promise<ExecutionResult> {
+    let hasTranslatorFailed = false;
     for (const lang in this.lackInfoFromUndefined) {
       if (Object.hasOwn(this.ctx.lackInfo, lang)) {
         this.ctx.lackInfo[lang].push(...this.lackInfoFromUndefined[lang]);
@@ -158,14 +169,21 @@ export class FixHandler {
           lackEntries.forEach((entryName, index) => {
             setUpdatedEntryValueInfo(this.ctx, entryName, res.data?.[index], lang);
           });
+        } else {
+          hasTranslatorFailed = true;
         }
       }
     }
-    return {
-      success: true,
-      message: this.needFix ? "" : t("command.fix.nullWarn"),
-      code: this.needFix ? EXECUTION_RESULT_CODE.Success : EXECUTION_RESULT_CODE.NoLackEntries
-    };
+    let message = "";
+    let code = EXECUTION_RESULT_CODE.Success;
+    if (!this.needFix) {
+      message = t("command.fix.nullWarn");
+      code = EXECUTION_RESULT_CODE.NoLackEntries;
+    } else if (hasTranslatorFailed) {
+      message = t("command.fix.translatorFailed");
+      code = EXECUTION_RESULT_CODE.TranslatorFailed;
+    }
+    return { success: true, message, code };
   }
 
   private getFixedRaw(entry: TEntry, name: string): string {
