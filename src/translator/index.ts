@@ -27,7 +27,7 @@ type ApiMap = Record<ApiPlatform, (string | undefined)[]>;
 
 let curApiId = 0;
 
-const translateTo = async (data: TranslateData): Promise<TranslateResult> => {
+export default async function translateTo(data: TranslateData): Promise<TranslateResult> {
   const { source = "", target = "", sourceTextList = [] } = data;
   const baiduAppId = getConfig<string>("translationServices.baiduAppId", "");
   const baiduSecretKey = getConfig<string>("translationServices.baiduSecretKey", "");
@@ -120,6 +120,4 @@ const translateTo = async (data: TranslateData): Promise<TranslateResult> => {
       resolve(res);
     }
   });
-};
-
-export default translateTo;
+}

@@ -92,7 +92,8 @@ export class FixHandler {
     }
     const pcList = this.getPopularClassList();
     const namePrefix = pcList[0]?.name ?? "";
-    const checkExisted = (id: string) => Boolean(getValueByAmbiguousEntryName(this.ctx.entryTree, id));
+    const newIdSet = new Set<string>();
+    const checkExisted = (key: string) => Boolean(getValueByAmbiguousEntryName(this.ctx.entryTree, key)) || newIdSet.has(key);
     needTranslateList.forEach((entry, index) => {
       let id = getIdByStr(enNameList[index], true);
       const nameInfo = entry.nameInfo;
@@ -104,9 +105,14 @@ export class FixHandler {
         const needsNewId = id.length > 40 || checkExisted(baseName + id);
         if (needsNewId) {
           const mainName = id.length > 40 ? entry.path!.match(/([a-zA-Z0-9]+)\./)?.[1] + "Text" : id;
-          id = this.generateUniqueId(mainName, baseName);
+          let index = 1;
+          while (checkExisted(`${baseName}${mainName}${String(index).padStart(2, "0")}`)) {
+            index++;
+          }
+          id = `${mainName}${String(index).padStart(2, "0")}`;
         }
         nameInfo.boundName = baseName + id;
+        newIdSet.add(nameInfo.boundName);
       }
       patchedEntryIdList.push({ ...entry, fixedRaw: this.getFixedRaw(entry, nameInfo.boundName) });
       this.needFix = true;
@@ -158,6 +164,7 @@ export class FixHandler {
       const referredLangMap = this.ctx.langCountryMap[this.ctx.referredLang];
       const lackEntries = this.ctx.lackInfo[lang].filter(key => referredLangMap[key]);
       if (lackEntries.length > 0) {
+        this.needFix = true;
         const referredEntriesText = lackEntries.map(key => referredLangMap[key]);
         const res = await translateTo({
           source: this.ctx.referredLang,
@@ -165,7 +172,6 @@ export class FixHandler {
           sourceTextList: referredEntriesText
         });
         if (res.success && res.data) {
-          this.needFix = true;
           lackEntries.forEach((entryName, index) => {
             setUpdatedEntryValueInfo(this.ctx, entryName, res.data?.[index], lang);
           });
@@ -233,15 +239,5 @@ export class FixHandler {
     return Object.keys(map)
       .sort((a, b) => (map[a] > map[b] ? -1 : 1))
       .map(item => ({ name: item, value: map[item] }));
-  }
-
-  private generateUniqueId(main, prefix) {
-    let index = 1;
-    const separator = "_";
-    const check = (id: string) => Boolean(getValueByAmbiguousEntryName(this.ctx.entryTree, prefix + id));
-    while (check(`${main}${separator}${String(index).padStart(2, "0")}`)) {
-      index++;
-    }
-    return `${main}${separator}${String(index).padStart(2, "0")}`;
   }
 }

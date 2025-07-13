@@ -27,7 +27,7 @@ const supportLangList = [...langList0, ...langList1];
 let baiduAppId = "";
 let baiduSecretKey = "";
 
-const translateTo = async ({ source, target, sourceTextList, apiId, apiKey }: TranslateParams): Promise<TranslateResult> => {
+export default async function translateTo({ source, target, sourceTextList, apiId, apiKey }: TranslateParams): Promise<TranslateResult> {
   baiduAppId = apiId;
   baiduSecretKey = apiKey;
   const translateLenLimit = 2000; // a request content max length
@@ -57,15 +57,15 @@ const translateTo = async ({ source, target, sourceTextList, apiId, apiKey }: Tr
   });
   packList.push(pack);
   return await sendBatch(source, target, packList, 0, secondRequestLimit);
-};
+}
 
-const sendBatch = async (
+async function sendBatch(
   source: string,
   target: string,
   packList: string[][],
   batchNum: number,
   batchSize: number
-): Promise<TranslateResult> => {
+): Promise<TranslateResult> {
   const result: TranslateResult = { success: true, message: "", data: [] };
   const packNum = batchNum * batchSize;
   for (let i = packNum; i < packNum + batchSize; i++) {
@@ -98,7 +98,7 @@ const sendBatch = async (
   } else {
     return result;
   }
-};
+}
 
 interface TranslationResponse {
   error_code?: number;
@@ -106,7 +106,7 @@ interface TranslationResponse {
   // 其他可能的响应字段
 }
 
-const send = async (source: string, target: string, sourceTextList: string[]): Promise<TranslateResult> => {
+async function send(source: string, target: string, sourceTextList: string[]): Promise<TranslateResult> {
   try {
     const salt = Math.random();
     const sourceText = sourceTextList.join("\n");
@@ -140,14 +140,12 @@ const send = async (source: string, target: string, sourceTextList: string[]): P
       return { success: false, message: e as string };
     }
   }
-};
+}
 
-const createUrl = (domain: string, form: Record<string, string | number>): string => {
+function createUrl(domain: string, form: Record<string, string | number>): string {
   let result = domain + "?";
   for (const key in form) {
     result += `${key}=${form[key]}&`;
   }
   return result.slice(0, -1);
-};
-
-export default translateTo;
+}

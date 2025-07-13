@@ -27,7 +27,7 @@ const supportLangMap: Record<string, string[]> = {
   "zh-TW": ["en", "ja", "ko", "fr", "es", "it", "de", "tr", "ru", "pt", "vi", "id", "th", "ms"]
 };
 
-const translateTo = async ({ source, target, sourceTextList, apiId, apiKey }: TranslateParams): Promise<TranslateResult> => {
+export default async function translateTo({ source, target, sourceTextList, apiId, apiKey }: TranslateParams): Promise<TranslateResult> {
   if (!Object.hasOwn(supportLangMap, source)) {
     return {
       success: false,
@@ -67,15 +67,15 @@ const translateTo = async ({ source, target, sourceTextList, apiId, apiKey }: Tr
   }
   packList.push(pack);
   return await sendBatch(source, target, packList, 0, secondRequestLimit);
-};
+}
 
-const sendBatch = async (
+async function sendBatch(
   source: string,
   target: string,
   packList: string[][],
   batchNum: number,
   batchSize: number
-): Promise<TranslateResult> => {
+): Promise<TranslateResult> {
   const result: string[] = [];
   const packNum = batchNum * batchSize;
   try {
@@ -112,9 +112,9 @@ const sendBatch = async (
       message: (e as Error).message
     };
   }
-};
+}
 
-const send = (source: string, target: string, sourceTextList: string[]): Promise<string[]> => {
+function send(source: string, target: string, sourceTextList: string[]): Promise<string[]> {
   return new Promise((resolve, reject) => {
     const params = {
       Source: source,
@@ -143,6 +143,4 @@ const send = (source: string, target: string, sourceTextList: string[]): Promise
       }
     );
   });
-};
-
-export default translateTo;
+}

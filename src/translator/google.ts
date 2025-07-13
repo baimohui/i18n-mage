@@ -13,7 +13,7 @@ interface TranslateResult {
   data?: string[];
 }
 
-const translateTo = async ({ source, target, sourceTextList }: TranslateParams): Promise<TranslateResult> => {
+export default async function translateTo({ source, target, sourceTextList }: TranslateParams): Promise<TranslateResult> {
   const translateLenLimit = 5000;
   const secondRequestLimit = 1;
   let sum = 0;
@@ -34,15 +34,15 @@ const translateTo = async ({ source, target, sourceTextList }: TranslateParams):
   }
   packList.push(pack);
   return await sendBatch(source, target, packList, 0, secondRequestLimit);
-};
+}
 
-const sendBatch = async (
+async function sendBatch(
   source: string,
   target: string,
   packList: string[][],
   batchNum: number,
   batchSize: number
-): Promise<TranslateResult> => {
+): Promise<TranslateResult> {
   const result: TranslateResult = { success: true, message: "", data: [] };
   const packNum = batchNum * batchSize;
 
@@ -80,9 +80,9 @@ const sendBatch = async (
   } else {
     return result;
   }
-};
+}
 
-const send = async (source: string, target: string, sourceTextList: string[]): Promise<TranslateResult> => {
+async function send(source: string, target: string, sourceTextList: string[]): Promise<TranslateResult> {
   const sourceText = sourceTextList.join("\n");
   try {
     const res = (await translate(sourceText, {
@@ -119,6 +119,4 @@ const send = async (source: string, target: string, sourceTextList: string[]): P
   } catch (e: unknown) {
     return { success: false, message: e instanceof Error ? e.message : (e as string) };
   }
-};
-
-export default translateTo;
+}

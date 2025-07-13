@@ -6,7 +6,7 @@ const baseUrl = "https://api.deepseek.com/v1/chat/completions";
 
 let deepseekApiKey = "";
 
-const translateTo = async ({ source, target, sourceTextList, apiKey }: TranslateParams): Promise<TranslateResult> => {
+export default async function translateTo({ source, target, sourceTextList, apiKey }: TranslateParams): Promise<TranslateResult> {
   deepseekApiKey = apiKey;
   const translateLenLimit = 6000; // a request content max length
   const secondRequestLimit = 10; // the max times per second to request
@@ -27,15 +27,15 @@ const translateTo = async ({ source, target, sourceTextList, apiKey }: Translate
   });
   packList.push(pack);
   return await sendBatch(source, target, packList, 0, secondRequestLimit);
-};
+}
 
-const sendBatch = async (
+async function sendBatch(
   source: string,
   target: string,
   packList: string[][],
   batchNum: number,
   batchSize: number
-): Promise<TranslateResult> => {
+): Promise<TranslateResult> {
   const result: TranslateResult = { success: true, message: "", data: [] };
   const packNum = batchNum * batchSize;
   for (let i = packNum; i < packNum + batchSize; i++) {
@@ -68,7 +68,7 @@ const sendBatch = async (
   } else {
     return result;
   }
-};
+}
 
 interface DeepSeekAPIResponse {
   id: string;
@@ -90,7 +90,7 @@ interface DeepSeekAPIResponse {
   };
 }
 
-const send = async (source: string, target: string, sourceTextList: string[]): Promise<TranslateResult> => {
+async function send(source: string, target: string, sourceTextList: string[]): Promise<TranslateResult> {
   try {
     const sourceText = sourceTextList.join("\n");
     const prompt = `[角色] 专业翻译\n[要求]\n1. 语体：正式简洁\n2. 保持术语一致\n3. 保留原文语境\n4. 仅输出译文\n\n将以下${source}文本翻译为${target}：\n${sourceText}`;
@@ -99,7 +99,7 @@ const send = async (source: string, target: string, sourceTextList: string[]): P
       {
         model: "deepseek-chat", // 或 "deepseek-reasoner"
         messages: [{ role: "user", content: prompt }],
-        temperature: 1.3
+        temperature: 0.7
       },
       {
         headers: {
@@ -108,9 +108,10 @@ const send = async (source: string, target: string, sourceTextList: string[]): P
         }
       }
     );
-    const result = response.data.choices[0].message.content;
+    let result = response.data.choices[0].message.content;
+    result = normalizeLineBreaks(sourceText, result);
     const transformedList: string[] = [];
-    const resList = result.split("\n");
+    const resList = result.split(/\r?\n/);
     let curResIndex = 0;
     sourceTextList.forEach(text => {
       const newlineCount = (text.match(/\n/g) || []).length + 1;
@@ -125,6 +126,35 @@ const send = async (source: string, target: string, sourceTextList: string[]): P
       return { success: false, message: e as string };
     }
   }
-};
+}
 
-export default translateTo;
+/**
+ * 标准化换行格式
+ * @param original 原文
+ * @param translated 译文
+ * @returns 保持原始换行格式的译文
+ */
+function normalizeLineBreaks(original: string, translated: string): string {
+  // 1. 提取原文换行模式
+  const originalLines = original.split("\n");
+  // 2. 分割译文（考虑可能的多余换行）
+  const translatedLines = translated.split(/\r?\n/).filter(line => line.trim() !== "");
+  // 3. 确保行数匹配
+  if (originalLines.length !== translatedLines.length) {
+    console.warn(`行数不匹配：原文${originalLines.length}行，译文${translatedLines.length}行`);
+  }
+  // 4. 重建保持原始换行格式的译文
+  let result = "";
+  for (let i = 0; i < Math.min(originalLines.length, translatedLines.length); i++) {
+    result += translatedLines[i];
+    // 保留原文每行后的换行符
+    if (i < originalLines.length - 1) {
+      result += "\n";
+      // 检测原文行尾是否有换行
+      if (originalLines[i].endsWith("\n") || (i === 0 && original.startsWith("\n"))) {
+        result += "\n";
+      }
+    }
+  }
+  return result;
+}

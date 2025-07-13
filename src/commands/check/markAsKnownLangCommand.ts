@@ -1,5 +1,6 @@
 import * as vscode from "vscode";
 import LangMage from "@/core/LangMage";
+import { treeInstance } from "@/views/tree";
 import { LANG_CODE_MAPPINGS, getLangIntro } from "@/utils/langKey";
 import { registerDisposable } from "@/utils/dispose";
 import { t } from "@/utils/i18n";
@@ -11,6 +12,7 @@ export function registerMarkAsKnownLangCommand() {
   const disposable = vscode.commands.registerCommand("i18nMage.markAsKnownLang", async ({ key: langKey }: { key: string }) => {
     try {
       const reverseMap: Record<string, string> = {};
+      // TODO 完善中英文名称展示
       const languageList = Object.entries(LANG_CODE_MAPPINGS)
         .map(([key, info]) => {
           reverseMap[info.cnName] = key;
@@ -27,6 +29,7 @@ export function registerMarkAsKnownLangCommand() {
         if (!aliases.has(langKey)) {
           aliases.add(langKey);
           await setConfig("translationServices.langAliasCustomMappings", { ...mappings, [selectedKey]: Array.from(aliases) }, "global");
+          treeInstance.refresh();
           NotificationManager.showSuccess(t("command.markAsKnownLang.success", langKey, selectedText));
         } else {
           NotificationManager.showWarning(t("command.markAsKnownLang.existedWarn", langKey, selectedText));
