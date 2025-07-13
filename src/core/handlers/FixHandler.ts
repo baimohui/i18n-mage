@@ -95,6 +95,7 @@ export class FixHandler {
     const newIdSet = new Set<string>();
     const checkExisted = (key: string) => Boolean(getValueByAmbiguousEntryName(this.ctx.entryTree, key)) || newIdSet.has(key);
     needTranslateList.forEach((entry, index) => {
+      if (enNameList[index] === "") return;
       let id = getIdByStr(enNameList[index], true);
       const nameInfo = entry.nameInfo;
       if (!nameInfo.boundName || checkExisted(nameInfo.boundName)) {

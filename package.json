@@ -125,7 +125,10 @@
             "default": [
               "t"
             ],
-            "description": "%config.translationFunctionNames.desc%"
+            "description": "%config.translationFunctionNames.desc%",
+            "items": {
+              "type": "string"
+            }
           },
           "i18n-mage.i18nFeatures.interpolationBrackets": {
             "order": 8,
@@ -200,7 +203,17 @@
               "baidu",
               "tencent"
             ],
-            "description": "%config.translateApiPriority.desc%"
+            "description": "%config.translateApiPriority.desc%",
+            "items": {
+              "type": "string",
+              "enum": [
+                "deepseek",
+                "google",
+                "baidu",
+                "tencent"
+              ]
+            },
+            "uniqueItems": true
           },
           "i18n-mage.translationServices.langAliasCustomMappings": {
             "order": 20,
