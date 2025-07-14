@@ -69,7 +69,7 @@ export function getValueByAmbiguousEntryName(EntryTree: EntryTree, ambiguousPath
   for (let i = 0; i < numCombinations; i++) {
     const split = buildSplit(parts, i, m);
     const value = accessPath(EntryTree, split);
-    if (value !== undefined) {
+    if (typeof value === "string") {
       return value;
     }
   }
