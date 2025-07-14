@@ -24,6 +24,7 @@ export interface LangMageOptions {
   defaultNamespace?: string;
   tFuncNames?: string[];
   interpolationBrackets?: "auto" | "single" | "double";
+  namespaceSeparator?: "auto" | ":" | ".";
   modifyList?: Array<{ key: string; name: string; value: string; lang: string }>;
   trimKeyList?: string[];
   manuallyMarkedUsedEntries?: string[];
@@ -64,4 +65,5 @@ export interface I18nFeaturesInfo {
   defaultNamespace: string;
   tFuncNames: string[];
   interpolationBrackets: "auto" | "single" | "double";
+  namespaceSeparator: "auto" | ":" | ".";
 }

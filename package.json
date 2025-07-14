@@ -146,6 +146,20 @@
             ],
             "description": "%config.interpolationBrackets.desc%"
           },
+          "i18n-mage.i18nFeatures.namespaceSeparator": {
+            "order": 10,
+            "type": "string",
+            "enum": [
+              "auto",
+              ":",
+              "."
+            ],
+            "enumDescriptions": [
+              "%config.i18nFeatures.auto%"
+            ],
+            "default": "auto",
+            "description": "%config.namespaceSeparator.desc%"
+          },
           "i18n-mage.i18nFeatures.defaultNamespace": {
             "order": 12,
             "type": "string",

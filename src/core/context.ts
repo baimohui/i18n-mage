@@ -23,6 +23,7 @@ export const createLangContext = (): LangContextInternal => ({
   defaultNamespace: "translation",
   tFuncNames: ["t"],
   interpolationBrackets: "auto",
+  namespaceSeparator: "auto",
 
   langFormatType: "",
   langDictionary: {},

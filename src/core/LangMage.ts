@@ -46,6 +46,7 @@ class LangMage {
         defaultNamespace: getConfig<string>("i18nFeatures.defaultNamespace", ""),
         tFuncNames: getConfig<string[]>("i18nFeatures.translationFunctionNames", ["t"]),
         interpolationBrackets: getConfig<"auto" | "single" | "double">("i18nFeatures.interpolationBrackets", "auto"),
+        namespaceSeparator: getConfig<"auto" | ":" | ".">("i18nFeatures.namespaceSeparator", "auto"),
         ...options
       };
       for (const [key, value] of Object.entries(combinedOptions)) {
@@ -136,6 +137,7 @@ class LangMage {
       defaultNamespace: this.ctx.defaultNamespace,
       tFuncNames: this.ctx.tFuncNames,
       interpolationBrackets: this.ctx.interpolationBrackets,
+      namespaceSeparator: this.ctx.namespaceSeparator,
       showPreInfo: this.ctx.showPreInfo,
       styleScore: this.ctx.styleScore,
       fileStructure: this.ctx.fileStructure,
@@ -175,7 +177,8 @@ class LangMage {
       framework: this.ctx.i18nFramework,
       defaultNamespace: this.ctx.defaultNamespace,
       tFuncNames: this.ctx.tFuncNames,
-      interpolationBrackets: this.ctx.interpolationBrackets
+      interpolationBrackets: this.ctx.interpolationBrackets,
+      namespaceSeparator: this.ctx.namespaceSeparator
     };
   }
 

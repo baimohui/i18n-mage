@@ -52,7 +52,8 @@ export class ReadHandler {
       framework: this.ctx.i18nFramework,
       defaultNamespace: this.ctx.defaultNamespace,
       tFuncNames: this.ctx.tFuncNames,
-      interpolationBrackets: this.ctx.interpolationBrackets
+      interpolationBrackets: this.ctx.interpolationBrackets,
+      namespaceSeparator: this.ctx.namespaceSeparator
     };
     for (const filePath of filePaths) {
       if (this.ctx.ignoredFileList.some(ifp => isSamePath(filePath, ifp))) continue;

@@ -43,6 +43,7 @@
   "config.i18nFeatures.singleBrackets": "使用单层花括号（例如 {name}）",
   "config.i18nFeatures.doubleBrackets": "使用双层花括号（例如 {{name}}）",
   "config.defaultNamespace.desc": "指定默认命名空间，用于简化像 react-i18next 和 i18next 等框架中的 t 函数调用。若未显式指定命名空间，系统将默认使用此命名空间。请确保该命名空间已正确加载",
+  "config.namespaceSeparator.desc": "命名空间与 key 之间的分隔符",
   "command.setReferredLang.title": "设为参考语言",
   "command.markAsKnownLang.title": "标记为已知语言",
   "command.refresh.title": "刷新",

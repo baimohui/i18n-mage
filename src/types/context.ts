@@ -37,6 +37,7 @@ export interface LangContextPublic {
   defaultNamespace: string;
   tFuncNames: string[];
   interpolationBrackets: "auto" | "single" | "double";
+  namespaceSeparator: "auto" | ":" | ".";
   manuallyMarkedUsedEntries: string[];
   modifyList: Array<{ key: string; name: string; value: string; lang: string }>;
   i18nFramework: I18nFramework;

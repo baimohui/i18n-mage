@@ -105,7 +105,7 @@ export function getEntryNameInfoByForm(nameForm: { type: TEntryPartType; value: 
   // const tempList: string[] = [];
   let varPrefix = "{";
   let varSuffix = "}";
-  const { interpolationBrackets, framework, defaultNamespace } = i18nFeatures;
+  const { interpolationBrackets, framework, defaultNamespace, namespaceSeparator } = i18nFeatures;
   const useDoubleBrackets =
     interpolationBrackets === "double" ||
     (interpolationBrackets === "auto" && framework !== I18N_FRAMEWORK.none && !I18N_FRAMEWORK_DEFAULT_CONFIG[framework].singleBrackets);
@@ -165,10 +165,12 @@ export function getEntryNameInfoByForm(nameForm: { type: TEntryPartType; value: 
   }
   if (!isValid) return null;
   if (framework === I18N_FRAMEWORK.i18nNext || framework === I18N_FRAMEWORK.reactI18next) {
-    if (entryReg.includes(":")) {
-      entryReg = entryReg.replace(/:/, "\\.");
-    } else if (defaultNamespace) {
-      entryReg = `${defaultNamespace}\\.${entryReg}`;
+    if (namespaceSeparator === ".") {
+      if (defaultNamespace) {
+        entryReg = entryReg.includes(".") ? `(${defaultNamespace}\\.)?${entryReg}` : `${defaultNamespace}\\.${entryReg}`;
+      }
+    } else {
+      entryReg = entryReg.includes(":") ? entryReg.replace(":", "\\.") : defaultNamespace ? `${defaultNamespace}\\.${entryReg}` : entryReg;
     }
   }
   return {
@@ -296,9 +298,13 @@ export function isStringInUncommentedRange(code: string, searchString: string): 
 }
 
 export function normalizeEntryName(name: string, i18nFeatures: I18nFeaturesInfo) {
-  const { framework, defaultNamespace } = i18nFeatures;
+  const { framework, defaultNamespace, namespaceSeparator } = i18nFeatures;
   if (framework === I18N_FRAMEWORK.i18nNext || framework === I18N_FRAMEWORK.reactI18next) {
-    return name.includes(":") ? name.replace(":", ".") : `${defaultNamespace}.${name}`;
+    if (namespaceSeparator === ".") {
+      return name.startsWith(`${defaultNamespace}.`) ? name : `${defaultNamespace}.${name}`;
+    } else {
+      return name.includes(":") ? name.replace(":", ".") : `${defaultNamespace}.${name}`;
+    }
   }
   return name;
 }
