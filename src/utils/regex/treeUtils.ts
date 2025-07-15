@@ -81,7 +81,7 @@ export function getFileLocationFromId(id: string, fileStructure: EntryNode): str
   const pathSegs: string[] = [];
   let node: EntryNode = fileStructure;
   for (const seg of segments) {
-    if (node.type === "directory" && node.children && seg in node.children) {
+    if (node.type === "directory" && node.children && Object.hasOwn(node.children, seg)) {
       pathSegs.push(seg);
       node = node.children[seg];
     } else {
@@ -96,7 +96,7 @@ export function getContentAtLocation(location: string, tree: EntryTree): EntryTr
   const segments = getPathSegsFromId(location);
   let cursor: EntryTree = tree;
   for (const seg of segments) {
-    if (typeof cursor === "object" && seg in cursor) {
+    if (typeof cursor === "object" && Object.hasOwn(cursor, seg)) {
       cursor = cursor[seg] as EntryTree;
     } else {
       return null;
@@ -123,7 +123,7 @@ function buildSplit(parts: string[], i: number, m: number): string[] {
 function accessPath(obj: EntryTree | string, path: string[]): string | undefined {
   let current = obj;
   for (const key of path) {
-    if (Boolean(current) && typeof current === "object" && key in current) {
+    if (Boolean(current) && typeof current === "object" && Object.hasOwn(current, key)) {
       current = current[key];
     } else {
       return undefined;

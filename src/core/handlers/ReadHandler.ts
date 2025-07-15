@@ -11,11 +11,11 @@ import {
   unescapeString,
   getCaseType,
   normalizeEntryName,
-  isIgnoredDir
+  isIgnoredDir,
+  isValidI18nCallableFile
 } from "@/utils/regex";
 import { EntryTree, LangDictionary, LangTree } from "@/types";
 import { LANG_ENTRY_SPLIT_SYMBOL } from "@/utils/langKey";
-import { isSamePath } from "@/utils/fs";
 
 export class ReadHandler {
   constructor(private ctx: LangContextInternal) {}
@@ -56,7 +56,6 @@ export class ReadHandler {
       namespaceSeparator: this.ctx.namespaceSeparator
     };
     for (const filePath of filePaths) {
-      if (this.ctx.ignoredFileList.some(ifp => isSamePath(filePath, ifp))) continue;
       const fileContent = fs.readFileSync(filePath, "utf8");
       const tItems = catchTEntries(fileContent, i18nFeatures);
       const existedItems = catchPossibleEntries(fileContent, this.ctx.entryTree, i18nFeatures);
@@ -117,12 +116,7 @@ export class ReadHandler {
         const tempPathList = this._readAllFiles(tempPath);
         pathList.push(...tempPathList);
       }
-      const ignoredNameList = ["jquery", "element", "qrcode", "underscore", "vant", "language", "vue.js"];
-      if (
-        !results[i].isDirectory() &&
-        [".js", ".vue", ".html", ".jsx", ".ts", ".tsx"].some(type => targetName.endsWith(type)) &&
-        ignoredNameList.every(name => !targetName.includes(name))
-      ) {
+      if (!results[i].isDirectory() && isValidI18nCallableFile(tempPath, this.ctx.ignoredFileList)) {
         pathList.push(tempPath);
       }
     }

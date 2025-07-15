@@ -113,7 +113,6 @@
             "enum": [
               "none",
               "vue-i18n",
-              "react-intl",
               "react-i18next",
               "i18next",
               "vscode-l10n"
@@ -212,8 +211,8 @@
             "order": 15,
             "type": "array",
             "default": [
-              "deepseek",
               "google",
+              "deepseek",
               "baidu",
               "tencent"
             ],

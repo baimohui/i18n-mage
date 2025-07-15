@@ -2,8 +2,7 @@ import * as vscode from "vscode";
 import { t } from "@/utils/i18n";
 import LangMage from "@/core/LangMage";
 import { getConfig } from "@/utils/config";
-import { isSamePath } from "@/utils/fs";
-import { getValueByAmbiguousEntryName, catchTEntries, unescapeString, normalizeEntryName } from "@/utils/regex";
+import { getValueByAmbiguousEntryName, catchTEntries, unescapeString, normalizeEntryName, isValidI18nCallableFile } from "@/utils/regex";
 
 export class Diagnostics {
   private static instance: Diagnostics;
@@ -22,15 +21,12 @@ export class Diagnostics {
   }
 
   public update(document: vscode.TextDocument) {
-    // if (document.languageId !== "javascript" && document.languageId !== "typescript") {
-    //   return;
-    // }
     if (this.disposed) return;
     if (!getConfig<boolean>("translationHints.enable", true)) return;
+    const ignoredFileList = getConfig<string[]>("workspace.ignoredFileList", []);
+    if (!isValidI18nCallableFile(document.uri.fsPath, ignoredFileList)) return;
     const mage = LangMage.getInstance();
     const publicCtx = mage.getPublicContext();
-    const ignoredFileList = getConfig<string[]>("workspace.ignoredFileList", []);
-    if (ignoredFileList.some(ifp => isSamePath(document.uri.fsPath, ifp))) return;
 
     const text = document.getText();
     const entries = catchTEntries(text, mage.i18nFeatures);

@@ -1,7 +1,6 @@
 export const I18N_FRAMEWORK = {
   none: "none",
   vueI18n: "vue-i18n",
-  reactIntl: "react-intl",
   reactI18next: "react-i18next",
   i18nNext: "i18next",
   vscodeL10n: "vscode-l10n"
@@ -15,9 +14,6 @@ export interface I18nFrameworkConfig {
 
 export const I18N_FRAMEWORK_DEFAULT_CONFIG: Record<Exclude<I18nFramework, typeof I18N_FRAMEWORK.none>, I18nFrameworkConfig> = {
   [I18N_FRAMEWORK.vueI18n]: {
-    singleBrackets: true
-  },
-  [I18N_FRAMEWORK.reactIntl]: {
     singleBrackets: true
   },
   [I18N_FRAMEWORK.reactI18next]: {

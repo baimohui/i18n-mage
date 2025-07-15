@@ -4,10 +4,26 @@ import JSON5 from "json5";
 import { escapeString } from "./stringUtils";
 import { LANG_FORMAT_TYPE } from "@/utils/langKey";
 import { LangTree, FileExtraInfo, LangFileInfo, EntryNode, EntryMap, EntryTree, I18nFramework, I18N_FRAMEWORK } from "@/types";
+import { isSamePath } from "../fs";
 
 export function isIgnoredDir(dir: string): boolean {
   const ignoredDirRegex = /^(dist|node_modules|img|image|css|asset|build|out|\.)/i;
   return ignoredDirRegex.test(dir);
+}
+
+/**
+ * 检查文件是否可调用国际化函数（排除指定忽略路径）
+ * @param {string} filePath - 文件路径
+ * @param {Array<string>} [ignoredFileList] - 忽略的路径规则
+ * @returns {boolean}
+ */
+export function isValidI18nCallableFile(filePath: string, ignoredFileList: string[] = []): boolean {
+  const isSupportedExt = /\.(js|vue|html|jsx|ts|tsx)$/.test(filePath);
+  if (!isSupportedExt) return false;
+  // const ignoredNameList = ["jquery", "element", "qrcode", "underscore", "vant", "language", "vue.js"];
+  // if (ignoredNameList.some(name => filePath.includes(name))) return false;
+  if (ignoredFileList.some(ifp => isSamePath(filePath, ifp))) return false;
+  return true;
 }
 
 export function getLangFileInfo(filePath: string): LangFileInfo | null {
@@ -24,27 +40,21 @@ export function getLangFileInfo(filePath: string): LangFileInfo | null {
     let suffix = "";
     let innerVar = "";
     let keyQuotes = false;
-    if (formatType === LANG_FORMAT_TYPE.nonObj) {
-      fileContent = fileContent
-        .replace(/\/\*[^]*?\*\/|(?<=["'`;\n]{1}\s*)\/\/[^\n]*|<!--[^]*?-->/g, "")
-        .replace(/(\S+)(\s*=\s*)([^]+?);*\s*(?=\n\s*\S+\s*=|$)/g, '"$1":$3,');
-    } else {
-      const indentsMatch = fileContent.match(/{\s*\n(\s*)\S/);
-      indents = indentsMatch ? indentsMatch[1] : "  ";
-      const match = fileContent.match(/([^]*?)({[^]*})([^]*)/);
-      if (match) {
-        prefix = match[1];
-        suffix = match[3];
-        fileContent = match[2];
-      }
-      const spreadVarMatch = fileContent.match(/\n\s*\.\.\.\S+/g);
-      if (spreadVarMatch) {
-        innerVar = spreadVarMatch.join("");
-        const spreadVarReg = new RegExp(`${spreadVarMatch.join("|")}`, "g");
-        fileContent = fileContent.replace(spreadVarReg, "");
-      }
-      keyQuotes = /^{\s*["'`]/.test(fileContent.replace(/\/\/.*|\/\*[\s\S]*?\*\//g, ""));
+    const indentsMatch = fileContent.match(/{\s*\n(\s*)\S/);
+    indents = indentsMatch ? indentsMatch[1] : "  ";
+    const match = fileContent.match(/([^]*?)({[^]*})([^]*)/);
+    if (match) {
+      prefix = match[1];
+      suffix = match[3];
+      fileContent = match[2];
     }
+    const spreadVarMatch = fileContent.match(/\n\s*\.\.\.\S+/g);
+    if (spreadVarMatch) {
+      innerVar = spreadVarMatch.join("");
+      const spreadVarReg = new RegExp(`${spreadVarMatch.join("|")}`, "g");
+      fileContent = fileContent.replace(spreadVarReg, "");
+    }
+    keyQuotes = /^{\s*["'`]/.test(fileContent.replace(/\/\/.*|\/\*[\s\S]*?\*\//g, ""));
     tree = JSON5.parse(fileContent);
     // TODO vue-i18n 似乎支持值为字符串、数组、对象，甚至函数（返回字符串），这里的判断需要调整
     if (getNestedValues(tree).some(item => typeof item !== "string")) return null;
@@ -184,7 +194,6 @@ export function detectI18nFramework(projectRoot: string): I18nFramework | null {
   };
   const checks = [
     { name: I18N_FRAMEWORK.vueI18n, key: "vue-i18n" },
-    { name: I18N_FRAMEWORK.reactIntl, key: "react-intl" },
     { name: I18N_FRAMEWORK.reactI18next, key: "react-i18next" },
     { name: I18N_FRAMEWORK.i18nNext, key: "i18next" }
   ];
