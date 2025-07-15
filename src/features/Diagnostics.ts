@@ -2,7 +2,7 @@ import * as vscode from "vscode";
 import { t } from "@/utils/i18n";
 import LangMage from "@/core/LangMage";
 import { getConfig } from "@/utils/config";
-import { getValueByAmbiguousEntryName, catchTEntries, unescapeString, normalizeEntryName, isValidI18nCallableFile } from "@/utils/regex";
+import { getValueByAmbiguousEntryName, catchTEntries, unescapeString, displayToInternalName, isValidI18nCallableFile } from "@/utils/regex";
 
 export class Diagnostics {
   private static instance: Diagnostics;
@@ -36,7 +36,7 @@ export class Diagnostics {
     const totalEntryList = Object.keys(mage.langDetail.dictionary).map(key => unescapeString(key));
 
     for (const entry of entries) {
-      const entryName = normalizeEntryName(entry.nameInfo.text, mage.i18nFeatures);
+      const entryName = displayToInternalName(entry.nameInfo.text, mage.i18nFeatures);
       const entryKey = getValueByAmbiguousEntryName(tree, entryName);
       const entryValue = translations[entryKey as string];
       if (entryValue === undefined) {

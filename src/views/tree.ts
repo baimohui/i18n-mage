@@ -1,6 +1,6 @@
 import * as vscode from "vscode";
 import LangMage from "@/core/LangMage";
-import { catchTEntries, unescapeString, getValueByAmbiguousEntryName, detectI18nFramework } from "@/utils/regex";
+import { catchTEntries, unescapeString, getValueByAmbiguousEntryName, detectI18nFramework, internalToDisplayName } from "@/utils/regex";
 import { getPossibleLangPaths, isLikelyProjectPath, toAbsolutePath, toRelativePath } from "@/utils/fs";
 import { getLangText } from "@/utils/langKey";
 import { LangContextPublic, TEntry, LangTree, SORT_MODE, I18nFramework } from "@/types";
@@ -261,7 +261,8 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
         const entryInfo = this.dictionary[getValueByAmbiguousEntryName(this.tree, entry.nameInfo.text) as string] ?? {};
         const contextValueList = [element.type === "defined" ? "definedEntryInCurFile" : "undefinedEntryInCurFile", "COPY_NAME"];
         return {
-          label: entry.nameInfo.text,
+          name: entry.nameInfo.text,
+          label: internalToDisplayName(entry.nameInfo.text, this.#mage.i18nFeatures),
           description: entryInfo[this.publicCtx.referredLang],
           collapsibleState: vscode.TreeItemCollapsibleState[element.type === "defined" ? "Collapsed" : "None"],
           level: 2,
@@ -272,7 +273,7 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
         };
       });
     } else if (element.level === 2) {
-      const entryKey = getValueByAmbiguousEntryName(this.tree, element.label as string) ?? "";
+      const entryKey = getValueByAmbiguousEntryName(this.tree, element.name as string) ?? "";
       const entryInfo = this.dictionary[entryKey];
       return this.langInfo.langList.map(lang => {
         const contextValueList = ["entryTranslationInCurFile", "COPY_VALUE", "GO_TO_DEFINITION", "EDIT_VALUE"];
@@ -281,11 +282,11 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
         }
         return {
           label: lang,
-          name: element.label as string,
+          name: element.name as string,
           description: entryInfo[lang] ?? false,
           collapsibleState: vscode.TreeItemCollapsibleState.None,
           level: 3,
-          data: { name: element.label, key: entryKey, value: entryInfo[lang] ?? "", lang },
+          data: { name: element.name, key: entryKey, value: entryInfo[lang] ?? "", lang },
           contextValue: contextValueList.join(","),
           id: this.genId(element, lang),
           tooltip: getLangText(lang) || t("common.unknownLang")
@@ -330,14 +331,15 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
         if (element.type !== "lack") {
           contextValueList.push("GO_TO_DEFINITION");
         }
+        const name = unescapeString(item[0]);
         return {
-          label: unescapeString(item[0]),
+          label: internalToDisplayName(name, this.#mage.i18nFeatures),
           description: item[1],
           level: 3,
           key: element.key,
           id: this.genId(element, item[0]),
           contextValue: contextValueList.join(","),
-          data: { name: unescapeString(item[0]), key: item[0], value: element.type === "common" ? item[1] : "", lang: element.key },
+          data: { name, key: item[0], value: element.type === "common" ? item[1] : "", lang: element.key },
           collapsibleState: vscode.TreeItemCollapsibleState.None
         };
       });
@@ -386,7 +388,7 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
           return {
             key,
             name,
-            label: name,
+            label: internalToDisplayName(name, this.#mage.i18nFeatures),
             description: `<${usedNum || "?"}>${entryInfo[this.publicCtx.referredLang]}`,
             level: 2,
             type: element.type,
@@ -400,7 +402,7 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
           const name = unescapeString(key);
           const entryInfo = this.dictionary[key];
           return {
-            label: name,
+            label: internalToDisplayName(name, this.#mage.i18nFeatures),
             description: entryInfo[this.publicCtx.referredLang],
             level: 2,
             root: element.root,
@@ -438,7 +440,7 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
     if (typeof res === "string") {
       const contextValueList = ["dictionaryItem", "COPY_VALUE", "GO_TO_DEFINITION", "EDIT_VALUE"];
       return Object.entries(this.dictionary[res]).map(item => ({
-        label: item[0],
+        label: internalToDisplayName(item[0], this.#mage.i18nFeatures),
         description: item[1],
         tooltip: getLangText(item[0]) || t("common.unknownLang"),
         id: this.genId(element, item[0]),
@@ -458,7 +460,7 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
         .map(item => {
           const stack = (element.stack || []).concat(item[0]);
           return {
-            label: item[0],
+            label: internalToDisplayName(item[0], this.#mage.i18nFeatures),
             description: typeof item[1] === "string" ? this.dictionary[item[1]][this.publicCtx.referredLang] : false,
             root: element.root,
             id: this.genId(element, item[0]),

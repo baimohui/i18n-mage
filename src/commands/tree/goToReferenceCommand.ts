@@ -6,7 +6,7 @@ import { NotificationManager } from "@/utils/notification";
 export function registerGoToReferenceCommand() {
   const disposable = vscode.commands.registerCommand(
     "i18nMage.goToReference",
-    async (e: { usedInfo: Record<string, Set<[number, number]>>; label: string }) => {
+    async (e: { usedInfo: Record<string, Set<[number, number]>> }) => {
       const editor = vscode.window.activeTextEditor;
       if (!editor) {
         NotificationManager.showError(t("common.noActiveEditorWarn"));

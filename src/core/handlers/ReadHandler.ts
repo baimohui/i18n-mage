@@ -10,7 +10,7 @@ import {
   escapeString,
   unescapeString,
   getCaseType,
-  normalizeEntryName,
+  displayToInternalName,
   isIgnoredDir,
   isValidI18nCallableFile
 } from "@/utils/regex";
@@ -66,7 +66,7 @@ export class ReadHandler {
         if (nameInfo.vars.length > 0) {
           usedEntryNameList = totalEntryList.filter(entry => nameInfo.regex.test(entry));
         } else {
-          const entryName = normalizeEntryName(nameInfo.text, i18nFeatures);
+          const entryName = displayToInternalName(nameInfo.text, i18nFeatures);
           usedEntryNameList = getValueByAmbiguousEntryName(this.ctx.entryTree, entryName) === undefined ? [] : [entryName];
         }
         if (usedEntryNameList.length === 0) {

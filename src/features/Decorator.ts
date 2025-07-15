@@ -5,7 +5,7 @@ import {
   catchTEntries,
   getLineEnding,
   unescapeString,
-  normalizeEntryName,
+  displayToInternalName,
   isValidI18nCallableFile
 } from "@/utils/regex";
 import { getConfig } from "@/utils/config";
@@ -80,7 +80,7 @@ export class DecoratorController implements vscode.Disposable {
       entries.forEach(entry => {
         let startPos = entry.pos[0] + 1;
         let endPos = entry.pos[1] - 1;
-        const entryName = normalizeEntryName(entry.nameInfo.text, mage.i18nFeatures);
+        const entryName = displayToInternalName(entry.nameInfo.text, mage.i18nFeatures);
         const entryKey = getValueByAmbiguousEntryName(tree, entryName);
         let entryValue = translations[entryKey as string];
         if (entryValue === undefined) {

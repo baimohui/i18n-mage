@@ -11,7 +11,7 @@ export function catchPossibleEntries(
   let res: RegExpExecArray | null = null;
   const entryInfoList: PEntry[] = [];
   while ((res = regex.exec(fileContent)) !== null) {
-    const entryName = normalizeEntryName(res[0].slice(1, -1), i18nFeatures);
+    const entryName = displayToInternalName(res[0].slice(1, -1), i18nFeatures);
     if (!isValidI18nVarName(entryName) || getValueByAmbiguousEntryName(entryTree, entryName) === undefined) continue;
     const startPos = res.index;
     const endPos = startPos + res[0].length;
@@ -297,13 +297,23 @@ export function isStringInUncommentedRange(code: string, searchString: string): 
   return uncommentedCode.includes(searchString);
 }
 
-export function normalizeEntryName(name: string, i18nFeatures: I18nFeaturesInfo) {
+export function displayToInternalName(name: string, i18nFeatures: I18nFeaturesInfo) {
   const { framework, defaultNamespace, namespaceSeparator } = i18nFeatures;
   if (framework === I18N_FRAMEWORK.i18nNext || framework === I18N_FRAMEWORK.reactI18next) {
     if (namespaceSeparator === ".") {
       return name.startsWith(`${defaultNamespace}.`) ? name : `${defaultNamespace}.${name}`;
     } else {
       return name.includes(":") ? name.replace(":", ".") : `${defaultNamespace}.${name}`;
+    }
+  }
+  return name;
+}
+
+export function internalToDisplayName(name: string, i18nFeatures: I18nFeaturesInfo) {
+  const { framework, namespaceSeparator } = i18nFeatures;
+  if (framework === I18N_FRAMEWORK.i18nNext || framework === I18N_FRAMEWORK.reactI18next) {
+    if (namespaceSeparator !== ".") {
+      return name.replace(".", ":");
     }
   }
   return name;

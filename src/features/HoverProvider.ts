@@ -1,7 +1,7 @@
 import * as vscode from "vscode";
 import { DecoratorController } from "./Decorator";
 import LangMage from "@/core/LangMage";
-import { getValueByAmbiguousEntryName, normalizeEntryName } from "@/utils/regex";
+import { getValueByAmbiguousEntryName, displayToInternalName } from "@/utils/regex";
 
 export class HoverProvider implements vscode.HoverProvider {
   provideHover(document: vscode.TextDocument, position: vscode.Position): vscode.ProviderResult<vscode.Hover> {
@@ -15,7 +15,7 @@ export class HoverProvider implements vscode.HoverProvider {
     if (entry) {
       const mage = LangMage.getInstance();
       const { tree, dictionary } = mage.langDetail;
-      const entryName = normalizeEntryName(entry.nameInfo.text, mage.i18nFeatures);
+      const entryName = displayToInternalName(entry.nameInfo.text, mage.i18nFeatures);
       const entryKey = getValueByAmbiguousEntryName(tree, entryName);
       if (entryKey !== undefined) {
         const markdown = new vscode.MarkdownString();
