@@ -115,7 +115,12 @@ async function send(source: string, target: string, sourceTextList: string[]): P
     let curResIndex = 0;
     sourceTextList.forEach(text => {
       const newlineCount = (text.match(/\n/g) || []).length + 1;
-      transformedList.push(resList.slice(curResIndex, curResIndex + newlineCount).join("\n"));
+      transformedList.push(
+        resList
+          .slice(curResIndex, curResIndex + newlineCount)
+          .join("\n")
+          .trim()
+      );
       curResIndex += newlineCount;
     });
     return { success: true, data: transformedList };

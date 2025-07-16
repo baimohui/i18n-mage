@@ -3,6 +3,26 @@ import { DecoratorController } from "./Decorator";
 import LangMage from "@/core/LangMage";
 import { getValueByAmbiguousEntryName, displayToInternalName } from "@/utils/regex";
 
+function escapeMarkdown(text: string): string {
+  return text
+    .replace(/\\/g, "\\\\")
+    .replace(/`/g, "\\`")
+    .replace(/\*/g, "\\*")
+    .replace(/_/g, "\\_")
+    .replace(/{/g, "\\{")
+    .replace(/}/g, "\\}")
+    .replace(/\[/g, "\\[")
+    .replace(/\]/g, "\\]")
+    .replace(/\(/g, "\\(")
+    .replace(/\)/g, "\\)")
+    .replace(/#/g, "\\#")
+    .replace(/\+/g, "\\+")
+    .replace(/-/g, "\\-")
+    .replace(/\./g, "\\.")
+    .replace(/!/g, "\\!")
+    .replace(/~/g, "\\~");
+}
+
 export class HoverProvider implements vscode.HoverProvider {
   provideHover(document: vscode.TextDocument, position: vscode.Position): vscode.ProviderResult<vscode.Hover> {
     const decorator = DecoratorController.getInstance();
@@ -24,7 +44,7 @@ export class HoverProvider implements vscode.HoverProvider {
 
         for (const [lang, value] of Object.entries(dictionary[entryKey] ?? {})) {
           const args = encodeURIComponent(JSON.stringify({ data: { key: entryKey, name: entryName, value, lang } }));
-          markdown.appendMarkdown(`- ${lang}: ${value} [✏️](command:i18nMage.editValue?${args})\n`);
+          markdown.appendMarkdown(`- ${escapeMarkdown(lang)}: ${escapeMarkdown(value)} [✏️](command:i18nMage.editValue?${args})\n`);
         }
         return new vscode.Hover(markdown);
       }
