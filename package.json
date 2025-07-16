@@ -615,6 +615,8 @@
     "lint": "npm run lint:code && npm run lint:test",
     "lint:code": "eslint \"src/**/*.{ts,tsx,js,jsx}\" --fix",
     "lint:test": "eslint \"test/**/*.{ts,tsx}\" --no-fix",
+    "type-check": "tsc --noEmit",
+    "check": "npm run lint && npm run type-check",
     "test:unit": "mocha --require ts-node/register --require tsconfig-paths/register ./test/setup.ts \"test/**/*.ts\"",
     "test:integration": "vscode-test --extensionDevelopmentPath=. --extensionTestsPath=test/integration/index.ts",
     "build": "node esbuild.config.js",
