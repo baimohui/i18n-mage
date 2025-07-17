@@ -41,7 +41,7 @@ export type TEntryPartType = "" | "text" | "varText" | "var" | "obj" | "arr" | "
 
 export interface TEntry {
   raw: string;
-  pos: [number, number];
+  pos: string;
   path?: string;
   nameInfo: {
     text: string;
@@ -62,7 +62,7 @@ export interface FixedTEntry {
 
 export interface PEntry {
   name: string;
-  pos: [number, number];
+  pos: string;
 }
 
 // export type CaseType = "upper" | "lower" | "title" | "sentence" | "camel" | "pascal" | "snake" | "kebab" | "screaming-snake" | "screaming-kebab";

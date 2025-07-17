@@ -78,8 +78,9 @@ export class DecoratorController implements vscode.Disposable {
       const enableLooseKeyMatch = getConfig<boolean>("translationHints.enableLooseKeyMatch", true);
       const totalEntryList = Object.keys(mage.langDetail.dictionary).map(key => unescapeString(key));
       entries.forEach(entry => {
-        let startPos = entry.pos[0] + 1;
-        let endPos = entry.pos[1] - 1;
+        let [startPos, endPos] = entry.pos.split(",").map(Number);
+        startPos++;
+        endPos--;
         const entryName = displayToInternalName(entry.nameInfo.text, mage.i18nFeatures);
         const entryKey = getValueByAmbiguousEntryName(tree, entryName);
         let entryValue = translations[entryKey as string];

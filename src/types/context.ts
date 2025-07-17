@@ -56,8 +56,8 @@ export interface LangContextInternal extends LangContextPublic {
   entryClassTree: Record<string, any>;
   entryClassInfo: EntryClassInfo;
   undefinedEntryList: TEntry[];
-  undefinedEntryMap: Record<string, Record<string, Set<[number, number]>>>;
-  usedEntryMap: Record<string, Record<string, Set<[number, number]>>>;
+  undefinedEntryMap: Record<string, Record<string, Set<string>>>;
+  usedEntryMap: Record<string, Record<string, Set<string>>>;
   usedKeySet: Set<string>;
   unusedKeySet: Set<string>;
   isFlat: boolean;

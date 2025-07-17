@@ -6,7 +6,7 @@ export function catchPossibleEntries(
   fileContent: string,
   entryTree: EntryTree,
   i18nFeatures: I18nFeaturesInfo
-): { name: string; pos: [number, number] }[] {
+): { name: string; pos: string }[] {
   const regex = /(["'`])(?:\\[\s\S]|(?!\1)[^\\])*?\1/g;
   let res: RegExpExecArray | null = null;
   const entryInfoList: PEntry[] = [];
@@ -15,7 +15,7 @@ export function catchPossibleEntries(
     if (!isValidI18nVarName(entryName) || getValueByAmbiguousEntryName(entryTree, entryName) === undefined) continue;
     const startPos = res.index;
     const endPos = startPos + res[0].length;
-    entryInfoList.push({ name: entryName, pos: [startPos, endPos] });
+    entryInfoList.push({ name: entryName, pos: `${startPos},${endPos}` });
   }
   return entryInfoList;
 }
@@ -83,17 +83,21 @@ export function parseTEntry(fileContent: string, startPos: number, offset: numbe
   if (entryNameForm.some(item => item.type === "logic")) return null;
   const entryRaw = fileContent.slice(startPos, curPos + 1);
   if (!isStringInUncommentedRange(fileContent, entryRaw)) return null;
-  const nameInfo = getEntryNameInfoByForm(entryNameForm, i18nFeatures);
+  const nameInfo = getEntryNameInfoByForm(entryNameForm, i18nFeatures, entryVarList);
   if (!nameInfo) return null;
   return {
     raw: entryRaw,
     vars: entryVarList,
     nameInfo,
-    pos: [nameStartPos, nameEndPos]
+    pos: `${nameStartPos},${nameEndPos}`
   };
 }
 
-export function getEntryNameInfoByForm(nameForm: { type: TEntryPartType; value: string }[], i18nFeatures: I18nFeaturesInfo) {
+export function getEntryNameInfoByForm(
+  nameForm: { type: TEntryPartType; value: string }[],
+  i18nFeatures: I18nFeaturesInfo,
+  entryVarList: string[]
+) {
   let entryIndex = 0;
   let entryText = "";
   const varList: string[] = [];
@@ -131,7 +135,6 @@ export function getEntryNameInfoByForm(nameForm: { type: TEntryPartType; value: 
           new RegExp(`${escapeRegExp(escapeRegExp(varPrefix))}.*?${escapeRegExp(escapeRegExp(varSuffix))}`, "g"),
           ".*"
         );
-        isValid = isValid && entryText.replace(new RegExp(`${escapeRegExp(varPrefix)}\\w*?${escapeRegExp(varSuffix)}`, "g"), "") !== "";
         // entryReg = escapeRegExp(entryText.replace(/\s/g, "")).replace(/\\\{.*?\\\}/g, ".*");
         // isValid = isValid && entryText.replace(/\{\w*?\}/g, "") !== "";
         break;
@@ -151,6 +154,7 @@ export function getEntryNameInfoByForm(nameForm: { type: TEntryPartType; value: 
         break;
     }
   });
+  if (!isValid || entryReg.replaceAll(".*", "") === "") return null;
   let entryClass = "";
   let entryName = "";
   const nameRes = entryText.match(/%(\S*?)%([^]*)/);
@@ -163,8 +167,13 @@ export function getEntryNameInfoByForm(nameForm: { type: TEntryPartType; value: 
     entryClass = classRes[1];
     entryText = classRes[2];
   }
-  if (!isValid) return null;
   if (framework === I18N_FRAMEWORK.i18nNext || framework === I18N_FRAMEWORK.reactI18next) {
+    if (entryVarList.length === 1) {
+      const varItem = extractKeyValuePairs(entryVarList[0]);
+      if (varItem === null || Object.hasOwn(varItem, "context")) {
+        entryReg += ".*";
+      }
+    }
     if (namespaceSeparator === ".") {
       if (defaultNamespace) {
         entryReg = entryReg.includes(".") ? `(${defaultNamespace}\\.)?${entryReg}` : `${defaultNamespace}\\.${entryReg}`;
@@ -187,6 +196,11 @@ export function getEntryNameInfoByForm(nameForm: { type: TEntryPartType; value: 
 export function extractKeyValuePairs(objStr: string) {
   const result = {};
   const trimmed = objStr.trim();
+
+  // 不是以 { 开头并以 } 结尾的，或中间不包含冒号，直接返回 null
+  if (!trimmed.startsWith("{") || !trimmed.endsWith("}") || !trimmed.includes(":")) {
+    return null;
+  }
 
   // 去除前后的大括号
   const content = trimmed.startsWith("{") && trimmed.endsWith("}") ? trimmed.slice(1, -1) : trimmed;

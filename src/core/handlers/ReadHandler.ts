@@ -1,6 +1,6 @@
 import fs from "fs";
 import path from "path";
-import { LangContextInternal } from "@/types";
+import { I18N_FRAMEWORK, LangContextInternal } from "@/types";
 import {
   catchTEntries,
   catchPossibleEntries,
@@ -63,26 +63,29 @@ export class ReadHandler {
       for (const item of tItems) {
         const nameInfo = item.nameInfo;
         let usedEntryNameList: string[] = [];
-        if (nameInfo.vars.length > 0) {
+        const entryName = displayToInternalName(nameInfo.text, i18nFeatures);
+        const isEntryWithContext =
+          (i18nFeatures.framework === I18N_FRAMEWORK.i18nNext || i18nFeatures.framework === I18N_FRAMEWORK.reactI18next) &&
+          item.vars.length > 0;
+        if (nameInfo.vars.length > 0 || isEntryWithContext) {
           usedEntryNameList = totalEntryList.filter(entry => nameInfo.regex.test(entry));
         } else {
-          const entryName = displayToInternalName(nameInfo.text, i18nFeatures);
           usedEntryNameList = getValueByAmbiguousEntryName(this.ctx.entryTree, entryName) === undefined ? [] : [entryName];
         }
         if (usedEntryNameList.length === 0) {
           this.ctx.undefinedEntryList.push({ ...item, path: filePath });
           this.ctx.undefinedEntryMap[nameInfo.text] ??= {};
-          this.ctx.undefinedEntryMap[nameInfo.text][filePath] ??= new Set<[number, number]>();
+          this.ctx.undefinedEntryMap[nameInfo.text][filePath] ??= new Set<string>();
           this.ctx.undefinedEntryMap[nameInfo.text][filePath].add(item.pos);
         } else {
           usedEntryList.push(...usedEntryNameList.map(entryName => ({ name: entryName, pos: item.pos })));
         }
       }
       usedEntryList
-        .sort((a, b) => a.pos[0] - b.pos[0])
+        .sort((a, b) => +a.pos.split(",")[0] - +b.pos.split(",")[0])
         .forEach(entry => {
           this.ctx.usedEntryMap[entry.name] ??= {};
-          this.ctx.usedEntryMap[entry.name][filePath] ??= new Set<[number, number]>();
+          this.ctx.usedEntryMap[entry.name][filePath] ??= new Set<string>();
           this.ctx.usedEntryMap[entry.name][filePath].add(entry.pos);
         });
     }

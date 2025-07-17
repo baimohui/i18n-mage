@@ -43,8 +43,7 @@ export class Diagnostics {
         if (entry.nameInfo.vars.length > 0 && totalEntryList.some(entryName => entry.nameInfo.regex.test(entryName))) {
           continue;
         }
-        const startPos = document.positionAt(entry.pos[0]);
-        const endPos = document.positionAt(entry.pos[1]);
+        const [startPos, endPos] = entry.pos.split(",").map(pos => document.positionAt(+pos));
         const range = new vscode.Range(startPos, endPos);
         const diagnostic = new vscode.Diagnostic(
           range,

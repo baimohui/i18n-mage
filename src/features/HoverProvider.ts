@@ -27,8 +27,7 @@ export class HoverProvider implements vscode.HoverProvider {
   provideHover(document: vscode.TextDocument, position: vscode.Position): vscode.ProviderResult<vscode.Hover> {
     const decorator = DecoratorController.getInstance();
     const entry = decorator.entries.find(item => {
-      const startPos = document.positionAt(decorator.offsetBase + item.pos[0] - 1);
-      const endPos = document.positionAt(decorator.offsetBase + item.pos[1] - 1);
+      const [startPos, endPos] = item.pos.split(",").map(pos => document.positionAt(decorator.offsetBase + +pos - 1));
       const range = new vscode.Range(startPos, endPos);
       return range.contains(position);
     });

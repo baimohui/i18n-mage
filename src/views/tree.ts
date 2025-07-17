@@ -422,8 +422,7 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
           const fileUri = vscode.Uri.file(filePath);
           const document = await vscode.workspace.openTextDocument(fileUri);
           entryUsedInfo[filePath].forEach(offset => {
-            const startPos = document.positionAt(offset[0]);
-            const endPos = document.positionAt(offset[1]);
+            const [startPos, endPos] = offset.split(",").map(pos => document.positionAt(+pos));
             const range = new vscode.Range(startPos, endPos);
             list.push(new FileItem(fileUri, range));
           });
