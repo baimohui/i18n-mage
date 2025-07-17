@@ -47,6 +47,8 @@ class LangMage {
         tFuncNames: getConfig<string[]>("i18nFeatures.translationFunctionNames", ["t"]),
         interpolationBrackets: getConfig<"auto" | "single" | "double">("i18nFeatures.interpolationBrackets", "auto"),
         namespaceSeparator: getConfig<"auto" | ":" | ".">("i18nFeatures.namespaceSeparator", "auto"),
+        matchExistingKey: getConfig<boolean>("translationServices.matchExistingKey", true),
+        autoTranslateMissingKey: getConfig<boolean>("translationServices.autoTranslateMissingKey", false),
         ...options
       };
       for (const [key, value] of Object.entries(combinedOptions)) {
@@ -144,7 +146,9 @@ class LangMage {
       syncBasedOnReferredEntries: this.ctx.syncBasedOnReferredEntries,
       manuallyMarkedUsedEntries: this.ctx.manuallyMarkedUsedEntries,
       modifyList: this.ctx.modifyList,
-      i18nFramework: this.ctx.i18nFramework
+      i18nFramework: this.ctx.i18nFramework,
+      matchExistingKey: this.ctx.matchExistingKey,
+      autoTranslateMissingKey: this.ctx.autoTranslateMissingKey
     };
   }
 

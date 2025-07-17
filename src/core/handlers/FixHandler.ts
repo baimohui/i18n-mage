@@ -1,9 +1,9 @@
 import { LangContextInternal, LackInfo } from "@/types";
 import { CheckHandler } from "./CheckHandler";
 import { RewriteHandler } from "./RewriteHandler";
-import { LANG_FORMAT_TYPE, LANG_ENTRY_SPLIT_SYMBOL, getLangCode } from "@/utils/langKey";
+import { LANG_ENTRY_SPLIT_SYMBOL, getLangCode } from "@/utils/langKey";
 import { TEntry, I18N_FRAMEWORK } from "@/types";
-import { validateLang, getIdByStr, getValueByAmbiguousEntryName, escapeString } from "@/utils/regex";
+import { validateLang, getIdByStr, getValueByAmbiguousEntryName, escapeString, internalToDisplayName } from "@/utils/regex";
 import { getDetectedLangList, setUpdatedEntryValueInfo } from "@/core/tools/contextTools";
 import translateTo from "@/translator/index";
 import { t } from "@/utils/i18n";
@@ -58,14 +58,17 @@ export class FixHandler {
     const undefinedEntryIdSet = new Set<string>();
     this.ctx.undefinedEntryList.forEach(entry => {
       const nameInfo = entry.nameInfo;
-      if (valueKeyMap[nameInfo.id]) {
+      if (this.ctx.matchExistingKey && valueKeyMap[nameInfo.id]) {
         this.needFix = true;
         const entryName = valueKeyMap[nameInfo.id];
         entry.nameInfo.boundName = entryName;
         patchedEntryIdList.push({ ...entry, fixedRaw: this.getFixedRaw(entry, entryName) });
       } else if (undefinedEntryIdSet.has(nameInfo.id)) {
         patchedEntryIdList.push({ ...entry, fixedRaw: "" });
-      } else if (validateLang(nameInfo.text, getLangCode(this.ctx.referredLang) ?? this.ctx.referredLang)) {
+      } else if (
+        this.ctx.autoTranslateMissingKey &&
+        validateLang(nameInfo.text, getLangCode(this.ctx.referredLang) ?? this.ctx.referredLang)
+      ) {
         undefinedEntryIdSet.add(nameInfo.id);
         needTranslateList.push(entry);
       }
@@ -194,29 +197,33 @@ export class FixHandler {
   }
 
   private getFixedRaw(entry: TEntry, name: string): string {
-    if (this.ctx.langFormatType === LANG_FORMAT_TYPE.nonObj) {
-      return name;
-    } else {
-      let varStr = "";
-      if (entry.vars.length > 0) {
-        varStr = ", " + entry.vars.join(", ");
-      } else if (entry.nameInfo.vars.length > 0) {
-        const varList = entry.nameInfo.vars;
-        switch (this.ctx.i18nFramework) {
-          case I18N_FRAMEWORK.vueI18n:
-            varStr = ", [" + varList.join(", ") + "]";
-            break;
-          case I18N_FRAMEWORK.vscodeL10n:
-            varStr = ", " + varList.join(", ");
-            break;
-          default:
-            varStr = ", { " + varList.map((item, index) => `${index}: ${item}`).join(", ") + " }";
-            break;
-        }
+    const i18nFeatures = {
+      framework: this.ctx.i18nFramework,
+      defaultNamespace: this.ctx.defaultNamespace,
+      tFuncNames: this.ctx.tFuncNames,
+      interpolationBrackets: this.ctx.interpolationBrackets,
+      namespaceSeparator: this.ctx.namespaceSeparator
+    };
+    const displayName = internalToDisplayName(name, i18nFeatures);
+    let varStr = "";
+    if (entry.vars.length > 0) {
+      varStr = ", " + entry.vars.join(", ");
+    } else if (entry.nameInfo.vars.length > 0) {
+      const varList = entry.nameInfo.vars;
+      switch (this.ctx.i18nFramework) {
+        case I18N_FRAMEWORK.vueI18n:
+          varStr = ", [" + varList.join(", ") + "]";
+          break;
+        case I18N_FRAMEWORK.vscodeL10n:
+          varStr = ", " + varList.join(", ");
+          break;
+        default:
+          varStr = ", { " + varList.map((item, index) => `${index}: ${item}`).join(", ") + " }";
+          break;
       }
-      const quote = entry.raw.match(/["'`]{1}/)![0];
-      return `${entry.raw[0]}t(${quote}${name}${quote}${varStr})`;
     }
+    const quote = entry.raw.match(/["'`]{1}/)![0];
+    return `${entry.raw[0]}t(${quote}${displayName}${quote}${varStr})`;
   }
 
   private getPopularClassMap(

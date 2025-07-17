@@ -24,6 +24,8 @@ export const createLangContext = (): LangContextInternal => ({
   tFuncNames: ["t"],
   interpolationBrackets: "auto",
   namespaceSeparator: "auto",
+  matchExistingKey: true,
+  autoTranslateMissingKey: false,
 
   langFormatType: "",
   langDictionary: {},

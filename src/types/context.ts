@@ -41,6 +41,8 @@ export interface LangContextPublic {
   manuallyMarkedUsedEntries: string[];
   modifyList: Array<{ key: string; name: string; value: string; lang: string }>;
   i18nFramework: I18nFramework;
+  matchExistingKey: boolean;
+  autoTranslateMissingKey: boolean;
 }
 
 // 内部模块才能访问的完整上下文

@@ -239,6 +239,18 @@
                 "type": "string"
               }
             }
+          },
+          "i18n-mage.translationServices.matchExistingKey": {
+            "order": 24,
+            "type": "boolean",
+            "default": true,
+            "description": "%config.matchExistingKey.desc%"
+          },
+          "i18n-mage.translationServices.autoTranslateMissingKey": {
+            "order": 25,
+            "type": "boolean",
+            "default": false,
+            "description": "%config.autoTranslateMissingKey.desc%"
           }
         }
       },
@@ -621,7 +633,7 @@
     "test:integration": "vscode-test --extensionDevelopmentPath=. --extensionTestsPath=test/integration/index.ts",
     "build": "node esbuild.config.js",
     "package": "npm run build && vsce package",
-    "format": "prettier --write ."
+    "format": "prettier --write \"*.{ts,tsx,js,jsx,md}\""
   },
   "mocha": {
     "timeout": 2000

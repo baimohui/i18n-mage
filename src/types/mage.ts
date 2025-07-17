@@ -29,6 +29,8 @@ export interface LangMageOptions {
   trimKeyList?: string[];
   manuallyMarkedUsedEntries?: string[];
   i18nFramework?: I18nFramework;
+  matchExistingKey?: boolean;
+  autoTranslateMissingKey?: boolean;
 }
 
 export const EXECUTION_RESULT_CODE = {

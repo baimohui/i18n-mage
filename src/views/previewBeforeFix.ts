@@ -1,12 +1,14 @@
 import * as vscode from "vscode";
 import { FixedTEntry } from "@/types";
 import { t } from "@/utils/i18n";
-import { unescapeString } from "@/utils/regex";
+import { unescapeString, internalToDisplayName } from "@/utils/regex";
+import LangMage from "@/core/LangMage";
 
 type EntryValueUpdates = Record<string, Record<string, string | undefined>>;
 type EntryIdPatches = Record<string, FixedTEntry[]>;
 type LocaleMap = Record<string, Record<string, string>>;
 
+const mage = LangMage.getInstance();
 export default function launchFixWebview(
   valueUpdates: EntryValueUpdates,
   idPatches: EntryIdPatches,
@@ -231,7 +233,7 @@ function renderValueSection(updates: EntryValueUpdates, localeMap: LocaleMap, ba
               ([key, val]) => /* html */ `
           <div class="item">
             <input type="checkbox" data-key="${key}" data-locale="${locale}" checked>
-            <label>${unescapeString(key)}</label>
+            <label>${internalToDisplayName(unescapeString(key), mage.i18nFeatures)}</label>
             <textarea rows="1">${val ?? ""}</textarea>
             ${
               localeMap[locale][key] && localeMap[locale][key] !== val
@@ -398,7 +400,9 @@ function applyValueUpdates(origin: EntryValueUpdates, updates: EntryValueUpdates
 }
 
 function applyIdPatches(origin: EntryIdPatches, patches: Record<string, number[]>) {
+  let fileIndex = 0;
   for (const file in origin) {
-    origin[file] = origin[file].filter((_, idx) => !patches[file]?.includes(idx));
+    origin[file] = origin[file].filter((_, idx) => patches[fileIndex]?.includes(idx));
+    fileIndex++;
   }
 }
