@@ -32,7 +32,7 @@ export class Diagnostics {
     const entries = catchTEntries(text, mage.i18nFeatures);
     const diagnostics: vscode.Diagnostic[] = [];
     const { tree, countryMap } = mage.langDetail;
-    const translations = countryMap[publicCtx.referredLang];
+    const translations = countryMap[publicCtx.displayLang];
     const totalEntryList = Object.keys(mage.langDetail.dictionary).map(key => unescapeString(key));
 
     for (const entry of entries) {

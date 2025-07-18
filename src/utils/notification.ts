@@ -11,7 +11,7 @@ export class NotificationManager {
 
   // 初始化输出通道
   static init() {
-    this.outputChannel = vscode.window.createOutputChannel("i18nMage");
+    this.outputChannel = vscode.window.createOutputChannel("i18n Mage");
   }
 
   // 显示主标题

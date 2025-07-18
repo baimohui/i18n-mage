@@ -54,6 +54,8 @@ export const createLangContext = (): LangContextInternal => ({
   updatedEntryValueInfo: {},
   patchedEntryIdInfo: {},
   referredLang: "",
+  displayLang: "",
+  defaultLang: "en",
   importExcelFrom: "",
   importSheetData: "",
   exportExcelTo: "",

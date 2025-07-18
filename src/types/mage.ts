@@ -8,6 +8,8 @@ export interface LangMageOptions {
   includedLangList?: string[];
   ignoredFileList?: string[];
   referredLang?: string;
+  displayLang?: string;
+  defaultLang?: string;
   globalFlag?: boolean;
   rewriteFlag?: boolean;
   exportDir?: string;

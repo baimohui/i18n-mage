@@ -40,7 +40,7 @@
           "i18n-mage.general.displayLanguage": {
             "order": 6,
             "type": "string",
-            "default": "en",
+            "default": "",
             "description": "%config.displayLanguage.desc%"
           },
           "i18n-mage.general.previewBeforeFix": {
@@ -174,7 +174,7 @@
           "i18n-mage.translationServices.referenceLanguage": {
             "order": 2,
             "type": "string",
-            "default": "en",
+            "default": "",
             "description": "%config.referenceLanguage.desc%"
           },
           "i18n-mage.translationServices.deepseekApiKey": {
@@ -406,6 +406,10 @@
         "title": "%command.setReferredLang.title%"
       },
       {
+        "command": "i18nMage.setDisplayLang",
+        "title": "%command.setDisplayLang.title%"
+      },
+      {
         "command": "i18nMage.markAsKnownLang",
         "title": "%command.markAsKnownLang.title%",
         "icon": {
@@ -565,11 +569,15 @@
       "view/item/context": [
         {
           "command": "i18nMage.setReferredLang",
-          "when": "viewItem =~ /checkSyncInfo/"
+          "when": "viewItem =~ /checkSyncInfo/ && !(viewItem =~ /UNKNOWN_LANG/) && !(viewItem =~ /REFERENCE_LANG/)"
+        },
+        {
+          "command": "i18nMage.setDisplayLang",
+          "when": "viewItem =~ /checkSyncInfo/ && !(viewItem =~ /DISPLAY_LANG/)"
         },
         {
           "command": "i18nMage.markAsKnownLang",
-          "when": "viewItem =~ /INVALID_LANG/",
+          "when": "viewItem =~ /UNKNOWN_LANG/",
           "group": "inline@1"
         },
         {

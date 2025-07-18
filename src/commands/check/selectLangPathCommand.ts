@@ -6,6 +6,8 @@ import { registerDisposable } from "@/utils/dispose";
 import { DecoratorController } from "@/features/Decorator";
 import { t } from "@/utils/i18n";
 import { NotificationManager } from "@/utils/notification";
+import { setConfig } from "@/utils/config";
+import { toRelativePath } from "@/utils/fs";
 
 export function registerSelectLangPathCommand() {
   const mage = LangMage.getInstance();
@@ -26,6 +28,7 @@ export function registerSelectLangPathCommand() {
         } else {
           vscode.window.showInformationMessage(t("command.selectLangPath.success", langPath));
           vscode.commands.executeCommand("setContext", "hasValidLangPath", true);
+          await setConfig("workspace.langPath", toRelativePath(langPath));
           treeInstance.refresh();
           const decorator = DecoratorController.getInstance();
           decorator.update(vscode.window.activeTextEditor);

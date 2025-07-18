@@ -129,7 +129,8 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
       NotificationManager.showError(t("command.setProjectPath.invalidFolder"));
       return false;
     } else {
-      this.#mage.setOptions({ projectPath });
+      const vscodeLang = vscode.env.language;
+      this.#mage.setOptions({ projectPath, defaultLang: vscodeLang });
       const configLangPath = getConfig<string>("workspace.langPath", "");
       if (configLangPath) {
         this.#mage.setOptions({ langPath: toAbsolutePath(configLangPath), task: "check", globalFlag: true, clearCache: true });
@@ -157,28 +158,37 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
         this.checkUsedInfo();
         vscode.commands.executeCommand("setContext", "hasValidLangPath", true);
         success = true;
+        const sortMode = getConfig<string>("general.sortOnWrite");
+        vscode.commands.executeCommand("setContext", "allowSort", this.langInfo.isFlat && sortMode !== SORT_MODE.None);
+        this.publicCtx = this.#mage.getPublicContext();
+        const langPath = toRelativePath(this.publicCtx.langPath);
+        const i18nFramework = detectI18nFramework(projectPath);
+        setTimeout(() => {
+          if (getConfig("workspace.langPath", "") !== langPath) {
+            setConfig("workspace.langPath", langPath).catch(error => {
+              console.error("Failed to set config for langPath:", error);
+            });
+          }
+          if (i18nFramework !== null && i18nFramework !== getConfig<I18nFramework>("i18nFeatures.framework")) {
+            setConfig("i18nFeatures.framework", i18nFramework).catch(error => {
+              console.error("Failed to set config for i18nFramework:", error);
+            });
+          }
+          if (getConfig("general.displayLanguage", "") === "") {
+            setConfig("general.displayLanguage", vscodeLang, "global").catch(error => {
+              console.error("Failed to set config for displayLanguage:", error);
+            });
+          }
+          if (getConfig("translationServices.referenceLanguage", "") === "") {
+            setConfig("translationServices.referenceLanguage", vscodeLang, "global").catch(error => {
+              console.error("Failed to set config for referenceLanguage:", error);
+            });
+          }
+        }, 10000);
       }
     }
     this.isInitialized = true;
     vscode.commands.executeCommand("setContext", "initialized", true);
-    const sortMode = getConfig<string>("general.sortOnWrite");
-    vscode.commands.executeCommand("setContext", "allowSort", this.langInfo.isFlat && sortMode !== SORT_MODE.None);
-    this.publicCtx = this.#mage.getPublicContext();
-    const langPath = toRelativePath(this.publicCtx.langPath);
-    const i18nFramework = detectI18nFramework(projectPath);
-    setTimeout(() => {
-      if (getConfig("workspace.langPath", "") !== langPath) {
-        setConfig("workspace.langPath", langPath).catch(error => {
-          console.error("Failed to set config for langPath:", error);
-        });
-      }
-      if (i18nFramework !== null && i18nFramework !== getConfig<I18nFramework>("i18nFeatures.framework")) {
-        setConfig("i18nFeatures.framework", i18nFramework).catch(error => {
-          console.error("Failed to set config for i18nFramework:", error);
-        });
-      }
-    }, 10000);
-
     return success;
   }
 
@@ -278,7 +288,7 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
       return this.langInfo.langList.map(lang => {
         const contextValueList = ["entryTranslationInCurFile", "COPY_VALUE", "GO_TO_DEFINITION", "EDIT_VALUE"];
         if (!getLangText(lang)) {
-          contextValueList.push("INVALID_LANG");
+          contextValueList.push("UNKNOWN_LANG");
         }
         return {
           label: lang,
@@ -299,19 +309,17 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
   private getSyncInfoChildren(element: ExtendedTreeItem): ExtendedTreeItem[] {
     if (element.level === 0) {
       return this.langInfo.langList.map(lang => {
-        const contextValueList = ["checkSyncInfo"];
-        if (!getLangText(lang)) {
-          contextValueList.push("INVALID_LANG");
-        }
+        const { desc, icon, context, tooltip } = this.checkLangSyncInfo(lang);
         return {
           level: 1,
           key: lang,
           label: lang,
           root: element.root,
-          tooltip: getLangText(lang) || t("common.unknownLang"),
+          tooltip,
           id: this.genId(element, lang),
-          contextValue: contextValueList.join(","),
-          description: this.checkLangSyncInfo(lang),
+          contextValue: context,
+          description: desc,
+          iconPath: new vscode.ThemeIcon(icon),
           collapsibleState: vscode.TreeItemCollapsibleState.Collapsed
         };
       });
@@ -504,24 +512,39 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
     }
   }
 
-  private checkLangSyncInfo(lang: string): string {
+  private checkLangSyncInfo(lang: string) {
+    const contextValueList = ["checkSyncInfo"];
+    let tooltip = getLangText(lang) || t("common.unknownLang");
+    if (!getLangText(lang)) {
+      contextValueList.push("UNKNOWN_LANG");
+    }
     const list: string[] = [];
     const lackNum = this.langInfo.lack[lang].length;
     const extraNum = this.langInfo.extra[lang].length;
     const nullNum = this.langInfo.null[lang].length;
+    // sync-ignored | sync~spin
+    let icon = "check";
     if (lackNum > 0 || nullNum > 0) {
+      icon = "sync";
       list.push(`-${lackNum + nullNum}`);
     }
     if (extraNum > 0) {
       list.push(`+${extraNum}`);
     }
-    if (lackNum === 0 && extraNum === 0 && nullNum === 0) {
-      list.push(t("tree.syncInfo.synced"));
+    if (lang === this.publicCtx.referredLang && lang === this.publicCtx.displayLang) {
+      list.push("🧙");
+      tooltip += ` (${t("tree.syncInfo.baseline")})`;
+      contextValueList.push("REFERENCE_LANG", "DISPLAY_LANG");
+    } else if (lang === this.publicCtx.referredLang) {
+      tooltip += ` (${t("tree.syncInfo.source")})`;
+      list.push("🌐");
+      contextValueList.push("REFERENCE_LANG");
+    } else if (lang === this.publicCtx.displayLang) {
+      tooltip += ` (${t("tree.syncInfo.display")})`;
+      list.push("👁️");
+      contextValueList.push("DISPLAY_LANG");
     }
-    if (lang === this.publicCtx.referredLang) {
-      list.push(t("tree.syncInfo.referred"));
-    }
-    return list.join(" ");
+    return { desc: list.join(" "), icon, tooltip, context: contextValueList.join(",") };
   }
 
   private getSyncInfo(lang: string) {

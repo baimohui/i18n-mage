@@ -21,6 +21,8 @@ export interface LangContextPublic {
   langFileType: string;
   projectPath: string;
   referredLang: string;
+  displayLang: string;
+  defaultLang: string;
   excludedLangList: string[];
   includedLangList: string[];
   globalFlag: boolean;

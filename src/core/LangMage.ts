@@ -34,25 +34,29 @@ class LangMage {
   public setOptions(options: LangMageOptions = {}): void {
     if (Object.prototype.toString.call(options) === "[object Object]") {
       const combinedOptions: LangMageOptions = {
-        referredLang: getConfig<string>("translationServices.referenceLanguage", "en"),
-        i18nFramework: getConfig<I18nFramework>("i18nFeatures.framework"),
-        ignoredFileList: getConfig<string[]>("workspace.ignoredFileList", []),
-        langFileMinLength: getConfig<number>("general.langFileMinLength", 0),
-        ignoreEmptyLangFile: getConfig<boolean>("general.ignoreEmptyLangFile", true),
-        manuallyMarkedUsedEntries: getConfig<string[]>("workspace.manuallyMarkedUsedEntries", []),
-        syncBasedOnReferredEntries: getConfig<boolean>("general.syncBasedOnReferredEntries", true),
-        sortingWriteMode: getConfig<SortMode>("general.sortOnWrite"),
-        sortingExportMode: getConfig<SortMode>("general.sortOnExport"),
-        defaultNamespace: getConfig<string>("i18nFeatures.defaultNamespace", ""),
-        tFuncNames: getConfig<string[]>("i18nFeatures.translationFunctionNames", ["t"]),
-        interpolationBrackets: getConfig<"auto" | "single" | "double">("i18nFeatures.interpolationBrackets", "auto"),
-        namespaceSeparator: getConfig<"auto" | ":" | ".">("i18nFeatures.namespaceSeparator", "auto"),
-        matchExistingKey: getConfig<boolean>("translationServices.matchExistingKey", true),
-        autoTranslateMissingKey: getConfig<boolean>("translationServices.autoTranslateMissingKey", false),
-        generatedKeyStyle: getConfig<KeyStyle>("translationServices.generatedKeyStyle"),
-        stopWords: getConfig<string[]>("translationServices.stopWords", []),
-        maxGeneratedKeyLength: getConfig<number>("translationServices.maxGeneratedKeyLength"),
-        keyPrefix: getConfig<string>("translationServices.keyPrefix", ""),
+        referredLang: getConfig<string>("translationServices.referenceLanguage", this.ctx.referredLang),
+        displayLang: getConfig<string>("general.displayLanguage", this.ctx.displayLang),
+        i18nFramework: getConfig<I18nFramework>("i18nFeatures.framework", this.ctx.i18nFramework),
+        ignoredFileList: getConfig<string[]>("workspace.ignoredFileList", this.ctx.ignoredFileList),
+        langFileMinLength: getConfig<number>("general.langFileMinLength", this.ctx.langFileMinLength),
+        ignoreEmptyLangFile: getConfig<boolean>("general.ignoreEmptyLangFile", this.ctx.ignoreEmptyLangFile),
+        manuallyMarkedUsedEntries: getConfig<string[]>("workspace.manuallyMarkedUsedEntries", this.ctx.manuallyMarkedUsedEntries),
+        syncBasedOnReferredEntries: getConfig<boolean>("general.syncBasedOnReferredEntries", this.ctx.syncBasedOnReferredEntries),
+        sortingWriteMode: getConfig<SortMode>("general.sortOnWrite", this.ctx.sortingWriteMode),
+        sortingExportMode: getConfig<SortMode>("general.sortOnExport", this.ctx.sortingExportMode),
+        defaultNamespace: getConfig<string>("i18nFeatures.defaultNamespace", this.ctx.defaultNamespace),
+        tFuncNames: getConfig<string[]>("i18nFeatures.translationFunctionNames", this.ctx.tFuncNames),
+        namespaceSeparator: getConfig<"auto" | ":" | ".">("i18nFeatures.namespaceSeparator", this.ctx.namespaceSeparator),
+        matchExistingKey: getConfig<boolean>("translationServices.matchExistingKey", this.ctx.matchExistingKey),
+        autoTranslateMissingKey: getConfig<boolean>("translationServices.autoTranslateMissingKey", this.ctx.autoTranslateMissingKey),
+        generatedKeyStyle: getConfig<KeyStyle>("translationServices.generatedKeyStyle", this.ctx.generatedKeyStyle),
+        stopWords: getConfig<string[]>("translationServices.stopWords", this.ctx.stopWords),
+        maxGeneratedKeyLength: getConfig<number>("translationServices.maxGeneratedKeyLength", this.ctx.maxGeneratedKeyLength),
+        keyPrefix: getConfig<string>("translationServices.keyPrefix", this.ctx.keyPrefix),
+        interpolationBrackets: getConfig<"auto" | "single" | "double">(
+          "i18nFeatures.interpolationBrackets",
+          this.ctx.interpolationBrackets
+        ),
         ...options
       };
       for (const [key, value] of Object.entries(combinedOptions)) {
@@ -76,11 +80,19 @@ class LangMage {
       if (this.detectedLangList.length === 0) {
         return { success: true, message: t("common.noLangPathDetectedWarn"), code: EXECUTION_RESULT_CODE.NoLangPathDetected };
       }
-      this.ctx.referredLang =
-        this.detectedLangList.find(item => item === this.ctx.referredLang) ??
-        this.detectedLangList.find(lang => getLangCode(lang) === "en") ??
-        this.detectedLangList.find(lang => getLangCode(lang) === "zh") ??
-        this.detectedLangList[0];
+      const resolveLang = (target: string) => {
+        const targetCode = getLangCode(target);
+        const defaultCode = getLangCode(this.ctx.defaultLang);
+        return (
+          this.detectedLangList.find(lang => lang === target) ??
+          this.detectedLangList.find(lang => getLangCode(lang) === targetCode) ??
+          this.detectedLangList.find(lang => getLangCode(lang) === defaultCode) ??
+          this.detectedLangList.find(lang => getLangCode(lang) === "en") ??
+          this.detectedLangList[0]
+        );
+      };
+      this.ctx.referredLang = resolveLang(this.ctx.referredLang);
+      this.ctx.displayLang = resolveLang(this.ctx.displayLang);
 
       if (this.ctx.globalFlag) {
         reader.startCensus();
@@ -130,6 +142,8 @@ class LangMage {
       langFileType: this.ctx.langFileType,
       projectPath: this.ctx.projectPath,
       referredLang: this.ctx.referredLang,
+      displayLang: this.ctx.displayLang,
+      defaultLang: this.ctx.defaultLang,
       excludedLangList: this.ctx.excludedLangList,
       includedLangList: this.ctx.includedLangList,
       globalFlag: this.ctx.globalFlag,
