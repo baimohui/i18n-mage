@@ -1,5 +1,6 @@
 import { httpsOverHttp } from "tunnel";
 import { translate } from "@vitalets/google-translate-api";
+import { t } from "@/utils/i18n";
 
 interface TranslateParams {
   source: string;
@@ -23,7 +24,7 @@ export default async function translateTo({ source, target, sourceTextList }: Tr
   for (const text of sourceTextList) {
     sum += text.length;
     if (text.length > translateLenLimit) {
-      return { success: false, message: `文本字符数超出单次翻译请求限制：${text}` };
+      return { success: false, message: t(`translator.googleError.limitedTextLength`, text) };
     }
     if (sum > translateLenLimit) {
       packList.push(pack);
@@ -72,7 +73,7 @@ async function sendBatch(
           .catch(error => {
             resolve({
               success: false,
-              message: error instanceof Error ? error.message : "Batch processing failed"
+              message: error instanceof Error ? error.message : t("common.unknownError")
             });
           });
       }, 1100);
@@ -114,7 +115,7 @@ async function send(source: string, target: string, sourceTextList: string[]): P
 
       return { success: true, data: transformedList, message: "success" };
     } else {
-      return { success: false, message: res.message ?? "未知错误" };
+      return { success: false, message: res.message ?? t("common.unknownError") };
     }
   } catch (e: unknown) {
     return { success: false, message: e instanceof Error ? e.message : (e as string) };

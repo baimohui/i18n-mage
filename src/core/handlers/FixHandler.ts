@@ -3,7 +3,15 @@ import { CheckHandler } from "./CheckHandler";
 import { RewriteHandler } from "./RewriteHandler";
 import { LANG_ENTRY_SPLIT_SYMBOL, getLangCode } from "@/utils/langKey";
 import { TEntry, I18N_FRAMEWORK } from "@/types";
-import { validateLang, getIdByStr, getValueByAmbiguousEntryName, escapeString, internalToDisplayName, generateKey } from "@/utils/regex";
+import {
+  validateLang,
+  getIdByStr,
+  getValueByAmbiguousEntryName,
+  escapeString,
+  internalToDisplayName,
+  generateKey,
+  unescapeString
+} from "@/utils/regex";
 import { getDetectedLangList, setUpdatedEntryValueInfo } from "@/core/tools/contextTools";
 import translateTo from "@/translator/index";
 import { t } from "@/utils/i18n";
@@ -58,9 +66,9 @@ export class FixHandler {
     const undefinedEntryIdSet = new Set<string>();
     this.ctx.undefinedEntryList.forEach(entry => {
       const nameInfo = entry.nameInfo;
-      if (this.ctx.matchExistingKey && valueKeyMap[nameInfo.id]) {
+      if (this.ctx.matchExistingKey && valueKeyMap[nameInfo.id] && !entry.nameInfo.boundName) {
         this.needFix = true;
-        const entryName = valueKeyMap[nameInfo.id];
+        const entryName = unescapeString(valueKeyMap[nameInfo.id]);
         entry.nameInfo.boundName = entryName;
         patchedEntryIdList.push({ ...entry, fixedRaw: this.getFixedRaw(entry, entryName) });
       } else if (undefinedEntryIdSet.has(nameInfo.id)) {
@@ -107,7 +115,7 @@ export class FixHandler {
       const genKeyInfo = { keyStyle: this.ctx.generatedKeyStyle, stopWords: this.ctx.stopWords };
       const id = getIdByStr(enNameList[index], genKeyInfo);
       const nameInfo = entry.nameInfo;
-      if (!nameInfo.boundName || checkExisted(nameInfo.boundName)) {
+      if (!nameInfo.boundName) {
         if (nameInfo.boundClass && !nameInfo.boundClass.endsWith(LANG_ENTRY_SPLIT_SYMBOL[this.ctx.langFormatType] as string)) {
           nameInfo.boundClass += LANG_ENTRY_SPLIT_SYMBOL[this.ctx.langFormatType];
         }
@@ -125,10 +133,11 @@ export class FixHandler {
             nameParts = [fileName, "text"];
           }
           let index = 1;
-          entryName = baseName + generateKey([...nameParts, String(index).padStart(2, "0")], genKeyInfo.keyStyle).slice(-maxLen);
+          const keyLen = maxLen - baseName.length;
+          entryName = baseName + generateKey([...nameParts, String(index).padStart(2, "0")], genKeyInfo.keyStyle).slice(-keyLen);
           while (checkExisted(entryName)) {
             index++;
-            entryName = baseName + generateKey([...nameParts, String(index).padStart(2, "0")], genKeyInfo.keyStyle).slice(-maxLen);
+            entryName = baseName + generateKey([...nameParts, String(index).padStart(2, "0")], genKeyInfo.keyStyle).slice(-keyLen);
           }
         }
         nameInfo.boundName = entryName;

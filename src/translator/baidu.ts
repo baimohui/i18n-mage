@@ -6,23 +6,19 @@ import { TranslateParams, TranslateResult } from "../types";
 const baseUrl = "https://fanyi-api.baidu.com/api/trans/vip/translate";
 
 const errorCodeMap: Record<number, string> = {
-  52001: "请求超时，请重试",
-  52002: "系统错误，请重试",
-  52003: "未授权用户，请检查 appid 是否正确或者服务是否开通",
-  54000: "必填参数为空，请检查是否少传参数",
-  54001: "签名错误，请检查您的签名生成方法",
-  54003: "访问频率受限，请降低您的调用频率，或进行身份认证后切换为高级版/尊享版",
-  54004: "账户余额不足，请前往管理控制台为账户充值",
-  54005: "长 query 请求频繁，请降低长 query 的发送频率，3s 后再试",
-  58000: "客户端 IP 非法，请检查个人资料里填写的 IP 地址是否正确，可前往开发者信息 - 基本信息修改",
-  58001: "译文语言方向不支持，请检查译文语言是否在语言列表里",
-  58002: "服务当前已关闭，请前往管理控制台开启服务",
-  90107: "认证未通过或未生效，请前往查看认证进度"
+  52001: t("translator.baiduErrorInfo.requestTimeout"),
+  52002: t("translator.baiduErrorInfo.systemError"),
+  52003: t("translator.baiduErrorInfo.unauthorizedUser"),
+  54000: t("translator.baiduErrorInfo.paramsRequired"),
+  54001: t("translator.baiduErrorInfo.signatureError"),
+  54003: t("translator.baiduErrorInfo.limitedCallFrequency"),
+  54004: t("translator.baiduErrorInfo.insufficientBalance"),
+  54005: t("translator.baiduErrorInfo.longQueryFrequency"),
+  58000: t("translator.baiduErrorInfo.wrongIp"),
+  58001: t("translator.baiduErrorInfo.unsupportedLanguage"),
+  58002: t("translator.baiduErrorInfo.closedService"),
+  90107: t("translator.baiduErrorInfo.failedCertification")
 };
-
-const langList0 = ["zh", "en", "yue", "wyw", "jp", "kor", "fra", "spa", "th", "ara", "ru", "pt", "de", "it"];
-const langList1 = ["el", "nl", "pl", "bul", "est", "dan", "fin", "cs", "rom", "slo", "swe", "hu", "cht", "vie"];
-const supportLangList = [...langList0, ...langList1];
 
 let baiduAppId = "";
 let baiduSecretKey = "";
@@ -35,14 +31,6 @@ export default async function translateTo({ source, target, sourceTextList, apiI
   let sum = 0;
   let pack: string[] = [];
   const packList: string[][] = [];
-  const unsupportedLang = [source, target].find(item => !supportLangList.includes(item));
-  if (unsupportedLang !== undefined && unsupportedLang !== null) {
-    return {
-      success: false,
-      langUnsupported: true,
-      message: `${unsupportedLang} 不在常见语种列表内。对于非常见语种，仅企业已认证的尊享版用户可调用`
-    };
-  }
   sourceTextList.forEach(text => {
     sum += text.length;
     if (text.length > translateLenLimit) {

@@ -1,5 +1,6 @@
 import { tmt } from "tencentcloud-sdk-nodejs-tmt";
 import { TranslateParams, TranslateResult } from "../types";
+import { t } from "@/utils/i18n";
 
 const TmtClient = tmt.v20180321.Client;
 
@@ -32,14 +33,14 @@ export default async function translateTo({ source, target, sourceTextList, apiI
     return {
       success: false,
       langUnsupported: true,
-      message: `暂不支持 ${source} 语种`
+      message: t(`translator.tencentError.unsupportedLanguage`, source)
     };
   }
   if (!supportLangMap[source]?.includes(target)) {
     return {
       success: false,
       langUnsupported: true,
-      message: `${source} 支持的目标语言不包含 ${target}，无法翻译！`
+      message: t(`translator.tencentError.unsupportedLanguageMap`, source, target)
     };
   }
   tencentSecretId = apiId;
@@ -55,7 +56,7 @@ export default async function translateTo({ source, target, sourceTextList, apiI
     if (text.length > translateLenLimit) {
       return {
         success: false,
-        message: `文本字符数超出单次翻译请求限制：${text}`
+        message: t(`translator.tencentError.limitedTextLength`, text)
       };
     }
     if (sum > translateLenLimit) {
@@ -98,7 +99,7 @@ async function sendBatch(
               // 捕获可能的错误
               resolve({
                 success: false,
-                message: error instanceof Error ? error.message : "Batch translation failed"
+                message: error instanceof Error ? error.message : t("common.unknownError")
               });
             });
         }, 1100);
