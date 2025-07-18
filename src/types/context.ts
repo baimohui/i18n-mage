@@ -10,7 +10,8 @@ import {
   EntryNode,
   I18nFramework,
   FileExtraInfo,
-  SortMode
+  SortMode,
+  KeyStyle
 } from "@/types";
 
 // 外部模块可访问的公共上下文
@@ -43,6 +44,10 @@ export interface LangContextPublic {
   i18nFramework: I18nFramework;
   matchExistingKey: boolean;
   autoTranslateMissingKey: boolean;
+  generatedKeyStyle: KeyStyle;
+  stopWords: string[];
+  maxGeneratedKeyLength: number;
+  keyPrefix: string;
 }
 
 // 内部模块才能访问的完整上下文

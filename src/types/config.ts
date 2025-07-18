@@ -34,3 +34,13 @@ export const SORT_MODE = {
 } as const;
 
 export type SortMode = (typeof SORT_MODE)[keyof typeof SORT_MODE];
+
+export const KEY_STYLE = {
+  camelCase: "camelCase",
+  pascalCase: "PascalCase",
+  snakeCase: "snake_case",
+  kebabCase: "kebab-case",
+  raw: "raw"
+} as const;
+
+export type KeyStyle = (typeof KEY_STYLE)[keyof typeof KEY_STYLE];

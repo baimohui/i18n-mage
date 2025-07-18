@@ -1,4 +1,4 @@
-import { I18nFramework, SortMode } from "@/types";
+import { I18nFramework, KeyStyle, SortMode } from "@/types";
 
 export interface LangMageOptions {
   task?: string;
@@ -31,6 +31,10 @@ export interface LangMageOptions {
   i18nFramework?: I18nFramework;
   matchExistingKey?: boolean;
   autoTranslateMissingKey?: boolean;
+  generatedKeyStyle?: KeyStyle;
+  stopWords?: string[];
+  maxGeneratedKeyLength?: number;
+  keyPrefix?: string;
 }
 
 export const EXECUTION_RESULT_CODE = {

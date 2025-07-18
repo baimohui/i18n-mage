@@ -1,4 +1,4 @@
-import { CaseType } from "@/types";
+import { CaseType, KeyStyle, KEY_STYLE } from "@/types";
 
 export function getCaseType(str: string): CaseType {
   if (!/^[a-zA-Z][a-zA-Z0-9]*$/.test(str)) return "wc"; // weird-case
@@ -12,14 +12,44 @@ export function escapeRegExp(str: string): string {
   return str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
-export function getIdByStr(str: string, usedForEntryName = false): string {
-  let id = str.toLowerCase();
-  if (usedForEntryName) {
-    id = id
-      .split("")
-      .filter(item => /[a-zA-Z0-9\s-]/.test(item))
+export function generateKey(parts: string[], keyStyle: KeyStyle): string {
+  if (!Array.isArray(parts) || parts.length === 0) return "";
+  const toCamelCase = (arr: string[]) =>
+    arr[0].toLowerCase() +
+    arr
+      .slice(1)
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
       .join("");
-    id = id.replace(/[\s-](\S)/g, (_, char: string) => char.toUpperCase()).replace(/-/g, "");
+  const toPascalCase = (arr: string[]) => arr.map(word => word.charAt(0).toUpperCase() + word.slice(1)).join("");
+  const toSnakeCase = (arr: string[]) => arr.map(word => word.toLowerCase()).join("_");
+  const toKebabCase = (arr: string[]) => arr.map(word => word.toLowerCase()).join("-");
+  const toRaw = (arr: string[]) => arr.join("");
+  switch (keyStyle) {
+    case KEY_STYLE.camelCase:
+      return toCamelCase(parts);
+    case KEY_STYLE.pascalCase:
+      return toPascalCase(parts);
+    case KEY_STYLE.snakeCase:
+      return toSnakeCase(parts);
+    case KEY_STYLE.kebabCase:
+      return toKebabCase(parts);
+    case KEY_STYLE.raw:
+      return toRaw(parts);
+    default:
+      return toCamelCase(parts);
+  }
+}
+
+export function getIdByStr(str: string, genKeyInfo: { keyStyle: KeyStyle; stopWords: string[] } | null = null): string {
+  let id = str.toLowerCase();
+  if (genKeyInfo) {
+    id = id
+      .replace(/[-_]/g, " ")
+      .split("")
+      .filter(item => /[a-zA-Z0-9\s]/.test(item))
+      .join("");
+    const parts = id.split(/\s/).filter(part => !genKeyInfo.stopWords.includes(part));
+    return generateKey(parts, genKeyInfo.keyStyle);
   }
   id = id.replace(/\s/g, "");
   return id;

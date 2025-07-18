@@ -3,7 +3,7 @@ import { CheckHandler } from "./CheckHandler";
 import { RewriteHandler } from "./RewriteHandler";
 import { LANG_ENTRY_SPLIT_SYMBOL, getLangCode } from "@/utils/langKey";
 import { TEntry, I18N_FRAMEWORK } from "@/types";
-import { validateLang, getIdByStr, getValueByAmbiguousEntryName, escapeString, internalToDisplayName } from "@/utils/regex";
+import { validateLang, getIdByStr, getValueByAmbiguousEntryName, escapeString, internalToDisplayName, generateKey } from "@/utils/regex";
 import { getDetectedLangList, setUpdatedEntryValueInfo } from "@/core/tools/contextTools";
 import translateTo from "@/translator/index";
 import { t } from "@/utils/i18n";
@@ -94,29 +94,45 @@ export class FixHandler {
       }
     }
     const pcList = this.getPopularClassList();
-    const namePrefix = pcList[0]?.name ?? "";
+    let namePrefix = "";
+    if (this.ctx.keyPrefix === "auto-popular") {
+      namePrefix = pcList[0]?.name ?? "";
+    } else if (this.ctx.keyPrefix && this.ctx.keyPrefix !== "none") {
+      namePrefix = this.ctx.keyPrefix;
+    }
     const newIdSet = new Set<string>();
     const checkExisted = (key: string) => Boolean(getValueByAmbiguousEntryName(this.ctx.entryTree, key)) || newIdSet.has(key);
     needTranslateList.forEach((entry, index) => {
       if (enNameList[index] === "") return;
-      let id = getIdByStr(enNameList[index], true);
+      const genKeyInfo = { keyStyle: this.ctx.generatedKeyStyle, stopWords: this.ctx.stopWords };
+      const id = getIdByStr(enNameList[index], genKeyInfo);
       const nameInfo = entry.nameInfo;
       if (!nameInfo.boundName || checkExisted(nameInfo.boundName)) {
         if (nameInfo.boundClass && !nameInfo.boundClass.endsWith(LANG_ENTRY_SPLIT_SYMBOL[this.ctx.langFormatType] as string)) {
           nameInfo.boundClass += LANG_ENTRY_SPLIT_SYMBOL[this.ctx.langFormatType];
         }
         const baseName = nameInfo.boundClass || namePrefix;
-        const needsNewId = id.length > 40 || checkExisted(baseName + id);
-        if (needsNewId) {
-          const mainName = id.length > 40 ? entry.path!.match(/([a-zA-Z0-9]+)\./)?.[1] + "Text" : id;
-          let index = 1;
-          while (checkExisted(`${baseName}${mainName}${String(index).padStart(2, "0")}`)) {
-            index++;
+        const maxLen = this.ctx.maxGeneratedKeyLength;
+        let entryName = baseName + id;
+        const needsAnotherName = entryName.length > maxLen || id.length === 0 || checkExisted(entryName);
+        if (needsAnotherName) {
+          let nameParts = [entryName];
+          if (!checkExisted(entryName)) {
+            let fileName = entry.path!.match(/([a-zA-Z0-9]+)\./)?.[1];
+            if (fileName === undefined || this.ctx.stopWords.includes(fileName)) {
+              fileName = "unknown";
+            }
+            nameParts = [fileName, "text"];
           }
-          id = `${mainName}${String(index).padStart(2, "0")}`;
+          let index = 1;
+          entryName = baseName + generateKey([...nameParts, String(index).padStart(2, "0")], genKeyInfo.keyStyle).slice(-maxLen);
+          while (checkExisted(entryName)) {
+            index++;
+            entryName = baseName + generateKey([...nameParts, String(index).padStart(2, "0")], genKeyInfo.keyStyle).slice(-maxLen);
+          }
         }
-        nameInfo.boundName = baseName + id;
-        newIdSet.add(nameInfo.boundName);
+        nameInfo.boundName = entryName;
+        newIdSet.add(entryName);
       }
       patchedEntryIdList.push({ ...entry, fixedRaw: this.getFixedRaw(entry, nameInfo.boundName) });
       this.needFix = true;

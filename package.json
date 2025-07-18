@@ -251,6 +251,58 @@
             "type": "boolean",
             "default": false,
             "description": "%config.autoTranslateMissingKey.desc%"
+          },
+          "i18n-mage.translationServices.generatedKeyStyle": {
+            "order": 26,
+            "type": "string",
+            "default": "camelCase",
+            "enum": [
+              "camelCase",
+              "PascalCase",
+              "snake_case",
+              "kebab-case",
+              "raw"
+            ],
+            "enumDescriptions": [
+              "%config.generatedKeyStyle.camelCase%",
+              "%config.generatedKeyStyle.pascalCase%",
+              "%config.generatedKeyStyle.snakeCase%",
+              "%config.generatedKeyStyle.kebabCase%",
+              "%config.generatedKeyStyle.raw%"
+            ],
+            "description": "%config.generatedKeyStyle.desc%"
+          },
+          "i18n-mage.translationServices.stopWords": {
+            "order": 30,
+            "type": "array",
+            "default": [
+              "the"
+            ],
+            "items": {
+              "type": "string"
+            },
+            "description": "%config.stopWords.desc%"
+          },
+          "i18n-mage.translationServices.maxGeneratedKeyLength": {
+            "order": 32,
+            "type": "integer",
+            "default": 40,
+            "minimum": 10,
+            "description": "%config.maxGeneratedKeyLength.desc%"
+          },
+          "i18n-mage.translationServices.keyPrefix": {
+            "order": 35,
+            "type": "string",
+            "default": "auto-popular",
+            "description": "%config.keyPrefix.desc%",
+            "enum": [
+              "none",
+              "auto-popular"
+            ],
+            "enumDescriptions": [
+              "%config.keyPrefix.none%",
+              "%config.keyPrefix.auto-popular%"
+            ]
           }
         }
       },

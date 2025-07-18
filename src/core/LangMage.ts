@@ -9,7 +9,7 @@ import { SortHandler } from "./handlers/SortHandler";
 import { TrimHandler } from "./handlers/TrimHandler";
 import { ModifyHandler } from "./handlers/ModifyHandler";
 import { ReadHandler } from "./handlers/ReadHandler";
-import { LangMageOptions, I18nFramework, ExecutionResult, EXECUTION_RESULT_CODE } from "@/types";
+import { LangMageOptions, I18nFramework, ExecutionResult, EXECUTION_RESULT_CODE, KeyStyle } from "@/types";
 import { getDetectedLangList } from "@/core/tools/contextTools";
 import { getLangCode } from "@/utils/langKey";
 import { t } from "@/utils/i18n";
@@ -49,6 +49,10 @@ class LangMage {
         namespaceSeparator: getConfig<"auto" | ":" | ".">("i18nFeatures.namespaceSeparator", "auto"),
         matchExistingKey: getConfig<boolean>("translationServices.matchExistingKey", true),
         autoTranslateMissingKey: getConfig<boolean>("translationServices.autoTranslateMissingKey", false),
+        generatedKeyStyle: getConfig<KeyStyle>("translationServices.generatedKeyStyle"),
+        stopWords: getConfig<string[]>("translationServices.stopWords", []),
+        maxGeneratedKeyLength: getConfig<number>("translationServices.maxGeneratedKeyLength"),
+        keyPrefix: getConfig<string>("translationServices.keyPrefix", ""),
         ...options
       };
       for (const [key, value] of Object.entries(combinedOptions)) {
@@ -148,7 +152,11 @@ class LangMage {
       modifyList: this.ctx.modifyList,
       i18nFramework: this.ctx.i18nFramework,
       matchExistingKey: this.ctx.matchExistingKey,
-      autoTranslateMissingKey: this.ctx.autoTranslateMissingKey
+      autoTranslateMissingKey: this.ctx.autoTranslateMissingKey,
+      generatedKeyStyle: this.ctx.generatedKeyStyle,
+      stopWords: this.ctx.stopWords,
+      maxGeneratedKeyLength: this.ctx.maxGeneratedKeyLength,
+      keyPrefix: this.ctx.keyPrefix
     };
   }
 
