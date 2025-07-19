@@ -1,6 +1,5 @@
 import { LangContextInternal, LackInfo } from "@/types";
 import { CheckHandler } from "./CheckHandler";
-import { RewriteHandler } from "./RewriteHandler";
 import { LANG_ENTRY_SPLIT_SYMBOL, getLangCode } from "@/utils/langKey";
 import { TEntry, I18N_FRAMEWORK } from "@/types";
 import {
@@ -48,10 +47,6 @@ export class FixHandler {
       const res = await this.fillMissingTranslations();
       if (ExecutionContext.token.isCancellationRequested) {
         return { success: false, message: t("common.progress.cancelledByUser"), code: EXECUTION_RESULT_CODE.Cancelled };
-      }
-      if (this.ctx.rewriteFlag && res.success && res.message === "") {
-        const writer = new RewriteHandler(this.ctx);
-        return await writer.run();
       }
       return res;
     } catch (e: unknown) {

@@ -25,12 +25,12 @@ export function registerFixCommand() {
       const rewriteFlag = !getConfig<boolean>("general.previewBeforeFix", true);
       mage.setOptions({ task: "fix", globalFlag: true, rewriteFlag });
       res = await mage.execute();
-      if (res.success && res.message === "") {
+      const publicCtx = mage.getPublicContext();
+      const { updatedValues, patchedIds, countryMap } = mage.langDetail;
+      if (res.success && [updatedValues, patchedIds].some(o => Object.keys(o).length > 0)) {
         if (rewriteFlag) {
           res = await rewrite();
         } else {
-          const publicCtx = mage.getPublicContext();
-          const { updatedValues, patchedIds, countryMap } = mage.langDetail;
           if ([updatedValues, patchedIds].some(item => Object.keys(item).length > 0)) {
             previewFixContent(updatedValues, patchedIds, countryMap, publicCtx.referredLang, async () => {
               res = await rewrite();
