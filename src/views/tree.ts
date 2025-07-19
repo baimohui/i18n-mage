@@ -523,7 +523,7 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
     const extraNum = this.langInfo.extra[lang].length;
     const nullNum = this.langInfo.null[lang].length;
     // sync-ignored | sync~spin
-    let icon = "check";
+    let icon = "pass";
     if (lackNum > 0 || nullNum > 0) {
       icon = "sync";
       list.push(`-${lackNum + nullNum}`);

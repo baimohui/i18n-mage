@@ -80,7 +80,7 @@ class LangMage {
       if (this.detectedLangList.length === 0) {
         return { success: true, message: t("common.noLangPathDetectedWarn"), code: EXECUTION_RESULT_CODE.NoLangPathDetected };
       }
-      const resolveLang = (target: string) => {
+      const resolveLang = (target: string, isValidCode = false) => {
         const targetCode = getLangCode(target);
         const defaultCode = getLangCode(this.ctx.defaultLang);
         return (
@@ -88,10 +88,11 @@ class LangMage {
           this.detectedLangList.find(lang => getLangCode(lang) === targetCode) ??
           this.detectedLangList.find(lang => getLangCode(lang) === defaultCode) ??
           this.detectedLangList.find(lang => getLangCode(lang) === "en") ??
-          this.detectedLangList[0]
+          this.detectedLangList.find(lang => (isValidCode ? getLangCode(lang) !== null : Boolean(lang))) ??
+          ""
         );
       };
-      this.ctx.referredLang = resolveLang(this.ctx.referredLang);
+      this.ctx.referredLang = resolveLang(this.ctx.referredLang, true);
       this.ctx.displayLang = resolveLang(this.ctx.displayLang);
 
       if (this.ctx.globalFlag) {

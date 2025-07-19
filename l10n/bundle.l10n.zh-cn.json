@@ -13,6 +13,7 @@
   "command.export.title": "导出翻译",
   "command.export.wrongPath": "导出路径错误",
   "command.fix.error": "修复失败：{0}",
+  "command.fix.noReferredLang": "未检测到有效的翻译源语言",
   "command.fix.nullWarn": "未发现需要修复的词条",
   "command.fix.progress": "修复中",
   "command.fix.progressDetail": "对 {0} 调用 {1} API，新增翻译：{2}",

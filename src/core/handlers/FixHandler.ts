@@ -34,6 +34,13 @@ export class FixHandler {
       this.needFix = false;
       const checker = new CheckHandler(this.ctx);
       checker.run();
+      if (!this.ctx.referredLang) {
+        return {
+          success: false,
+          message: t("command.fix.noReferredLang"),
+          code: EXECUTION_RESULT_CODE.NoReferredLang
+        };
+      }
       if (this.ctx.undefinedEntryList.length > 0) {
         const res = await this.processUndefinedEntries();
         if (!res.success) return res;

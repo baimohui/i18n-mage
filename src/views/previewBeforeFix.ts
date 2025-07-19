@@ -2,6 +2,7 @@ import * as vscode from "vscode";
 import { FixedTEntry } from "@/types";
 import { t } from "@/utils/i18n";
 import { unescapeString, internalToDisplayName } from "@/utils/regex";
+import { toRelativePath } from "@/utils/fs";
 import LangMage from "@/core/LangMage";
 
 type EntryValueUpdates = Record<string, Record<string, string | undefined>>;
@@ -263,7 +264,7 @@ function renderIdSection(patches: EntryIdPatches): string {
       <details open data-index="${idx}">
         <summary class="group-head">
           <input type="checkbox" checked>
-          <strong>${file}</strong>
+          <strong>${toRelativePath(file)}</strong>
         </summary>
         <div class="group">
           ${changes

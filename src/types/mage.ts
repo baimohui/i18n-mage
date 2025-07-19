@@ -49,6 +49,7 @@ export const EXECUTION_RESULT_CODE = {
   ImportNoKey: 304,
   ImportNoLang: 305,
   TranslatorFailed: 306,
+  NoReferredLang: 307,
   UnknownError: 400,
   UnknownCheckError: 401,
   UnknownFixError: 402,

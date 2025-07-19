@@ -118,6 +118,9 @@ export function toAbsolutePath(relativePath: string): string {
  * @param absolutePath 要转换的绝对路径
  */
 export function toRelativePath(absolutePath: string): string {
+  if (!path.isAbsolute(absolutePath)) {
+    return absolutePath;
+  }
   const root = vscode.workspace.workspaceFolders?.[0].uri.fsPath;
   if (root === undefined) return "";
   return path.relative(root, absolutePath).split(path.sep).join("/");

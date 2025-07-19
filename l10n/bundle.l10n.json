@@ -13,6 +13,7 @@
   "command.export.title": "Export translation",
   "command.export.wrongPath": "Export path error",
   "command.fix.error": "Fix failed: {0}",
+  "command.fix.noReferredLang": "No valid source language for translation detected",
   "command.fix.nullWarn": "No entries to fix",
   "command.fix.progress": "Fixing...",
   "command.fix.progressDetail": "Call {1} ​​API to {0}, adding new translation: {2}",
