@@ -11,7 +11,8 @@ import {
   I18nFramework,
   FileExtraInfo,
   SortMode,
-  KeyStyle
+  KeyStyle,
+  QuoteStyle
 } from "@/types";
 
 // 外部模块可访问的公共上下文
@@ -50,6 +51,9 @@ export interface LangContextPublic {
   stopWords: string[];
   maxGeneratedKeyLength: number;
   keyPrefix: string;
+  languageFileIndent: number;
+  quoteStyleForKey: "auto" | QuoteStyle;
+  quoteStyleForValue: "auto" | QuoteStyle;
 }
 
 // 内部模块才能访问的完整上下文

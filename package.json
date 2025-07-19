@@ -49,22 +49,6 @@
             "default": true,
             "description": "%config.previewBeforeFix.desc%"
           },
-          "i18n-mage.general.sortOnWrite": {
-            "order": 15,
-            "type": "string",
-            "enum": [
-              "none",
-              "byKey",
-              "byPosition"
-            ],
-            "default": "none",
-            "enumDescriptions": [
-              "%config.sortBy.none%",
-              "%config.sortBy.byKey%",
-              "%config.sortBy.byPosition%"
-            ],
-            "description": "%config.sorting.writeCode%"
-          },
           "i18n-mage.general.sortOnExport": {
             "order": 16,
             "type": "string",
@@ -251,58 +235,6 @@
             "type": "boolean",
             "default": false,
             "description": "%config.autoTranslateMissingKey.desc%"
-          },
-          "i18n-mage.translationServices.generatedKeyStyle": {
-            "order": 26,
-            "type": "string",
-            "default": "camelCase",
-            "enum": [
-              "camelCase",
-              "PascalCase",
-              "snake_case",
-              "kebab-case",
-              "raw"
-            ],
-            "enumDescriptions": [
-              "%config.generatedKeyStyle.camelCase%",
-              "%config.generatedKeyStyle.pascalCase%",
-              "%config.generatedKeyStyle.snakeCase%",
-              "%config.generatedKeyStyle.kebabCase%",
-              "%config.generatedKeyStyle.raw%"
-            ],
-            "description": "%config.generatedKeyStyle.desc%"
-          },
-          "i18n-mage.translationServices.stopWords": {
-            "order": 30,
-            "type": "array",
-            "default": [
-              "the"
-            ],
-            "items": {
-              "type": "string"
-            },
-            "description": "%config.stopWords.desc%"
-          },
-          "i18n-mage.translationServices.maxGeneratedKeyLength": {
-            "order": 32,
-            "type": "integer",
-            "default": 40,
-            "minimum": 10,
-            "description": "%config.maxGeneratedKeyLength.desc%"
-          },
-          "i18n-mage.translationServices.keyPrefix": {
-            "order": 35,
-            "type": "string",
-            "default": "auto-popular",
-            "description": "%config.keyPrefix.desc%",
-            "enum": [
-              "none",
-              "auto-popular"
-            ],
-            "enumDescriptions": [
-              "%config.keyPrefix.none%",
-              "%config.keyPrefix.auto-popular%"
-            ]
           }
         }
       },
@@ -363,6 +295,125 @@
             "type": "number",
             "default": 0.1,
             "description": "%config.translateHintsBackgroundAlphaInDark.desc%"
+          }
+        }
+      },
+      {
+        "type": "object",
+        "title": "%config.writeRules.title%",
+        "properties": {
+          "i18n-mage.writeRules.sortOnWrite": {
+            "order": 4,
+            "type": "string",
+            "enum": [
+              "none",
+              "byKey",
+              "byPosition"
+            ],
+            "default": "none",
+            "enumDescriptions": [
+              "%config.sortBy.none%",
+              "%config.sortBy.byKey%",
+              "%config.sortBy.byPosition%"
+            ],
+            "description": "%config.sorting.writeCode%"
+          },
+          "i18n-mage.writeRules.languageFileIndent": {
+            "order": 6,
+            "type": [
+              "integer",
+              "null"
+            ],
+            "default": null,
+            "minimum": 0,
+            "maximum": 10,
+            "description": "%config.languageFileIndent.desc%"
+          },
+          "i18n-mage.writeRules.quoteStyleForKey": {
+            "order": 9,
+            "type": "string",
+            "enum": [
+              "auto",
+              "double",
+              "single",
+              "none"
+            ],
+            "default": "auto",
+            "enumDescriptions": [
+              "%config.quoteStyle.auto%",
+              "%config.quoteStyle.double%",
+              "%config.quoteStyle.single%",
+              "%config.quoteStyle.none%"
+            ],
+            "description": "%config.quoteStyleForKey.desc%"
+          },
+          "i18n-mage.writeRules.quoteStyleForValue": {
+            "order": 10,
+            "type": "string",
+            "enum": [
+              "auto",
+              "double",
+              "single"
+            ],
+            "default": "auto",
+            "enumDescriptions": [
+              "%config.quoteStyle.auto%",
+              "%config.quoteStyle.double%",
+              "%config.quoteStyle.single%"
+            ],
+            "description": "%config.quoteStyleForValue.desc%"
+          },
+          "i18n-mage.writeRules.generatedKeyStyle": {
+            "order": 12,
+            "type": "string",
+            "default": "camelCase",
+            "enum": [
+              "camelCase",
+              "PascalCase",
+              "snake_case",
+              "kebab-case",
+              "raw"
+            ],
+            "enumDescriptions": [
+              "%config.generatedKeyStyle.camelCase%",
+              "%config.generatedKeyStyle.pascalCase%",
+              "%config.generatedKeyStyle.snakeCase%",
+              "%config.generatedKeyStyle.kebabCase%",
+              "%config.generatedKeyStyle.raw%"
+            ],
+            "description": "%config.generatedKeyStyle.desc%"
+          },
+          "i18n-mage.writeRules.maxGeneratedKeyLength": {
+            "order": 16,
+            "type": "integer",
+            "default": 40,
+            "minimum": 10,
+            "description": "%config.maxGeneratedKeyLength.desc%"
+          },
+          "i18n-mage.writeRules.keyPrefix": {
+            "order": 18,
+            "type": "string",
+            "default": "auto-popular",
+            "description": "%config.keyPrefix.desc%",
+            "enum": [
+              "none",
+              "auto-popular"
+            ],
+            "enumDescriptions": [
+              "%config.keyPrefix.none%",
+              "%config.keyPrefix.auto-popular%"
+            ]
+          },
+          "i18n-mage.writeRules.stopWords": {
+            "order": 20,
+            "type": "array",
+            "default": [
+              "the"
+            ],
+            "items": {
+              "type": "string"
+            },
+            "description": "%config.stopWords.desc%"
           }
         }
       },

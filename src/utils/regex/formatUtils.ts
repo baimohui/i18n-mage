@@ -95,7 +95,7 @@ export function validateLang(str: string, lang: string): boolean {
 }
 
 export function formatObjectToString(tree: EntryTree, lookup: EntryMap, filePath: string, extraInfo: FileExtraInfo): string {
-  const { prefix = "", suffix = "", innerVar = "", indents = "  ", keyQuotes = true } = extraInfo;
+  const { prefix = "", suffix = "", innerVar = "", indentSize = 2, keyQuotes = "double", valueQuotes = "double" } = extraInfo;
   const match = filePath.match(/^.*\.([^.]+)$/);
   const fileType = match ? match[1] : "";
   function needsQuotes(key: string): boolean {
@@ -103,13 +103,21 @@ export function formatObjectToString(tree: EntryTree, lookup: EntryMap, filePath
     return !validIdentifier.test(key);
   }
   const lineEnding = getLineEnding(filePath);
-  function formatObject(obj: EntryTree, level = 0): string {
+  const indents = " ".repeat(indentSize);
+  function formatObject(obj: EntryTree, level = 1): string {
     const result: string[] = [];
     const currentIndent = indents.repeat(level);
     for (const [key, value] of Object.entries(obj)) {
-      const keyStr = unescapeString(keyQuotes || fileType === "json" || needsQuotes(key) ? `"${key}"` : key);
+      let keyStr = unescapeString(key);
+      if (fileType === "json" || keyQuotes === "double") {
+        keyStr = `"${keyStr}"`;
+      } else if (keyQuotes === "single") {
+        keyStr = `'${keyStr}'`;
+      } else if (needsQuotes(key)) {
+        keyStr = valueQuotes === "double" ? `"${keyStr}"` : `'${keyStr}'`;
+      }
       if (typeof value === "string" && value in lookup) {
-        result.push(`${currentIndent}${keyStr}: ${formatForFile(lookup[value])}`);
+        result.push(`${currentIndent}${keyStr}: ${formatForFile(lookup[value], valueQuotes === "double")}`);
       } else if (Object.prototype.toString.call(value) === "[object Object]") {
         const nestedValue = formatObject(value as EntryTree, level + 1);
         if (nestedValue) {
@@ -122,7 +130,7 @@ export function formatObjectToString(tree: EntryTree, lookup: EntryMap, filePath
 
   const output: string[] = [];
   output.push(prefix ? `${prefix}{` : "{");
-  if (fileType === "js" && innerVar) {
+  if (fileType !== "json" && innerVar) {
     output.push(`${indents}${innerVar}`);
   }
   const formattedObj = formatObject(tree, 1);
@@ -133,6 +141,10 @@ export function formatObjectToString(tree: EntryTree, lookup: EntryMap, filePath
   return output.join(lineEnding);
 }
 
-export function formatForFile(str: string): string {
-  return '"' + str.replace(/\\/g, "\\\\").replace(/"/g, '\\"').replace(/\r/g, "\\r").replace(/\n/g, "\\n").replace(/\t/g, "\\t") + '"';
+export function formatForFile(str: string, doubleQuotes = true): string {
+  if (doubleQuotes) {
+    return '"' + str.replace(/\\/g, "\\\\").replace(/"/g, '\\"').replace(/\r/g, "\\r").replace(/\n/g, "\\n").replace(/\t/g, "\\t") + '"';
+  } else {
+    return "'" + str.replace(/\\/g, "\\\\").replace(/'/g, "\\'").replace(/\r/g, "\\r").replace(/\n/g, "\\n").replace(/\t/g, "\\t") + "'";
+  }
 }

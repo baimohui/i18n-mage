@@ -1,4 +1,4 @@
-import type { LangContextInternal, LangContextPublic, SortMode } from "@/types";
+import type { LangContextInternal, LangContextPublic, QuoteStyle, SortMode } from "@/types";
 import { createLangContext } from "@/core/context";
 import { CheckHandler } from "./handlers/CheckHandler";
 import { FixHandler } from "./handlers/FixHandler";
@@ -42,17 +42,20 @@ class LangMage {
         ignoreEmptyLangFile: getConfig<boolean>("general.ignoreEmptyLangFile", this.ctx.ignoreEmptyLangFile),
         manuallyMarkedUsedEntries: getConfig<string[]>("workspace.manuallyMarkedUsedEntries", this.ctx.manuallyMarkedUsedEntries),
         syncBasedOnReferredEntries: getConfig<boolean>("general.syncBasedOnReferredEntries", this.ctx.syncBasedOnReferredEntries),
-        sortingWriteMode: getConfig<SortMode>("general.sortOnWrite", this.ctx.sortingWriteMode),
+        sortingWriteMode: getConfig<SortMode>("writeRules.sortOnWrite", this.ctx.sortingWriteMode),
         sortingExportMode: getConfig<SortMode>("general.sortOnExport", this.ctx.sortingExportMode),
         defaultNamespace: getConfig<string>("i18nFeatures.defaultNamespace", this.ctx.defaultNamespace),
         tFuncNames: getConfig<string[]>("i18nFeatures.translationFunctionNames", this.ctx.tFuncNames),
         namespaceSeparator: getConfig<"auto" | ":" | ".">("i18nFeatures.namespaceSeparator", this.ctx.namespaceSeparator),
         matchExistingKey: getConfig<boolean>("translationServices.matchExistingKey", this.ctx.matchExistingKey),
         autoTranslateMissingKey: getConfig<boolean>("translationServices.autoTranslateMissingKey", this.ctx.autoTranslateMissingKey),
-        generatedKeyStyle: getConfig<KeyStyle>("translationServices.generatedKeyStyle", this.ctx.generatedKeyStyle),
-        stopWords: getConfig<string[]>("translationServices.stopWords", this.ctx.stopWords),
-        maxGeneratedKeyLength: getConfig<number>("translationServices.maxGeneratedKeyLength", this.ctx.maxGeneratedKeyLength),
-        keyPrefix: getConfig<string>("translationServices.keyPrefix", this.ctx.keyPrefix),
+        generatedKeyStyle: getConfig<KeyStyle>("writeRules.generatedKeyStyle", this.ctx.generatedKeyStyle),
+        stopWords: getConfig<string[]>("writeRules.stopWords", this.ctx.stopWords),
+        maxGeneratedKeyLength: getConfig<number>("writeRules.maxGeneratedKeyLength", this.ctx.maxGeneratedKeyLength),
+        keyPrefix: getConfig<string>("writeRules.keyPrefix", this.ctx.keyPrefix),
+        languageFileIndent: getConfig<number>("writeRules.languageFileIndent", this.ctx.languageFileIndent),
+        quoteStyleForKey: getConfig<"auto" | QuoteStyle>("writeRules.quoteStyleForKey", this.ctx.quoteStyleForKey),
+        quoteStyleForValue: getConfig<"auto" | QuoteStyle>("writeRules.quoteStyleForValue", this.ctx.quoteStyleForValue),
         interpolationBrackets: getConfig<"auto" | "single" | "double">(
           "i18nFeatures.interpolationBrackets",
           this.ctx.interpolationBrackets
@@ -171,7 +174,10 @@ class LangMage {
       generatedKeyStyle: this.ctx.generatedKeyStyle,
       stopWords: this.ctx.stopWords,
       maxGeneratedKeyLength: this.ctx.maxGeneratedKeyLength,
-      keyPrefix: this.ctx.keyPrefix
+      keyPrefix: this.ctx.keyPrefix,
+      languageFileIndent: this.ctx.languageFileIndent,
+      quoteStyleForKey: this.ctx.quoteStyleForKey,
+      quoteStyleForValue: this.ctx.quoteStyleForValue
     };
   }
 

@@ -31,6 +31,9 @@ export const createLangContext = (): LangContextInternal => ({
   stopWords: [],
   maxGeneratedKeyLength: 40,
   keyPrefix: "",
+  languageFileIndent: 0,
+  quoteStyleForKey: "auto",
+  quoteStyleForValue: "auto",
 
   langFormatType: "",
   langDictionary: {},

@@ -5,11 +5,12 @@ export type EntryKey = string;
 export type LangFileType = "js" | "ts" | "json" | "json5" | "mjs" | "cjs";
 
 export interface FileExtraInfo {
-  indents: string;
+  indentSize: number;
   prefix: string;
   suffix: string;
   innerVar: string;
-  keyQuotes: boolean;
+  keyQuotes: QuoteStyle;
+  valueQuotes: QuoteStyle;
 }
 export interface LangFileInfo {
   formatType: string;
@@ -94,3 +95,5 @@ export interface EntryNode {
   children?: Record<string, EntryNode>; // 只有目录有 children
   ext?: string; // 只有文件有扩展名
 }
+
+export type QuoteStyle = "single" | "double" | "none";

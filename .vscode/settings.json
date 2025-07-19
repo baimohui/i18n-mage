@@ -28,5 +28,6 @@
       "bundle.l10n.zh-cn"
     ]
   },
-  "i18n-mage.general.sortOnWrite": "byKey"
+  "i18n-mage.general.sortOnWrite": "byKey",
+  "i18n-mage.general.displayLanguage": "bundle.l10n.zh-cn"
 }

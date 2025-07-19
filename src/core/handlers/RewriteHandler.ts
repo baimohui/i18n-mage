@@ -77,12 +77,17 @@ export class RewriteHandler {
           }
         });
       }
-      const fileContent = formatObjectToString(
-        needSort ? tree : entryTree,
-        this.ctx.langCountryMap[lang],
-        filePath,
-        this.ctx.langFileExtraInfo[filePos ? `${lang}.${filePos}` : lang]
-      );
+      const extraInfo = this.ctx.langFileExtraInfo[filePos ? `${lang}.${filePos}` : lang];
+      if (this.ctx.quoteStyleForKey !== "auto") {
+        extraInfo.keyQuotes = this.ctx.quoteStyleForKey;
+      }
+      if (this.ctx.quoteStyleForValue !== "auto") {
+        extraInfo.valueQuotes = this.ctx.quoteStyleForValue;
+      }
+      if (this.ctx.languageFileIndent !== null) {
+        extraInfo.indentSize = this.ctx.languageFileIndent;
+      }
+      const fileContent = formatObjectToString(needSort ? tree : entryTree, this.ctx.langCountryMap[lang], filePath, extraInfo);
       await fs.promises.writeFile(filePath, fileContent);
     }
   }

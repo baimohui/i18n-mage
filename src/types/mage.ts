@@ -1,4 +1,4 @@
-import { I18nFramework, KeyStyle, SortMode } from "@/types";
+import { I18nFramework, KeyStyle, QuoteStyle, SortMode } from "@/types";
 
 export interface LangMageOptions {
   task?: string;
@@ -37,6 +37,9 @@ export interface LangMageOptions {
   stopWords?: string[];
   maxGeneratedKeyLength?: number;
   keyPrefix?: string;
+  languageFileIndent?: number;
+  quoteStyleForKey?: "auto" | QuoteStyle;
+  quoteStyleForValue?: "auto" | QuoteStyle;
 }
 
 export const EXECUTION_RESULT_CODE = {
