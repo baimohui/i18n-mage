@@ -2,7 +2,7 @@ import * as vscode from "vscode";
 import { t } from "@/utils/i18n";
 import LangMage from "@/core/LangMage";
 import { getConfig } from "@/utils/config";
-import { getValueByAmbiguousEntryName, catchTEntries, unescapeString, displayToInternalName, isValidI18nCallableFile } from "@/utils/regex";
+import { getValueByAmbiguousEntryName, catchTEntries, unescapeString, displayToInternalName, isValidI18nCallablePath } from "@/utils/regex";
 
 export class Diagnostics {
   private static instance: Diagnostics;
@@ -23,20 +23,19 @@ export class Diagnostics {
   public update(document: vscode.TextDocument) {
     if (this.disposed) return;
     if (!getConfig<boolean>("translationHints.enable", true)) return;
-    const ignoredFileList = getConfig<string[]>("workspace.ignoredFileList", []);
-    if (!isValidI18nCallableFile(document.uri.fsPath, ignoredFileList)) return;
+    if (!isValidI18nCallablePath(document.uri.fsPath)) return;
     const mage = LangMage.getInstance();
     const publicCtx = mage.getPublicContext();
 
     const text = document.getText();
-    const entries = catchTEntries(text, mage.i18nFeatures);
+    const entries = catchTEntries(text);
     const diagnostics: vscode.Diagnostic[] = [];
     const { tree, countryMap } = mage.langDetail;
     const translations = countryMap[publicCtx.displayLang];
     const totalEntryList = Object.keys(mage.langDetail.dictionary).map(key => unescapeString(key));
 
     for (const entry of entries) {
-      const entryName = displayToInternalName(entry.nameInfo.text, mage.i18nFeatures);
+      const entryName = displayToInternalName(entry.nameInfo.text);
       const entryKey = getValueByAmbiguousEntryName(tree, entryName);
       const entryValue = translations[entryKey as string];
       if (entryValue === undefined) {

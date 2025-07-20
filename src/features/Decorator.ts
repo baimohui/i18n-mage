@@ -6,7 +6,7 @@ import {
   getLineEnding,
   unescapeString,
   displayToInternalName,
-  isValidI18nCallableFile
+  isValidI18nCallablePath
 } from "@/utils/regex";
 import { getConfig } from "@/utils/config";
 import { TEntry } from "@/types";
@@ -51,8 +51,7 @@ export class DecoratorController implements vscode.Disposable {
     this.entries = [];
     this.currentDecorations.clear();
     if (this.disposed || !editor || !getConfig<boolean>("translationHints.enable", true)) return;
-    const ignoredFileList = getConfig<string[]>("workspace.ignoredFileList", []);
-    if (isValidI18nCallableFile(editor.document.uri.fsPath, ignoredFileList)) {
+    if (isValidI18nCallablePath(editor.document.uri.fsPath)) {
       const mage = LangMage.getInstance();
       const publicCtx = mage.getPublicContext();
       this.currentEditor = editor;
@@ -72,7 +71,7 @@ export class DecoratorController implements vscode.Disposable {
       const lineEnding = getLineEnding();
       const visibleText = visibleLines.join(lineEnding);
       this.offsetBase = editor.document.offsetAt(new vscode.Position(visibleStart, 0));
-      const entries = catchTEntries(visibleText, mage.i18nFeatures);
+      const entries = catchTEntries(visibleText);
       this.entries = entries;
       const maxLen = getConfig<number>("translationHints.maxLength");
       const enableLooseKeyMatch = getConfig<boolean>("translationHints.enableLooseKeyMatch", true);
@@ -81,7 +80,7 @@ export class DecoratorController implements vscode.Disposable {
         let [startPos, endPos] = entry.pos.split(",").map(Number);
         startPos++;
         endPos--;
-        const entryName = displayToInternalName(entry.nameInfo.text, mage.i18nFeatures);
+        const entryName = displayToInternalName(entry.nameInfo.text);
         const entryKey = getValueByAmbiguousEntryName(tree, entryName);
         let entryValue = translations[entryKey as string];
         if (entryValue === undefined) {
@@ -138,8 +137,7 @@ export class DecoratorController implements vscode.Disposable {
     }
     // 如果改动在可视区域内 或者包含换行/潜在 TEntry，触发更新
     const fullText = changedTextSnippets.join("\n");
-    const mage = LangMage.getInstance();
-    if (affected || fullText.includes("\n") || catchTEntries(fullText, mage.i18nFeatures).length > 0) {
+    if (affected || fullText.includes("\n") || catchTEntries(fullText).length > 0) {
       this.update(editor);
     }
   }

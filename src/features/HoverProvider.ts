@@ -34,7 +34,7 @@ export class HoverProvider implements vscode.HoverProvider {
     if (entry) {
       const mage = LangMage.getInstance();
       const { tree, dictionary } = mage.langDetail;
-      const entryName = displayToInternalName(entry.nameInfo.text, mage.i18nFeatures);
+      const entryName = displayToInternalName(entry.nameInfo.text);
       const entryKey = getValueByAmbiguousEntryName(tree, entryName);
       if (entryKey !== undefined) {
         const markdown = new vscode.MarkdownString();

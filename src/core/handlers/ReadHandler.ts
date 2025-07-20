@@ -11,8 +11,7 @@ import {
   unescapeString,
   getCaseType,
   displayToInternalName,
-  isIgnoredDir,
-  isValidI18nCallableFile
+  isValidI18nCallablePath
 } from "@/utils/regex";
 import { EntryTree, LangDictionary, LangTree } from "@/types";
 import { LANG_ENTRY_SPLIT_SYMBOL } from "@/utils/langKey";
@@ -48,24 +47,17 @@ export class ReadHandler {
     this.ctx.usedEntryMap = {};
     this.ctx.undefinedEntryList = [];
     this.ctx.undefinedEntryMap = {};
-    const i18nFeatures = {
-      framework: this.ctx.i18nFramework,
-      defaultNamespace: this.ctx.defaultNamespace,
-      tFuncNames: this.ctx.tFuncNames,
-      interpolationBrackets: this.ctx.interpolationBrackets,
-      namespaceSeparator: this.ctx.namespaceSeparator
-    };
     for (const filePath of filePaths) {
       const fileContent = fs.readFileSync(filePath, "utf8");
-      const tItems = catchTEntries(fileContent, i18nFeatures);
-      const existedItems = catchPossibleEntries(fileContent, this.ctx.entryTree, i18nFeatures);
+      const tItems = catchTEntries(fileContent);
+      const existedItems = catchPossibleEntries(fileContent, this.ctx.entryTree);
       const usedEntryList = existedItems.slice();
       for (const item of tItems) {
         const nameInfo = item.nameInfo;
         let usedEntryNameList: string[] = [];
-        const entryName = displayToInternalName(nameInfo.text, i18nFeatures);
+        const entryName = displayToInternalName(nameInfo.text);
         const isEntryWithContext =
-          (i18nFeatures.framework === I18N_FRAMEWORK.i18nNext || i18nFeatures.framework === I18N_FRAMEWORK.reactI18next) &&
+          (this.ctx.i18nFramework === I18N_FRAMEWORK.i18nNext || this.ctx.i18nFramework === I18N_FRAMEWORK.reactI18next) &&
           item.vars.length > 0;
         if (nameInfo.vars.length > 0 || isEntryWithContext) {
           usedEntryNameList = totalEntryList.filter(entry => nameInfo.regex.test(entry));
@@ -115,11 +107,11 @@ export class ReadHandler {
       const targetName = results[i].name;
       const tempPath = path.join(dir, targetName);
       const isLangPath = path.resolve(tempPath) === path.resolve(this.ctx.langPath);
-      if (results[i].isDirectory() && !isIgnoredDir(targetName) && !isLangPath) {
+      if (results[i].isDirectory() && isValidI18nCallablePath(tempPath) && !isLangPath) {
         const tempPathList = this._readAllFiles(tempPath);
         pathList.push(...tempPathList);
       }
-      if (!results[i].isDirectory() && isValidI18nCallableFile(tempPath, this.ctx.ignoredFileList)) {
+      if (!results[i].isDirectory() && isValidI18nCallablePath(tempPath)) {
         pathList.push(tempPath);
       }
     }

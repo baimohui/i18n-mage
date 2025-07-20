@@ -7,15 +7,15 @@ import { t } from "@/utils/i18n";
 import { getConfig, setConfig } from "@/utils/config";
 import { toRelativePath } from "@/utils/fs";
 
-export function registerIgnoreFileCommand() {
+export function registerIgnoreDirectoryCommand() {
   const mage = LangMage.getInstance();
-  const disposable = vscode.commands.registerCommand("i18nMage.ignoreFile", async (e: vscode.TreeItem) => {
+  const disposable = vscode.commands.registerCommand("i18nMage.ignoreDirectory", async (uri: vscode.Uri) => {
     await wrapWithProgress({ title: t("command.ignoreFile.progress") }, async () => {
-      const ignoredFileList = getConfig<string[]>("workspace.ignoredFileList", []);
-      const filePath = toRelativePath(e.resourceUri!.fsPath);
-      if (filePath !== undefined) {
-        ignoredFileList.push(filePath);
-        await setConfig("workspace.ignoredFileList", ignoredFileList);
+      const ignoredDirectories = getConfig<string[]>("workspace.ignoredDirectories", []);
+      const dirPath = toRelativePath(uri.fsPath);
+      if (dirPath !== undefined) {
+        ignoredDirectories.push(dirPath);
+        await setConfig("workspace.ignoredDirectories", [...new Set(ignoredDirectories)]);
         mage.setOptions({ task: "check", globalFlag: true, clearCache: true });
         await mage.execute();
         treeInstance.refresh();

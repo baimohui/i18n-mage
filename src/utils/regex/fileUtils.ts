@@ -4,25 +4,36 @@ import JSON5 from "json5";
 import { escapeString } from "./stringUtils";
 import { LANG_FORMAT_TYPE } from "@/utils/langKey";
 import { LangTree, FileExtraInfo, LangFileInfo, EntryNode, EntryMap, EntryTree, I18nFramework, I18N_FRAMEWORK, QuoteStyle } from "@/types";
-import { isSamePath } from "../fs";
+import { getFirstOrLastDirName, isPathInsideDirectory, isSamePath } from "../fs";
+import { getCacheConfig } from "../config";
 
-export function isIgnoredDir(dir: string): boolean {
-  const ignoredDirRegex = /^(dist|node_modules|img|image|css|asset|build|out|\.)/i;
-  return ignoredDirRegex.test(dir);
-}
-
-/**
- * 检查文件是否可调用国际化函数（排除指定忽略路径）
- * @param {string} filePath - 文件路径
- * @param {Array<string>} [ignoredFileList] - 忽略的路径规则
- * @returns {boolean}
- */
-export function isValidI18nCallableFile(filePath: string, ignoredFileList: string[] = []): boolean {
-  const isSupportedExt = /\.(js|vue|html|jsx|ts|tsx)$/.test(filePath);
-  if (!isSupportedExt) return false;
-  // const ignoredNameList = ["jquery", "element", "qrcode", "underscore", "vant", "language", "vue.js"];
-  // if (ignoredNameList.some(name => filePath.includes(name))) return false;
-  if (ignoredFileList.some(ifp => isSamePath(filePath, ifp))) return false;
+export function isValidI18nCallablePath(inputPath: string): boolean {
+  const { ignoredFiles, ignoredDirectories } = getCacheConfig();
+  const normalizedPath = path.normalize(inputPath);
+  // 判断是否是文件或目录
+  let isDirectory = false;
+  try {
+    isDirectory = fs.statSync(normalizedPath).isDirectory();
+  } catch {
+    // 路径不存在时默认按文件处理
+    isDirectory = false;
+  }
+  // 检查是否被忽略
+  if (
+    ignoredFiles.some(ignoredFile => isSamePath(normalizedPath, ignoredFile)) ||
+    ignoredDirectories.some(ignoredDir => isPathInsideDirectory(ignoredDir, normalizedPath))
+  ) {
+    return false;
+  }
+  const firstDirName = getFirstOrLastDirName(normalizedPath, isDirectory);
+  const IGNORED_NAME_REGEX = /^(dist|node_modules|img|image|css|asset|build|out|\.)/i;
+  if (IGNORED_NAME_REGEX.test(firstDirName)) return false;
+  // 如果是文件，检查扩展名
+  if (!isDirectory) {
+    const ext = path.extname(normalizedPath);
+    const supportedExt = [".js", ".ts", ".jsx", ".tsx", ".vue", ".html"];
+    if (!supportedExt.includes(ext)) return false;
+  }
   return true;
 }
 

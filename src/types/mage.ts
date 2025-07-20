@@ -4,9 +4,8 @@ export interface LangMageOptions {
   task?: string;
   langPath?: string;
   projectPath?: string;
-  excludedLangList?: string[];
-  includedLangList?: string[];
-  ignoredFileList?: string[];
+  i18nFramework?: I18nFramework;
+  ignoredLangs?: string[];
   referredLang?: string;
   displayLang?: string;
   defaultLang?: string;
@@ -16,21 +15,15 @@ export interface LangMageOptions {
   cachePath?: string;
   ignoreEmptyLangFile?: boolean;
   langFileMinLength?: number;
-  showPreInfo?: boolean;
   importExcelFrom?: string;
   exportExcelTo?: string;
   clearCache?: boolean;
   syncBasedOnReferredEntries?: boolean;
   sortingWriteMode?: SortMode;
   sortingExportMode?: SortMode;
-  defaultNamespace?: string;
-  tFuncNames?: string[];
-  interpolationBrackets?: "auto" | "single" | "double";
-  namespaceSeparator?: "auto" | ":" | ".";
   modifyList?: Array<{ key: string; name: string; value: string; lang: string }>;
   trimKeyList?: string[];
   manuallyMarkedUsedEntries?: string[];
-  i18nFramework?: I18nFramework;
   matchExistingKey?: boolean;
   autoTranslateMissingKey?: boolean;
   generatedKeyStyle?: KeyStyle;
@@ -70,12 +63,4 @@ export interface ExecutionResult {
   success: boolean;
   message: string;
   code: ExecutionResultCode;
-}
-
-export interface I18nFeaturesInfo {
-  framework: I18nFramework;
-  defaultNamespace: string;
-  tFuncNames: string[];
-  interpolationBrackets: "auto" | "single" | "double";
-  namespaceSeparator: "auto" | ":" | ".";
 }

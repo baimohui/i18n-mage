@@ -109,5 +109,6 @@
   "tree.usedInfo.total": "Total",
   "tree.usedInfo.undefined": "Undefined",
   "tree.usedInfo.unused": "Unused",
-  "tree.usedInfo.used": "Used"
+  "tree.usedInfo.used": "Used",
+  "tree.syncInfo.ignored": "Excluded Language"
 }

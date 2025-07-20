@@ -16,8 +16,11 @@ import { registerExportCommand } from "./importExport/exportCommand";
 import { registerImportCommand } from "./importExport/importCommand";
 import { registerGoToDefinitionCommand } from "./tree/goToDefinitionCommand";
 import { registerGoToReferenceCommand } from "./tree/goToReferenceCommand";
-import { registerIgnoreFileCommand } from "./tree/ignoreFileCommand";
+import { registerIgnoreFileCommand } from "./check/ignoreFileCommand";
 import { registerSetDisplayLangCommand } from "./check/setDisplayLangCommand";
+import { registerIgnoreDirectoryCommand } from "./check/ignoreDirectoryCommand";
+import { registerIgnoreLangCommand } from "./check/ignoreLangCommand";
+import { registerUnignoreLangCommand } from "./check/unignoreLangCommand";
 
 export function registerAllCommands() {
   registerCheckUsageCommand();
@@ -40,4 +43,7 @@ export function registerAllCommands() {
   registerGoToReferenceCommand();
   registerIgnoreFileCommand();
   registerSetDisplayLangCommand();
+  registerIgnoreDirectoryCommand();
+  registerIgnoreLangCommand();
+  registerUnignoreLangCommand();
 }

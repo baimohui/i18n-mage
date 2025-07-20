@@ -3,7 +3,7 @@ import path from "path";
 import * as vscode from "vscode";
 import { t } from "@/utils/i18n";
 import { NotificationManager } from "@/utils/notification";
-import { isIgnoredDir } from "@/utils/regex";
+import { isValidI18nCallablePath } from "@/utils/regex";
 
 const langPathRegex = /\b(lang|language|i18n|l10n|locale|translation|translate|message|intl|fanyi)s?\b/i;
 const localeCodeRegex = /(^|^\w.*\b)[a-z]{2,3}([-_][a-z]{2,4})?$/i;
@@ -60,7 +60,7 @@ export async function getPossibleLangPaths(rootDir: string): Promise<string[]> {
       }
 
       for (const sub of subdirs) {
-        if (isIgnoredDir(sub.name)) continue;
+        if (!isValidI18nCallablePath(sub.parentPath)) continue;
         await traverse(path.join(dir, sub.name));
       }
     } catch {
@@ -76,6 +76,15 @@ export async function getPossibleLangPaths(rootDir: string): Promise<string[]> {
 
 export function isPathInsideDirectory(dir: string, targetPath: string): boolean {
   // 获取绝对路径
+  // if (!path.isAbsolute(dir) || !path.isAbsolute(targetPath)) {
+  //   throw new Error("Both dir and targetPath must be absolute paths");
+  // }
+  if (!path.isAbsolute(dir)) {
+    dir = toAbsolutePath(dir);
+  }
+  if (!path.isAbsolute(targetPath)) {
+    targetPath = toAbsolutePath(targetPath);
+  }
   const absoluteDir = path.resolve(dir);
   const absoluteTargetPath = path.resolve(targetPath);
   // 计算相对路径
@@ -143,4 +152,11 @@ export function isSamePath(absolutePath: string, relativePath: string): boolean 
     return resolvedPath.toLowerCase() === normalizedAbsolute.toLowerCase();
   }
   return resolvedPath === normalizedAbsolute;
+}
+
+// 获取首段或最后一级目录名（供正则匹配）
+export function getFirstOrLastDirName(p: string, isDirectory: boolean): string {
+  const segments = path.resolve(p).split(path.sep);
+  if (segments.length === 0) return "";
+  return isDirectory ? segments[segments.length - 1] : segments[0];
 }

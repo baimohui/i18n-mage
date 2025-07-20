@@ -8,11 +8,11 @@ import {
   LackInfo,
   NullInfo,
   EntryNode,
-  I18nFramework,
   FileExtraInfo,
   SortMode,
   KeyStyle,
-  QuoteStyle
+  QuoteStyle,
+  I18nFramework
 } from "@/types";
 
 // 外部模块可访问的公共上下文
@@ -21,30 +21,24 @@ export interface LangContextPublic {
   langPath: string;
   langFileType: string;
   projectPath: string;
+  i18nFramework: I18nFramework;
   referredLang: string;
   displayLang: string;
   defaultLang: string;
-  excludedLangList: string[];
-  includedLangList: string[];
+  ignoredLangs: string[];
   globalFlag: boolean;
   rewriteFlag: boolean;
   exportDir: string;
   cachePath: string;
   ignoreEmptyLangFile: boolean;
   langFileMinLength: number;
-  showPreInfo: boolean;
   styleScore: number;
   fileStructure: EntryNode | null;
   syncBasedOnReferredEntries: boolean;
   sortingWriteMode: SortMode;
   sortingExportMode: SortMode;
-  defaultNamespace: string;
-  tFuncNames: string[];
-  interpolationBrackets: "auto" | "single" | "double";
-  namespaceSeparator: "auto" | ":" | ".";
   manuallyMarkedUsedEntries: string[];
   modifyList: Array<{ key: string; name: string; value: string; lang: string }>;
-  i18nFramework: I18nFramework;
   matchExistingKey: boolean;
   autoTranslateMissingKey: boolean;
   generatedKeyStyle: KeyStyle;
@@ -84,5 +78,4 @@ export interface LangContextInternal extends LangContextPublic {
   exportExcelTo: string;
   clearCache: boolean;
   trimKeyList: string[];
-  ignoredFileList: string[];
 }

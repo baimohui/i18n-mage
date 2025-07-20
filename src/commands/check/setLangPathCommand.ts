@@ -22,7 +22,7 @@ export function registerSetLangPathCommand() {
       } else {
         vscode.window.showInformationMessage(t("command.selectLangPath.success", langPath));
         vscode.commands.executeCommand("setContext", "hasValidLangPath", true);
-        await setConfig("workspace.langPath", toRelativePath(langPath));
+        await setConfig("workspace.languagePath", toRelativePath(langPath));
         treeInstance.refresh();
         const decorator = DecoratorController.getInstance();
         decorator.update(vscode.window.activeTextEditor);

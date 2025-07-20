@@ -79,10 +79,6 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
     return this.langInfo.unusedKeySet;
   }
 
-  get i18nFeatures() {
-    return this.#mage.i18nFeatures;
-  }
-
   refresh(): void {
     this.publicCtx = this.#mage.getPublicContext();
     this._onDidChangeTreeData.fire();
@@ -131,7 +127,7 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
     } else {
       const vscodeLang = vscode.env.language;
       this.#mage.setOptions({ projectPath, defaultLang: vscodeLang });
-      const configLangPath = getConfig<string>("workspace.langPath", "");
+      const configLangPath = getConfig<string>("workspace.languagePath", "");
       if (configLangPath) {
         this.#mage.setOptions({ langPath: toAbsolutePath(configLangPath), task: "check", globalFlag: true, clearCache: true });
         await this.#mage.execute();
@@ -158,14 +154,14 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
         this.checkUsedInfo();
         vscode.commands.executeCommand("setContext", "hasValidLangPath", true);
         success = true;
-        const sortMode = getConfig<string>("general.sortOnWrite");
+        const sortMode = getConfig<string>("writeRules.sortOnWrite");
         vscode.commands.executeCommand("setContext", "allowSort", this.langInfo.isFlat && sortMode !== SORT_MODE.None);
         this.publicCtx = this.#mage.getPublicContext();
         const langPath = toRelativePath(this.publicCtx.langPath);
         const i18nFramework = detectI18nFramework(projectPath);
         setTimeout(() => {
-          if (getConfig("workspace.langPath", "") !== langPath) {
-            setConfig("workspace.langPath", langPath).catch(error => {
+          if (getConfig("workspace.languagePath", "") !== langPath) {
+            setConfig("workspace.languagePath", langPath).catch(error => {
               console.error("Failed to set config for langPath:", error);
             });
           }
@@ -272,7 +268,7 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
         const contextValueList = [element.type === "defined" ? "definedEntryInCurFile" : "undefinedEntryInCurFile", "COPY_NAME"];
         return {
           name: entry.nameInfo.text,
-          label: internalToDisplayName(entry.nameInfo.text, this.#mage.i18nFeatures),
+          label: internalToDisplayName(entry.nameInfo.text),
           description: entryInfo[this.publicCtx.referredLang],
           collapsibleState: vscode.TreeItemCollapsibleState[element.type === "defined" ? "Collapsed" : "None"],
           level: 2,
@@ -341,7 +337,7 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
         }
         const name = unescapeString(item[0]);
         return {
-          label: internalToDisplayName(name, this.#mage.i18nFeatures),
+          label: internalToDisplayName(name),
           description: item[1],
           level: 3,
           key: element.key,
@@ -396,7 +392,7 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
           return {
             key,
             name,
-            label: internalToDisplayName(name, this.#mage.i18nFeatures),
+            label: internalToDisplayName(name),
             description: `<${usedNum || "?"}>${entryInfo[this.publicCtx.referredLang]}`,
             level: 2,
             type: element.type,
@@ -410,7 +406,7 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
           const name = unescapeString(key);
           const entryInfo = this.dictionary[key];
           return {
-            label: internalToDisplayName(name, this.#mage.i18nFeatures),
+            label: internalToDisplayName(name),
             description: entryInfo[this.publicCtx.referredLang],
             level: 2,
             root: element.root,
@@ -447,7 +443,7 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
     if (typeof res === "string") {
       const contextValueList = ["dictionaryItem", "COPY_VALUE", "GO_TO_DEFINITION", "EDIT_VALUE"];
       return Object.entries(this.dictionary[res]).map(item => ({
-        label: internalToDisplayName(item[0], this.#mage.i18nFeatures),
+        label: internalToDisplayName(item[0]),
         description: item[1],
         tooltip: getLangText(item[0]) || t("common.unknownLang"),
         id: this.genId(element, item[0]),
@@ -467,7 +463,7 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
         .map(item => {
           const stack = (element.stack || []).concat(item[0]);
           return {
-            label: internalToDisplayName(item[0], this.#mage.i18nFeatures),
+            label: internalToDisplayName(item[0]),
             description: typeof item[1] === "string" ? this.dictionary[item[1]][this.publicCtx.referredLang] : false,
             root: element.root,
             id: this.genId(element, item[0]),
@@ -485,7 +481,7 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
     const editor = vscode.window.activeTextEditor;
     if (editor) {
       const text = editor.document.getText();
-      this.usedEntries = catchTEntries(text, this.i18nFeatures);
+      this.usedEntries = catchTEntries(text);
       this.usedEntries.forEach(entry => {
         const { text, regex } = entry.nameInfo;
         if (Object.hasOwn(this.undefinedEntryMap, text)) {
@@ -519,9 +515,9 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
       contextValueList.push("UNKNOWN_LANG");
     }
     const list: string[] = [];
-    const lackNum = this.langInfo.lack[lang].length;
-    const extraNum = this.langInfo.extra[lang].length;
-    const nullNum = this.langInfo.null[lang].length;
+    const lackNum = this.langInfo.lack[lang]?.length ?? 0;
+    const extraNum = this.langInfo.extra[lang]?.length ?? 0;
+    const nullNum = this.langInfo.null[lang]?.length ?? 0;
     // sync-ignored | sync~spin
     let icon = "pass";
     if (lackNum > 0 || nullNum > 0) {
@@ -543,6 +539,11 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
       tooltip += ` (${t("tree.syncInfo.display")})`;
       list.push("👁️");
       contextValueList.push("DISPLAY_LANG");
+    } else if (!this.#mage.detectedLangList.includes(lang)) {
+      icon = "sync-ignored";
+      tooltip += ` (${t("tree.syncInfo.ignored")})`;
+      contextValueList.push("IGNORED_LANG");
+      list.push("👻");
     }
     return { desc: list.join(" "), icon, tooltip, context: contextValueList.join(",") };
   }

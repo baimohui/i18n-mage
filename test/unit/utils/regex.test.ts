@@ -1,32 +1,23 @@
 import * as assert from "assert";
 import { catchTEntries } from "@/utils/regex";
-import { I18N_FRAMEWORK, I18nFeaturesInfo } from "@/types";
-
-const i18nFeatures: I18nFeaturesInfo = {
-  framework: I18N_FRAMEWORK.vueI18n,
-  defaultNamespace: "translation",
-  tFuncNames: ["t"],
-  interpolationBrackets: "auto",
-  namespaceSeparator: "auto"
-};
 
 describe("regex.js 正则方法", () => {
   describe("catchTEntries", () => {
     it("应提取单个简单文本", () => {
-      const entries = catchTEntries(`const msg = t("Hello World");`, i18nFeatures);
+      const entries = catchTEntries(`const msg = t("Hello World");`);
       assert.strictEqual(entries.length, 1);
       assert.strictEqual(entries[0].nameInfo.text, "Hello World");
       assert.strictEqual(entries[0].raw.includes("t("), true);
     });
 
     it("应处理模板字符串带变量", () => {
-      const entries = catchTEntries("const msg = t(`你好，${userName}！`);", i18nFeatures);
+      const entries = catchTEntries("const msg = t(`你好，${userName}！`);");
       assert.strictEqual(entries[0].nameInfo.text, "你好，{0}！");
       // assert.deepStrictEqual(entries[0].var, { 0: "userName" });
     });
 
     it("应处理混合变量和文本", () => {
-      const entries = catchTEntries('const msg = t("你好" + name);', i18nFeatures);
+      const entries = catchTEntries('const msg = t("你好" + name);');
       assert.strictEqual(entries[0].nameInfo.text.includes("{0}"), true);
       // assert.ok(Object.hasOwn(entries[0]?.var ?? {}, "0"));
     });
@@ -118,7 +109,7 @@ describe("regex.js 正则方法", () => {
           // 不应被识别为 t-entry
           return;
         }
-        const entry = catchTEntries(testCase.code, i18nFeatures)[0];
+        const entry = catchTEntries(testCase.code)[0];
         assert.notStrictEqual(entry, undefined, `第 ${i} 个 entry 应存在`);
         assert.strictEqual(entry.nameInfo.text, expected.text, `第 ${i} 个 text`);
         assert.deepStrictEqual(entry.vars, expected.vars, `第 ${i} 个 var`);
@@ -132,33 +123,32 @@ describe("regex.js 正则方法", () => {
     });
 
     it("应忽略无法解析或无 text 参数", () => {
-      const entries = catchTEntries("const msg = t();", i18nFeatures);
+      const entries = catchTEntries("const msg = t();");
       assert.strictEqual(entries.length, 0);
     });
 
     it("应解析 name 和 class 元信息", () => {
-      const entries = catchTEntries('const msg = t("#btn#%submit%确认提交");', i18nFeatures);
+      const entries = catchTEntries('const msg = t("#btn#%submit%确认提交");');
       assert.strictEqual(entries[0].nameInfo.boundClass, "btn");
       assert.strictEqual(entries[0].nameInfo.boundName, "submit");
       assert.strictEqual(entries[0].nameInfo.text, "确认提交");
     });
 
     it("应返回 null 对于无效表达式", () => {
-      const entries = catchTEntries("const msg = t(unknownFunc());", i18nFeatures);
+      const entries = catchTEntries("const msg = t(unknownFunc());");
       assert.strictEqual(entries.length, 0);
     });
 
     it("应正确处理多行文本", () => {
       const entries = catchTEntries(
         `const msg = t(\`这是
-多行文本\`);`,
-        i18nFeatures
+多行文本\`);`
       );
       assert.strictEqual(entries[0].nameInfo.text, "这是\n多行文本");
     });
 
     it("应处理带引号的多行文本", () => {
-      const entries = catchTEntries(`const msg = t("这是\n多行文本");`, i18nFeatures);
+      const entries = catchTEntries(`const msg = t("这是\n多行文本");`);
       assert.strictEqual(entries[0].nameInfo.text, "这是\n多行文本");
     });
   });

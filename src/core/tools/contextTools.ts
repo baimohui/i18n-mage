@@ -1,8 +1,7 @@
 import { LangContextInternal } from "@/types";
 
 export function getDetectedLangList(ctx: LangContextInternal): string[] {
-  const keys = Object.keys(ctx.langCountryMap);
-  return keys.sort((a, b) => ctx.includedLangList.indexOf(a) - ctx.includedLangList.indexOf(b));
+  return Object.keys(ctx.langCountryMap).filter(item => !ctx.ignoredLangs.includes(item));
 }
 
 export function setUpdatedEntryValueInfo(ctx: LangContextInternal, name: string, value: string | undefined, lang?: string): void {

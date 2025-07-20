@@ -428,7 +428,7 @@
             "description": "%config.projectPath.title%",
             "scope": "resource"
           },
-          "i18n-mage.workspace.langPath": {
+          "i18n-mage.workspace.languagePath": {
             "order": 5,
             "type": "string",
             "default": "",
@@ -442,11 +442,26 @@
             "description": "%config.manuallyMarkedUsedEntries.desc%",
             "scope": "resource"
           },
-          "i18n-mage.workspace.ignoredFileList": {
+          "i18n-mage.workspace.ignoredFiles": {
             "order": 15,
             "type": "array",
             "default": [],
-            "description": "%config.ignoredFileList.desc%"
+            "description": "%config.ignoredFiles.desc%",
+            "scope": "resource"
+          },
+          "i18n-mage.workspace.ignoredDirectories": {
+            "order": 16,
+            "type": "array",
+            "default": [],
+            "description": "%config.ignoredDirectories.desc%",
+            "scope": "resource"
+          },
+          "i18n-mage.workspace.ignoredLanguages": {
+            "order": 17,
+            "type": "array",
+            "default": [],
+            "description": "%config.ignoredLanguages.desc%",
+            "scope": "resource"
           }
         }
       }
@@ -515,6 +530,18 @@
           "light": "./images/remove-light.svg",
           "dark": "./images/remove-dark.svg"
         }
+      },
+      {
+        "command": "i18nMage.ignoreDirectory",
+        "title": "%command.ignoreDirectory.title%"
+      },
+      {
+        "command": "i18nMage.ignoreLang",
+        "title": "%command.ignoreLang.title%"
+      },
+      {
+        "command": "i18nMage.unignoreLang",
+        "title": "%command.unignoreLang.title%"
       },
       {
         "command": "i18nMage.copyName",
@@ -620,11 +647,23 @@
       "view/item/context": [
         {
           "command": "i18nMage.setReferredLang",
-          "when": "viewItem =~ /checkSyncInfo/ && !(viewItem =~ /UNKNOWN_LANG/) && !(viewItem =~ /REFERENCE_LANG/)"
+          "when": "viewItem =~ /checkSyncInfo/ && !(viewItem =~ /UNKNOWN_LANG/) && !(viewItem =~ /REFERENCE_LANG/) && !(viewItem =~ /IGNORED_LANG/)",
+          "group": "syncInfo@1"
         },
         {
           "command": "i18nMage.setDisplayLang",
-          "when": "viewItem =~ /checkSyncInfo/ && !(viewItem =~ /DISPLAY_LANG/)"
+          "when": "viewItem =~ /checkSyncInfo/ && !(viewItem =~ /DISPLAY_LANG/) && !(viewItem =~ /IGNORED_LANG/)",
+          "group": "syncInfo@2"
+        },
+        {
+          "command": "i18nMage.ignoreLang",
+          "when": "viewItem =~ /checkSyncInfo/ && !(viewItem =~ /IGNORE_LANG/) && !(viewItem =~ /REFERENCE_LANG/) && !(viewItem =~ /IGNORED_LANG/)",
+          "group": "syncInfo@3"
+        },
+        {
+          "command": "i18nMage.unignoreLang",
+          "when": "viewItem =~ /checkSyncInfo/ && viewItem =~ /IGNORED_LANG/",
+          "group": "syncInfo@4"
         },
         {
           "command": "i18nMage.markAsKnownLang",
@@ -697,6 +736,11 @@
           "command": "i18nMage.setProjectPath",
           "when": "explorerResourceIsFolder",
           "group": "navigation@6"
+        },
+        {
+          "command": "i18nMage.ignoreDirectory",
+          "when": "explorerResourceIsFolder",
+          "group": "navigation@8"
         }
       ]
     },

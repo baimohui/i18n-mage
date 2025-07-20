@@ -224,14 +224,7 @@ export class FixHandler {
   }
 
   private getFixedRaw(entry: TEntry, name: string): string {
-    const i18nFeatures = {
-      framework: this.ctx.i18nFramework,
-      defaultNamespace: this.ctx.defaultNamespace,
-      tFuncNames: this.ctx.tFuncNames,
-      interpolationBrackets: this.ctx.interpolationBrackets,
-      namespaceSeparator: this.ctx.namespaceSeparator
-    };
-    const displayName = internalToDisplayName(name, i18nFeatures);
+    const displayName = internalToDisplayName(name);
     let varStr = "";
     if (entry.vars.length > 0) {
       varStr = ", " + entry.vars.join(", ");

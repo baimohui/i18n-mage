@@ -1,4 +1,4 @@
-import type { LangContextInternal, LangContextPublic, QuoteStyle, SortMode } from "@/types";
+import type { I18nFramework, LangContextInternal, LangContextPublic, QuoteStyle, SortMode } from "@/types";
 import { createLangContext } from "@/core/context";
 import { CheckHandler } from "./handlers/CheckHandler";
 import { FixHandler } from "./handlers/FixHandler";
@@ -9,7 +9,7 @@ import { SortHandler } from "./handlers/SortHandler";
 import { TrimHandler } from "./handlers/TrimHandler";
 import { ModifyHandler } from "./handlers/ModifyHandler";
 import { ReadHandler } from "./handlers/ReadHandler";
-import { LangMageOptions, I18nFramework, ExecutionResult, EXECUTION_RESULT_CODE, KeyStyle } from "@/types";
+import { LangMageOptions, ExecutionResult, EXECUTION_RESULT_CODE, KeyStyle } from "@/types";
 import { getDetectedLangList } from "@/core/tools/contextTools";
 import { getLangCode } from "@/utils/langKey";
 import { t } from "@/utils/i18n";
@@ -37,16 +37,13 @@ class LangMage {
         referredLang: getConfig<string>("translationServices.referenceLanguage", this.ctx.referredLang),
         displayLang: getConfig<string>("general.displayLanguage", this.ctx.displayLang),
         i18nFramework: getConfig<I18nFramework>("i18nFeatures.framework", this.ctx.i18nFramework),
-        ignoredFileList: getConfig<string[]>("workspace.ignoredFileList", this.ctx.ignoredFileList),
+        ignoredLangs: getConfig<string[]>("workspace.ignoredLanguages", this.ctx.ignoredLangs),
         langFileMinLength: getConfig<number>("general.langFileMinLength", this.ctx.langFileMinLength),
         ignoreEmptyLangFile: getConfig<boolean>("general.ignoreEmptyLangFile", this.ctx.ignoreEmptyLangFile),
         manuallyMarkedUsedEntries: getConfig<string[]>("workspace.manuallyMarkedUsedEntries", this.ctx.manuallyMarkedUsedEntries),
         syncBasedOnReferredEntries: getConfig<boolean>("general.syncBasedOnReferredEntries", this.ctx.syncBasedOnReferredEntries),
         sortingWriteMode: getConfig<SortMode>("writeRules.sortOnWrite", this.ctx.sortingWriteMode),
         sortingExportMode: getConfig<SortMode>("general.sortOnExport", this.ctx.sortingExportMode),
-        defaultNamespace: getConfig<string>("i18nFeatures.defaultNamespace", this.ctx.defaultNamespace),
-        tFuncNames: getConfig<string[]>("i18nFeatures.translationFunctionNames", this.ctx.tFuncNames),
-        namespaceSeparator: getConfig<"auto" | ":" | ".">("i18nFeatures.namespaceSeparator", this.ctx.namespaceSeparator),
         matchExistingKey: getConfig<boolean>("translationServices.matchExistingKey", this.ctx.matchExistingKey),
         autoTranslateMissingKey: getConfig<boolean>("translationServices.autoTranslateMissingKey", this.ctx.autoTranslateMissingKey),
         generatedKeyStyle: getConfig<KeyStyle>("writeRules.generatedKeyStyle", this.ctx.generatedKeyStyle),
@@ -56,10 +53,6 @@ class LangMage {
         languageFileIndent: getConfig<number>("writeRules.languageFileIndent", this.ctx.languageFileIndent),
         quoteStyleForKey: getConfig<"auto" | QuoteStyle>("writeRules.quoteStyleForKey", this.ctx.quoteStyleForKey),
         quoteStyleForValue: getConfig<"auto" | QuoteStyle>("writeRules.quoteStyleForValue", this.ctx.quoteStyleForValue),
-        interpolationBrackets: getConfig<"auto" | "single" | "double">(
-          "i18nFeatures.interpolationBrackets",
-          this.ctx.interpolationBrackets
-        ),
         ...options
       };
       for (const [key, value] of Object.entries(combinedOptions)) {
@@ -70,13 +63,14 @@ class LangMage {
     }
   }
 
-  public async execute(): Promise<ExecutionResult> {
+  public async execute(options: LangMageOptions | null = null): Promise<ExecutionResult> {
     if (!this.ctx.isVacant) {
       return { success: true, message: t("common.progress.processing"), code: EXECUTION_RESULT_CODE.Processing };
     }
     try {
       this.ctx.isVacant = false;
       console.time("elapsed");
+      if (options) this.setOptions(options);
       if (this.ctx.clearCache) this.reset();
       const reader = new ReadHandler(this.ctx);
       reader.readLangFiles();
@@ -148,8 +142,7 @@ class LangMage {
       referredLang: this.ctx.referredLang,
       displayLang: this.ctx.displayLang,
       defaultLang: this.ctx.defaultLang,
-      excludedLangList: this.ctx.excludedLangList,
-      includedLangList: this.ctx.includedLangList,
+      ignoredLangs: this.ctx.ignoredLangs,
       globalFlag: this.ctx.globalFlag,
       rewriteFlag: this.ctx.rewriteFlag,
       exportDir: this.ctx.exportDir,
@@ -158,11 +151,6 @@ class LangMage {
       langFileMinLength: this.ctx.langFileMinLength,
       sortingWriteMode: this.ctx.sortingWriteMode,
       sortingExportMode: this.ctx.sortingExportMode,
-      defaultNamespace: this.ctx.defaultNamespace,
-      tFuncNames: this.ctx.tFuncNames,
-      interpolationBrackets: this.ctx.interpolationBrackets,
-      namespaceSeparator: this.ctx.namespaceSeparator,
-      showPreInfo: this.ctx.showPreInfo,
       styleScore: this.ctx.styleScore,
       fileStructure: this.ctx.fileStructure,
       syncBasedOnReferredEntries: this.ctx.syncBasedOnReferredEntries,
@@ -187,7 +175,7 @@ class LangMage {
 
   public get langDetail() {
     return {
-      langList: this.detectedLangList,
+      langList: Object.keys(this.ctx.langCountryMap),
       formatType: this.ctx.langFormatType,
       dictionary: this.ctx.langDictionary,
       lack: this.ctx.lackInfo,
@@ -202,16 +190,6 @@ class LangMage {
       tree: this.ctx.entryTree,
       updatedValues: this.ctx.updatedEntryValueInfo,
       patchedIds: this.ctx.patchedEntryIdInfo
-    };
-  }
-
-  public get i18nFeatures() {
-    return {
-      framework: this.ctx.i18nFramework,
-      defaultNamespace: this.ctx.defaultNamespace,
-      tFuncNames: this.ctx.tFuncNames,
-      interpolationBrackets: this.ctx.interpolationBrackets,
-      namespaceSeparator: this.ctx.namespaceSeparator
     };
   }
 

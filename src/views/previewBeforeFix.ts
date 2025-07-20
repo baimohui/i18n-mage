@@ -3,13 +3,11 @@ import { FixedTEntry } from "@/types";
 import { t } from "@/utils/i18n";
 import { unescapeString, internalToDisplayName } from "@/utils/regex";
 import { toRelativePath } from "@/utils/fs";
-import LangMage from "@/core/LangMage";
 
 type EntryValueUpdates = Record<string, Record<string, string | undefined>>;
 type EntryIdPatches = Record<string, FixedTEntry[]>;
 type LocaleMap = Record<string, Record<string, string>>;
 
-const mage = LangMage.getInstance();
 export default function launchFixWebview(
   valueUpdates: EntryValueUpdates,
   idPatches: EntryIdPatches,
@@ -234,7 +232,7 @@ function renderValueSection(updates: EntryValueUpdates, localeMap: LocaleMap, ba
               ([key, val]) => /* html */ `
           <div class="item">
             <input type="checkbox" data-key="${key}" data-locale="${locale}" checked>
-            <label>${internalToDisplayName(unescapeString(key), mage.i18nFeatures)}</label>
+            <label>${internalToDisplayName(unescapeString(key))}</label>
             <textarea rows="1">${val ?? ""}</textarea>
             ${
               localeMap[locale][key] && localeMap[locale][key] !== val
