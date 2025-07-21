@@ -591,8 +591,16 @@
         "command": "i18nMage.markAsUsed",
         "title": "%command.markAsUsed.title%",
         "icon": {
-          "light": "./images/claim-light.svg",
-          "dark": "./images/claim-dark.svg"
+          "light": "./images/pin-light.svg",
+          "dark": "./images/pin-dark.svg"
+        }
+      },
+      {
+        "command": "i18nMage.unmarkAsUsed",
+        "title": "%command.unmarkAsUsed.title%",
+        "icon": {
+          "light": "./images/pinFill-light.svg",
+          "dark": "./images/pinFill-dark.svg"
         }
       },
       {
@@ -705,6 +713,11 @@
           "command": "i18nMage.deleteUnused",
           "when": "viewItem == unusedGroupHeader || viewItem == unusedGroupItem",
           "group": "inline@2"
+        },
+        {
+          "command": "i18nMage.unmarkAsUsed",
+          "when": "viewItem == usedGroupItem-None",
+          "group": "inline@1"
         }
       ],
       "explorer/context": [

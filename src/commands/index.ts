@@ -21,6 +21,7 @@ import { registerSetDisplayLangCommand } from "./check/setDisplayLangCommand";
 import { registerIgnoreDirectoryCommand } from "./check/ignoreDirectoryCommand";
 import { registerIgnoreLangCommand } from "./check/ignoreLangCommand";
 import { registerUnignoreLangCommand } from "./check/unignoreLangCommand";
+import { registerUnmarkAsUsedCommand } from "./check/unmarkAsUsedCommand";
 
 export function registerAllCommands() {
   registerCheckUsageCommand();
@@ -46,4 +47,5 @@ export function registerAllCommands() {
   registerIgnoreDirectoryCommand();
   registerIgnoreLangCommand();
   registerUnignoreLangCommand();
+  registerUnmarkAsUsedCommand();
 }

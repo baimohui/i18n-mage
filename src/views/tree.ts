@@ -395,6 +395,7 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
             label: internalToDisplayName(name),
             description: `<${usedNum || "?"}>${entryInfo[this.publicCtx.referredLang]}`,
             level: 2,
+            contextValue: usedNum === 0 ? "usedGroupItem-None" : "usedGroupItem",
             type: element.type,
             root: element.root,
             id: this.genId(element, key),

@@ -80,6 +80,7 @@
   "command.editValue.title": "Edit Entry Value",
   "command.deleteUnused.title": "Delete Unused Entries",
   "command.markAsUsed.title": "Mark as Used",
+  "command.unmarkAsUsed.title": "Unmark as used",
   "command.goToReference.title": "Go to Reference",
   "command.goToDefinition.title": "Go to Definition",
   "command.setProjectPath.title": "Set to the project root path",

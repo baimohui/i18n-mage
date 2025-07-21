@@ -80,6 +80,7 @@
   "command.editValue.title": "编辑词条值",
   "command.deleteUnused.title": "删除未使用的词条",
   "command.markAsUsed.title": "标记为已使用",
+  "command.unmarkAsUsed.title": "取消标记为已使用",
   "command.goToReference.title": "跳转到引用位置",
   "command.goToDefinition.title": "跳转到定义位置",
   "command.setProjectPath.title": "设置为项目根路径",
