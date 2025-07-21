@@ -36,6 +36,7 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
   #mage: LangMage;
   publicCtx: LangContextPublic;
   isInitialized = false;
+  isSyncing = false;
   usedEntries: TEntry[] = [];
   definedEntriesInCurrentFile: TEntry[] = [];
   undefinedEntriesInCurrentFile: TEntry[] = [];
@@ -204,7 +205,7 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
         label: t("tree.syncInfo.title"),
         id: "SYNC_INFO",
         root: "SYNC_INFO",
-        iconPath: new vscode.ThemeIcon("sync"),
+        iconPath: new vscode.ThemeIcon(this.isSyncing ? "sync~spin" : "sync"),
         collapsibleState: vscode.TreeItemCollapsibleState.Expanded,
         description: this.getSyncPercent()
       },
@@ -519,10 +520,9 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
     const lackNum = this.langInfo.lack[lang]?.length ?? 0;
     const extraNum = this.langInfo.extra[lang]?.length ?? 0;
     const nullNum = this.langInfo.null[lang]?.length ?? 0;
-    // sync-ignored | sync~spin
     let icon = "pass";
     if (lackNum > 0 || nullNum > 0) {
-      icon = "sync";
+      icon = this.isSyncing ? "sync~spin" : "sync";
       list.push(`-${lackNum + nullNum}`);
     }
     if (extraNum > 0) {

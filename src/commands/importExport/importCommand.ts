@@ -1,7 +1,7 @@
 import * as vscode from "vscode";
 import LangMage from "@/core/LangMage";
 import { treeInstance } from "@/views/tree";
-import previewFixContent from "@/views/previewBeforeFix";
+import previewFixContent from "@/views/previewChanges";
 import { wrapWithProgress } from "@/utils/wrapWithProgress";
 import { registerDisposable } from "@/utils/dispose";
 import { t } from "@/utils/i18n";
@@ -30,7 +30,7 @@ export function registerImportCommand() {
     const fileUri = await vscode.window.showOpenDialog(options);
     if (Array.isArray(fileUri) && fileUri.length > 0) {
       await wrapWithProgress({ title: t("command.import.progress") }, async () => {
-        const rewriteFlag = !getConfig<boolean>("general.previewBeforeFix", true);
+        const rewriteFlag = !getConfig<boolean>("general.previewChanges", true);
         const filePath = fileUri[0].fsPath;
         mage.setOptions({ task: "import", importExcelFrom: filePath, rewriteFlag });
         const res = await mage.execute();

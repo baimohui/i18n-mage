@@ -4,7 +4,7 @@
   "config.i18nFramework.desc": "国际化框架",
   "config.referenceLanguage.desc": "参考语言",
   "config.displayLanguage.desc": "显示语言",
-  "config.previewBeforeFix.desc": "预览更改内容",
+  "config.previewChanges.desc": "在应用修改前预览更改内容",
   "config.translationFunctionNames.desc": "自定义的国际化转化函数名称列表",
   "config.syncBasedOnReferredEntries.desc": "在统计词条同步信息时，是否以参考语言文件中定义的词条为基准。若不是，则以所有语言文件中定义的词条为准",
   "config.manuallyMarkedUsedEntries.desc": "手动标记为已使用的词条",

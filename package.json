@@ -43,11 +43,11 @@
             "default": "",
             "description": "%config.displayLanguage.desc%"
           },
-          "i18n-mage.general.previewBeforeFix": {
+          "i18n-mage.general.previewChanges": {
             "order": 10,
             "type": "boolean",
             "default": true,
-            "description": "%config.previewBeforeFix.desc%"
+            "description": "%config.previewChanges.desc%"
           },
           "i18n-mage.general.sortOnExport": {
             "order": 16,
