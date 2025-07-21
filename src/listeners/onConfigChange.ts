@@ -23,7 +23,7 @@ export function registerOnConfigChange() {
     } else if (event.affectsConfiguration("i18n-mage.writeRules.sortOnWrite")) {
       const sortMode = getConfig<string>("writeRules.sortOnWrite");
       vscode.commands.executeCommand("setContext", "allowSort", mage.langDetail.isFlat && sortMode !== "none");
-    } else if (event.affectsConfiguration("i18n-mage.workspace")) {
+    } else if (event.affectsConfiguration("i18n-mage.workspace") || event.affectsConfiguration("i18n-mage.i18nFeatures")) {
       clearConfigCache();
     }
   });

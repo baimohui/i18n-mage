@@ -30,8 +30,6 @@ export interface LangContextPublic {
   rewriteFlag: boolean;
   exportDir: string;
   cachePath: string;
-  ignoreEmptyLangFile: boolean;
-  langFileMinLength: number;
   styleScore: number;
   fileStructure: EntryNode | null;
   syncBasedOnReferredEntries: boolean;

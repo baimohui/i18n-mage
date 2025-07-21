@@ -11,8 +11,6 @@ export const createLangContext = (): LangContextInternal => ({
   rewriteFlag: false,
   exportDir: "",
   cachePath: "",
-  ignoreEmptyLangFile: true,
-  langFileMinLength: 0,
   styleScore: 0,
   fileStructure: null,
   modifyList: [],

@@ -7,8 +7,6 @@
   "config.previewBeforeFix.desc": "预览更改内容",
   "config.translationFunctionNames.desc": "自定义的国际化转化函数名称列表",
   "config.syncBasedOnReferredEntries.desc": "在统计词条同步信息时，是否以参考语言文件中定义的词条为基准。若不是，则以所有语言文件中定义的词条为准",
-  "config.ignoreEmptyLangFile.desc": "忽略空语言文件",
-  "config.langFileMinLength.desc": "语言文件最小字符数",
   "config.manuallyMarkedUsedEntries.desc": "手动标记为已使用的词条",
   "config.projectPath.title": "项目根路径",
   "config.langPath.desc": "翻译文件目录",

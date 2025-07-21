@@ -13,8 +13,6 @@ export interface LangMageOptions {
   rewriteFlag?: boolean;
   exportDir?: string;
   cachePath?: string;
-  ignoreEmptyLangFile?: boolean;
-  langFileMinLength?: number;
   importExcelFrom?: string;
   exportExcelTo?: string;
   clearCache?: boolean;

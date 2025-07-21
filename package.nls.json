@@ -7,8 +7,6 @@
   "config.previewBeforeFix.desc": "Preview and adjust changes before fixing",
   "config.translationFunctionNames.desc": "A list of custom translation function names that can be used for internationalization",
   "config.syncBasedOnReferredEntries.desc": "When syncing entries, use the reference language file as the baseline. Otherwise, all language files are used as the basis.",
-  "config.ignoreEmptyLangFile.desc": "Ignore Empty Language Files",
-  "config.langFileMinLength.desc": "Minimum Language File Length",
   "config.manuallyMarkedUsedEntries.desc": "Manually Marked Used Entries",
   "config.projectPath.title": "Project Root Path",
   "config.langPath.desc": "Translation File Directory",
