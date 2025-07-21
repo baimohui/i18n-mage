@@ -24,6 +24,7 @@ export interface LangMageOptions {
   manuallyMarkedUsedEntries?: string[];
   matchExistingKey?: boolean;
   autoTranslateMissingKey?: boolean;
+  validateLanguageBeforeTranslate?: boolean;
   generatedKeyStyle?: KeyStyle;
   stopWords?: string[];
   maxGeneratedKeyLength?: number;

@@ -39,6 +39,7 @@ export interface LangContextPublic {
   modifyList: Array<{ key: string; name: string; value: string; lang: string }>;
   matchExistingKey: boolean;
   autoTranslateMissingKey: boolean;
+  validateLanguageBeforeTranslate: boolean;
   generatedKeyStyle: KeyStyle;
   stopWords: string[];
   maxGeneratedKeyLength: number;

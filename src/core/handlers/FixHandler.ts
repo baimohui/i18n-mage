@@ -77,7 +77,7 @@ export class FixHandler {
         patchedEntryIdList.push({ ...entry, fixedRaw: "" });
       } else if (
         this.ctx.autoTranslateMissingKey &&
-        validateLang(nameInfo.text, getLangCode(this.ctx.referredLang) ?? this.ctx.referredLang)
+        (!this.ctx.validateLanguageBeforeTranslate || validateLang(nameInfo.text, this.ctx.referredLang))
       ) {
         undefinedEntryIdSet.add(nameInfo.id);
         needTranslateList.push(entry);

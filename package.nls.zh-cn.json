@@ -65,6 +65,7 @@
   "config.quoteStyleForValue.desc": "写入词条 value 时使用的引号风格",
   "config.ignoredDirectories.desc": "需要忽略的目录列表",
   "config.ignoredLanguages.desc": "需要忽略的语言列表",
+  "config.validateLanguageBeforeTranslate.desc": "启用时，在对未定义词条进行翻译前，将先使用语言校验方法判断该字符串是否属于参考语言，只有校验通过后才会执行自动翻译。适用于过滤变量名、编码值等非自然语言内容，避免误翻译",
   "command.setReferredLang.title": "设为翻译源语言",
   "command.setDisplayLang.title": "设为显示语言",
   "command.markAsKnownLang.title": "标记为已知语言",

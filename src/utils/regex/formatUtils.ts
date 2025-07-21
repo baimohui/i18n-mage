@@ -72,24 +72,43 @@ export function validateLang(str: string, lang: string): boolean {
   let res = true;
   const code = getLangCode(lang, "google");
   switch (code) {
-    case "zh-CN":
-      res = /[\u4E00-\u9FA5\uF900-\uFA2D]+/.test(str);
-      break;
-    case "ru":
-      res = /[а-яА-ЯЁё]/.test(str);
-      break;
-    case "ja":
-      res = /[\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FAF]/.test(str);
+    case "zh-CN": // 中文（简体）
+    case "zh-TW": // 中文（繁體）
+      res = /[\u4E00-\u9FFF\uF900-\uFAFF]+/.test(str);
       break;
     case "en":
-      res = /^[a-zA-Z0-9!@#$%^&*()_+-=,.<>/?;:'"[\]{}|\\`~\s]*$/.test(str);
+      res = /^[a-zA-Z0-9!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?`~\s]*$/.test(str) && !isEnglishVariable(str);
       break;
-    case "ar":
+    case "ru": // 俄语
+      res = /[а-яА-ЯЁё]/.test(str);
+      break;
+    case "ja": // 日语
+      res = /[\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FFF]/.test(str);
+      break;
+    case "ko": // 韩语
+      res = /[\uAC00-\uD7AF\u1100-\u11FF\u3130-\u318F]/.test(str);
+      break;
+    case "ar": // 阿拉伯语
       res = /[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\uFB50-\uFDFF\uFE70-\uFEFF]/.test(str);
       break;
-    case "th":
+    case "th": // 泰语
       res = /[\u0E00-\u0E7F]/.test(str);
       break;
+    case "de": // 德语
+    case "fr": // 法语
+    case "es": // 西班牙语
+    case "it": // 意大利语
+    case "pt": // 葡萄牙语
+      res = /[a-zA-ZÀ-ÿ0-9\s.,'"!?;:()[\]{}\-+*/&%$#@\\^<>|`~]/.test(str);
+      break;
+    case "hi": // 印地语
+      res = /[\u0900-\u097F]/.test(str);
+      break;
+    case "vi": // 越南语
+      res = /[a-zA-ZÀ-ỹĀ-ỹăâđêôơưáàảãạấầẩẫậắằẳẵặéèẻẽẹếềểễệíìỉĩịóòỏõọốồổỗộớờởỡợúùủũụứừửữựýỳỷỹỵ]/i.test(str);
+      break;
+    default:
+      res = true; // 未知语言默认通过
   }
   return res;
 }
@@ -155,4 +174,17 @@ export function formatForFile(str: string, doubleQuotes = true): string {
   } else {
     return "'" + str.replace(/\\/g, "\\\\").replace(/'/g, "\\'").replace(/\r/g, "\\r").replace(/\n/g, "\\n").replace(/\t/g, "\\t") + "'";
   }
+}
+
+export function isEnglishVariable(str: string): boolean {
+  // 启发式判断是否是变量而不是可翻译文本
+  if (!str) return false;
+  // 不含空格 && 匹配变量风格
+  const isLikelyVariable =
+    /^[a-zA-Z_][.a-zA-Z0-9_-]*$/.test(str) && // 变量命名
+    !/\s/.test(str) && // 不含空格
+    !/[.!?]$/.test(str); // 不以标点结尾
+  // 小写开头并且不是常规单词的组合
+  const isCamelOrSnake = /[_-]/.test(str) || /^[a-z][a-zA-Z0-9]*$/.test(str);
+  return isLikelyVariable && isCamelOrSnake;
 }

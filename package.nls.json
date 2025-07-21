@@ -65,6 +65,7 @@
   "config.quoteStyleForValue.desc": "Quote style to use for translation values",
   "config.ignoredDirectories.desc": "List of directories to ignore",
   "config.ignoredLanguages.desc": "List of languages to ignore",
+  "config.validateLanguageBeforeTranslate.desc": "When enabled, the plugin will validate whether the missing string belongs to the reference language before attempting translation. Translation will proceed only if the validation passes. Useful for filtering variable names or non-linguistic content to avoid incorrect translations",
   "command.setReferredLang.title": "Set as Source Language",
   "command.setDisplayLang.title": "Set as Display Language",
   "command.markAsKnownLang.title": "Mark as Known Language",

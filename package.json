@@ -223,6 +223,12 @@
             "type": "boolean",
             "default": false,
             "description": "%config.autoTranslateMissingKey.desc%"
+          },
+          "i18n-mage.translationServices.validateLanguageBeforeTranslate": {
+            "order": 26,
+            "type": "boolean",
+            "default": true,
+            "description": "%config.validateLanguageBeforeTranslate.desc%"
           }
         }
       },
@@ -653,7 +659,7 @@
         },
         {
           "command": "i18nMage.ignoreLang",
-          "when": "viewItem =~ /checkSyncInfo/ && !(viewItem =~ /IGNORE_LANG/) && !(viewItem =~ /REFERENCE_LANG/) && !(viewItem =~ /IGNORED_LANG/)",
+          "when": "viewItem =~ /checkSyncInfo/ && !(viewItem =~ /DISPLAY_LANG/) && !(viewItem =~ /REFERENCE_LANG/) && !(viewItem =~ /IGNORED_LANG/)",
           "group": "syncInfo@3"
         },
         {

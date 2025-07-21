@@ -51,6 +51,10 @@ class LangMage {
         languageFileIndent: getConfig<number>("writeRules.languageFileIndent", this.ctx.languageFileIndent),
         quoteStyleForKey: getConfig<"auto" | QuoteStyle>("writeRules.quoteStyleForKey", this.ctx.quoteStyleForKey),
         quoteStyleForValue: getConfig<"auto" | QuoteStyle>("writeRules.quoteStyleForValue", this.ctx.quoteStyleForValue),
+        validateLanguageBeforeTranslate: getConfig<boolean>(
+          "translationServices.validateLanguageBeforeTranslate",
+          this.ctx.validateLanguageBeforeTranslate
+        ),
         ...options
       };
       for (const [key, value] of Object.entries(combinedOptions)) {
@@ -161,7 +165,8 @@ class LangMage {
       keyPrefix: this.ctx.keyPrefix,
       languageFileIndent: this.ctx.languageFileIndent,
       quoteStyleForKey: this.ctx.quoteStyleForKey,
-      quoteStyleForValue: this.ctx.quoteStyleForValue
+      quoteStyleForValue: this.ctx.quoteStyleForValue,
+      validateLanguageBeforeTranslate: this.ctx.validateLanguageBeforeTranslate
     };
   }
 
