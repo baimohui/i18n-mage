@@ -2,7 +2,6 @@ import fs from "fs";
 import path from "path";
 import JSON5 from "json5";
 import { escapeString } from "./stringUtils";
-import { LANG_FORMAT_TYPE } from "@/utils/langKey";
 import { LangTree, FileExtraInfo, LangFileInfo, EntryNode, EntryMap, EntryTree, I18nFramework, I18N_FRAMEWORK, QuoteStyle } from "@/types";
 import { getFirstOrLastDirName, isPathInsideDirectory, isSamePath } from "../fs";
 import { getCacheConfig } from "../config";
@@ -39,49 +38,76 @@ export function isValidI18nCallablePath(inputPath: string): boolean {
 
 export function getLangFileInfo(filePath: string): LangFileInfo | null {
   try {
-    let fileContent = fs.readFileSync(filePath, "utf-8");
-    let formatType = "";
-    if ([/\w+\s*\(.*\)\s*{[^]*}/, /\s*=>\s*/].every(reg => !reg.test(fileContent))) {
-      formatType = /\n[\w.]+\s*=\s*".*";+\s/.test(fileContent) ? LANG_FORMAT_TYPE.nonObj : LANG_FORMAT_TYPE.obj;
-    }
-    if (formatType === "") return null;
-    let tree: EntryTree = {};
-    let prefix = "";
-    let suffix = "";
-    let innerVar = "";
-    const { key: keyQuotes, value: valueQuotes } = detectQuoteStyle(fileContent);
-    const indentSize = detectIndentSize(fileContent);
-    const match = fileContent.match(/([^]*?)({[^]*})([^]*)/);
-    if (match) {
-      prefix = match[1];
-      suffix = match[3];
-      fileContent = match[2];
-    }
-    const spreadVarMatch = fileContent.match(/\n\s*\.\.\.\S+/g);
-    if (spreadVarMatch) {
-      innerVar = spreadVarMatch.join("");
-      const spreadVarReg = new RegExp(`${spreadVarMatch.join("|")}`, "g");
-      fileContent = fileContent.replace(spreadVarReg, "");
-    }
-    tree = JSON5.parse(fileContent);
-    // TODO vue-i18n 似乎支持值为字符串、数组、对象，甚至函数（返回字符串），这里的判断需要调整
-    if (getNestedValues(tree).some(item => typeof item !== "string")) return null;
-    return {
-      data: tree,
-      formatType,
-      extraInfo: {
-        indentSize,
-        prefix,
-        suffix,
-        innerVar,
-        keyQuotes,
-        valueQuotes
+    const fileContent = fs.readFileSync(filePath, "utf-8");
+    for (let i = 1; i <= 2; i++) {
+      const [prefix, content, suffix] = extractContentByLevel(fileContent, i);
+      if (content) {
+        let jsonObj = content;
+        const { key: keyQuotes, value: valueQuotes } = detectQuoteStyle(jsonObj);
+        const indentSize = detectIndentSize(jsonObj);
+        let innerVar = "";
+        const varMatch = jsonObj.match(/^{\s*([^"']*,[^]*?)\r?\n/);
+        if (varMatch) {
+          innerVar = varMatch[1];
+          jsonObj = jsonObj.replace(innerVar, "");
+        }
+        try {
+          const tree: EntryTree = JSON5.parse(jsonObj);
+          return {
+            data: tree,
+            extraInfo: {
+              indentSize,
+              nestedLevel: i,
+              prefix,
+              suffix,
+              innerVar,
+              keyQuotes,
+              valueQuotes
+            }
+          };
+        } catch (e: unknown) {
+          console.error(`解析文件 ${filePath} 时出错：`, e instanceof Error ? e.message : (e as string));
+          continue;
+        }
       }
-    };
+    }
+    return null;
   } catch (e) {
     console.error(e);
     return null;
   }
+}
+
+export function extractContentByLevel(content: string, level: number): [string, string, string] {
+  if (level < 1) {
+    throw new Error("层级数必须大于等于1");
+  }
+  const openBraces: number[] = []; // 存储所有 { 的位置
+  const closeBraces: number[] = []; // 存储所有 } 的位置
+  // 遍历内容，记录所有 { 和 } 的位置
+  for (let i = 0; i < content.length; i++) {
+    if (content[i] === "{") {
+      openBraces.push(i);
+    } else if (content[i] === "}") {
+      closeBraces.push(i);
+    }
+  }
+  // 检查是否有足够的 { 和 }
+  if (openBraces.length < level || closeBraces.length < level) {
+    throw new Error(`内容中没有足够的层级 ${level} 的 { }`);
+  }
+  // 计算开始和结束位置
+  const startIndex = openBraces[level - 1]; // 第 level 个 {
+  const endIndex = closeBraces[closeBraces.length - level]; // 倒数第 level 个 }
+  // 检查顺序是否正确
+  if (startIndex >= endIndex) {
+    throw new Error(`层级 ${level} 的 { 出现在 } 之后`);
+  }
+  // 分割内容
+  const before = content.substring(0, startIndex);
+  const matched = content.substring(startIndex, endIndex + 1);
+  const after = content.substring(endIndex + 1);
+  return [before, matched, after];
 }
 
 export function getNestedValues(obj: EntryTree): string[] {
@@ -117,7 +143,6 @@ export function flattenNestedObj(obj: EntryTree, className = ""): { data: EntryM
 
 export interface ExtractResult {
   fileType: string; // 最终使用的文件后缀
-  formatType: string; // 最终使用的格式
   langTree: LangTree; // 语言数据树
   fileExtraInfo: Record<string, FileExtraInfo>;
   fileStructure: EntryNode; // 带 type 标记的文件树
@@ -125,7 +150,6 @@ export interface ExtractResult {
 
 export function extractLangDataFromDir(langPath: string): ExtractResult | null {
   let validFileType = "";
-  let validFormatType = "";
   const fileExtraInfo: Record<string, FileExtraInfo> = {};
 
   function traverse(
@@ -160,10 +184,9 @@ export function extractLangDataFromDir(langPath: string): ExtractResult | null {
 
         const info = getLangFileInfo(fullPath);
         if (!info) continue;
-        const { data, extraInfo, formatType } = info;
+        const { data, extraInfo } = info;
 
         validFileType ||= ext;
-        validFormatType = formatType;
 
         // 挂到语言树
         tree[base] = data;
@@ -183,7 +206,6 @@ export function extractLangDataFromDir(langPath: string): ExtractResult | null {
 
   return {
     fileType: validFileType,
-    formatType: validFormatType,
     langTree,
     fileExtraInfo,
     fileStructure

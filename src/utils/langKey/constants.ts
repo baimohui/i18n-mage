@@ -171,19 +171,3 @@ export const DEFAULT_LANG_ALIAS_MAP: Partial<Record<LangKey, string[]>> = {
   "zh-tw": ["tc", "cn_tc", "zh-tw", "zh_tw", "zh-TW", "zh_HK", "zh-MO", "cht", "zh-Hant"],
   zu: ["zu-ZA"]
 };
-
-// 多语言文件内容展示格式
-export const LANG_FORMAT_TYPE = {
-  obj: "OBJECT",
-  nonObj: "NON_OBJECT",
-  nestedObj: "OBJECT_NESTED"
-} as const;
-
-type LangFormatType = (typeof LANG_FORMAT_TYPE)[keyof typeof LANG_FORMAT_TYPE];
-
-// 条目默认分隔符
-export const LANG_ENTRY_SPLIT_SYMBOL: Record<LangFormatType, string> = {
-  [LANG_FORMAT_TYPE.obj]: "_",
-  [LANG_FORMAT_TYPE.nonObj]: ".",
-  [LANG_FORMAT_TYPE.nestedObj]: "."
-} as const;

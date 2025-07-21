@@ -50,7 +50,6 @@ export interface LangContextPublic {
 
 // 内部模块才能访问的完整上下文
 export interface LangContextInternal extends LangContextPublic {
-  langFormatType: string;
   langDictionary: LangDictionary;
   langCountryMap: LangCountryMap;
   lackInfo: LackInfo;

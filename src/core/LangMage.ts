@@ -172,7 +172,6 @@ class LangMage {
   public get langDetail() {
     return {
       langList: Object.keys(this.ctx.langCountryMap),
-      formatType: this.ctx.langFormatType,
       dictionary: this.ctx.langDictionary,
       lack: this.ctx.lackInfo,
       extra: this.ctx.extraInfo,
@@ -190,7 +189,6 @@ class LangMage {
   }
 
   private reset(): void {
-    this.ctx.langFormatType = "";
     this.ctx.langFileType = "";
     this.ctx.langDictionary = {};
     this.ctx.langCountryMap = {};

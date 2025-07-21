@@ -1,7 +1,7 @@
 import * as assert from "assert";
 import * as sinon from "sinon";
 import * as configModule from "@/utils/config";
-import { LANG_CODE_MAPPINGS, getLangIntro, getLangText, getLangCode, LANG_FORMAT_TYPE, LANG_ENTRY_SPLIT_SYMBOL } from "@/utils/langKey";
+import { LANG_CODE_MAPPINGS, getLangIntro, getLangText, getLangCode } from "@/utils/langKey";
 
 describe("const.js 多语言工具", () => {
   let sandbox: sinon.SinonSandbox;
@@ -117,18 +117,6 @@ describe("const.js 多语言工具", () => {
     it("应合并自定义别名", () => {
       assert.deepStrictEqual(getLangIntro("custom-cn"), LANG_CODE_MAPPINGS["zh-cn"]);
       assert.deepStrictEqual(getLangIntro("jp-alt"), LANG_CODE_MAPPINGS["ja"]);
-    });
-  });
-
-  describe("常量", () => {
-    it("LANG_FORMAT_TYPE 应包含正确值", () => {
-      assert.strictEqual(LANG_FORMAT_TYPE.obj, "OBJECT");
-      assert.strictEqual(LANG_FORMAT_TYPE.nonObj, "NON_OBJECT");
-    });
-
-    it("LANG_ENTRY_SPLIT_SYMBOL 应匹配格式类型", () => {
-      assert.strictEqual(LANG_ENTRY_SPLIT_SYMBOL[LANG_FORMAT_TYPE.obj], "_");
-      assert.strictEqual(LANG_ENTRY_SPLIT_SYMBOL[LANG_FORMAT_TYPE.nonObj], ".");
     });
   });
 });

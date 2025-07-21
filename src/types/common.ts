@@ -6,6 +6,7 @@ export type LangFileType = "js" | "ts" | "json" | "json5" | "mjs" | "cjs";
 
 export interface FileExtraInfo {
   indentSize: number;
+  nestedLevel: number;
   prefix: string;
   suffix: string;
   innerVar: string;
@@ -13,7 +14,6 @@ export interface FileExtraInfo {
   valueQuotes: QuoteStyle;
 }
 export interface LangFileInfo {
-  formatType: string;
   data: EntryTree;
   extraInfo: FileExtraInfo;
 }

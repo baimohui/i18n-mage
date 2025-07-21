@@ -1,6 +1,6 @@
 import { LangContextInternal, LackInfo } from "@/types";
 import { CheckHandler } from "./CheckHandler";
-import { LANG_ENTRY_SPLIT_SYMBOL, getLangCode } from "@/utils/langKey";
+import { getLangCode } from "@/utils/langKey";
 import { TEntry, I18N_FRAMEWORK } from "@/types";
 import {
   validateLang,
@@ -118,8 +118,8 @@ export class FixHandler {
       const id = getIdByStr(enNameList[index], genKeyInfo);
       const nameInfo = entry.nameInfo;
       if (!nameInfo.boundName) {
-        if (nameInfo.boundClass && !nameInfo.boundClass.endsWith(LANG_ENTRY_SPLIT_SYMBOL[this.ctx.langFormatType] as string)) {
-          nameInfo.boundClass += LANG_ENTRY_SPLIT_SYMBOL[this.ctx.langFormatType];
+        if (nameInfo.boundClass && !nameInfo.boundClass.endsWith(".")) {
+          nameInfo.boundClass += ".";
         }
         const baseName = nameInfo.boundClass || namePrefix;
         const maxLen = this.ctx.maxGeneratedKeyLength;
@@ -251,9 +251,8 @@ export class FixHandler {
     map: Record<string, number> = {},
     classPrefix: string = ""
   ): Record<string, number> {
-    const splitSymbol = LANG_ENTRY_SPLIT_SYMBOL[this.ctx.langFormatType] as string;
     for (const [key, value] of Object.entries(tree)) {
-      const itemName = classPrefix + key + splitSymbol;
+      const itemName = classPrefix + key + ".";
       if (value !== null && value !== undefined) {
         map[itemName] = Object.keys(value).length;
         this.getPopularClassMap(value as Record<string, object>, map, itemName);

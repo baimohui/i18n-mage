@@ -95,7 +95,15 @@ export function validateLang(str: string, lang: string): boolean {
 }
 
 export function formatObjectToString(tree: EntryTree, lookup: EntryMap, filePath: string, extraInfo: FileExtraInfo): string {
-  const { prefix = "", suffix = "", innerVar = "", indentSize = 2, keyQuotes = "double", valueQuotes = "double" } = extraInfo;
+  const {
+    prefix = "",
+    suffix = "",
+    innerVar = "",
+    indentSize = 2,
+    nestedLevel = 1,
+    keyQuotes = "double",
+    valueQuotes = "double"
+  } = extraInfo;
   const match = filePath.match(/^.*\.([^.]+)$/);
   const fileType = match ? match[1] : "";
   function needsQuotes(key: string): boolean {
@@ -133,7 +141,7 @@ export function formatObjectToString(tree: EntryTree, lookup: EntryMap, filePath
   if (fileType !== "json" && innerVar) {
     output.push(`${indents}${innerVar}`);
   }
-  const formattedObj = formatObject(tree, 1);
+  const formattedObj = formatObject(tree, nestedLevel);
   if (formattedObj) {
     output.push(formattedObj);
   }

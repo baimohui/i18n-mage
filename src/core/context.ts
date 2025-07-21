@@ -27,7 +27,6 @@ export const createLangContext = (): LangContextInternal => ({
   quoteStyleForValue: "auto",
   i18nFramework: "none",
 
-  langFormatType: "",
   langDictionary: {},
   langCountryMap: {},
   lackInfo: {},

@@ -14,7 +14,6 @@ import {
   isValidI18nCallablePath
 } from "@/utils/regex";
 import { EntryTree, LangDictionary, LangTree } from "@/types";
-import { LANG_ENTRY_SPLIT_SYMBOL } from "@/utils/langKey";
 
 export class ReadHandler {
   constructor(private ctx: LangContextInternal) {}
@@ -28,7 +27,6 @@ export class ReadHandler {
     const langTree = langData.langTree;
     this.ctx.langFileExtraInfo = langData.fileExtraInfo;
     this.ctx.langFileType = langData.fileType;
-    this.ctx.langFormatType = langData.formatType;
     this.ctx.fileStructure = langData.fileStructure;
     Object.entries(langTree).forEach(([lang, tree]) => {
       const { data, isFlat } = flattenNestedObj(tree);
@@ -153,8 +151,7 @@ export class ReadHandler {
   }
 
   private _genEntryClassTree(name: string = ""): void {
-    const splitSymbol = LANG_ENTRY_SPLIT_SYMBOL[this.ctx.langFormatType] as string;
-    const structure = name.split(splitSymbol);
+    const structure = name.split(".");
     const structureLayer = structure.length;
     const primaryClass = structure[0];
     if (Object.hasOwn(this.ctx.entryClassInfo, primaryClass)) {
