@@ -28,7 +28,7 @@ export class CheckHandler {
         const extraTranslations: string[] = [];
         if (this.ctx.syncBasedOnReferredEntries) {
           for (const key in translation) {
-            if (!Object.keys(this.ctx.langCountryMap[this.ctx.referredLang]).includes(key)) {
+            if (!Object.hasOwn(this.ctx.langCountryMap[this.ctx.referredLang], key)) {
               extraTranslations.push(key);
             }
           }

@@ -21,7 +21,9 @@ export function catchTEntries(fileContent: string): TEntry[] {
   const { tFuncNames, framework } = getCacheConfig();
   if (!tFuncNames.length) tFuncNames.push("t");
   if (framework === I18N_FRAMEWORK.vueI18n) {
-    tFuncNames.push("t", "tc");
+    ["t", "tc"].forEach(name => {
+      if (!tFuncNames.includes(name)) tFuncNames.push(name);
+    });
   }
   const funcNamePattern = tFuncNames.map(fn => `\\b${fn}\\b`).join("|");
   const tReg = new RegExp(`(?<=[$\\s.[({:=]{1})(${funcNamePattern})\\s*\\(\\s*(\\S)`, "g");
