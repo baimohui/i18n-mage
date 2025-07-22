@@ -771,7 +771,7 @@
         {
           "icon": "images/i18nMage.png",
           "id": "treeProvider",
-          "name": "i18nMage",
+          "name": "",
           "when": "workspaceFolderCount != 0 && enabled"
         }
       ]
