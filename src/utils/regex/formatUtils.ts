@@ -177,14 +177,8 @@ export function formatForFile(str: string, doubleQuotes = true): string {
 }
 
 export function isEnglishVariable(str: string): boolean {
-  // 启发式判断是否是变量而不是可翻译文本
-  if (!str) return false;
-  // 不含空格 && 匹配变量风格
-  const isLikelyVariable =
-    /^[a-zA-Z_][.a-zA-Z0-9_-]*$/.test(str) && // 变量命名
-    !/\s/.test(str) && // 不含空格
-    !/[.!?]$/.test(str); // 不以标点结尾
-  // 小写开头并且不是常规单词的组合
-  const isCamelOrSnake = /[_-]/.test(str) || /^[a-z][a-zA-Z0-9]*$/.test(str);
-  return isLikelyVariable && isCamelOrSnake;
+  if (!str?.trim()) return false;
+  const isLikelyVariable = /^[a-zA-Z_][\w.-{}]*$/.test(str) && !/\s/.test(str) && !/[.!?]$/.test(str);
+  if (!isLikelyVariable) return false;
+  return /[_\-.]/.test(str) || /[a-z][A-Z]|[A-Z][a-z]/.test(str) || (str === str.toUpperCase() && str.length > 1) || /\d/.test(str);
 }

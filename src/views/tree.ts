@@ -283,7 +283,13 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
       const entryKey = getValueByAmbiguousEntryName(this.tree, element.name as string) ?? "";
       const entryInfo = this.dictionary[entryKey];
       return this.langInfo.langList.map(lang => {
-        const contextValueList = ["entryTranslationInCurFile", "COPY_VALUE", "GO_TO_DEFINITION", "EDIT_VALUE"];
+        const contextValueList = ["entryTranslationInCurFile", "EDIT_VALUE"];
+        if (entryInfo[lang]) {
+          contextValueList.push("COPY_VALUE");
+        }
+        if (entryInfo[lang] !== undefined) {
+          contextValueList.push("GO_TO_DEFINITION");
+        }
         if (!getLangText(lang)) {
           contextValueList.push("UNKNOWN_LANG");
         }
@@ -344,7 +350,7 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
           key: element.key,
           id: this.genId(element, item[0]),
           contextValue: contextValueList.join(","),
-          data: { name, key: item[0], value: element.type === "common" ? item[1] : "", lang: element.key },
+          data: { name, key: item[0], value: element.type === "common" || element.type === "extra" ? item[1] : "", lang: element.key },
           collapsibleState: vscode.TreeItemCollapsibleState.None
         };
       });
@@ -373,7 +379,7 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
         return Object.keys(this.undefinedEntryMap)
           .sort()
           .map(item => {
-            const undefinedNum = Object.values(this.undefinedEntryMap[item]).flat().length;
+            const undefinedNum = Object.values(this.undefinedEntryMap[item]).reduce((acc, cur) => acc + cur.size, 0);
             return {
               key: item,
               label: item,
@@ -388,7 +394,7 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
       } else if (element.type === "used") {
         return Array.from(this.usedKeySet).map(key => {
           const name = unescapeString(key);
-          const usedNum = Object.values(this.usedEntryMap[name]).flat().length;
+          const usedNum = Object.values(this.usedEntryMap[name]).reduce((acc, cur) => acc + cur.size, 0);
           const entryInfo = this.dictionary[key];
           return {
             key,

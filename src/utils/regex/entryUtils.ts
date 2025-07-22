@@ -79,7 +79,7 @@ export function parseTEntry(fileContent: string, startPos: number, offset: numbe
   if (entryNameForm.every(item => !["text", "varText"].includes(item.type))) return null;
   if (entryNameForm.some(item => item.type === "logic")) return null;
   const entryRaw = fileContent.slice(startPos, curPos + 1);
-  if (!isStringInUncommentedRange(fileContent, entryRaw)) return null;
+  if (isPositionInComment(fileContent, startPos)) return null;
   const nameInfo = getEntryNameInfoByForm(entryNameForm, entryVarList);
   if (!nameInfo) return null;
   return {
@@ -296,12 +296,37 @@ export function matchBrackets(str: string, startPos = 0, open = "{", close = "}"
   return null;
 }
 
-// TODO searchString 应替换为具体的方位
-export function isStringInUncommentedRange(code: string, searchString: string): boolean {
-  const uncommentedCode = code
-    .replace(/i18n-mage-disable([^]*?)(i18n-mage-enable|$)/g, "")
-    .replace(/\/\*[^]*?\*\/|(?<!:\s*)\/\/[^\n]*|<!--[^]*?-->/g, "");
-  return uncommentedCode.includes(searchString);
+export function isPositionInComment(code: string, index: number): boolean {
+  const commentRanges: [number, number][] = [];
+  // 匹配多行注释
+  const blockComments = code.matchAll(/\/\*[\s\S]*?\*\//g);
+  for (const match of blockComments) {
+    if (match.index !== undefined) {
+      commentRanges.push([match.index, match.index + match[0].length]);
+    }
+  }
+  // 匹配单行注释（排除 URL 中的 http://）
+  const lineComments = code.matchAll(/(^|[^:])\/\/[^\n]*/g);
+  for (const match of lineComments) {
+    const start = match.index + (match[1] ? 1 : 0);
+    commentRanges.push([start, start + match[0].length - (match[1] ? 1 : 0)]);
+  }
+  // 匹配 HTML 注释（如 Vue 模板中的注释）
+  const htmlComments = code.matchAll(/<!--[\s\S]*?-->/g);
+  for (const match of htmlComments) {
+    if (match.index !== undefined) {
+      commentRanges.push([match.index, match.index + match[0].length]);
+    }
+  }
+  // 匹配 i18n-mage-disable ... i18n-mage-enable 自定义忽略区域
+  const disableBlocks = code.matchAll(/i18n-mage-disable[\s\S]*?(i18n-mage-enable|$)/g);
+  for (const match of disableBlocks) {
+    if (match.index !== undefined) {
+      commentRanges.push([match.index, match.index + match[0].length]);
+    }
+  }
+  // 判断 index 是否在任何区间内
+  return commentRanges.some(([start, end]) => index >= start && index < end);
 }
 
 export function displayToInternalName(name: string) {

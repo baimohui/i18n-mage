@@ -55,7 +55,6 @@ class ExtensionState {
     vscode.window.registerTreeDataProvider("treeProvider", treeInstance);
     registerAllCommands();
     registerAllListeners();
-    // TODO 更换文件类型判断
     registerDisposable(vscode.languages.registerHoverProvider("*", new HoverProvider()));
     this._extensionSubscriptions = bindDisposablesToContext(this._context);
     await wrapWithProgress({ title: t("common.init.progress") }, async () => {
