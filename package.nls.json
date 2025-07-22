@@ -79,7 +79,7 @@
   "command.copyValue.title": "Copy Entry Value",
   "command.copyKeyValue.title": "Copy Key-Value Pair",
   "command.editValue.title": "Edit Entry Value",
-  "command.deleteUnused.title": "Delete Unused Entries",
+  "command.deleteUnused.title": "Delete",
   "command.markAsUsed.title": "Mark as Used",
   "command.unmarkAsUsed.title": "Unmark as used",
   "command.goToReference.title": "Go to Reference",

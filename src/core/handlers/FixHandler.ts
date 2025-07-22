@@ -118,8 +118,8 @@ export class FixHandler {
       const id = getIdByStr(enNameList[index], genKeyInfo);
       const nameInfo = entry.nameInfo;
       if (!nameInfo.boundName) {
-        if (nameInfo.boundClass && !nameInfo.boundClass.endsWith(".")) {
-          nameInfo.boundClass += ".";
+        if (nameInfo.boundClass && !nameInfo.boundClass.endsWith(this.ctx.nameSeparator)) {
+          nameInfo.boundClass += this.ctx.nameSeparator;
         }
         const baseName = nameInfo.boundClass || namePrefix;
         const maxLen = this.ctx.maxGeneratedKeyLength;
@@ -252,7 +252,7 @@ export class FixHandler {
     classPrefix: string = ""
   ): Record<string, number> {
     for (const [key, value] of Object.entries(tree)) {
-      const itemName = classPrefix + key + ".";
+      const itemName = classPrefix + key + this.ctx.nameSeparator;
       if (value !== null && value !== undefined) {
         map[itemName] = Object.keys(value).length;
         this.getPopularClassMap(value as Record<string, object>, map, itemName);

@@ -33,10 +33,16 @@ export class ReadHandler {
       this.ctx.langCountryMap[lang] = data;
       if (!isFlat) this.ctx.isFlat = false;
     });
-    const { structure, lookup } = this.mergeTreeToTwoObjectsSemantic(langTree);
+    const { structure, lookup } = this.buildEntryTreeAndDictionary(langTree);
     this.ctx.entryTree = structure;
     this.ctx.langDictionary = lookup;
-    Object.keys(this.ctx.langDictionary).forEach(key => this._genEntryClassTree(unescapeString(key)));
+    if (this.ctx.keyPrefix === "auto-popular") {
+      const entryNameList = Object.keys(lookup).map(key => unescapeString(key));
+      this.ctx.nameSeparator = this.detectCommonSeparator(entryNameList);
+      if (this.ctx.nameSeparator) {
+        entryNameList.forEach(name => this.genEntryClassTree(name));
+      }
+    }
   }
 
   public startCensus(): void {
@@ -116,7 +122,7 @@ export class ReadHandler {
     return pathList;
   }
 
-  private mergeTreeToTwoObjectsSemantic(langTree: LangTree): { structure: EntryTree; lookup: LangDictionary } {
+  private buildEntryTreeAndDictionary(langTree: LangTree): { structure: EntryTree; lookup: LangDictionary } {
     const structure: EntryTree = {};
     const lookup: LangDictionary = {};
     function setAtPath(obj: EntryTree, path: string[], value: string): void {
@@ -150,8 +156,8 @@ export class ReadHandler {
     return { structure, lookup };
   }
 
-  private _genEntryClassTree(name: string = ""): void {
-    const structure = name.split(".");
+  private genEntryClassTree(name: string = ""): void {
+    const structure = name.split(this.ctx.nameSeparator);
     const structureLayer = structure.length;
     const primaryClass = structure[0];
     if (Object.hasOwn(this.ctx.entryClassInfo, primaryClass)) {
@@ -183,5 +189,22 @@ export class ReadHandler {
       }
       tempObj = tempObj[key] as object;
     });
+  }
+
+  private detectCommonSeparator(keys: string[] = [], threshold = 0.3) {
+    const separators = [".", "-", "_"];
+    const counts = { ".": 0, "-": 0, _: 0 };
+    for (const key of keys) {
+      for (const sep of separators) {
+        if (key.includes(sep)) {
+          counts[sep]++;
+          break; // 同一个词条只算一次（避免重复）
+        }
+      }
+    }
+    const total = keys.length;
+    const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1]);
+    const [mostUsedSep, count] = sorted[0];
+    return count / total >= threshold ? mostUsedSep : "";
   }
 }

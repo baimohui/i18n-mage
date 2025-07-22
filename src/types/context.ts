@@ -76,4 +76,5 @@ export interface LangContextInternal extends LangContextPublic {
   exportExcelTo: string;
   clearCache: boolean;
   trimKeyList: string[];
+  nameSeparator: string;
 }

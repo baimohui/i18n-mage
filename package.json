@@ -320,7 +320,7 @@
             ],
             "default": null,
             "minimum": 0,
-            "maximum": 10,
+            "maximum": 8,
             "description": "%config.languageFileIndent.desc%"
           },
           "i18n-mage.writeRules.quoteStyleForKey": {
@@ -434,6 +434,9 @@
             "type": "array",
             "default": [],
             "description": "%config.manuallyMarkedUsedEntries.desc%",
+            "items": {
+              "type": "string"
+            },
             "scope": "resource"
           },
           "i18n-mage.workspace.ignoredFiles": {
@@ -441,6 +444,9 @@
             "type": "array",
             "default": [],
             "description": "%config.ignoredFiles.desc%",
+            "items": {
+              "type": "string"
+            },
             "scope": "resource"
           },
           "i18n-mage.workspace.ignoredDirectories": {
@@ -448,6 +454,9 @@
             "type": "array",
             "default": [],
             "description": "%config.ignoredDirectories.desc%",
+            "items": {
+              "type": "string"
+            },
             "scope": "resource"
           },
           "i18n-mage.workspace.ignoredLanguages": {
@@ -455,6 +464,9 @@
             "type": "array",
             "default": [],
             "description": "%config.ignoredLanguages.desc%",
+            "items": {
+              "type": "string"
+            },
             "scope": "resource"
           }
         }

@@ -8,7 +8,7 @@ let deepseekApiKey = "";
 
 export default async function translateTo({ source, target, sourceTextList, apiKey }: TranslateParams): Promise<TranslateResult> {
   deepseekApiKey = apiKey;
-  const translateLenLimit = 6000; // a request content max length
+  const translateLenLimit = 1000; // a request content max length
   const secondRequestLimit = 10; // the max times per second to request
   let sum = 0;
   let pack: string[] = [];

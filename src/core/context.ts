@@ -57,5 +57,6 @@ export const createLangContext = (): LangContextInternal => ({
   clearCache: true,
   syncBasedOnReferredEntries: false,
   trimKeyList: [],
-  manuallyMarkedUsedEntries: []
+  manuallyMarkedUsedEntries: [],
+  nameSeparator: ""
 });

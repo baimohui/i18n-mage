@@ -216,6 +216,7 @@ class LangMage {
     this.ctx.entryTree = {};
     this.ctx.updatedEntryValueInfo = {};
     this.ctx.patchedEntryIdInfo = {};
+    this.ctx.nameSeparator = "";
   }
 }
 

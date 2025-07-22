@@ -265,24 +265,27 @@ export function detectQuoteStyle(code: string): {
 
 export function detectIndentSize(fileContent: string): number {
   const lines = fileContent.split("\n");
+  const defaultIndentSize = 4;
   const indents: number[] = [];
   for (const line of lines) {
-    if (!line.trim() || line.trimStart().startsWith("//")) continue;
+    if (!line.trim()) continue;
+    if (/^\s*(\/\/|\/\*|\*)/.test(line)) continue;
     const match = line.match(/^(\s+)\S/);
     if (!match) continue;
     const indent = match[1];
-    if (indent.includes("\t")) continue; // 忽略 tab
+    if (indent.includes("\t")) continue;
     indents.push(indent.length);
   }
-  if (indents.length < 2) return 2;
-  // 计算相邻缩进之间的正整数差值
-  const diffs: number[] = [];
+  // if (indents.length < 5) return defaultIndentSize; // 提高默认值并增加最小样本要求
+  // 计算缩进差值和原始缩进
+  const candidates: number[] = [];
   for (let i = 1; i < indents.length; i++) {
     const diff = Math.abs(indents[i] - indents[i - 1]);
-    if (diff > 0 && diff <= 8) diffs.push(diff); // 限定最大缩进层级为8以内
+    if (diff > 0 && diff <= 8) candidates.push(diff);
   }
+  candidates.push(...indents.filter(n => n <= 8 && n > 0));
   const count: Record<number, number> = {};
-  for (const d of diffs) count[d] = (count[d] || 0) + 1;
+  for (const d of candidates) count[d] = (count[d] || 0) + 1;
   const sorted = Object.entries(count).sort((a, b) => b[1] - a[1]);
-  return sorted.length ? Number(sorted[0][0]) : 2;
+  return sorted.length ? Number(sorted[0][0]) : defaultIndentSize; // 更常见的默认值
 }
