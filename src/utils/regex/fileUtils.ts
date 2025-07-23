@@ -249,11 +249,11 @@ export function detectQuoteStyle(code: string): {
   let match: RegExpExecArray | null = null;
   while ((match = pairRegex.exec(code)) !== null) {
     const { key, value } = match.groups!;
-    if (key.startsWith("'")) keyCount["single"]++;
-    else if (key.startsWith('"')) keyCount["double"]++;
+    if (key.startsWith('"')) keyCount["double"]++;
+    else if (key.startsWith("'")) keyCount["single"]++;
     else keyCount["none"]++;
-    if (value.startsWith("'")) valueCount["single"]++;
-    else if (value.startsWith('"')) valueCount["double"]++;
+    if (value.startsWith('"')) valueCount["double"]++;
+    else if (value.startsWith("'")) valueCount["single"]++;
   }
   const mostUsed = (counts: Record<QuoteStyle, number>): QuoteStyle =>
     Object.entries(counts).sort((a, b) => b[1] - a[1])[0][0] as QuoteStyle;

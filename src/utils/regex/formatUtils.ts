@@ -144,7 +144,7 @@ export function formatObjectToString(tree: EntryTree, lookup: EntryMap, filePath
         keyStr = valueQuotes === "double" ? `"${keyStr}"` : `'${keyStr}'`;
       }
       if (typeof value === "string" && value in lookup) {
-        result.push(`${currentIndent}${keyStr}: ${formatForFile(lookup[value], valueQuotes === "double")}`);
+        result.push(`${currentIndent}${keyStr}: ${formatForFile(lookup[value], fileType === "json" || valueQuotes === "double")}`);
       } else if (Object.prototype.toString.call(value) === "[object Object]") {
         const nestedValue = formatObject(value as EntryTree, level + 1);
         if (nestedValue) {
