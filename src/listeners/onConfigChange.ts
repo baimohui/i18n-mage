@@ -10,9 +10,7 @@ export function registerOnConfigChange() {
   const disposable = vscode.workspace.onDidChangeConfiguration(event => {
     if (!event.affectsConfiguration("i18n-mage")) return;
     if (event.affectsConfiguration("i18n-mage.general.syncBasedOnReferredEntries")) {
-      const publicCtx = mage.getPublicContext();
-      mage.setOptions({ syncBasedOnReferredEntries: getConfig<boolean>("general.syncBasedOnReferredEntries", false) });
-      vscode.commands.executeCommand("i18nMage.setReferredLang", publicCtx.referredLang);
+      vscode.commands.executeCommand("i18nMage.checkUsage");
     } else if (
       event.affectsConfiguration("i18n-mage.translationHints.light") ||
       event.affectsConfiguration("i18n-mage.translationHints.dark") ||

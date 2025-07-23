@@ -46,7 +46,8 @@ export class FixHandler {
       }
       const res = await this.fillMissingTranslations();
       if (ExecutionContext.token.isCancellationRequested) {
-        return { success: false, message: t("common.progress.cancelledByUser"), code: EXECUTION_RESULT_CODE.Cancelled };
+        this.restoreLackInfo();
+        return { success: false, message: "", code: EXECUTION_RESULT_CODE.Cancelled };
       }
       return res;
     } catch (e: unknown) {
@@ -66,8 +67,9 @@ export class FixHandler {
     const needTranslateList: TEntry[] = [];
     const patchedEntryIdList: (TEntry & { fixedRaw: string })[] = [];
     const undefinedEntryIdSet = new Set<string>();
-    this.ctx.undefinedEntryList.forEach(entry => {
+    for (const entry of this.ctx.undefinedEntryList) {
       const nameInfo = entry.nameInfo;
+      if (this.ctx.i18nFramework === I18N_FRAMEWORK.none && nameInfo.vars.length > 0) continue;
       if (this.ctx.matchExistingKey && valueKeyMap[nameInfo.id] && !entry.nameInfo.boundName) {
         this.needFix = true;
         const entryName = unescapeString(valueKeyMap[nameInfo.id]);
@@ -82,7 +84,7 @@ export class FixHandler {
         undefinedEntryIdSet.add(nameInfo.id);
         needTranslateList.push(entry);
       }
-    });
+    }
     let enNameList: string[] = needTranslateList.map(entry => entry.nameInfo.text);
     const enLang = this.detectedLangList.find(item => getLangCode(item) === "en")!;
     if (enNameList.length > 0) {
@@ -190,7 +192,8 @@ export class FixHandler {
     }
     for (const lang in this.ctx.lackInfo) {
       if (ExecutionContext.token.isCancellationRequested) {
-        return { success: false, message: t("common.progress.cancelledByUser"), code: EXECUTION_RESULT_CODE.Cancelled };
+        this.restoreLackInfo();
+        return { success: false, message: "", code: EXECUTION_RESULT_CODE.Cancelled };
       }
       const referredLangMap = this.ctx.langCountryMap[this.ctx.referredLang];
       const lackEntries = this.ctx.lackInfo[lang].filter(key => referredLangMap[key]);
@@ -221,6 +224,15 @@ export class FixHandler {
       code = EXECUTION_RESULT_CODE.TranslatorFailed;
     }
     return { success: true, message, code };
+  }
+
+  private restoreLackInfo(): void {
+    for (const lang in this.lackInfoFromUndefined) {
+      if (Object.hasOwn(this.ctx.lackInfo, lang)) {
+        const undefinedEntries = this.lackInfoFromUndefined[lang];
+        this.ctx.lackInfo[lang] = this.ctx.lackInfo[lang].filter(item => !undefinedEntries.includes(item));
+      }
+    }
   }
 
   private getFixedRaw(entry: TEntry, name: string): string {
