@@ -244,8 +244,7 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
           collapsibleState: vscode.TreeItemCollapsibleState[this.definedEntriesInCurrentFile.length === 0 ? "None" : "Collapsed"],
           data: this.definedEntriesInCurrentFile.map(item => ({
             name: item.nameInfo.text,
-            value: this.countryMap[this.publicCtx.referredLang][getValueByAmbiguousEntryName(this.tree, item.nameInfo.text) as string] ?? ""
-            // value: this.dictionary[getValueByAmbiguousEntryName(this.tree, item.text) as string]?.[this.#mage.referredLang] ?? ""
+            value: this.countryMap[this.publicCtx.displayLang][getValueByAmbiguousEntryName(this.tree, item.nameInfo.text) as string] ?? ""
           })),
           contextValue: definedContextValueList.join(","),
           level: 1,
@@ -270,7 +269,7 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
         return {
           name: entry.nameInfo.text,
           label: internalToDisplayName(entry.nameInfo.text),
-          description: entryInfo[this.publicCtx.referredLang],
+          description: entryInfo[this.publicCtx.displayLang],
           collapsibleState: vscode.TreeItemCollapsibleState[element.type === "defined" ? "Collapsed" : "None"],
           level: 2,
           contextValue: contextValueList.join(","),
@@ -400,7 +399,7 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
             key,
             name,
             label: internalToDisplayName(name),
-            description: `<${usedNum || "?"}>${entryInfo[this.publicCtx.referredLang]}`,
+            description: `<${usedNum || "?"}>${entryInfo[this.publicCtx.displayLang]}`,
             level: 2,
             contextValue: usedNum === 0 ? "usedGroupItem-None" : "usedGroupItem",
             type: element.type,
@@ -415,7 +414,7 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
           const entryInfo = this.dictionary[key];
           return {
             label: internalToDisplayName(name),
-            description: entryInfo[this.publicCtx.referredLang],
+            description: entryInfo[this.publicCtx.displayLang],
             level: 2,
             root: element.root,
             data: [key],
@@ -472,7 +471,7 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
           const stack = (element.stack || []).concat(item[0]);
           return {
             label: internalToDisplayName(item[0]),
-            description: typeof item[1] === "string" ? this.dictionary[item[1]][this.publicCtx.referredLang] : false,
+            description: typeof item[1] === "string" ? this.dictionary[item[1]][this.publicCtx.displayLang] : false,
             root: element.root,
             id: this.genId(element, item[0]),
             stack,

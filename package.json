@@ -628,6 +628,22 @@
       {
         "command": "i18nMage.setLangPath",
         "title": "%command.setLangPath.title%"
+      },
+      {
+        "command": "i18nMage.toggleInlineTranslation",
+        "title": "%command.toggleInlineTranslation.title%"
+      }
+    ],
+    "keybindings": [
+      {
+        "command": "i18nMage.toggleInlineTranslation",
+        "key": "ctrl+alt+d",
+        "when": "editorTextFocus"
+      },
+      {
+        "command": "i18nMage.fix",
+        "key": "ctrl+alt+f",
+        "when": "editorTextFocus"
       }
     ],
     "menus": {

@@ -53,7 +53,12 @@ export class DecoratorController implements vscode.Disposable {
   public update(editor: vscode.TextEditor | undefined): void {
     this.entries = [];
     this.currentDecorations.clear();
-    if (this.disposed || !editor || !getConfig<boolean>("translationHints.enable", true)) return;
+    if (this.disposed || !editor) return;
+    if (!getConfig<boolean>("translationHints.enable", true)) {
+      editor.setDecorations(this.translationDecoration, []);
+      editor.setDecorations(this.hiddenKeyDecoration, []);
+      return;
+    }
     if (isValidI18nCallablePath(editor.document.uri.fsPath)) {
       const mage = LangMage.getInstance();
       const publicCtx = mage.getPublicContext();

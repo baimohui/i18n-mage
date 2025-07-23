@@ -1,10 +1,10 @@
 import { registerCheckUsageCommand } from "./check/checkUsageCommand";
-import { registerMarkAsKnownLangCommand } from "./check/markAsKnownLangCommand";
-import { registerSetReferredLangCommand } from "./check/setReferredLangCommand";
-import { registerMarkAsUsedCommand } from "./check/markAsUsedCommand";
-import { registerSelectLangPathCommand } from "./check/selectLangPathCommand";
-import { registerSetLangPathCommand } from "./check/setLangPathCommand";
-import { registerSetProjectPathCommand } from "./check/setProjectPathCommand";
+import { registerMarkAsKnownLangCommand } from "./mark/markAsKnownLangCommand";
+import { registerSetReferredLangCommand } from "./config/setReferredLangCommand";
+import { registerMarkAsUsedCommand } from "./mark/markAsUsedCommand";
+import { registerSelectLangPathCommand } from "./config/selectLangPathCommand";
+import { registerSetLangPathCommand } from "./config/setLangPathCommand";
+import { registerSetProjectPathCommand } from "./config/setProjectPathCommand";
 import { registerCopyKeyValueCommand } from "./copy/copyKeyValueCommand";
 import { registerCopyNameCommand } from "./copy/copyNameCommand";
 import { registerCopyValueCommand } from "./copy/copyValueCommand";
@@ -16,12 +16,13 @@ import { registerExportCommand } from "./importExport/exportCommand";
 import { registerImportCommand } from "./importExport/importCommand";
 import { registerGoToDefinitionCommand } from "./tree/goToDefinitionCommand";
 import { registerGoToReferenceCommand } from "./tree/goToReferenceCommand";
-import { registerIgnoreFileCommand } from "./check/ignoreFileCommand";
-import { registerSetDisplayLangCommand } from "./check/setDisplayLangCommand";
-import { registerIgnoreDirectoryCommand } from "./check/ignoreDirectoryCommand";
-import { registerIgnoreLangCommand } from "./check/ignoreLangCommand";
-import { registerUnignoreLangCommand } from "./check/unignoreLangCommand";
-import { registerUnmarkAsUsedCommand } from "./check/unmarkAsUsedCommand";
+import { registerIgnoreFileCommand } from "./ignore/ignoreFileCommand";
+import { registerSetDisplayLangCommand } from "./config/setDisplayLangCommand";
+import { registerIgnoreDirectoryCommand } from "./ignore/ignoreDirectoryCommand";
+import { registerIgnoreLangCommand } from "./ignore/ignoreLangCommand";
+import { registerUnignoreLangCommand } from "./ignore/unignoreLangCommand";
+import { registerUnmarkAsUsedCommand } from "./mark/unmarkAsUsedCommand";
+import { registerToggleInlineTranslationCommand } from "./config/toggleInlineTranslationCommand";
 
 export function registerAllCommands() {
   registerCheckUsageCommand();
@@ -48,4 +49,5 @@ export function registerAllCommands() {
   registerIgnoreLangCommand();
   registerUnignoreLangCommand();
   registerUnmarkAsUsedCommand();
+  registerToggleInlineTranslationCommand();
 }
