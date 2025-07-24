@@ -104,7 +104,8 @@ export function getEntryNameInfoByForm(nameForm: { type: TEntryPartType; value: 
   // const tempList: string[] = [];
   let varPrefix = "{";
   let varSuffix = "}";
-  const { interpolationBrackets, framework, defaultNamespace, namespaceSeparator } = getCacheConfig();
+  const { interpolationBrackets, framework, defaultNamespace, namespaceSeparator, enableKeyTagRule, enablePrefixTagRule } =
+    getCacheConfig();
   const useDoubleBrackets =
     interpolationBrackets === "double" ||
     (interpolationBrackets === "auto" && framework !== I18N_FRAMEWORK.none && !I18N_FRAMEWORK_DEFAULT_CONFIG[framework].singleBrackets);
@@ -153,12 +154,12 @@ export function getEntryNameInfoByForm(nameForm: { type: TEntryPartType; value: 
   let entryClass = "";
   let entryName = "";
   const nameRes = entryText.match(/%(\S*?)%([^]*)/);
-  if (nameRes) {
+  if (enableKeyTagRule && nameRes) {
     entryName = nameRes[1];
     entryText = nameRes[2];
   }
   const classRes = entryText.match(/#(\S*?)#([^]*)/);
-  if (classRes) {
+  if (enablePrefixTagRule && classRes) {
     entryClass = classRes[1];
     entryText = classRes[2];
   }

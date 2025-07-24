@@ -9,7 +9,10 @@ export function registerOnConfigChange() {
   const decorator = DecoratorController.getInstance();
   const disposable = vscode.workspace.onDidChangeConfiguration(event => {
     if (!event.affectsConfiguration("i18n-mage")) return;
-    if (event.affectsConfiguration("i18n-mage.general.syncBasedOnReferredEntries")) {
+    if (
+      event.affectsConfiguration("i18n-mage.general.syncBasedOnReferredEntries") ||
+      event.affectsConfiguration("i18n-mage.general.checkUsageWithStringLiterals")
+    ) {
       vscode.commands.executeCommand("i18nMage.checkUsage");
     } else if (
       event.affectsConfiguration("i18n-mage.translationHints.light") ||
@@ -21,7 +24,12 @@ export function registerOnConfigChange() {
     } else if (event.affectsConfiguration("i18n-mage.writeRules.sortOnWrite")) {
       const sortMode = getConfig<string>("writeRules.sortOnWrite");
       vscode.commands.executeCommand("setContext", "allowSort", mage.langDetail.isFlat && sortMode !== "none");
-    } else if (event.affectsConfiguration("i18n-mage.workspace") || event.affectsConfiguration("i18n-mage.i18nFeatures")) {
+    } else if (
+      event.affectsConfiguration("i18n-mage.workspace") ||
+      event.affectsConfiguration("i18n-mage.i18nFeatures") ||
+      event.affectsConfiguration("i18n-mage.writeRules.enableKeyTagRule") ||
+      event.affectsConfiguration("i18n-mage.writeRules.enablePrefixTagRule")
+    ) {
       clearConfigCache();
     }
   });

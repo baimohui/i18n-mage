@@ -13,6 +13,8 @@ let cachedConfig: {
   tFuncNames: string[];
   interpolationBrackets: "single" | "double" | "auto";
   namespaceSeparator: "." | "auto" | ":";
+  enableKeyTagRule: boolean;
+  enablePrefixTagRule: boolean;
 } | null = null;
 
 export function getConfig<T = any>(key: string, defaultValue?: T, scope?: vscode.ConfigurationScope): T {
@@ -41,6 +43,8 @@ export function getCacheConfig() {
     cachedConfig = {
       ignoredFiles: getConfig<string[]>("workspace.ignoredFiles", []),
       ignoredDirectories: getConfig<string[]>("workspace.ignoredDirectories", []),
+      enableKeyTagRule: getConfig<boolean>("writeRules.enableKeyTagRule", false),
+      enablePrefixTagRule: getConfig<boolean>("writeRules.enablePrefixTagRule", false),
       framework: getConfig<I18nFramework>("i18nFeatures.framework"),
       defaultNamespace: getConfig<string>("i18nFeatures.defaultNamespace"),
       tFuncNames: getConfig<string[]>("i18nFeatures.translationFunctionNames", []),

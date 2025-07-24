@@ -54,8 +54,11 @@ export class ReadHandler {
     for (const filePath of filePaths) {
       const fileContent = fs.readFileSync(filePath, "utf8");
       const tItems = catchTEntries(fileContent);
-      const existedItems = catchPossibleEntries(fileContent, this.ctx.entryTree);
-      const usedEntryList = existedItems.slice();
+      let usedEntryList: { name: string; pos: string }[] = [];
+      if (this.ctx.checkUsageWithStringLiterals) {
+        const existedItems = catchPossibleEntries(fileContent, this.ctx.entryTree);
+        usedEntryList = existedItems.slice();
+      }
       for (const item of tItems) {
         const nameInfo = item.nameInfo;
         let usedEntryNameList: string[] = [];

@@ -51,6 +51,7 @@ class LangMage {
         languageFileIndent: getConfig<number>("writeRules.languageFileIndent", this.ctx.languageFileIndent),
         quoteStyleForKey: getConfig<"auto" | QuoteStyle>("writeRules.quoteStyleForKey", this.ctx.quoteStyleForKey),
         quoteStyleForValue: getConfig<"auto" | QuoteStyle>("writeRules.quoteStyleForValue", this.ctx.quoteStyleForValue),
+        checkUsageWithStringLiterals: getConfig<boolean>("general.checkUsageWithStringLiterals", this.ctx.checkUsageWithStringLiterals),
         validateLanguageBeforeTranslate: getConfig<boolean>(
           "translationServices.validateLanguageBeforeTranslate",
           this.ctx.validateLanguageBeforeTranslate
@@ -166,6 +167,7 @@ class LangMage {
       languageFileIndent: this.ctx.languageFileIndent,
       quoteStyleForKey: this.ctx.quoteStyleForKey,
       quoteStyleForValue: this.ctx.quoteStyleForValue,
+      checkUsageWithStringLiterals: this.ctx.checkUsageWithStringLiterals,
       validateLanguageBeforeTranslate: this.ctx.validateLanguageBeforeTranslate
     };
   }

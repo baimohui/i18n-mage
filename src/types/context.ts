@@ -47,6 +47,7 @@ export interface LangContextPublic {
   languageFileIndent: number;
   quoteStyleForKey: "auto" | QuoteStyle;
   quoteStyleForValue: "auto" | QuoteStyle;
+  checkUsageWithStringLiterals: boolean;
 }
 
 // 内部模块才能访问的完整上下文
