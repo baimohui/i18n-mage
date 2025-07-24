@@ -346,7 +346,7 @@ document.querySelectorAll(".id-patches .item input[type=checkbox]").forEach(chk 
   }
 })
 
-applyBtn.onclick = () => {
+function applyChanges() {
   if (applyBtn.disabled) return;
   const valueUpdates = {}, idPatches = {};
   document.querySelectorAll('[data-locale]').forEach(sec => {
@@ -368,7 +368,19 @@ applyBtn.onclick = () => {
     }
   });
   vscode.postMessage({ type: 'apply', data: { valueUpdates, idPatches } });
+}
+
+applyBtn.onclick = () => {
+  applyChanges();
 };
+
+window.addEventListener('keydown', (event) => {
+  const target = event.target;
+  if (event.key === 'Enter' && target.tagName !== 'TEXTAREA') {
+    event.preventDefault();
+    applyChanges();
+  }
+});
 
 document.getElementById('btn-cancel').onclick = () => {
   vscode.postMessage({ type: 'cancel' });

@@ -36,6 +36,7 @@
   "command.markAsUsed.success": "已标记为使用中：{0}",
   "command.modify.error": "修改词条失败，未检测有效的词条名",
   "command.modify.title": "修改词条",
+  "command.rewrite.success": "写入成功",
   "command.rewrite.title": "写入词条",
   "command.selectLangPath.error": "无效的翻译文件目录",
   "command.selectLangPath.success": "已选择翻译文件目录：{0}",
@@ -97,6 +98,7 @@
   "tree.syncInfo.baseline": "基准语言",
   "tree.syncInfo.display": "显示语言",
   "tree.syncInfo.extra": "多余",
+  "tree.syncInfo.ignored": "被排除语言",
   "tree.syncInfo.lack": "缺少",
   "tree.syncInfo.normal": "正常",
   "tree.syncInfo.null": "空值",
@@ -109,6 +111,5 @@
   "tree.usedInfo.total": "总计",
   "tree.usedInfo.undefined": "未定义",
   "tree.usedInfo.unused": "未使用",
-  "tree.usedInfo.used": "已使用",
-  "tree.syncInfo.ignored": "被排除语言"
+  "tree.usedInfo.used": "已使用"
 }

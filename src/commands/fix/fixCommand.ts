@@ -12,12 +12,11 @@ import { ExecutionResult } from "@/types";
 export function registerFixCommand() {
   const mage = LangMage.getInstance();
   const rewrite = async () => {
-    mage.setOptions({ task: "rewrite", globalFlag: true, clearCache: false });
-    const res = await mage.execute();
-    mage.setOptions({ task: "check", globalFlag: true, clearCache: true });
-    await mage.execute();
+    const res = await mage.execute({ task: "rewrite", globalFlag: true, clearCache: false });
+    await mage.execute({ task: "check", globalFlag: true, clearCache: true });
+    treeInstance.isSyncing = false;
     treeInstance.refresh();
-    return res;
+    NotificationManager.showResult(res, t("command.rewrite.success"));
   };
   const disposable = vscode.commands.registerCommand("i18nMage.fix", async () => {
     let res: ExecutionResult | null = null;
@@ -25,29 +24,27 @@ export function registerFixCommand() {
       treeInstance.isSyncing = true;
       treeInstance.refresh();
       const rewriteFlag = !getConfig<boolean>("general.previewChanges", true);
-      mage.setOptions({ task: "fix", globalFlag: true, rewriteFlag });
-      res = await mage.execute();
+      res = await mage.execute({ task: "fix", globalFlag: true, rewriteFlag });
       const publicCtx = mage.getPublicContext();
       const { updatedValues, patchedIds, countryMap } = mage.langDetail;
       if (res.success && [updatedValues, patchedIds].some(o => Object.keys(o).length > 0)) {
         if (rewriteFlag) {
-          treeInstance.isSyncing = false;
-          res = await rewrite();
-          return;
+          await rewrite();
         } else {
           if ([updatedValues, patchedIds].some(item => Object.keys(item).length > 0)) {
-            previewFixContent(updatedValues, patchedIds, countryMap, publicCtx.referredLang, async () => {
-              res = await rewrite();
-            });
+            treeInstance.isSyncing = false;
+            treeInstance.refresh();
+            previewFixContent(updatedValues, patchedIds, countryMap, publicCtx.referredLang, rewrite);
           }
         }
+      } else {
+        setTimeout(() => {
+          treeInstance.isSyncing = false;
+          treeInstance.refresh();
+          if (res !== null) NotificationManager.showResult(res);
+        }, 1000);
       }
-      treeInstance.isSyncing = false;
-      treeInstance.refresh();
     });
-    setTimeout(() => {
-      if (res !== null) NotificationManager.showResult(res);
-    }, 1000);
   });
 
   registerDisposable(disposable);

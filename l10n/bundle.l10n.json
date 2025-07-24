@@ -36,6 +36,7 @@
   "command.markAsUsed.success": "Marked as used: {0}",
   "command.modify.error": "Failed to modify the entry, and no valid entry name was detected",
   "command.modify.title": "Modify the entry",
+  "command.rewrite.success": "Write successful",
   "command.rewrite.title": "Write entries",
   "command.selectLangPath.error": "Invalid translation file directory",
   "command.selectLangPath.success": "Selected translation file directory: {0}",
@@ -97,6 +98,7 @@
   "tree.syncInfo.baseline": "Reference Language",
   "tree.syncInfo.display": "Display Language",
   "tree.syncInfo.extra": "Extra",
+  "tree.syncInfo.ignored": "Excluded Language",
   "tree.syncInfo.lack": "Missing",
   "tree.syncInfo.normal": "Normal",
   "tree.syncInfo.null": "Empty",
@@ -109,6 +111,5 @@
   "tree.usedInfo.total": "Total",
   "tree.usedInfo.undefined": "Undefined",
   "tree.usedInfo.unused": "Unused",
-  "tree.usedInfo.used": "Used",
-  "tree.syncInfo.ignored": "Excluded Language"
+  "tree.usedInfo.used": "Used"
 }
