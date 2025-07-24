@@ -39,7 +39,7 @@ class LangMage {
         i18nFramework: getConfig<I18nFramework>("i18nFeatures.framework", this.ctx.i18nFramework),
         ignoredLangs: getConfig<string[]>("workspace.ignoredLanguages", this.ctx.ignoredLangs),
         manuallyMarkedUsedEntries: getConfig<string[]>("workspace.manuallyMarkedUsedEntries", this.ctx.manuallyMarkedUsedEntries),
-        syncBasedOnReferredEntries: getConfig<boolean>("general.syncBasedOnReferredEntries", this.ctx.syncBasedOnReferredEntries),
+        syncBasedOnReferredEntries: getConfig<boolean>("analysis.syncBasedOnReferredEntries", this.ctx.syncBasedOnReferredEntries),
         sortingWriteMode: getConfig<SortMode>("writeRules.sortOnWrite", this.ctx.sortingWriteMode),
         sortingExportMode: getConfig<SortMode>("general.sortOnExport", this.ctx.sortingExportMode),
         matchExistingKey: getConfig<boolean>("translationServices.matchExistingKey", this.ctx.matchExistingKey),
@@ -51,7 +51,7 @@ class LangMage {
         languageFileIndent: getConfig<number>("writeRules.languageFileIndent", this.ctx.languageFileIndent),
         quoteStyleForKey: getConfig<"auto" | QuoteStyle>("writeRules.quoteStyleForKey", this.ctx.quoteStyleForKey),
         quoteStyleForValue: getConfig<"auto" | QuoteStyle>("writeRules.quoteStyleForValue", this.ctx.quoteStyleForValue),
-        checkUsageWithStringLiterals: getConfig<boolean>("general.checkUsageWithStringLiterals", this.ctx.checkUsageWithStringLiterals),
+        scanStringLiterals: getConfig<boolean>("analysis.scanStringLiterals", this.ctx.scanStringLiterals),
         validateLanguageBeforeTranslate: getConfig<boolean>(
           "translationServices.validateLanguageBeforeTranslate",
           this.ctx.validateLanguageBeforeTranslate
@@ -167,7 +167,7 @@ class LangMage {
       languageFileIndent: this.ctx.languageFileIndent,
       quoteStyleForKey: this.ctx.quoteStyleForKey,
       quoteStyleForValue: this.ctx.quoteStyleForValue,
-      checkUsageWithStringLiterals: this.ctx.checkUsageWithStringLiterals,
+      scanStringLiterals: this.ctx.scanStringLiterals,
       validateLanguageBeforeTranslate: this.ctx.validateLanguageBeforeTranslate
     };
   }

@@ -37,17 +37,17 @@
             "default": true,
             "description": "%config.enable.desc%"
           },
-          "i18n-mage.general.displayLanguage": {
-            "order": 6,
-            "type": "string",
-            "default": "",
-            "description": "%config.displayLanguage.desc%"
-          },
           "i18n-mage.general.previewChanges": {
-            "order": 10,
+            "order": 6,
             "type": "boolean",
             "default": true,
             "description": "%config.previewChanges.desc%"
+          },
+          "i18n-mage.general.displayLanguage": {
+            "order": 8,
+            "type": "string",
+            "default": "",
+            "description": "%config.displayLanguage.desc%"
           },
           "i18n-mage.general.sortOnExport": {
             "order": 16,
@@ -64,18 +64,6 @@
               "%config.sortBy.byPosition%"
             ],
             "description": "%config.sorting.exportMode%"
-          },
-          "i18n-mage.general.syncBasedOnReferredEntries": {
-            "order": 18,
-            "type": "boolean",
-            "default": false,
-            "description": "%config.syncBasedOnReferredEntries.desc%"
-          },
-          "i18n-mage.general.checkUsageWithStringLiterals": {
-            "order": 20,
-            "type": "boolean",
-            "default": true,
-            "description": "%config.checkUsageWithStringLiterals.desc%"
           }
         }
       },
@@ -240,61 +228,25 @@
       },
       {
         "type": "object",
-        "title": "%config.translationHints.title%",
+        "title": "%config.analysis.title%",
         "properties": {
-          "i18n-mage.translationHints.enable": {
-            "order": 0,
+          "i18n-mage.analysis.onSave": {
+            "order": 4,
             "type": "boolean",
             "default": true,
-            "description": "%config.translateHintsEnabled.desc%"
+            "description": "%config.checkOnSave.desc%"
           },
-          "i18n-mage.translationHints.enableLooseKeyMatch": {
-            "order": 3,
+          "i18n-mage.analysis.scanStringLiterals": {
+            "order": 6,
             "type": "boolean",
             "default": true,
-            "description": "%config.translateHintsEnableLooseKeyMatch.desc%"
+            "description": "%config.scanStringLiterals.desc%"
           },
-          "i18n-mage.translationHints.maxLength": {
-            "order": 5,
-            "type": "integer",
-            "default": 40,
-            "description": "%config.translateHintsMaxLength.desc%"
-          },
-          "i18n-mage.translationHints.light.fontColor": {
-            "order": 9,
-            "type": "string",
-            "default": "#569CD6",
-            "description": "%config.translateHintsFontColorInLight.desc%"
-          },
-          "i18n-mage.translationHints.light.backgroundColor": {
-            "order": 10,
-            "type": "string",
-            "default": "#569CD6",
-            "description": "%config.translateHintsBackgroundColorInLight.desc%"
-          },
-          "i18n-mage.translationHints.light.backgroundAlpha": {
-            "order": 11,
-            "type": "number",
-            "default": 0.1,
-            "description": "%config.translateHintsBackgroundAlphaInLight.desc%"
-          },
-          "i18n-mage.translationHints.dark.fontColor": {
-            "order": 15,
-            "type": "string",
-            "default": "#4EC9B0",
-            "description": "%config.translateHintsFontColorInDark.desc%"
-          },
-          "i18n-mage.translationHints.dark.backgroundColor": {
-            "order": 16,
-            "type": "string",
-            "default": "#4EC9B0",
-            "description": "%config.translateHintsBackgroundColorInDark.desc%"
-          },
-          "i18n-mage.translationHints.dark.backgroundAlpha": {
-            "order": 17,
-            "type": "number",
-            "default": 0.1,
-            "description": "%config.translateHintsBackgroundAlphaInDark.desc%"
+          "i18n-mage.analysis.syncBasedOnReferredEntries": {
+            "order": 8,
+            "type": "boolean",
+            "default": false,
+            "description": "%config.syncBasedOnReferredEntries.desc%"
           }
         }
       },
@@ -426,6 +378,66 @@
             "type": "boolean",
             "default": false,
             "description": "%config.enablePrefixTagRule.desc%"
+          }
+        }
+      },
+      {
+        "type": "object",
+        "title": "%config.translationHints.title%",
+        "properties": {
+          "i18n-mage.translationHints.enable": {
+            "order": 0,
+            "type": "boolean",
+            "default": true,
+            "description": "%config.translateHintsEnabled.desc%"
+          },
+          "i18n-mage.translationHints.enableLooseKeyMatch": {
+            "order": 3,
+            "type": "boolean",
+            "default": true,
+            "description": "%config.translateHintsEnableLooseKeyMatch.desc%"
+          },
+          "i18n-mage.translationHints.maxLength": {
+            "order": 5,
+            "type": "integer",
+            "default": 40,
+            "description": "%config.translateHintsMaxLength.desc%"
+          },
+          "i18n-mage.translationHints.light.fontColor": {
+            "order": 9,
+            "type": "string",
+            "default": "#569CD6",
+            "description": "%config.translateHintsFontColorInLight.desc%"
+          },
+          "i18n-mage.translationHints.light.backgroundColor": {
+            "order": 10,
+            "type": "string",
+            "default": "#569CD6",
+            "description": "%config.translateHintsBackgroundColorInLight.desc%"
+          },
+          "i18n-mage.translationHints.light.backgroundAlpha": {
+            "order": 11,
+            "type": "number",
+            "default": 0.1,
+            "description": "%config.translateHintsBackgroundAlphaInLight.desc%"
+          },
+          "i18n-mage.translationHints.dark.fontColor": {
+            "order": 15,
+            "type": "string",
+            "default": "#4EC9B0",
+            "description": "%config.translateHintsFontColorInDark.desc%"
+          },
+          "i18n-mage.translationHints.dark.backgroundColor": {
+            "order": 16,
+            "type": "string",
+            "default": "#4EC9B0",
+            "description": "%config.translateHintsBackgroundColorInDark.desc%"
+          },
+          "i18n-mage.translationHints.dark.backgroundAlpha": {
+            "order": 17,
+            "type": "number",
+            "default": 0.1,
+            "description": "%config.translateHintsBackgroundAlphaInDark.desc%"
           }
         }
       },

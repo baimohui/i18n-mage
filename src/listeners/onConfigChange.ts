@@ -10,8 +10,8 @@ export function registerOnConfigChange() {
   const disposable = vscode.workspace.onDidChangeConfiguration(event => {
     if (!event.affectsConfiguration("i18n-mage")) return;
     if (
-      event.affectsConfiguration("i18n-mage.general.syncBasedOnReferredEntries") ||
-      event.affectsConfiguration("i18n-mage.general.checkUsageWithStringLiterals")
+      event.affectsConfiguration("i18n-mage.analysis.syncBasedOnReferredEntries") ||
+      event.affectsConfiguration("i18n-mage.analysis.scanStringLiterals")
     ) {
       vscode.commands.executeCommand("i18nMage.checkUsage");
     } else if (
@@ -27,6 +27,7 @@ export function registerOnConfigChange() {
     } else if (
       event.affectsConfiguration("i18n-mage.workspace") ||
       event.affectsConfiguration("i18n-mage.i18nFeatures") ||
+      event.affectsConfiguration("i18n-mage.analysis.onSave") ||
       event.affectsConfiguration("i18n-mage.writeRules.enableKeyTagRule") ||
       event.affectsConfiguration("i18n-mage.writeRules.enablePrefixTagRule")
     ) {

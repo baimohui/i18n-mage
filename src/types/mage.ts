@@ -32,7 +32,7 @@ export interface LangMageOptions {
   languageFileIndent?: number;
   quoteStyleForKey?: "auto" | QuoteStyle;
   quoteStyleForValue?: "auto" | QuoteStyle;
-  checkUsageWithStringLiterals?: boolean;
+  scanStringLiterals?: boolean;
 }
 
 export const EXECUTION_RESULT_CODE = {
