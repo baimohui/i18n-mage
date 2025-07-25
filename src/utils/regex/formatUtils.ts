@@ -1,7 +1,7 @@
 import fs from "fs";
 import * as vscode from "vscode";
 import { getLangCode } from "@/utils/langKey";
-import { EntryTree, EntryMap, FileExtraInfo } from "@/types";
+import { EntryTree, FileExtraInfo } from "@/types";
 import { unescapeString } from "./stringUtils";
 
 /**
@@ -113,7 +113,7 @@ export function validateLang(str: string, lang: string): boolean {
   return res;
 }
 
-export function formatObjectToString(tree: EntryTree, lookup: EntryMap, filePath: string, extraInfo: FileExtraInfo): string {
+export function formatObjectToString(tree: EntryTree, filePath: string, extraInfo: FileExtraInfo): string {
   const {
     prefix = "",
     suffix = "",
@@ -143,10 +143,10 @@ export function formatObjectToString(tree: EntryTree, lookup: EntryMap, filePath
       } else if (needsQuotes(key)) {
         keyStr = valueQuotes === "double" ? `"${keyStr}"` : `'${keyStr}'`;
       }
-      if (typeof value === "string" && value in lookup) {
-        result.push(`${currentIndent}${keyStr}: ${formatForFile(lookup[value], fileType === "json" || valueQuotes === "double")}`);
+      if (typeof value === "string") {
+        result.push(`${currentIndent}${keyStr}: ${formatForFile(value, fileType === "json" || valueQuotes === "double")}`);
       } else if (Object.prototype.toString.call(value) === "[object Object]") {
-        const nestedValue = formatObject(value as EntryTree, level + 1);
+        const nestedValue = formatObject(value, level + 1);
         if (nestedValue) {
           result.push(`${currentIndent}${keyStr}: {${lineEnding}${nestedValue}${lineEnding}${currentIndent}}`);
         }

@@ -6,8 +6,7 @@ import {
   getContentAtLocation,
   setValueByEscapedEntryName,
   formatObjectToString,
-  getPathSegsFromId,
-  unescapeString
+  getPathSegsFromId
 } from "@/utils/regex";
 import { t } from "@/utils/i18n";
 import { SortHandler } from "./SortHandler";
@@ -63,20 +62,27 @@ export class RewriteHandler {
 
   private async rewriteTranslationFile(lang: string, filePos: string): Promise<void> {
     const filePath = this.getLangFilePath(lang, filePos);
-    const entryTree = getContentAtLocation(filePos, this.ctx.entryTree);
-    const sortedKeys = new SortHandler(this.ctx).getSortedKeys(this.ctx.sortingWriteMode);
-    if (entryTree !== null) {
-      let needSort = false;
-      const tree: EntryTree = {};
-      if (this.ctx.isFlat && sortedKeys.length > 0) {
-        needSort = true;
-        sortedKeys.forEach(key => {
-          const name = unescapeString(key);
-          if (Object.hasOwn(entryTree, name)) {
-            tree[name] = entryTree[name];
-          }
-        });
+    let langObj: EntryTree | null = null;
+    const translation = this.ctx.langCountryMap[lang];
+    const iterate = (obj: EntryTree) => {
+      for (const key in obj) {
+        if (typeof obj[key] === "string") {
+          obj[key] = translation[obj[key]] || "";
+        } else if (typeof obj[key] === "object") {
+          iterate(obj[key]);
+        }
       }
+    };
+    if (filePos) {
+      const entryTree = getContentAtLocation(filePos, this.ctx.entryTree);
+      if (entryTree) {
+        iterate(entryTree);
+        langObj = entryTree;
+      }
+    } else {
+      langObj = new SortHandler(this.ctx).getSortedTree(this.ctx.sortingWriteMode, lang);
+    }
+    if (langObj !== null) {
       const extraInfo = this.ctx.langFileExtraInfo[filePos ? `${lang}.${filePos}` : lang];
       if (this.ctx.quoteStyleForKey !== "auto") {
         extraInfo.keyQuotes = this.ctx.quoteStyleForKey;
@@ -87,7 +93,7 @@ export class RewriteHandler {
       if (this.ctx.languageFileIndent !== null) {
         extraInfo.indentSize = this.ctx.languageFileIndent;
       }
-      const fileContent = formatObjectToString(needSort ? tree : entryTree, this.ctx.langCountryMap[lang], filePath, extraInfo);
+      const fileContent = formatObjectToString(langObj, filePath, extraInfo);
       await fs.promises.writeFile(filePath, fileContent);
     }
   }

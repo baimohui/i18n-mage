@@ -24,7 +24,7 @@ export class ExportHandler {
         };
       }
       const tableData = [["Key", ...this.detectedLangList.map(item => getLangText(item, "en") || item)]];
-      const sortedKeys = new SortHandler(this.ctx).getSortedKeys(this.ctx.sortingExportMode);
+      const sortedKeys = new SortHandler(this.ctx).getSortedKeys(this.ctx.sortingExportMode, this.ctx.referredLang);
       const keys = sortedKeys.length > 0 ? sortedKeys : Object.keys(this.ctx.langDictionary);
       keys.forEach(key => {
         const itemList = [key];
