@@ -47,6 +47,7 @@ export interface TEntry {
   nameInfo: {
     text: string;
     regex: RegExp;
+    name: string;
     id: string;
     boundClass: string;
     boundName: string;

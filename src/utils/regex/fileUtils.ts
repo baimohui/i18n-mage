@@ -130,12 +130,12 @@ export function flattenNestedObj(obj: EntryTree, className = ""): { data: EntryM
     const value = obj[key];
     const escapedKey = escapeString(key);
     const keyName = className ? `${className}.${escapedKey}` : escapedKey;
-    if (value != null && typeof value === "object" && !Array.isArray(value)) {
+    if (value != null && typeof value === "object") {
       const child = flattenNestedObj(value, keyName);
       Object.assign(result, child.data);
       isFlat = false;
     } else {
-      result[keyName] = value as string;
+      result[keyName] = value;
     }
   }
   return { data: result, isFlat };

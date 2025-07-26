@@ -243,8 +243,8 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
           description: String(this.definedEntriesInCurrentFile.length),
           collapsibleState: vscode.TreeItemCollapsibleState[this.definedEntriesInCurrentFile.length === 0 ? "None" : "Collapsed"],
           data: this.definedEntriesInCurrentFile.map(item => ({
-            name: item.nameInfo.text,
-            value: this.countryMap[this.publicCtx.displayLang][getValueByAmbiguousEntryName(this.tree, item.nameInfo.text) as string] ?? ""
+            name: item.nameInfo.name,
+            value: this.countryMap[this.publicCtx.displayLang][getValueByAmbiguousEntryName(this.tree, item.nameInfo.name) as string] ?? ""
           })),
           contextValue: definedContextValueList.join(","),
           level: 1,
@@ -264,16 +264,16 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
       ];
     } else if (element.level === 1) {
       return this[element.type === "defined" ? "definedEntriesInCurrentFile" : "undefinedEntriesInCurrentFile"].map(entry => {
-        const entryInfo = this.dictionary[getValueByAmbiguousEntryName(this.tree, entry.nameInfo.text) as string] ?? {};
+        const entryInfo = this.dictionary[getValueByAmbiguousEntryName(this.tree, entry.nameInfo.name) as string] ?? {};
         const contextValueList = [element.type === "defined" ? "definedEntryInCurFile" : "undefinedEntryInCurFile", "COPY_NAME"];
         return {
-          name: entry.nameInfo.text,
+          name: entry.nameInfo.name,
           label: internalToDisplayName(entry.nameInfo.text),
           description: entryInfo[this.publicCtx.displayLang],
           collapsibleState: vscode.TreeItemCollapsibleState[element.type === "defined" ? "Collapsed" : "None"],
           level: 2,
           contextValue: contextValueList.join(","),
-          usedInfo: this[element.type === "defined" ? "usedEntryMap" : "undefinedEntryMap"][entry.nameInfo.text],
+          usedInfo: this[element.type === "defined" ? "usedEntryMap" : "undefinedEntryMap"][entry.nameInfo.name],
           id: this.genId(element, entry.nameInfo.id || ""),
           root: element.root
         };
@@ -490,22 +490,22 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
       const text = editor.document.getText();
       this.usedEntries = catchTEntries(text);
       this.usedEntries.forEach(entry => {
-        const { text, regex } = entry.nameInfo;
-        if (Object.hasOwn(this.undefinedEntryMap, text)) {
-          if (!this.undefinedEntriesInCurrentFile.some(item => item.nameInfo.text === text)) {
+        const { regex, name } = entry.nameInfo;
+        if (Object.hasOwn(this.undefinedEntryMap, name)) {
+          if (!this.undefinedEntriesInCurrentFile.some(item => item.nameInfo.name === name)) {
             this.undefinedEntriesInCurrentFile.push(entry);
           }
           return;
         }
-        if (Object.hasOwn(this.usedEntryMap, text)) {
-          if (!this.definedEntriesInCurrentFile.some(item => item.nameInfo.text === text)) {
+        if (Object.hasOwn(this.usedEntryMap, name)) {
+          if (!this.definedEntriesInCurrentFile.some(item => item.nameInfo.name === name)) {
             this.definedEntriesInCurrentFile.push(entry);
           }
           return;
         }
         const matchList = Object.keys(this.usedEntryMap).filter(key => regex.test(key));
         matchList.forEach(matchItem => {
-          if (!this.definedEntriesInCurrentFile.some(item => item.nameInfo.text === matchItem)) {
+          if (!this.definedEntriesInCurrentFile.some(item => item.nameInfo.name === matchItem)) {
             const newEntry = { ...entry, nameInfo: { ...entry.nameInfo, text: matchItem, id: matchItem } };
             this.definedEntriesInCurrentFile.push(newEntry);
           }

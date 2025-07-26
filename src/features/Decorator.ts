@@ -1,13 +1,6 @@
 import * as vscode from "vscode";
 import LangMage from "@/core/LangMage";
-import {
-  getValueByAmbiguousEntryName,
-  catchTEntries,
-  getLineEnding,
-  unescapeString,
-  displayToInternalName,
-  isValidI18nCallablePath
-} from "@/utils/regex";
+import { getValueByAmbiguousEntryName, catchTEntries, getLineEnding, unescapeString, isValidI18nCallablePath } from "@/utils/regex";
 import { getConfig } from "@/utils/config";
 import { TEntry } from "@/types";
 
@@ -88,8 +81,7 @@ export class DecoratorController implements vscode.Disposable {
         let [startPos, endPos] = entry.pos.split(",").map(Number);
         startPos++;
         endPos--;
-        const entryName = displayToInternalName(entry.nameInfo.text);
-        const entryKey = getValueByAmbiguousEntryName(tree, entryName);
+        const entryKey = getValueByAmbiguousEntryName(tree, entry.nameInfo.name);
         let entryValue = translations[entryKey as string];
         let isLooseMatch = false;
         if (entryValue === undefined) {

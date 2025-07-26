@@ -10,7 +10,6 @@ import {
   escapeString,
   unescapeString,
   getCaseType,
-  displayToInternalName,
   isValidI18nCallablePath
 } from "@/utils/regex";
 import { EntryTree, LangDictionary, LangTree } from "@/types";
@@ -62,14 +61,13 @@ export class ReadHandler {
       for (const item of tItems) {
         const nameInfo = item.nameInfo;
         let usedEntryNameList: string[] = [];
-        const entryName = displayToInternalName(nameInfo.text);
         const isEntryWithContext =
           (this.ctx.i18nFramework === I18N_FRAMEWORK.i18nNext || this.ctx.i18nFramework === I18N_FRAMEWORK.reactI18next) &&
           item.vars.length > 0;
         if (nameInfo.vars.length > 0 || isEntryWithContext) {
           usedEntryNameList = totalEntryList.filter(entry => nameInfo.regex.test(entry));
         } else {
-          usedEntryNameList = getValueByAmbiguousEntryName(this.ctx.entryTree, entryName) === undefined ? [] : [entryName];
+          usedEntryNameList = getValueByAmbiguousEntryName(this.ctx.entryTree, nameInfo.name) === undefined ? [] : [nameInfo.name];
         }
         if (usedEntryNameList.length === 0) {
           this.ctx.undefinedEntryList.push({ ...item, path: filePath });

@@ -182,7 +182,7 @@ export function getEntryNameInfoByForm(nameForm: { type: TEntryPartType; value: 
     text: entryText,
     regex: new RegExp(`^${entryReg}$`),
     vars: varList,
-    name: varList.length ? entryText : "",
+    name: displayToInternalName(entryText),
     id: getIdByStr(entryText),
     boundName: entryName,
     boundClass: entryClass
@@ -340,6 +340,12 @@ export function displayToInternalName(name: string) {
     } else {
       return name.includes(":") ? name.replace(":", ".") : `${defaultNamespace}.${name}`;
     }
+  } else if (framework === I18N_FRAMEWORK.vueI18n) {
+    return name
+      .replace(/\\(['"])/g, "$1")
+      .replace(/\[['"]([^'"[\]]+)['"]\]/g, ".$1")
+      .replace(/\[(\d+)\]/g, ".$1")
+      .replace(/^\./, "");
   }
   return name;
 }
