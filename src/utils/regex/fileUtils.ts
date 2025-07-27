@@ -110,34 +110,34 @@ export function extractContentByLevel(content: string, level: number): [string, 
   return [before, matched, after];
 }
 
-export function getNestedValues(obj: EntryTree): string[] {
+export function getNestedValues(obj: EntryTree | string[]): string[] {
   let values: string[] = [];
-  for (const key in obj) {
+  Object.keys(obj).forEach(key => {
     if (typeof obj[key] === "object" && obj[key] !== null) {
-      values = values.concat(getNestedValues(obj[key]));
-    } else {
+      values = values.concat(getNestedValues(obj[key] as EntryTree | string[]));
+    } else if (typeof obj[key] === "string") {
       values.push(obj[key]);
     }
-  }
+  });
   return values;
 }
 
-export function flattenNestedObj(obj: EntryTree, className = ""): { data: EntryMap; isFlat: boolean } {
+export function flattenNestedObj(obj: EntryTree | string[], className = ""): { data: EntryMap; isFlat: boolean } {
   const result: EntryMap = {};
   let isFlat = true;
-  for (const key in obj) {
-    if (key.trim() === "") continue;
-    const value = obj[key];
+  Object.keys(obj).forEach(key => {
+    if (key.trim() === "") return;
+    const value = obj[key] as EntryTree;
     const escapedKey = escapeString(key);
     const keyName = className ? `${className}.${escapedKey}` : escapedKey;
     if (value != null && typeof value === "object") {
-      const child = flattenNestedObj(value, keyName);
+      const child = flattenNestedObj(value as EntryTree | string[], keyName);
       Object.assign(result, child.data);
       isFlat = false;
-    } else {
+    } else if (typeof value === "string") {
       result[keyName] = value;
     }
-  }
+  });
   return { data: result, isFlat };
 }
 

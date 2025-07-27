@@ -25,7 +25,7 @@ export interface LangFilesData {
 }
 
 export interface EntryTree {
-  [key: EntryKeySeg]: string | EntryTree;
+  [key: EntryKeySeg]: string | string[] | EntryTree;
 }
 
 export interface LangTree {

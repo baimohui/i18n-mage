@@ -145,6 +145,8 @@ export function formatObjectToString(tree: EntryTree, filePath: string, extraInf
       }
       if (typeof value === "string") {
         result.push(`${currentIndent}${keyStr}: ${formatForFile(value, fileType === "json" || valueQuotes === "double")}`);
+      } else if (Array.isArray(value)) {
+        result.push(`${currentIndent}${keyStr}: ${JSON.stringify(value)}`);
       } else if (Object.prototype.toString.call(value) === "[object Object]") {
         const nestedValue = formatObject(value, level + 1);
         if (nestedValue) {

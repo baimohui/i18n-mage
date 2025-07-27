@@ -364,3 +364,38 @@ export function isValidI18nVarName(name: string) {
   const validI18nVarNameRegex = /^[a-zA-Z_-][a-zA-Z0-9.:_-]*$/;
   return validI18nVarNameRegex.test(name);
 }
+
+export function convertKeyToVueI18nPath(key: string, quote: string = "'"): string {
+  const segments: string[] = [];
+  let buffer = "";
+  let escaped = false;
+  // Step 1: 先解析插件形式的 key（处理转义的 .）
+  for (let i = 0; i < key.length; i++) {
+    const char = key[i];
+    if (escaped) {
+      buffer += char; // 保留转义字符
+      escaped = false;
+    } else if (char === "\\") {
+      escaped = true; // 下一个字符需要转义
+    } else if (char === ".") {
+      segments.push(buffer);
+      buffer = "";
+    } else {
+      buffer += char;
+    }
+  }
+  if (buffer) segments.push(buffer);
+  // Step 2: 将 segments 转换为 vue-i18n 表达式
+  let result = segments[0];
+  for (let i = 1; i < segments.length; i++) {
+    const seg = segments[i];
+    if (/^\d+$/.test(seg)) {
+      result += `[${seg}]`; // 数字：数组索引
+    } else if (seg.includes(".")) {
+      result += `[${quote}${seg}${quote}]`; // 含原始 . 的键
+    } else {
+      result += `.${seg}`; // 普通属性
+    }
+  }
+  return result;
+}

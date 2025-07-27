@@ -9,7 +9,8 @@ import {
   escapeString,
   internalToDisplayName,
   generateKey,
-  unescapeString
+  unescapeString,
+  convertKeyToVueI18nPath
 } from "@/utils/regex";
 import { getDetectedLangList, setUpdatedEntryValueInfo } from "@/core/tools/contextTools";
 import translateTo from "@/translator/index";
@@ -72,7 +73,13 @@ export class FixHandler {
       if (this.ctx.i18nFramework === I18N_FRAMEWORK.none && nameInfo.vars.length > 0) continue;
       if (this.ctx.matchExistingKey && valueKeyMap[nameInfo.id] && !entry.nameInfo.boundName) {
         this.needFix = true;
-        const entryName = unescapeString(valueKeyMap[nameInfo.id]);
+        let entryName = valueKeyMap[nameInfo.id];
+        if (this.ctx.i18nFramework === I18N_FRAMEWORK.vueI18n) {
+          const quoteMatch = entry.raw.match(/["'`]{1}/);
+          const quote = quoteMatch ? `\\${quoteMatch[0]}` : "'";
+          entryName = convertKeyToVueI18nPath(entryName, quote);
+        }
+        entryName = unescapeString(entryName);
         entry.nameInfo.boundName = entryName;
         patchedEntryIdList.push({ ...entry, fixedRaw: this.getFixedRaw(entry, entryName) });
       } else if (undefinedEntryIdSet.has(nameInfo.id)) {

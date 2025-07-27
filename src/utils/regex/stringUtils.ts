@@ -41,6 +41,7 @@ export function generateKey(parts: string[], keyStyle: KeyStyle): string {
 }
 
 export function getIdByStr(str: string, genKeyInfo: { keyStyle: KeyStyle; stopWords: string[] } | null = null): string {
+  if (typeof str !== "string" || str.length === 0) return "";
   let id = str.toLowerCase();
   if (genKeyInfo) {
     id = id

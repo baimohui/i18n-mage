@@ -64,23 +64,27 @@ export class RewriteHandler {
     const filePath = this.getLangFilePath(lang, filePos);
     let langObj: EntryTree | null = null;
     const translation = this.ctx.langCountryMap[lang];
-    const iterate = (obj: EntryTree) => {
-      for (const key in obj) {
+    const iterate = (obj: string[] | EntryTree) => {
+      Object.keys(obj).forEach(key => {
         if (typeof obj[key] === "string") {
-          obj[key] = translation[obj[key]] || "";
+          if (Object.hasOwn(translation, obj[key])) {
+            obj[key] = translation[obj[key]] || "";
+          } else {
+            delete obj[key];
+          }
         } else if (typeof obj[key] === "object") {
-          iterate(obj[key]);
+          iterate(obj[key] as string[] | EntryTree);
         }
-      }
+      });
     };
-    if (filePos) {
+    if (this.ctx.isFlat) {
+      langObj = new SortHandler(this.ctx).getSortedTree(this.ctx.sortingWriteMode, lang);
+    } else {
       const entryTree = getContentAtLocation(filePos, this.ctx.entryTree);
       if (entryTree) {
         iterate(entryTree);
         langObj = entryTree;
       }
-    } else {
-      langObj = new SortHandler(this.ctx).getSortedTree(this.ctx.sortingWriteMode, lang);
     }
     if (langObj !== null) {
       const extraInfo = this.ctx.langFileExtraInfo[filePos ? `${lang}.${filePos}` : lang];

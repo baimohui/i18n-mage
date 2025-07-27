@@ -1,25 +1,25 @@
 import { EntryTree, EntryNode } from "@/types";
 import { parseEscapedPath, getPathSegsFromId } from "./stringUtils";
 
-export function genLangTree(tree: EntryTree = {}, content: EntryTree = {}, type = ""): void {
-  for (const key in content) {
+export function genLangTree(tree: EntryTree = {}, content: EntryTree | string[] = {}, type = ""): void {
+  Object.keys(content).forEach(key => {
     if (typeof content[key] === "object") {
       tree[key] = {};
-      genLangTree(tree[key], content[key], type);
-    } else {
+      genLangTree(tree[key], content[key] as EntryTree | string[], type);
+    } else if (typeof content[key] === "string") {
       tree[key] = type === "string" ? content[key] : content[key].replace(/\s/g, "");
     }
-  }
+  });
 }
 
-export function traverseLangTree(EntryTree: EntryTree, callback: (key: string, value: any) => void, prefix = ""): void {
-  for (const key in EntryTree) {
+export function traverseLangTree(EntryTree: EntryTree | string[], callback: (key: string, value: any) => void, prefix = ""): void {
+  Object.keys(EntryTree).forEach(key => {
     if (typeof EntryTree[key] === "object") {
-      traverseLangTree(EntryTree[key], callback, prefix ? `${prefix}.${key}` : key);
+      traverseLangTree(EntryTree[key] as EntryTree | string[], callback, prefix ? `${prefix}.${key}` : key);
     } else {
       callback(prefix + key, EntryTree[key]);
     }
-  }
+  });
 }
 
 export function getLangTree(obj: object | string): string {
@@ -120,11 +120,11 @@ function buildSplit(parts: string[], i: number, m: number): string[] {
   return split;
 }
 
-function accessPath(obj: EntryTree | string, path: string[]): string | undefined {
+function accessPath(obj: EntryTree | string | string[], path: string[]): string | undefined {
   let current = obj;
   for (const key of path) {
     if (Boolean(current) && typeof current === "object" && Object.hasOwn(current, key)) {
-      current = current[key];
+      current = current[key] as EntryTree | string[];
     } else {
       return undefined;
     }
