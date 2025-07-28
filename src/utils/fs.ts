@@ -160,3 +160,9 @@ export function getFirstOrLastDirName(p: string, isDirectory: boolean): string {
   if (segments.length === 0) return "";
   return isDirectory ? segments[segments.length - 1] : segments[0];
 }
+
+// 检测文件大小是否超过 50KB（可调整）
+export async function isFileTooLarge(filePath: string, fileSize: number = 50000): Promise<boolean> {
+  const stats = await fs.stat(filePath);
+  return stats.size > fileSize;
+}

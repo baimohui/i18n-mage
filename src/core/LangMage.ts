@@ -96,7 +96,7 @@ class LangMage {
       this.ctx.displayLang = resolveLang(this.ctx.displayLang);
 
       if (this.ctx.globalFlag) {
-        reader.startCensus();
+        await reader.startCensus();
       }
       let res = { success: true, message: "", code: EXECUTION_RESULT_CODE.Success };
       switch (this.ctx.task) {

@@ -13,6 +13,7 @@ import {
   isValidI18nCallablePath
 } from "@/utils/regex";
 import { EntryTree, LangDictionary, LangTree } from "@/types";
+import { isFileTooLarge } from "@/utils/fs";
 
 export class ReadHandler {
   constructor(private ctx: LangContextInternal) {}
@@ -44,13 +45,14 @@ export class ReadHandler {
     }
   }
 
-  public startCensus(): void {
+  public async startCensus(): Promise<void> {
     const filePaths = this._readAllFiles(this.ctx.projectPath);
     const totalEntryList = Object.keys(this.ctx.langDictionary).map(key => unescapeString(key));
     this.ctx.usedEntryMap = {};
     this.ctx.undefinedEntryList = [];
     this.ctx.undefinedEntryMap = {};
     for (const filePath of filePaths) {
+      if (await isFileTooLarge(filePath)) continue;
       const fileContent = fs.readFileSync(filePath, "utf8");
       const tItems = catchTEntries(fileContent);
       let usedEntryList: { name: string; pos: string }[] = [];

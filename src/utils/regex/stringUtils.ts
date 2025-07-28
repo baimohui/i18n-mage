@@ -52,7 +52,7 @@ export function getIdByStr(str: string, genKeyInfo: { keyStyle: KeyStyle; stopWo
     const parts = id.split(/\s/).filter(part => !genKeyInfo.stopWords.includes(part));
     return generateKey(parts, genKeyInfo.keyStyle);
   }
-  id = id.replace(/\s/g, "");
+  id = id.replace(/[\s\\]/g, "");
   return id;
 }
 

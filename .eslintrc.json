@@ -28,7 +28,13 @@
     "@typescript-eslint/no-explicit-any": "warn",
     // "@typescript-eslint/explicit-function-return-type": "error",
     "@typescript-eslint/strict-boolean-expressions": "error",
-    "@typescript-eslint/no-unused-vars": "error", // 替换默认的 no-unused-vars
+    "@typescript-eslint/no-unused-vars": [
+      "error",
+      {
+        "argsIgnorePattern": "^_",
+        "varsIgnorePattern": "^_"
+      }
+    ], // 替换默认的 no-unused-vars
     "no-unused-vars": "off", // 关闭 ESLint 默认规则
     "prettier/prettier": [
       "error",
