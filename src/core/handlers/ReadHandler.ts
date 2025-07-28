@@ -126,6 +126,7 @@ export class ReadHandler {
   private buildEntryTreeAndDictionary(langTree: LangTree): { structure: EntryTree; lookup: LangDictionary } {
     const structure: EntryTree = {};
     const lookup: LangDictionary = {};
+    const ignoredLangs = this.ctx.ignoredLangs;
     function setAtPath(obj: string[] | EntryTree, path: string[], value: string, isFromArray: boolean): void {
       let cur = obj;
       for (let i = 0; i < path.length - 1; i++) {
@@ -137,21 +138,23 @@ export class ReadHandler {
       }
       cur[path[path.length - 1]] = value;
     }
-    function traverse(node: string | string[] | EntryTree, path: string[], idTree: EntryTree, label: string, isFromArray: boolean): void {
+    function traverse(node: string | string[] | EntryTree, path: string[], idTree: EntryTree, lang: string, isFromArray: boolean): void {
       if (typeof node === "string") {
-        const id = path.map(key => escapeString(key)).join(".");
-        setAtPath(idTree, path, id, isFromArray);
-        if (!(id in lookup)) {
-          lookup[id] = {};
+        if (!ignoredLangs.includes(lang)) {
+          const id = path.map(key => escapeString(key)).join(".");
+          setAtPath(idTree, path, id, isFromArray);
+          if (!(id in lookup)) {
+            lookup[id] = {};
+          }
+          lookup[id][lang] = node;
         }
-        lookup[id][label] = node;
       } else if (Array.isArray(node)) {
         node.forEach((item, index) => {
-          traverse(item, path.concat(index.toString()), idTree, label, true);
+          traverse(item, path.concat(index.toString()), idTree, lang, true);
         });
       } else {
         for (const key in node) {
-          traverse(node[key], path.concat(key), idTree, label, false);
+          traverse(node[key], path.concat(key), idTree, lang, false);
         }
       }
     }
