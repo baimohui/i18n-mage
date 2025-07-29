@@ -62,31 +62,32 @@ export class RewriteHandler {
 
   private async rewriteTranslationFile(lang: string, filePos: string): Promise<void> {
     const filePath = this.getLangFilePath(lang, filePos);
-    let langObj: EntryTree | null = null;
+    let langObj: EntryTree = {};
     const translation = this.ctx.langCountryMap[lang];
-    const iterate = (obj: string[] | EntryTree) => {
-      Object.keys(obj).forEach(key => {
-        if (typeof obj[key] === "string") {
-          if (Object.hasOwn(translation, obj[key])) {
-            obj[key] = translation[obj[key]] || "";
-          } else {
-            delete obj[key];
+    const iterate = (tree: string[] | EntryTree, result: string[] | EntryTree = {}) => {
+      for (const [key, value] of Object.entries(tree)) {
+        if (typeof value === "string") {
+          if (Object.hasOwn(translation, value)) {
+            result[key] = translation[value] || "";
           }
-        } else if (typeof obj[key] === "object") {
-          iterate(obj[key] as string[] | EntryTree);
+        } else if (Array.isArray(value)) {
+          result[key] ??= [];
+          iterate(value, result[key] as string[]);
+        } else if (typeof value === "object") {
+          result[key] ??= {};
+          iterate(value, result[key] as EntryTree);
         }
-      });
+      }
     };
     if (this.ctx.isFlat) {
       langObj = new SortHandler(this.ctx).getSortedTree(this.ctx.sortingWriteMode, lang);
     } else {
       const entryTree = getContentAtLocation(filePos, this.ctx.entryTree);
       if (entryTree) {
-        iterate(entryTree);
-        langObj = entryTree;
+        iterate(entryTree, langObj);
       }
     }
-    if (langObj !== null) {
+    if (Object.keys(langObj).length > 0) {
       const extraInfo = this.ctx.langFileExtraInfo[filePos ? `${lang}.${filePos}` : lang];
       if (this.ctx.quoteStyleForKey !== "auto") {
         extraInfo.keyQuotes = this.ctx.quoteStyleForKey;

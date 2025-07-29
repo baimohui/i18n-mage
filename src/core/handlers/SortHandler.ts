@@ -1,4 +1,4 @@
-import { LangContextInternal, SORT_MODE, SortMode } from "@/types";
+import { EntryTree, LangContextInternal, SORT_MODE, SortMode } from "@/types";
 import { RewriteHandler } from "./RewriteHandler";
 
 export class SortHandler {
@@ -25,12 +25,10 @@ export class SortHandler {
     }
   }
 
-  public getSortedTree(sortingMode: SortMode, lang: string) {
+  public getSortedTree(sortingMode: SortMode, lang: string): EntryTree {
     const sortedTree = {};
-    if (!this.ctx.isFlat) return null;
     const entryTree = this.ctx.langCountryMap[lang];
     let keys = Object.keys(this.ctx.langCountryMap[lang]);
-    if (!keys.length) return null;
     if (sortingMode === SORT_MODE.ByPosition) {
       keys = [...this.ctx.usedKeySet, ...this.ctx.unusedKeySet];
     } else if (sortingMode === SORT_MODE.ByKey) {
