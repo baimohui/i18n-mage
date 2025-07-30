@@ -242,11 +242,24 @@
             "default": true,
             "description": "%config.scanStringLiterals.desc%"
           },
-          "i18n-mage.analysis.syncBasedOnReferredEntries": {
+          "i18n-mage.analysis.ignoreCommentedCode": {
             "order": 8,
+            "type": "boolean",
+            "default": true,
+            "description": "%config.ignoreCommentedCode.desc%"
+          },
+          "i18n-mage.analysis.syncBasedOnReferredEntries": {
+            "order": 10,
             "type": "boolean",
             "default": false,
             "description": "%config.syncBasedOnReferredEntries.desc%"
+          },
+          "i18n-mage.analysis.fileSizeSkipThresholdKB": {
+            "order": 12,
+            "type": "number",
+            "default": 100,
+            "minimum": 0,
+            "description": "%config.fileSizeSkipThresholdKB.desc%"
           }
         }
       },
@@ -668,12 +681,17 @@
       {
         "command": "i18nMage.toggleInlineTranslation",
         "key": "ctrl+alt+d",
-        "when": "editorTextFocus"
+        "when": "enabled && hasValidLangPath && editorTextFocus"
+      },
+      {
+        "command": "i18nMage.checkUsage",
+        "key": "ctrl+alt+c",
+        "when": "workspaceFolderCount != 0 && enabled"
       },
       {
         "command": "i18nMage.fix",
         "key": "ctrl+alt+f",
-        "when": "editorTextFocus"
+        "when": "enabled && hasValidLangPath"
       }
     ],
     "menus": {

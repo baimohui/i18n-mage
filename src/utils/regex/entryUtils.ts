@@ -300,6 +300,8 @@ export function matchBrackets(str: string, startPos = 0, open = "{", close = "}"
 }
 
 export function isPositionInComment(code: string, index: number): boolean {
+  const { ignoreCommentedCode } = getCacheConfig();
+  if (!ignoreCommentedCode) return false;
   const commentRanges: [number, number][] = [];
   // 匹配多行注释
   const blockComments = code.matchAll(/\/\*[\s\S]*?\*\//g);

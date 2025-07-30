@@ -29,7 +29,9 @@ export function registerOnConfigChange() {
       event.affectsConfiguration("i18n-mage.i18nFeatures") ||
       event.affectsConfiguration("i18n-mage.analysis.onSave") ||
       event.affectsConfiguration("i18n-mage.writeRules.enableKeyTagRule") ||
-      event.affectsConfiguration("i18n-mage.writeRules.enablePrefixTagRule")
+      event.affectsConfiguration("i18n-mage.writeRules.enablePrefixTagRule") ||
+      event.affectsConfiguration("i18n-mage.analysis.fileSizeSkipThresholdKB") ||
+      event.affectsConfiguration("i18n-mage.analysis.ignoreCommentedCode")
     ) {
       clearConfigCache();
     }

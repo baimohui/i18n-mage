@@ -4,6 +4,7 @@ import * as vscode from "vscode";
 import { t } from "@/utils/i18n";
 import { NotificationManager } from "@/utils/notification";
 import { isValidI18nCallablePath } from "@/utils/regex";
+import { getCacheConfig } from "./config";
 
 const langPathRegex = /\b(lang|language|i18n|l10n|locale|translation|translate|message|intl|fanyi)s?\b/i;
 const localeCodeRegex = /(^|^\w.*\b)[a-z]{2,3}([-_][a-z]{2,4})?$/i;
@@ -162,7 +163,8 @@ export function getFirstOrLastDirName(p: string, isDirectory: boolean): string {
 }
 
 // 检测文件大小是否超过 50KB（可调整）
-export async function isFileTooLarge(filePath: string, fileSize: number = 50000): Promise<boolean> {
+export async function isFileTooLarge(filePath: string): Promise<boolean> {
   const stats = await fs.stat(filePath);
-  return stats.size > fileSize;
+  const { fileSizeSkipThresholdKB } = getCacheConfig();
+  return stats.size > fileSizeSkipThresholdKB * 1024;
 }

@@ -71,6 +71,8 @@
   "config.analysis.title": "Entry Usage and Sync",
   "config.scanStringLiterals.desc": "Whether to scan string literals when checking key usage.\nIf enabled, string values like \"loginTitle\" will be considered as potentially used i18n keys.\nIf disabled, only parameters passed to translation functions like t(...) will be analyzed",
   "config.checkOnSave.desc": "Whether to automatically check key usage when saving files (with built-in debounce handling)",
+  "config.fileSizeSkipThresholdKB.desc": "Files larger than this threshold (in KB) will be skipped during key usage analysis to improve performance",
+  "config.ignoreCommentedCode.desc": "Whether to ignore commented code. If enabled, keys in commented code will not be counted towards i18n statistics",
   "command.setReferredLang.title": "Set as Source Language",
   "command.setDisplayLang.title": "Set as Display Language",
   "command.markAsKnownLang.title": "Mark as Known Language",

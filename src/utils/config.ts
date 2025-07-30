@@ -16,6 +16,8 @@ let cachedConfig: {
   enableKeyTagRule: boolean;
   enablePrefixTagRule: boolean;
   analysisOnSave: boolean;
+  fileSizeSkipThresholdKB: number;
+  ignoreCommentedCode: boolean;
 } | null = null;
 
 export function getConfig<T = any>(key: string, defaultValue?: T, scope?: vscode.ConfigurationScope): T {
@@ -51,7 +53,9 @@ export function getCacheConfig() {
       defaultNamespace: getConfig<string>("i18nFeatures.defaultNamespace"),
       tFuncNames: getConfig<string[]>("i18nFeatures.translationFunctionNames", []),
       interpolationBrackets: getConfig<"single" | "double" | "auto">("i18nFeatures.interpolationBrackets", "auto"),
-      namespaceSeparator: getConfig<"." | "auto" | ":">("i18nFeatures.namespaceSeparator", "auto")
+      namespaceSeparator: getConfig<"." | "auto" | ":">("i18nFeatures.namespaceSeparator", "auto"),
+      fileSizeSkipThresholdKB: getConfig<number>("analysis.fileSizeSkipThresholdKB", 100),
+      ignoreCommentedCode: getConfig<boolean>("analysis.ignoreCommentedCode", true)
     };
   }
   return cachedConfig;
