@@ -506,7 +506,7 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
         const matchList = Object.keys(this.usedEntryMap).filter(key => regex.test(key));
         matchList.forEach(matchItem => {
           if (!this.definedEntriesInCurrentFile.some(item => item.nameInfo.name === matchItem)) {
-            const newEntry = { ...entry, nameInfo: { ...entry.nameInfo, text: matchItem, id: matchItem } };
+            const newEntry = { ...entry, nameInfo: { ...entry.nameInfo, text: matchItem, name: matchItem, id: matchItem } };
             this.definedEntriesInCurrentFile.push(newEntry);
           }
         });

@@ -7,7 +7,6 @@ import { registerAllCommands } from "@/commands";
 import { registerAllListeners } from "@/listeners";
 import { bindDisposablesToContext } from "@/utils/dispose";
 import { NotificationManager } from "@/utils/notification";
-import { t } from "@/utils/i18n";
 import { getConfig } from "@/utils/config";
 import { HoverProvider } from "./features/HoverProvider";
 import { registerDisposable } from "@/utils/dispose";
@@ -57,7 +56,7 @@ class ExtensionState {
     registerAllListeners();
     registerDisposable(vscode.languages.registerHoverProvider("*", new HoverProvider()));
     this._extensionSubscriptions = bindDisposablesToContext(this._context);
-    await wrapWithProgress({ title: t("common.init.progress") }, async () => {
+    await wrapWithProgress({ title: "" }, async () => {
       await treeInstance.initTree();
       if (vscode.window.activeTextEditor) {
         const decorator = DecoratorController.getInstance();

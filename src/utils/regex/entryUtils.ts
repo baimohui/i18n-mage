@@ -301,26 +301,27 @@ export function matchBrackets(str: string, startPos = 0, open = "{", close = "}"
 
 export function isPositionInComment(code: string, index: number): boolean {
   const { ignoreCommentedCode } = getCacheConfig();
-  if (!ignoreCommentedCode) return false;
   const commentRanges: [number, number][] = [];
-  // 匹配多行注释
-  const blockComments = code.matchAll(/\/\*[\s\S]*?\*\//g);
-  for (const match of blockComments) {
-    if (match.index !== undefined) {
-      commentRanges.push([match.index, match.index + match[0].length]);
+  if (ignoreCommentedCode) {
+    // 匹配多行注释
+    const blockComments = code.matchAll(/\/\*[\s\S]*?\*\//g);
+    for (const match of blockComments) {
+      if (match.index !== undefined) {
+        commentRanges.push([match.index, match.index + match[0].length]);
+      }
     }
-  }
-  // 匹配单行注释（排除 URL 中的 http://）
-  const lineComments = code.matchAll(/(^|[^:])\/\/[^\n]*/g);
-  for (const match of lineComments) {
-    const start = match.index + (match[1] ? 1 : 0);
-    commentRanges.push([start, start + match[0].length - (match[1] ? 1 : 0)]);
-  }
-  // 匹配 HTML 注释（如 Vue 模板中的注释）
-  const htmlComments = code.matchAll(/<!--[\s\S]*?-->/g);
-  for (const match of htmlComments) {
-    if (match.index !== undefined) {
-      commentRanges.push([match.index, match.index + match[0].length]);
+    // 匹配单行注释（排除 URL 中的 http://）
+    const lineComments = code.matchAll(/(^|[^:])\/\/[^\n]*/g);
+    for (const match of lineComments) {
+      const start = match.index + (match[1] ? 1 : 0);
+      commentRanges.push([start, start + match[0].length - (match[1] ? 1 : 0)]);
+    }
+    // 匹配 HTML 注释（如 Vue 模板中的注释）
+    const htmlComments = code.matchAll(/<!--[\s\S]*?-->/g);
+    for (const match of htmlComments) {
+      if (match.index !== undefined) {
+        commentRanges.push([match.index, match.index + match[0].length]);
+      }
     }
   }
   // 匹配 i18n-mage-disable ... i18n-mage-enable 自定义忽略区域

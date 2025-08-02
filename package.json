@@ -245,7 +245,7 @@
           "i18n-mage.analysis.ignoreCommentedCode": {
             "order": 8,
             "type": "boolean",
-            "default": true,
+            "default": false,
             "description": "%config.ignoreCommentedCode.desc%"
           },
           "i18n-mage.analysis.syncBasedOnReferredEntries": {
