@@ -1,67 +1,421 @@
-# i18n-checker README
+# 🪄 i18n Mage - Frontend Internationalization Assistant
 
-"i18n-checker". After writing up a brief description, we recommend including the following sections.
+🌍 [English](./README.md) | [Simplified Chinese](./README.zh-CN.md)
 
-## Features
+`i18n Mage` is a VS Code extension designed to significantly enhance the internationalization experience for frontend developers. It supports popular i18n frameworks like Vue I18n and React I18next, offering features such as auto-completion, inline translation hints, key management, Excel import/export, and more to streamline and improve your i18n workflow.
 
-Describe specific features of your extension including screenshots of your extension in action. Image paths are relative to this README
-file.
+## 📚 Table of Contents
 
-For example if there is an image subfolder under your extension project workspace:
+* [✨ Features](#features)
+* [⚡ Quick Start](#quick-start)
+* [🔧 Configuration](#configuration)
+* [⌨️ Commands & Shortcuts](#commands--shortcuts)
+* [🚀 Advanced Usage](#advanced-usage)
+* [❓ FAQ](#faq)
+* [⚙️ Full Config Reference](#full-config-reference)
+* [🤝 Contributing](#contributing)
 
-\!\[feature X\]\(images/feature-x.png\)
+## ✨ Features{#features}
 
-> Tip: Many popular extensions utilize animations. This is an excellent way to show off your extension! We recommend short, focused
-> animations that are easy to follow.
+### 🌳 Translation Tree Overview
 
-## Requirements
+* Displays an overview panel via the VS Code sidebar.
+* Includes statistics (total keys, missing translations, etc.).
+* Sync status per language file.
+* Tree-structured view of translation entries.
+* Functional buttons: Export, Import, Sort, Fix.
 
-If you have any requirements or dependencies, add a section describing those and how to install and configure them.
+### 🧠 Inline Translation Hints
 
-## Extension Settings
+* Show actual translation inline where `t()` is used.
+* Supports custom styles (color, max length, etc.).
+* Toggleable via shortcuts.
 
-Include if your extension adds any VS Code settings through the `contributes.configuration` extension point.
+![Inline Translation Hints](./images/doc/inlineHints.gif)
 
-For example:
+### 🚧 Auto-Fill Missing Translations
 
-This extension contributes the following settings:
+* Integrates Google, DeepSeek, Baidu, Tencent translation services.
+* Preview and confirm missing translations before applying.
 
-- `myExtension.enable`: Enable/disable this extension.
-- `myExtension.thing`: Set to `blah` to do something.
+### 🧹 Auto-Fix Undefined Entries
 
-## Known Issues
+* Detects and fixes undefined i18n keys.
+* Replaces with existing key if value matches.
+* Otherwise, generates a new key with customizable naming.
 
-Calling out known issues can help limit users opening duplicate issues against your extension.
+### 🕵️ Detect Unused Keys
 
-## Release Notes
+* Analyzes usage of all keys.
+* Pattern matching for dynamic keys.
+* Delete or mark as used manually.
 
-Users appreciate release notes as you update your extension.
+### 📊 Excel Import/Export
 
-### 1.0.0
+* Export translation entries to Excel for translators.
+* Import translations from Excel back into language files.
 
-Initial release of ...
+![Excel Import/Export](./images/doc/excel.png)
 
-### 1.0.1
+### 📋 Copy Translation Data
 
-Fixed issue #.
+* One-click copy of all keys/values on the current page.
 
-### 1.1.0
+## ⚡ Quick Start{#quick-start}
 
-Added features X, Y, and Z.
+1. **Install the extension**:
 
----
+Search in VS Code extensions:
 
-## Working with Markdown
+```bash
+ext install jensen-wen.i18n-mage
+```
 
-You can author your README using Visual Studio Code. Here are some useful editor keyboard shortcuts:
+Or visit [i18n Mage on Marketplace](https://marketplace.visualstudio.com/items?itemName=jensen-wen.i18n-mage)
 
-- Split the editor (`Cmd+\` on macOS or `Ctrl+\` on Windows and Linux)
-- Toggle preview (`Shift+Cmd+V` on macOS or `Shift+Ctrl+V` on Windows and Linux)
-- Press `Ctrl+Space` (Windows, Linux, macOS) to see a list of Markdown snippets
+2. **Open Translation Panel**:
 
-## For more information
+* Automatically scans your i18n directory after activation.
+* Click the extension icon in the sidebar to open the panel.
+* Right-click to set translation directory if not detected.
 
-- [Visual Studio Code's Markdown Support](http://code.visualstudio.com/docs/languages/markdown)
-- [Markdown Syntax Reference](https://help.github.com/articles/markdown-basics/)
+3. **Set Languages**:
 
-**Enjoy!**
+* Right-click to set display and source languages.
+* Manually mark file types if language detection fails.
+
+4. **Configure Translation Services (Optional)**:
+
+* Supports Google, DeepSeek, Baidu, Tencent.
+* Path: `Settings -> Extensions -> i18n Mage -> Translation Services`
+
+## 🔧 Configuration{#configuration}
+
+### 🚀 Key Categories
+
+* General settings
+* Framework support (e.g. translation function names, interpolation)
+* Translation services (API keys, reference language)
+* Analysis rules (file scanning, auto detection)
+* Write rules (key style, quote style, indentation)
+* Inline hint styling
+* Workspace-specific settings
+
+> All settings are accessible via the VS Code Settings UI or in `.vscode/settings.json`.
+
+See [Full Config Reference](#full-config-reference) for all options.
+
+## ⌨️ Commands & Shortcuts{#commands--shortcuts}
+
+| Command ID                         | Description                     | Shortcut   |
+| ---------------------------------- | ------------------------------- | ---------- |
+| `i18nMage.check`                   | Check key usage                 | Ctrl+Alt+C |
+| `i18nMage.fix`                     | Fix undefined entries           | Ctrl+Alt+F |
+| `i18nMage.toggleInlineTranslation` | Toggle inline translation hints | Ctrl+Alt+D |
+| `i18nMage.export`                  | Export entries to Excel         | -          |
+| `i18nMage.import`                  | Import entries from Excel       | -          |
+| `i18nMage.sort`                    | Sort entries                    | -          |
+
+> 💡 All commands are accessible via the Command Palette (`Ctrl+Shift+P`).
+
+## 🚀 Advanced Usage{#advanced-usage}
+
+### 🔠 Auto-Translate Strings with Variables
+
+Supports template literals and concatenated strings.
+
+```js
+const name = "value";
+i18n.t(`text with variable ${name}`);
+i18n.t("text with variable " + name);
+```
+
+### ❌ Ignore Code Blocks
+
+Add `i18n-mage-disable` to disable scanning in a section, and `i18n-mage-enable` to re-enable.
+
+```js
+// i18n-mage-disable
+const t = () => {};
+t("text not to scan");
+// i18n-mage-enable
+```
+
+### 🔀 Retag Keys
+
+Use `%key%text` or `#prefix#text` to control generated key names during fix operations.
+
+```html
+<div>{{$t("%customEntry%Sample")}}</div>
+<div>{{$t("#prefix#Sample")}}</div>
+```
+
+## ❓ FAQ{#faq}
+
+### Q: Which translation service should I choose?
+
+* **Google Translate**: High quality, needs VPN.
+* **DeepSeek**: AI-powered, cheap, requires API key and recharge.
+* **Baidu Translate**: Free up to 1M chars/month, requires developer account.
+* **Tencent Translate**: Free up to 5M chars/month, requires Tencent Cloud account.
+
+### Q: Supported language file formats?
+
+`.json`, `.json5`, `.js`, `.ts`
+
+### Q: Supported i18n function usage?
+
+* Recommended: `t("key")`
+* Supports concatenation: `t("prefix." + key + ".suffix")`
+* Dynamic matches for usage analysis
+* Inline hints only support `t("key")` (one key only)
+
+### Q: Fix for undefined keys not working?
+
+* Ensure auto-fix and auto-translate are enabled.
+* Check language validation settings if value is ignored.
+
+## ⚙️ Full Config Reference{#full-config-reference}
+
+### General
+
+#### `i18n-mage.general.enable`
+
+Enable plugin features.
+
+#### `i18n-mage.general.previewChanges`
+
+Enables previewing translation changes. When enabled, when fixing or importing translations, the plugin will display the pending changes, allowing you to confirm or adjust the changes before applying them.
+
+#### `i18n-mage.general.displayLanguage`
+
+Specifies the default language source for inline translation tooltips and the information panel.
+
+### Internationalization Features
+
+#### `i18n-mage.i18nFeatures.framework`
+
+Select the internationalization framework to use: e.g., `vue-i18n`, `react-i18next`, etc.
+
+#### `i18n-mage.i18nFeatures.translationFunctionNames`
+
+Specifies a list of internationalization translation function names. The default is `t`. When `vue-i18n` is used as the framework, `t` and `tc` are forcibly enabled.
+
+#### `i18n-mage.i18nFeatures.interpolationBrackets`
+
+Sets the brace style used for variable interpolation. By default, it follows the selected internationalization framework (e.g., `vue-i18n` uses {}, `react-i18next` uses `{{}}`).
+
+#### `i18n-mage.i18nFeatures.namespaceSeparator`
+
+Sets the internationalization namespace separator. By default, it follows the selected internationalization framework (e.g., `.` for `vue-i18n`, `:` for `react-i18next`).
+
+#### `i18n-mage.i18nFeatures.defaultNamespace`
+
+Specifies a default namespace, used to simplify `t` function calls in frameworks like react-i18next and i18next. If no namespace is explicitly specified, this namespace will be used by default. Please ensure that the namespace is loaded correctly.
+
+### Translation Service
+
+#### `i18n-mage.translationServices.referenceLanguage`
+
+Set the reference language used by the translation service. You can use the language code of each translation platform or a language name recognized by the plugin.
+
+#### `i18n-mage.translationServices.deepseekApiKey`
+
+Set the DeepSeek Translation API key.
+
+#### `i18n-mage.translationServices.baiduApiId`
+
+Set the Baidu Translate Open Platform developer app ID.
+
+#### `i18n-mage.translationServices.baiduSecretKey`
+
+Set the Baidu Translate Open Platform developer key.
+
+#### `i18n-mage.translationServices.tencentSecretId`
+
+Set the Tencent Cloud Platform account secret ID.
+
+#### `i18n-mage.translationServices.tencentSecretKey`
+
+Set the SecretKey for your Tencent Cloud account.
+
+#### `i18n-mage.translationServices.translateApiPriority`
+
+Set the translation service to use and its priority. If an exception occurs while calling a translation service, the plugin will automatically switch to the next available service.
+
+#### `i18n-mage.translationServices.langAliasCustomMappings`
+
+Configure custom language alias mappings (format: { 'language code': ['alias 1', 'alias 2'] }) to resolve plugin language identification issues.
+
+- Language code: Must use the standard Google Translate country code (e.g., 'zh-CN')
+- Alias: Supports multiple alternative names (e.g., ['简体中文', '中文简体'])
+
+#### `i18n-mage.translationServices.matchExistingKey`
+
+Enable automatic matching of undefined terms: When undefined translation text (e.g., `t('未定义')`) is detected during translation, the plugin searches for existing entries in the reference language file for the same text. If a match is found, the source file will be automatically replaced with the key of the entry (e.g., 'undefined'). A successful match will not trigger automatic translation.
+
+#### `i18n-mage.translationServices.autoTranslateMissingKey`
+
+Enable automatic translation of undefined terms: When undefined translation text (e.g., t('未定义')) is detected during repair, and the plugin cannot find a matching existing term in the reference language file (with automatic matching of undefined terms enabled), it will automatically call the translation service to complete the translation, generate a new term key (e.g., 'undefined'), write the new translation to the language file, and automatically replace the text in the source file.
+
+#### `i18n-mage.translationServices.validateLanguageBeforeTranslate`
+
+Enable language validation before translation: Before translating undefined terms, a language validation method will be used to determine whether the string belongs to the reference language. Automatic translation will only be performed if the validation passes. This is useful for filtering non-natural language content such as variable names and encoded values to prevent mistranslations.
+
+### Checking Rules
+
+#### `i18n-mage.analysis.onSave`
+
+When enabled, global term checking will be triggered every time a file is saved. A built-in debounce mechanism is included to prevent frequent triggering.
+
+#### `i18n-mage.analysis.scanStringLiterals`
+
+Whether to scan string literals in the code when counting term usage information. When enabled, string values in the identified file will be used as possible keys; when disabled, only the parameters of internationalization functions such as t() will be analyzed.
+
+#### `i18n-mage.analysis.syncBasedOnReferredEntries`
+
+Configure the baseline for term synchronization: When enabled, only the terms defined in the reference language file will be used as the baseline. When disabled, the terms defined in all language files will be used as the baseline (suitable for projects that require strict consistency with the reference language).
+
+#### `i18n-mage.analysis.fileSizeSkipThresholdKB`
+
+Set the file size threshold (in KB) above which analysis will be skipped.
+
+### Writing Rules
+
+#### `i18n-mage.writeRules.sortOnWrite`
+
+Sorting rules when writing language files (supports flat structures only). Supports alphabetical sorting of term keys and sorting by the source file location of the first occurrence of a term.
+
+#### `i18n-mage.writeRules.languageFileIndent`
+
+The number of spaces to use for indentation when writing language files. If not set, the indentation size is automatically inferred from the existing file content.
+
+#### `i18n-mage.writeRules.quoteStyleForKey`
+
+Set the quote style for key characters when writing.
+
+#### `i18n-mage.writeRules.quoteStyleForValue`
+
+Sets the quote style for the value when writing.
+
+#### `i18n-mage.writeRules.generatedKeyStyle`
+
+Sets the style for generated translation keys. CamelCase, underscores, hyphens, and original names are supported.
+
+#### `i18n-mage.writeRules.maxGeneratedKeyLength`
+
+The maximum length of the generated key. If the limit is exceeded, the key will be generated using the format of "filename + text + sequence number". If the limit is still exceeded, the file name will be truncated to meet the length requirement.
+
+#### `i18n-mage.writeRules.keyPrefix`
+
+The prefix used for generated keys. Optional: Use the most common prefix in the project, no prefix, or manually specify a custom prefix.
+
+#### `i18n-mage.writeRules.stopWords`
+
+A stopword list used to remove extraneous invalid words when generating keys.
+
+#### `i18n-mage.writeRules.enableKeyTagRule`
+
+When automatic translation of undefined entries is enabled, this is used to customize the names of newly added entries: using the `%key%text` format for entry naming, the placeholder text will automatically be used as the entry key.
+
+```html
+<div>{{$t("%customEntry%Test")}}</div>
+```
+
+For example, in the code above, the plugin will write a new entry named `customEntry` and automatically translate it to `Test`.
+
+In addition, if the custom key already exists, the plugin will overwrite the existing entry.
+
+#### `i18n-mage.writeRules.enablePrefixTagRule`
+
+When automatic translation of undefined terms is enabled, this rule is used to customize the prefix of newly added term names: using the term naming rule of the `#prefix#text` format, the placeholder content is automatically used as the prefix of the term key.
+
+```html
+<div>{{$t("#customPrefix#test")}}</div>
+```
+
+For example, in the code above, the plugin might write a new term named `customPrefix.test` and automatically translate it to `test`.
+
+### Translation Inline Hints
+
+#### `i18n-mage.translationHints.enable`
+
+Enables the inline translation hint feature.
+
+#### `i18n-mage.translationHints.enableLooseKeyMatch`
+
+Enables fuzzy matching for dynamically concatenated terms (e.g., `t("prefix" + key + "suffix")`). When matching multiple translations, only the first matching result is displayed. This is recommended only if this syntax is widely used in your project, as it may result in false positives.
+
+#### `i18n-mage.translationHints.maxLength`
+
+Sets the maximum length of inline hints. If the length exceeds, the hint will be truncated.
+
+#### `i18n-mage.translationHints.light.fontColor`
+
+Sets the color of the hint text in light themes (in hexadecimal).
+
+#### `translationHints.light.backgroundColor`
+
+Sets the base background color of the hint in light themes (in hexadecimal).
+
+#### `i18n-mage.translationHints.light.backgroundAlpha`
+
+Sets the transparency of the tooltip background in the light theme (0-1).
+
+#### `i18n-mage.translationHints.dark.fontColor`
+
+Sets the tooltip text color in the dark theme (in hexadecimal).
+
+#### `i18n-mage.translationHints.dark.backgroundColor`
+
+Sets the tooltip background base color in the dark theme (in hexadecimal).
+
+#### `i18n-mage.translationHints.dark.backgroundAlpha`
+
+Sets the transparency of the tooltip background in the dark theme (in hexadecimal).
+
+#### `i18n-mage.translationHints.dark.backgroundAlpha`
+
+Sets the transparency of the tooltip background in the dark theme (in 0-1).
+
+### Workspace configuration only
+
+#### `i18n-mage.workspace.projectPath`
+
+Sets the project root directory path.
+
+#### `i18n-mage.workspace.languagePath`
+
+Sets the language file storage path.
+
+#### `i18n-mage.workspace.manuallyMarkedUsedEntries`
+
+A list of entries manually marked as used.
+
+#### `i18n-mage.workspace.ignoredFiles`
+
+Sets a list of files to be ignored.
+
+#### `i18n-mage.workspace.ignoredDirectories`
+
+Sets a list of directories to be ignored.
+
+#### `i18n-mage.workspace.ignoredLanguages`
+
+Sets a list of language files to be ignored.
+
+## 🤝 Contributing{#contributing}
+
+```bash
+git clone https://github.com/baimohui/i18n-mage.git
+cd i18n-mage
+npm install
+npm run check
+npm run build
+```
+
+Feel free to submit issues or PRs!
+
+## 📄 License
+
+MIT License © 2025 Jensen Wen
