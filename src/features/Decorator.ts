@@ -58,6 +58,7 @@ export class DecoratorController implements vscode.Disposable {
       this.currentEditor = editor;
       const { tree, countryMap } = mage.langDetail;
       const translations = countryMap[publicCtx.displayLang];
+      if (translations === undefined) return;
       // 获取可视区域范围
       const visibleRanges = editor.visibleRanges;
       const visibleStart = Math.min(...visibleRanges.map(r => r.start.line));

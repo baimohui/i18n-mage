@@ -4,7 +4,6 @@ import { treeInstance } from "@/views/tree";
 import { registerDisposable } from "@/utils/dispose";
 import { t } from "@/utils/i18n";
 import { NotificationManager } from "@/utils/notification";
-import { DecoratorController } from "@/features/Decorator";
 
 export function registerEditValueCommand() {
   const mage = LangMage.getInstance();
@@ -30,8 +29,6 @@ export function registerEditValueCommand() {
         if (res.success) {
           e.description = newValue;
           treeInstance.refresh();
-          const decorator = DecoratorController.getInstance();
-          decorator.update(vscode.window.activeTextEditor);
           NotificationManager.showResult(res, t("command.editValue.success", newValue));
         }
       }

@@ -26,7 +26,7 @@ export function catchTEntries(fileContent: string): TEntry[] {
     });
   }
   const funcNamePattern = tFuncNames.map(fn => `\\b${fn}\\b`).join("|");
-  const tReg = new RegExp(`(?<=[$\\s.[({:=]{1})(${funcNamePattern})\\s*\\(\\s*(\\S)`, "g");
+  const tReg = new RegExp(`(?<=[$\\s.[({:="']{1})(${funcNamePattern})\\s*\\(\\s*(\\S)`, "g");
   const entryInfoList: TEntry[] = [];
   let tRes: RegExpExecArray | null;
   while ((tRes = tReg.exec(fileContent)) !== null) {

@@ -3,7 +3,6 @@ import LangMage from "@/core/LangMage";
 import { treeInstance } from "@/views/tree";
 import { wrapWithProgress } from "@/utils/wrapWithProgress";
 import { registerDisposable } from "@/utils/dispose";
-import { DecoratorController } from "@/features/Decorator";
 import { t } from "@/utils/i18n";
 import { NotificationManager } from "@/utils/notification";
 import { setConfig } from "@/utils/config";
@@ -30,8 +29,6 @@ export function registerSelectLangPathCommand() {
           vscode.commands.executeCommand("setContext", "hasValidLangPath", true);
           await setConfig("workspace.languagePath", toRelativePath(langPath));
           treeInstance.refresh();
-          const decorator = DecoratorController.getInstance();
-          decorator.update(vscode.window.activeTextEditor);
         }
       });
     }

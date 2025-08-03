@@ -7,6 +7,8 @@ import { LangContextPublic, TEntry, LangTree, SORT_MODE, I18nFramework } from "@
 import { t } from "@/utils/i18n";
 import { NotificationManager } from "@/utils/notification";
 import { getConfig, setConfig } from "@/utils/config";
+import { DecoratorController } from "@/features/Decorator";
+import { Diagnostics } from "@/features/Diagnostics";
 
 interface ExtendedTreeItem extends vscode.TreeItem {
   level?: number;
@@ -83,6 +85,10 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
   refresh(): void {
     this.publicCtx = this.#mage.getPublicContext();
     this._onDidChangeTreeData.fire();
+    const decorator = DecoratorController.getInstance();
+    decorator.update(vscode.window.activeTextEditor);
+    const diagnostics = Diagnostics.getInstance();
+    vscode.workspace.textDocuments.forEach(doc => diagnostics.update(doc));
   }
 
   getTreeItem(element: vscode.TreeItem): vscode.TreeItem {
@@ -412,13 +418,14 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
         return Array.from(this.unusedKeySet).map(key => {
           const name = unescapeString(key);
           const entryInfo = this.dictionary[key];
+          const contextValueList = ["unusedGroupItem", "COPY_NAME"];
           return {
             label: internalToDisplayName(name),
             description: entryInfo[this.publicCtx.displayLang],
             level: 2,
             root: element.root,
             data: [key],
-            contextValue: "unusedGroupItem",
+            contextValue: contextValueList.join(","),
             id: this.genId(element, key),
             collapsibleState: vscode.TreeItemCollapsibleState.None
           };

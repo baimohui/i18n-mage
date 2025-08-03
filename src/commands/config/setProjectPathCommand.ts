@@ -3,7 +3,6 @@ import LangMage from "@/core/LangMage";
 import { treeInstance } from "@/views/tree";
 import { wrapWithProgress } from "@/utils/wrapWithProgress";
 import { registerDisposable } from "@/utils/dispose";
-import { DecoratorController } from "@/features/Decorator";
 import { setConfig } from "@/utils/config";
 import { t } from "@/utils/i18n";
 import { isLikelyProjectPath, toRelativePath } from "@/utils/fs";
@@ -22,8 +21,6 @@ export function registerSetProjectPathCommand() {
       await mage.execute();
       await setConfig("workspace.projectPath", toRelativePath(projectPath));
       treeInstance.refresh();
-      const decorator = DecoratorController.getInstance();
-      decorator.update(vscode.window.activeTextEditor);
     });
   });
 

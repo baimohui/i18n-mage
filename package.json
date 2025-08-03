@@ -788,13 +788,13 @@
         },
         {
           "command": "i18nMage.markAsUsed",
-          "when": "viewItem == unusedGroupHeader || viewItem == unusedGroupItem",
-          "group": "inline@1"
+          "when": "viewItem == unusedGroupHeader || viewItem =~ /unusedGroupItem/",
+          "group": "inline@2"
         },
         {
           "command": "i18nMage.deleteUnused",
-          "when": "viewItem == unusedGroupHeader || viewItem == unusedGroupItem",
-          "group": "inline@2"
+          "when": "viewItem == unusedGroupHeader || viewItem =~ /unusedGroupItem/",
+          "group": "inline@3"
         },
         {
           "command": "i18nMage.unmarkAsUsed",
