@@ -6,16 +6,16 @@
 
 ## 📚 Table of Contents
 
-* [✨ Features](#features)
-* [⚡ Quick Start](#quick-start)
-* [🔧 Configuration](#configuration)
-* [⌨️ Commands & Shortcuts](#commands--shortcuts)
-* [🚀 Advanced Usage](#advanced-usage)
-* [❓ FAQ](#faq)
-* [⚙️ Full Config Reference](#full-config-reference)
-* [🤝 Contributing](#contributing)
+* [✨ Features](#-features)
+* [⚡ Quick Start](#-quick-start)
+* [🧰 Configuration](#-configuration)
+* [🎹 Commands & Shortcuts](#-commands--shortcuts)
+* [🚀 Advanced Usage](#-advanced-usage)
+* [❓ FAQ](#-faq)
+* [🔧 Full Config Reference](#-full-config-reference)
+* [🤝 Contributing](#-contributing)
 
-## ✨ Features{#features}
+## ✨ Features
 
 ### 🌳 Translation Tree Overview
 
@@ -30,8 +30,6 @@
 * Show actual translation inline where `t()` is used.
 * Supports custom styles (color, max length, etc.).
 * Toggleable via shortcuts.
-
-![Inline Translation Hints](./images/doc/inlineHints.gif)
 
 ### 🚧 Auto-Fill Missing Translations
 
@@ -55,13 +53,11 @@
 * Export translation entries to Excel for translators.
 * Import translations from Excel back into language files.
 
-![Excel Import/Export](./images/doc/excel.png)
-
 ### 📋 Copy Translation Data
 
 * One-click copy of all keys/values on the current page.
 
-## ⚡ Quick Start{#quick-start}
+## ⚡ Quick Start
 
 1. **Install the extension**:
 
@@ -89,7 +85,7 @@ Or visit [i18n Mage on Marketplace](https://marketplace.visualstudio.com/items?i
 * Supports Google, DeepSeek, Baidu, Tencent.
 * Path: `Settings -> Extensions -> i18n Mage -> Translation Services`
 
-## 🔧 Configuration{#configuration}
+## 🧰 Configuration
 
 ### 🚀 Key Categories
 
@@ -105,7 +101,7 @@ Or visit [i18n Mage on Marketplace](https://marketplace.visualstudio.com/items?i
 
 See [Full Config Reference](#full-config-reference) for all options.
 
-## ⌨️ Commands & Shortcuts{#commands--shortcuts}
+## 🎹 Commands & Shortcuts
 
 | Command ID                         | Description                     | Shortcut   |
 | ---------------------------------- | ------------------------------- | ---------- |
@@ -118,7 +114,7 @@ See [Full Config Reference](#full-config-reference) for all options.
 
 > 💡 All commands are accessible via the Command Palette (`Ctrl+Shift+P`).
 
-## 🚀 Advanced Usage{#advanced-usage}
+## 🚀 Advanced Usage
 
 ### 🔠 Auto-Translate Strings with Variables
 
@@ -150,7 +146,7 @@ Use `%key%text` or `#prefix#text` to control generated key names during fix oper
 <div>{{$t("#prefix#Sample")}}</div>
 ```
 
-## ❓ FAQ{#faq}
+## ❓ FAQ
 
 ### Q: Which translation service should I choose?
 
@@ -175,7 +171,7 @@ Use `%key%text` or `#prefix#text` to control generated key names during fix oper
 * Ensure auto-fix and auto-translate are enabled.
 * Check language validation settings if value is ignored.
 
-## ⚙️ Full Config Reference{#full-config-reference}
+## 🔧 Full Config Reference
 
 ### General
 
@@ -404,7 +400,7 @@ Sets a list of directories to be ignored.
 
 Sets a list of language files to be ignored.
 
-## 🤝 Contributing{#contributing}
+## 🤝 Contributing
 
 ```bash
 git clone https://github.com/baimohui/i18n-mage.git
