@@ -26,7 +26,7 @@
 - 翻译词条的树状结构
 - 功能按钮（导出、导入、排序、修复等）
 
-![词条树视图信息](./images/doc/treeView.png)
+![词条树视图信息](./doc-assets/treeView.png)
 
 ### 🧠 翻译内联提示
 
@@ -34,14 +34,14 @@
 - 支持自定义样式（颜色、最大长度等）。
 - 可通过快捷键随时开关。
 
-![翻译内联提示](./images/doc/inlineHints.gif)
+![翻译内联提示](./doc-assets/inlineHints.gif)
 
 ### 🚧 缺漏翻译一键补全
 
 - 集成谷歌、DeepSeek、百度、腾讯等翻译服务
 - 自动补全缺失翻译，支持预览与人工校验
 
-![补全缺漏翻译](./images/doc/fixMissingTranslation.gif)
+![补全缺漏翻译](./doc-assets/fixMissingTranslation.gif)
 
 ### 🧩 未定义词条自动修复
 
@@ -49,7 +49,7 @@
 - 若文案与已有词条一致，自动替换为对应 key
 - 否则，生成新词条并写入语言文件，支持自定义命名风格
 
-![智能修正未定义词条](./images/doc/fixUndefinedTranslation.gif)
+![智能修正未定义词条](./doc-assets/fixUndefinedTranslation.gif)
 
 ### 🕵️ 未使用词条检测
 
@@ -57,20 +57,20 @@
 - 支持动态拼接 key 的模式匹配
 - 可删除未使用词条或手动标记为“已使用”
 
-![词条使用动态检查](./images/doc/checkUsage.gif)
+![词条使用动态检查](./doc-assets/checkUsage.gif)
 
 ### 📊 Excel 导入导出
 
 - 可将翻译词条导出为 Excel 文件，供翻译团队使用
 - 支持从 Excel 导入翻译，自动写入语言文件
 
-![Excel 导入导出](./images/doc/excel.png)
+![Excel 导入导出](./doc-assets/excel.png)
 
 ### 📋 复制词条数据
 
 - 一键复制当前页词条键值对，便于模块迁移
 
-![复制当前页词条键值对](./images/doc/copyCurrentPage.gif)
+![复制当前页词条键值对](./doc-assets/copyCurrentPage.gif)
 
 ---
 
@@ -92,7 +92,7 @@ ext install jensen-wen.i18n-mage
 - 在 VS Code 侧边栏点击插件图标，即可打开翻译视图面板。
 - 如未识别出语言目录，可右键选择“设置语言文件目录”。
 
-![翻译概览](./images/doc/panelView.png)
+![翻译概览](./doc-assets/panelView.png)
 
 3. **设置语言**：
 
@@ -100,7 +100,7 @@ ext install jensen-wen.i18n-mage
 - 可右键将某语言设置为“显示语言”或“翻译源语言”。
 - 若插件无法识别文件语言，可手动标记语言类型。
 
-![设置语言](./images/doc/setLanguage.png)
+![设置语言](./doc-assets/setLanguage.png)
 
 4. **配置翻译服务（可选）**：
 

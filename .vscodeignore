@@ -22,6 +22,7 @@ node_modules/**
 # 排除开发配置和源码
 src/**
 .*
+doc-assets
 *.config.js
 tsconfig.json
 .vscode/**
