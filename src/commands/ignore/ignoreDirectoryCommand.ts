@@ -16,7 +16,7 @@ export function registerIgnoreDirectoryCommand() {
       if (dirPath !== undefined) {
         ignoredDirectories.push(dirPath);
         await setConfig("workspace.ignoredDirectories", [...new Set(ignoredDirectories)]);
-        mage.setOptions({ task: "check", globalFlag: true, clearCache: true });
+        mage.setOptions({ task: "check" });
         await mage.execute();
         treeInstance.refresh();
       }

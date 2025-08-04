@@ -9,7 +9,7 @@ export function registerSetDisplayLangCommand() {
   const mage = LangMage.getInstance();
   const disposable = vscode.commands.registerCommand("i18nMage.setDisplayLang", async (lang: { key: string }) => {
     await wrapWithProgress({ title: "" }, async () => {
-      mage.setOptions({ displayLang: lang.key, task: "check", globalFlag: false, clearCache: false });
+      mage.setOptions({ displayLang: lang.key, task: "" });
       await mage.execute();
       const publicCtx = mage.getPublicContext();
       await setConfig("general.displayLanguage", publicCtx.displayLang);

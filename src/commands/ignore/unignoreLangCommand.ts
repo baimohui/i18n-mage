@@ -12,7 +12,7 @@ export function registerUnignoreLangCommand() {
       "workspace.ignoredLanguages",
       ignoredLangs.filter(i => i !== key)
     );
-    mage.setOptions({ task: "check", globalFlag: true, clearCache: true });
+    mage.setOptions({ task: "check" });
     await mage.execute();
     treeInstance.refresh();
   });

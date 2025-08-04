@@ -9,7 +9,7 @@ export function registerSetReferredLangCommand() {
   const mage = LangMage.getInstance();
   const disposable = vscode.commands.registerCommand("i18nMage.setReferredLang", async (lang: { key: string }) => {
     await wrapWithProgress({ title: "" }, async () => {
-      mage.setOptions({ referredLang: lang.key, task: "check", globalFlag: false, clearCache: false });
+      mage.setOptions({ referredLang: lang.key, task: "check" });
       await mage.execute();
       const publicCtx = mage.getPublicContext();
       await setConfig("translationServices.referenceLanguage", publicCtx.referredLang);

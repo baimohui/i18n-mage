@@ -27,7 +27,6 @@ export interface LangContextPublic {
   defaultLang: string;
   ignoredLangs: string[];
   globalFlag: boolean;
-  rewriteFlag: boolean;
   exportDir: string;
   cachePath: string;
   styleScore: number;
@@ -75,7 +74,6 @@ export interface LangContextInternal extends LangContextPublic {
   importExcelFrom: string;
   importSheetData: string;
   exportExcelTo: string;
-  clearCache: boolean;
   trimKeyList: string[];
   nameSeparator: string;
 }

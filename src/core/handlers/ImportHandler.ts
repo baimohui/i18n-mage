@@ -4,7 +4,6 @@ import { ExcelData } from "@/types";
 import { LangContextInternal } from "@/types";
 import { getLangIntro } from "@/utils/langKey";
 import { getDetectedLangList, setUpdatedEntryValueInfo } from "@/core/tools/contextTools";
-import { RewriteHandler } from "./RewriteHandler";
 import { t } from "@/utils/i18n";
 import { ExecutionResult, EXECUTION_RESULT_CODE } from "@/types";
 
@@ -15,7 +14,7 @@ export class ImportHandler {
     return getDetectedLangList(this.ctx);
   }
 
-  public async run(): Promise<ExecutionResult> {
+  public run(): ExecutionResult {
     try {
       if (!fs.existsSync(this.ctx.importExcelFrom)) {
         return {
@@ -76,9 +75,6 @@ export class ImportHandler {
             });
           }
         });
-      }
-      if (this.ctx.rewriteFlag) {
-        return await new RewriteHandler(this.ctx).run();
       }
       return { success: true, message: "", code: EXECUTION_RESULT_CODE.Success };
     } catch (e: unknown) {

@@ -20,7 +20,7 @@ export function registerOnFileSave() {
       (!isValidI18nCallablePath(filePath) && !isPathInsideDirectory(publicCtx.langPath, filePath))
     )
       return;
-    mage.setOptions({ task: "check", globalFlag: true, clearCache: true });
+    mage.setOptions({ task: "check" });
     await mage.execute();
     treeInstance.checkUsedInfo();
   }, 2000);

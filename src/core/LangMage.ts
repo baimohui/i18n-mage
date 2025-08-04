@@ -74,7 +74,7 @@ class LangMage {
       this.ctx.isVacant = false;
       console.time("elapsed");
       if (options) this.setOptions(options);
-      if (this.ctx.clearCache) this.reset();
+      if (this.ctx.task === "check") this.reset();
       const reader = new ReadHandler(this.ctx);
       reader.readLangFiles();
       if (this.detectedLangList.length === 0) {
@@ -95,12 +95,12 @@ class LangMage {
       this.ctx.referredLang = resolveLang(this.ctx.referredLang, true);
       this.ctx.displayLang = resolveLang(this.ctx.displayLang);
 
-      if (this.ctx.globalFlag) {
-        await reader.startCensus();
-      }
       let res = { success: true, message: "", code: EXECUTION_RESULT_CODE.Success };
       switch (this.ctx.task) {
         case "check":
+          if (this.ctx.globalFlag) {
+            await reader.startCensus();
+          }
           res = new CheckHandler(this.ctx).run();
           break;
         case "fix":
@@ -110,7 +110,7 @@ class LangMage {
           res = new ExportHandler(this.ctx).run();
           break;
         case "import":
-          res = await new ImportHandler(this.ctx).run();
+          res = new ImportHandler(this.ctx).run();
           break;
         case "sort":
           res = await new SortHandler(this.ctx).run();
@@ -147,7 +147,6 @@ class LangMage {
       defaultLang: this.ctx.defaultLang,
       ignoredLangs: this.ctx.ignoredLangs,
       globalFlag: this.ctx.globalFlag,
-      rewriteFlag: this.ctx.rewriteFlag,
       exportDir: this.ctx.exportDir,
       cachePath: this.ctx.cachePath,
       sortingWriteMode: this.ctx.sortingWriteMode,

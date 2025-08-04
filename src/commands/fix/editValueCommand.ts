@@ -18,13 +18,7 @@ export function registerEditValueCommand() {
         value
       });
       if (typeof newValue === "string" && newValue !== value && newValue.trim() !== "") {
-        mage.setOptions({
-          task: "modify",
-          modifyList: [{ ...e.data, value: newValue }],
-          globalFlag: false,
-          clearCache: false,
-          rewriteFlag: true
-        });
+        mage.setOptions({ task: "modify", modifyList: [{ ...e.data, value: newValue }] });
         const res = await mage.execute();
         if (res.success) {
           e.description = newValue;

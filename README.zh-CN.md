@@ -118,12 +118,12 @@ ext install jensen-wen.i18n-mage
 - 翻译服务（密钥、参考语言、匹配规则）
 - 检查规则（扫描文件、启用自动分析）
 - 写入规则（key 风格、引号样式、缩进等）
-- 内联提示样式（字体、颜色、最大字符数）
+- 内联提示样式（颜色、最大展示字符数）
 - 工作区配置（项目路径、忽略目录、忽略语言文件等）
 
 📌 可通过 VS Code 设置面板统一管理，也支持 `.vscode/settings.json` 中单独配置。
 
-📘 全部配置项请参阅 [完整配置文档](#配置详解)
+📘 全部配置项请参阅 [完整配置文档](#-配置详解)
 
 ---
 
@@ -161,7 +161,7 @@ const list = [
 ];
 ```
 
-脚本不仅支持 `t()` 原本的传参规则，而且还能直接对模板字符串或用 `+` 拼接的字符串进行分析匹配。因此上面这段代码所使用的框架为 `vue-i18n`，则这五个未定义的文案会被修正成如下：
+插件不仅支持 `t()` 原本的传参规则，而且还能直接对模板字符串或用 `+` 拼接的字符串进行分析匹配。假设上面这段代码所使用的框架为 `vue-i18n`，则这五个未定义的文案会被修正成如下：
 
 ```js
 import { i18n } from "@/i18n.js";
@@ -170,8 +170,8 @@ const list = [
   i18n.t(`thisIsTextContainingVariableName`, { name: variable }),
   i18n.t(`thisIsAlsoTextContainingVariable0`, [variable]),
   i18n.t("thisIsAlsoTextContainingVariable0", [variable]),
-  i18n.t("testText0", [variable, variable]),
-  i18n.t("testText1", [variable, variable])
+  i18n.t("testText01", [variable, variable]),
+  i18n.t("testText02", [variable, variable])
 ];
 ```
 
@@ -185,7 +185,7 @@ import { i18n } from "@/i18n.js";
 function t(params) {
   return params;
 }
-t("这个函数就要叫做 t");
+t("名称为 t 的非国际化转换函数");
 // i18n-mage-enable
 const errorInfo = i18n.t("保存失败");
 ```
@@ -214,7 +214,7 @@ const errorInfo = i18n.t("保存失败");
 
 支持 `.json` / `.json5` / `.js` / `.ts` 等。
 
-### Q: 词条支持哪些引入方式？
+### Q：词条支持哪些引入方式？
 
 插件主要基于国际化转换函数函数进行词条识别，因此推荐使用 `t()` 函数引入词条（函数名称可自行配置）。函数参数支持拼接的方式，例如 `t("prefix." + key + ".suffix")`。插件会提取其正则表达式用以匹配，当匹配多个词条时，这些词条都会被判定为已使用，而在进行内联翻译提示时，则仅显示第一个匹配结果。
 另外，在统计词条使用信息时，考虑到 key 可能没有被直接传入 `t()` 函数中的情况，插件还支持批量读取文件中字符串类型的值作为可能被使用的词条 key。

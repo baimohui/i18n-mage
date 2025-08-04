@@ -1,5 +1,4 @@
 import { LangContextInternal, LackInfo } from "@/types";
-import { CheckHandler } from "./CheckHandler";
 import { getLangCode } from "@/utils/langKey";
 import { TEntry, I18N_FRAMEWORK } from "@/types";
 import {
@@ -32,8 +31,6 @@ export class FixHandler {
   public async run(): Promise<ExecutionResult> {
     try {
       this.needFix = false;
-      const checker = new CheckHandler(this.ctx);
-      checker.run();
       if (!this.ctx.referredLang) {
         return {
           success: false,

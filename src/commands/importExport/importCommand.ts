@@ -13,7 +13,7 @@ export function registerImportCommand() {
   const importData = async () => {
     mage.setOptions({ task: "rewrite" });
     const res = await mage.execute();
-    mage.setOptions({ task: "check", globalFlag: true, clearCache: true });
+    mage.setOptions({ task: "check" });
     await mage.execute();
     treeInstance.refresh();
     NotificationManager.showResult(res, t("command.import.success"));
@@ -30,14 +30,11 @@ export function registerImportCommand() {
     const fileUri = await vscode.window.showOpenDialog(options);
     if (Array.isArray(fileUri) && fileUri.length > 0) {
       await wrapWithProgress({ title: t("command.import.progress") }, async () => {
-        const rewriteFlag = !getConfig<boolean>("general.previewChanges", true);
+        const previewChanges = getConfig<boolean>("general.previewChanges", true);
         const filePath = fileUri[0].fsPath;
-        mage.setOptions({ task: "import", importExcelFrom: filePath, rewriteFlag });
-        const res = await mage.execute();
+        const res = await mage.execute({ task: "import", importExcelFrom: filePath });
         if (res.success) {
-          if (rewriteFlag) {
-            await importData();
-          } else {
+          if (previewChanges) {
             const publicCtx = mage.getPublicContext();
             const { updatedValues, patchedIds, countryMap } = mage.langDetail;
             if ([updatedValues, patchedIds].some(item => Object.keys(item).length > 0)) {
@@ -47,6 +44,8 @@ export function registerImportCommand() {
             } else {
               NotificationManager.showWarning(t("command.import.nullWarn"));
             }
+          } else {
+            await importData();
           }
         }
       });

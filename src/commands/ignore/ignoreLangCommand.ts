@@ -10,7 +10,7 @@ export function registerIgnoreLangCommand() {
     const ignoredLangs = getConfig<string[]>("workspace.ignoredLanguages", []);
     ignoredLangs.push(key);
     await setConfig("workspace.ignoredLanguages", [...new Set(ignoredLangs)]);
-    mage.setOptions({ task: "check", globalFlag: true, clearCache: true });
+    mage.setOptions({ task: "check" });
     await mage.execute();
     treeInstance.refresh();
   });

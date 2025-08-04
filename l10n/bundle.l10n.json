@@ -36,6 +36,7 @@
   "command.markAsUsed.success": "Marked as used: {0}",
   "command.modify.error": "Failed to modify the entry, and no valid entry name was detected",
   "command.modify.title": "Modify the entry",
+  "command.rewrite.progress": "Writing...",
   "command.rewrite.success": "Write successful",
   "command.rewrite.title": "Write entries",
   "command.selectLangPath.error": "Invalid translation file directory",

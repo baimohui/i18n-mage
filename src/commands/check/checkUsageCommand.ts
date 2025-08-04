@@ -10,7 +10,7 @@ export function registerCheckUsageCommand() {
   const mage = LangMage.getInstance();
   const throttledHandler = throttle(async () => {
     await wrapWithProgress({ title: t("command.check.progress") }, async () => {
-      mage.setOptions({ task: "check", globalFlag: true, clearCache: true });
+      mage.setOptions({ task: "check" });
       const res = await mage.execute();
       if (res.success) {
         treeInstance.refresh();

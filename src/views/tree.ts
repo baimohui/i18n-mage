@@ -136,13 +136,13 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
       this.#mage.setOptions({ projectPath, defaultLang: vscodeLang });
       const configLangPath = getConfig<string>("workspace.languagePath", "");
       if (configLangPath) {
-        this.#mage.setOptions({ langPath: toAbsolutePath(configLangPath), task: "check", globalFlag: true, clearCache: true });
+        this.#mage.setOptions({ langPath: toAbsolutePath(configLangPath), task: "check" });
         await this.#mage.execute();
       }
       if (this.#mage.detectedLangList.length === 0) {
         const possibleLangPaths = await getPossibleLangPaths(projectPath);
         for (const langPath of possibleLangPaths) {
-          this.#mage.setOptions({ langPath, task: "check", globalFlag: true, clearCache: false });
+          this.#mage.setOptions({ langPath, task: "check" });
           await this.#mage.execute();
           if (this.#mage.detectedLangList.length > 0) {
             break;

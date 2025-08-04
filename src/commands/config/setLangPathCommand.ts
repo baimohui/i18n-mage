@@ -13,7 +13,7 @@ export function registerSetLangPathCommand() {
   const disposable = vscode.commands.registerCommand("i18nMage.setLangPath", async (uri: vscode.Uri) => {
     await wrapWithProgress({ title: "" }, async () => {
       const langPath = uri.fsPath;
-      mage.setOptions({ langPath, task: "check", globalFlag: true, clearCache: true });
+      mage.setOptions({ langPath, task: "check" });
       await mage.execute();
       if (mage.detectedLangList.length === 0) {
         NotificationManager.showWarning(t("command.selectLangPath.error"));

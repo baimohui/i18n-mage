@@ -13,9 +13,7 @@ export class TrimHandler {
         this.ctx.trimKeyList.forEach(name => {
           setUpdatedEntryValueInfo(this.ctx, name, undefined);
         });
-        if (this.ctx.rewriteFlag) {
-          return await new RewriteHandler(this.ctx).run();
-        }
+        return await new RewriteHandler(this.ctx).run();
       } else {
         return { success: true, message: t("command.trim.nullWarn"), code: EXECUTION_RESULT_CODE.NoTrimEntries };
       }

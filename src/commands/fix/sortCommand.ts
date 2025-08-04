@@ -11,7 +11,7 @@ export function registerSortCommand() {
   const disposable = vscode.commands.registerCommand("i18nMage.sort", async () => {
     let res: ExecutionResult | null = null;
     await wrapWithProgress({ title: t("command.sort.progress") }, async () => {
-      mage.setOptions({ task: "sort", globalFlag: true, clearCache: false });
+      mage.setOptions({ task: "sort" });
       res = await mage.execute();
     });
     setTimeout(() => {

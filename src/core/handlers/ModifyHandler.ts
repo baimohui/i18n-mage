@@ -19,10 +19,7 @@ export class ModifyHandler {
           return { success: false, message: t("command.modify.error"), code: EXECUTION_RESULT_CODE.InvalidEntryName };
         }
       });
-      if (this.ctx.rewriteFlag) {
-        return await new RewriteHandler(this.ctx).run();
-      }
-      return { success: true, message: "", code: EXECUTION_RESULT_CODE.Success };
+      return await new RewriteHandler(this.ctx).run();
     } catch (e: unknown) {
       const errorMessage = t("common.progress.error", e instanceof Error ? e.message : (e as string));
       return { success: false, message: errorMessage, code: EXECUTION_RESULT_CODE.UnknownModifyError };

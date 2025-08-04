@@ -16,7 +16,7 @@ export function registerIgnoreFileCommand() {
       if (filePath !== undefined) {
         ignoredFiles.push(filePath);
         await setConfig("workspace.ignoredFiles", [...new Set(ignoredFiles)]);
-        mage.setOptions({ task: "check", globalFlag: true, clearCache: true });
+        mage.setOptions({ task: "check" });
         await mage.execute();
         treeInstance.refresh();
       }

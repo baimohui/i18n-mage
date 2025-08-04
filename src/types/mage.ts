@@ -10,12 +10,10 @@ export interface LangMageOptions {
   displayLang?: string;
   defaultLang?: string;
   globalFlag?: boolean;
-  rewriteFlag?: boolean;
   exportDir?: string;
   cachePath?: string;
   importExcelFrom?: string;
   exportExcelTo?: string;
-  clearCache?: boolean;
   syncBasedOnReferredEntries?: boolean;
   sortingWriteMode?: SortMode;
   sortingExportMode?: SortMode;

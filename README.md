@@ -99,7 +99,7 @@ Or visit [i18n Mage on Marketplace](https://marketplace.visualstudio.com/items?i
 
 > All settings are accessible via the VS Code Settings UI or in `.vscode/settings.json`.
 
-See [Full Config Reference](#full-config-reference) for all options.
+See [Full Config Reference](#-full-config-reference) for all options.
 
 ## 🎹 Commands & Shortcuts
 

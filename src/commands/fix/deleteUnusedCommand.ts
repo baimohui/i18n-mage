@@ -16,16 +16,10 @@ export function registerDeleteUnusedCommand() {
       { title: t("common.confirm") }
     );
     if (confirmDelete?.title === t("common.confirm")) {
-      mage.setOptions({
-        task: "trim",
-        trimKeyList: e.data,
-        globalFlag: false,
-        clearCache: false,
-        rewriteFlag: true
-      });
+      mage.setOptions({ task: "trim", trimKeyList: e.data });
       const res = await mage.execute();
       if (res.success) {
-        mage.setOptions({ task: "check", globalFlag: true, clearCache: true });
+        mage.setOptions({ task: "check" });
         await mage.execute();
         treeInstance.refresh();
       }

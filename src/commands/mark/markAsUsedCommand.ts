@@ -15,7 +15,7 @@ export function registerMarkAsUsedCommand() {
     const usedNameList = e.data.map(key => unescapeString(key));
     manuallyMarkedUsedEntries.push(...usedNameList);
     await setConfig("workspace.manuallyMarkedUsedEntries", manuallyMarkedUsedEntries);
-    mage.setOptions({ task: "check", globalFlag: true, clearCache: true });
+    mage.setOptions({ task: "check" });
     const res = await mage.execute();
     treeInstance.refresh();
     NotificationManager.showResult(res, t("command.markAsUsed.success", usedNameList.join(", ")));

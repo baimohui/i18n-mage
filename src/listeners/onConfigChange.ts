@@ -11,7 +11,8 @@ export function registerOnConfigChange() {
     if (!event.affectsConfiguration("i18n-mage")) return;
     if (
       event.affectsConfiguration("i18n-mage.analysis.syncBasedOnReferredEntries") ||
-      event.affectsConfiguration("i18n-mage.analysis.scanStringLiterals")
+      event.affectsConfiguration("i18n-mage.analysis.scanStringLiterals") ||
+      event.affectsConfiguration("i18n-mage.analysis.ignoreCommentedCode")
     ) {
       vscode.commands.executeCommand("i18nMage.checkUsage");
     } else if (

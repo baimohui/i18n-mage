@@ -36,6 +36,7 @@
   "command.markAsUsed.success": "已标记为使用中：{0}",
   "command.modify.error": "修改词条失败，未检测有效的词条名",
   "command.modify.title": "修改词条",
+  "command.rewrite.progress": "写入中",
   "command.rewrite.success": "写入成功",
   "command.rewrite.title": "写入词条",
   "command.selectLangPath.error": "无效的翻译文件目录",

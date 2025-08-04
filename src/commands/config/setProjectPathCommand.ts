@@ -17,7 +17,7 @@ export function registerSetProjectPathCommand() {
         NotificationManager.showWarning(t("command.setProjectPath.invalidFolder"));
         return;
       }
-      mage.setOptions({ task: "check", projectPath, globalFlag: true, clearCache: true });
+      mage.setOptions({ task: "check", projectPath });
       await mage.execute();
       await setConfig("workspace.projectPath", toRelativePath(projectPath));
       treeInstance.refresh();
