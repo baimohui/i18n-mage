@@ -11,16 +11,14 @@ import { getConfig } from "@/utils/config";
 export function registerImportCommand() {
   const mage = LangMage.getInstance();
   const importData = async () => {
-    await wrapWithProgress({ title: t("command.rewrite.progress") }, async () => {
-      mage.setOptions({ task: "rewrite" });
-      const res = await mage.execute();
-      mage.setOptions({ task: "check" });
-      await mage.execute();
-      setTimeout(() => {
-        treeInstance.refresh();
-        NotificationManager.showResult(res, t("command.import.success"));
-      }, 1000);
-    });
+    mage.setOptions({ task: "rewrite" });
+    const res = await mage.execute();
+    mage.setOptions({ task: "check" });
+    await mage.execute();
+    setTimeout(() => {
+      treeInstance.refresh();
+      NotificationManager.showResult(res, t("command.import.success"));
+    }, 1000);
   };
   const disposable = vscode.commands.registerCommand("i18nMage.import", async () => {
     NotificationManager.showTitle(t("command.import.title"));
@@ -37,19 +35,19 @@ export function registerImportCommand() {
         const previewChanges = getConfig<boolean>("general.previewChanges", true);
         const filePath = fileUri[0].fsPath;
         const res = await mage.execute({ task: "import", importExcelFrom: filePath });
-        if (res.success) {
-          if (previewChanges) {
-            const publicCtx = mage.getPublicContext();
-            const { updatedValues, patchedIds, countryMap } = mage.langDetail;
-            if ([updatedValues, patchedIds].some(item => Object.keys(item).length > 0)) {
+        if (previewChanges) {
+          const publicCtx = mage.getPublicContext();
+          const { updatedValues, patchedIds, countryMap } = mage.langDetail;
+          if ([updatedValues, patchedIds].some(item => Object.keys(item).length > 0)) {
+            if (res.success) {
               previewFixContent(updatedValues, patchedIds, countryMap, publicCtx.referredLang, async () => {
-                await importData();
+                await wrapWithProgress({ title: t("command.rewrite.progress") }, importData);
               });
             } else {
-              NotificationManager.showWarning(t("command.import.nullWarn"));
+              await importData();
             }
           } else {
-            await importData();
+            NotificationManager.showWarning(t("command.import.nullWarn"));
           }
         }
       });

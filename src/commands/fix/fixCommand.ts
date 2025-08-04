@@ -11,15 +11,13 @@ import { getConfig } from "@/utils/config";
 export function registerFixCommand() {
   const mage = LangMage.getInstance();
   const rewrite = async () => {
-    await wrapWithProgress({ title: t("command.rewrite.progress") }, async () => {
-      const res = await mage.execute({ task: "rewrite" });
-      await mage.execute({ task: "check" });
-      setTimeout(() => {
-        treeInstance.isSyncing = false;
-        treeInstance.refresh();
-        NotificationManager.showResult(res, t("command.rewrite.success"));
-      }, 1000);
-    });
+    const res = await mage.execute({ task: "rewrite" });
+    await mage.execute({ task: "check" });
+    setTimeout(() => {
+      treeInstance.isSyncing = false;
+      treeInstance.refresh();
+      NotificationManager.showResult(res, t("command.rewrite.success"));
+    }, 1000);
   };
   const disposable = vscode.commands.registerCommand("i18nMage.fix", async () => {
     await wrapWithProgress({ title: t("command.fix.progress"), cancellable: true, timeout: 1000 * 60 * 10 }, async () => {
@@ -35,7 +33,9 @@ export function registerFixCommand() {
           if ([updatedValues, patchedIds].some(item => Object.keys(item).length > 0)) {
             treeInstance.isSyncing = false;
             treeInstance.refresh();
-            previewFixContent(updatedValues, patchedIds, countryMap, publicCtx.referredLang, rewrite);
+            previewFixContent(updatedValues, patchedIds, countryMap, publicCtx.referredLang, async () => {
+              await wrapWithProgress({ title: t("command.rewrite.progress") }, rewrite);
+            });
           }
         } else {
           await rewrite();
