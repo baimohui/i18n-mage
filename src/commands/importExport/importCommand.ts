@@ -11,12 +11,16 @@ import { getConfig } from "@/utils/config";
 export function registerImportCommand() {
   const mage = LangMage.getInstance();
   const importData = async () => {
-    mage.setOptions({ task: "rewrite" });
-    const res = await mage.execute();
-    mage.setOptions({ task: "check" });
-    await mage.execute();
-    treeInstance.refresh();
-    NotificationManager.showResult(res, t("command.import.success"));
+    await wrapWithProgress({ title: t("command.rewrite.progress") }, async () => {
+      mage.setOptions({ task: "rewrite" });
+      const res = await mage.execute();
+      mage.setOptions({ task: "check" });
+      await mage.execute();
+      setTimeout(() => {
+        treeInstance.refresh();
+        NotificationManager.showResult(res, t("command.import.success"));
+      }, 1000);
+    });
   };
   const disposable = vscode.commands.registerCommand("i18nMage.import", async () => {
     NotificationManager.showTitle(t("command.import.title"));

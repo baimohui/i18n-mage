@@ -1,6 +1,7 @@
 import * as vscode from "vscode";
 import { t } from "@/utils/i18n";
 import LangMage from "@/core/LangMage";
+import { treeInstance } from "@/views/tree";
 import { getConfig } from "@/utils/config";
 import { getValueByAmbiguousEntryName, catchTEntries, unescapeString, isValidI18nCallablePath } from "@/utils/regex";
 
@@ -25,13 +26,11 @@ export class Diagnostics {
     if (!getConfig<boolean>("translationHints.enable", true)) return;
     if (!isValidI18nCallablePath(document.uri.fsPath)) return;
     const mage = LangMage.getInstance();
-    const publicCtx = mage.getPublicContext();
-
     const text = document.getText();
     const entries = catchTEntries(text);
     const diagnostics: vscode.Diagnostic[] = [];
     const { tree, countryMap } = mage.langDetail;
-    const translations = countryMap[publicCtx.displayLang];
+    const translations = countryMap[treeInstance.displayLang];
     if (translations === undefined) return;
     const totalEntryList = Object.keys(mage.langDetail.dictionary).map(key => unescapeString(key));
 

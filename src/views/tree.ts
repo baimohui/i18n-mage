@@ -2,7 +2,7 @@ import * as vscode from "vscode";
 import LangMage from "@/core/LangMage";
 import { catchTEntries, unescapeString, getValueByAmbiguousEntryName, detectI18nFramework, internalToDisplayName } from "@/utils/regex";
 import { getPossibleLangPaths, isLikelyProjectPath, toAbsolutePath, toRelativePath } from "@/utils/fs";
-import { getLangText } from "@/utils/langKey";
+import { getLangCode, getLangText } from "@/utils/langKey";
 import { LangContextPublic, TEntry, LangTree, SORT_MODE, I18nFramework } from "@/types";
 import { t } from "@/utils/i18n";
 import { NotificationManager } from "@/utils/notification";
@@ -39,6 +39,7 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
   publicCtx: LangContextPublic;
   isInitialized = false;
   isSyncing = false;
+  displayLang = "";
   usedEntries: TEntry[] = [];
   definedEntriesInCurrentFile: TEntry[] = [];
   undefinedEntriesInCurrentFile: TEntry[] = [];
@@ -84,11 +85,23 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
 
   refresh(): void {
     this.publicCtx = this.#mage.getPublicContext();
-    this._onDidChangeTreeData.fire();
+    const resolveLang = (target: string) => {
+      const targetCode = getLangCode(target);
+      const defaultCode = getLangCode(this.publicCtx.defaultLang);
+      return (
+        this.#mage.detectedLangList.find(lang => lang === target) ??
+        this.#mage.detectedLangList.find(lang => getLangCode(lang) === targetCode) ??
+        this.#mage.detectedLangList.find(lang => getLangCode(lang) === defaultCode) ??
+        this.#mage.detectedLangList.find(lang => getLangCode(lang) === "en") ??
+        this.#mage.detectedLangList[0]
+      );
+    };
+    this.displayLang = resolveLang(getConfig<string>("general.displayLanguage"));
     const decorator = DecoratorController.getInstance();
     decorator.update(vscode.window.activeTextEditor);
     const diagnostics = Diagnostics.getInstance();
     vscode.workspace.textDocuments.forEach(doc => diagnostics.update(doc));
+    this._onDidChangeTreeData.fire();
   }
 
   getTreeItem(element: vscode.TreeItem): vscode.TreeItem {
@@ -250,7 +263,7 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
           collapsibleState: vscode.TreeItemCollapsibleState[this.definedEntriesInCurrentFile.length === 0 ? "None" : "Collapsed"],
           data: this.definedEntriesInCurrentFile.map(item => ({
             name: item.nameInfo.name,
-            value: this.countryMap[this.publicCtx.displayLang][getValueByAmbiguousEntryName(this.tree, item.nameInfo.name) as string] ?? ""
+            value: this.countryMap[this.displayLang][getValueByAmbiguousEntryName(this.tree, item.nameInfo.name) as string] ?? ""
           })),
           contextValue: definedContextValueList.join(","),
           level: 1,
@@ -275,7 +288,7 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
         return {
           name: entry.nameInfo.name,
           label: internalToDisplayName(entry.nameInfo.text),
-          description: entryInfo[this.publicCtx.displayLang],
+          description: entryInfo[this.displayLang],
           collapsibleState: vscode.TreeItemCollapsibleState[element.type === "defined" ? "Collapsed" : "None"],
           level: 2,
           contextValue: contextValueList.join(","),
@@ -405,7 +418,7 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
             key,
             name,
             label: internalToDisplayName(name),
-            description: `<${usedNum || "?"}>${entryInfo[this.publicCtx.displayLang]}`,
+            description: `<${usedNum || "?"}>${entryInfo[this.displayLang]}`,
             level: 2,
             contextValue: usedNum === 0 ? "usedGroupItem-None" : "usedGroupItem",
             type: element.type,
@@ -421,7 +434,7 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
           const contextValueList = ["unusedGroupItem", "COPY_NAME"];
           return {
             label: internalToDisplayName(name),
-            description: entryInfo[this.publicCtx.displayLang],
+            description: entryInfo[this.displayLang],
             level: 2,
             root: element.root,
             data: [key],
@@ -478,7 +491,7 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
           const stack = (element.stack || []).concat(item[0]);
           return {
             label: internalToDisplayName(item[0]),
-            description: typeof item[1] === "string" ? this.dictionary[item[1]][this.publicCtx.displayLang] : false,
+            description: typeof item[1] === "string" ? this.dictionary[item[1]][this.displayLang] : false,
             root: element.root,
             id: this.genId(element, item[0]),
             stack,
@@ -540,7 +553,7 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
     if (extraNum > 0) {
       list.push(`+${extraNum}`);
     }
-    if (lang === this.publicCtx.referredLang && lang === this.publicCtx.displayLang) {
+    if (lang === this.publicCtx.referredLang && lang === this.displayLang) {
       list.push("🧙");
       tooltip += ` (${t("tree.syncInfo.baseline")})`;
       contextValueList.push("REFERENCE_LANG", "DISPLAY_LANG");
@@ -548,7 +561,7 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
       tooltip += ` (${t("tree.syncInfo.source")})`;
       list.push("🌐");
       contextValueList.push("REFERENCE_LANG");
-    } else if (lang === this.publicCtx.displayLang) {
+    } else if (lang === this.displayLang) {
       tooltip += ` (${t("tree.syncInfo.display")})`;
       list.push("👁️");
       contextValueList.push("DISPLAY_LANG");

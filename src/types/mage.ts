@@ -7,7 +7,6 @@ export interface LangMageOptions {
   i18nFramework?: I18nFramework;
   ignoredLangs?: string[];
   referredLang?: string;
-  displayLang?: string;
   defaultLang?: string;
   globalFlag?: boolean;
   exportDir?: string;

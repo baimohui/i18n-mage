@@ -1,5 +1,6 @@
 import * as vscode from "vscode";
 import LangMage from "@/core/LangMage";
+import { treeInstance } from "@/views/tree";
 import { getValueByAmbiguousEntryName, catchTEntries, getLineEnding, unescapeString, isValidI18nCallablePath } from "@/utils/regex";
 import { getConfig } from "@/utils/config";
 import { TEntry } from "@/types";
@@ -54,10 +55,9 @@ export class DecoratorController implements vscode.Disposable {
     }
     if (isValidI18nCallablePath(editor.document.uri.fsPath)) {
       const mage = LangMage.getInstance();
-      const publicCtx = mage.getPublicContext();
       this.currentEditor = editor;
       const { tree, countryMap } = mage.langDetail;
-      const translations = countryMap[publicCtx.displayLang];
+      const translations = countryMap[treeInstance.displayLang];
       if (translations === undefined) return;
       // 获取可视区域范围
       const visibleRanges = editor.visibleRanges;

@@ -35,7 +35,6 @@ class LangMage {
     if (Object.prototype.toString.call(options) === "[object Object]") {
       const combinedOptions: LangMageOptions = {
         referredLang: getConfig<string>("translationServices.referenceLanguage", this.ctx.referredLang),
-        displayLang: getConfig<string>("general.displayLanguage", this.ctx.displayLang),
         i18nFramework: getConfig<I18nFramework>("i18nFeatures.framework", this.ctx.i18nFramework),
         ignoredLangs: getConfig<string[]>("workspace.ignoredLanguages", this.ctx.ignoredLangs),
         manuallyMarkedUsedEntries: getConfig<string[]>("workspace.manuallyMarkedUsedEntries", this.ctx.manuallyMarkedUsedEntries),
@@ -93,7 +92,6 @@ class LangMage {
         );
       };
       this.ctx.referredLang = resolveLang(this.ctx.referredLang, true);
-      this.ctx.displayLang = resolveLang(this.ctx.displayLang);
 
       let res = { success: true, message: "", code: EXECUTION_RESULT_CODE.Success };
       switch (this.ctx.task) {
@@ -143,7 +141,6 @@ class LangMage {
       langFileType: this.ctx.langFileType,
       projectPath: this.ctx.projectPath,
       referredLang: this.ctx.referredLang,
-      displayLang: this.ctx.displayLang,
       defaultLang: this.ctx.defaultLang,
       ignoredLangs: this.ctx.ignoredLangs,
       globalFlag: this.ctx.globalFlag,

@@ -23,7 +23,6 @@ export interface LangContextPublic {
   projectPath: string;
   i18nFramework: I18nFramework;
   referredLang: string;
-  displayLang: string;
   defaultLang: string;
   ignoredLangs: string[];
   globalFlag: boolean;
