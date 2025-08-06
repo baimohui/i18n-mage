@@ -1,6 +1,6 @@
-import { httpsOverHttp } from "tunnel";
 import { translate } from "@vitalets/google-translate-api";
 import { t } from "@/utils/i18n";
+import { getProxyAgent } from "@/utils/proxy";
 
 interface TranslateParams {
   source: string;
@@ -85,21 +85,12 @@ async function sendBatch(
 
 async function send(source: string, target: string, sourceTextList: string[]): Promise<TranslateResult> {
   const sourceText = sourceTextList.join("\n");
+  const agent = getProxyAgent();
   try {
     const res = (await translate(sourceText, {
       from: source,
       to: target,
-      fetchOptions: {
-        agent: (httpsOverHttp as unknown as (options: any) => import("https").Agent)({
-          proxy: {
-            port: 7890,
-            host: "127.0.0.1",
-            headers: {
-              "User-Agent": "Node"
-            }
-          }
-        })
-      }
+      fetchOptions: { agent }
     })) as { text: string; message?: string };
 
     if (res.text) {

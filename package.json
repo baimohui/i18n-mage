@@ -173,8 +173,36 @@
             "default": "",
             "description": "%config.tencentSecretKey.desc%"
           },
-          "i18n-mage.translationServices.translateApiPriority": {
+          "i18n-mage.translationServices.proxy.enable": {
             "order": 15,
+            "type": "boolean",
+            "default": false,
+            "description": "%config.enableProxy.desc%"
+          },
+          "i18n-mage.translationServices.proxy.host": {
+            "order": 16,
+            "type": "string",
+            "default": "127.0.0.1",
+            "description": "%config.proxyHost.desc%"
+          },
+          "i18n-mage.translationServices.proxy.port": {
+            "order": 17,
+            "type": "number",
+            "default": 7890,
+            "description": "%config.proxyPort.desc%"
+          },
+          "i18n-mage.translationServices.proxy.protocol": {
+            "order": 18,
+            "type": "string",
+            "default": "http",
+            "enum": [
+              "http",
+              "https"
+            ],
+            "description": "%config.proxyProtocol.desc%"
+          },
+          "i18n-mage.translationServices.translateApiPriority": {
+            "order": 20,
             "type": "array",
             "default": [
               "google",
@@ -195,7 +223,7 @@
             "uniqueItems": true
           },
           "i18n-mage.translationServices.langAliasCustomMappings": {
-            "order": 20,
+            "order": 22,
             "type": "object",
             "description": "%config.langAliasCustomMappings.desc%",
             "default": {},
