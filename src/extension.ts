@@ -51,7 +51,7 @@ class ExtensionState {
     if (!this._context) return;
     NotificationManager.init();
     vscode.window.registerTreeDataProvider("treeProvider", treeInstance);
-    registerAllCommands();
+    registerAllCommands(this._context);
     registerAllListeners();
     registerDisposable(vscode.languages.registerHoverProvider("*", new HoverProvider()));
     this._extensionSubscriptions = bindDisposablesToContext(this._context);

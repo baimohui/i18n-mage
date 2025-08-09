@@ -1,3 +1,4 @@
+import * as vscode from "vscode";
 import { registerCheckUsageCommand } from "./check/checkUsageCommand";
 import { registerMarkAsKnownLangCommand } from "./mark/markAsKnownLangCommand";
 import { registerSetReferredLangCommand } from "./config/setReferredLangCommand";
@@ -24,7 +25,7 @@ import { registerUnignoreLangCommand } from "./ignore/unignoreLangCommand";
 import { registerUnmarkAsUsedCommand } from "./mark/unmarkAsUsedCommand";
 import { registerToggleInlineTranslationCommand } from "./config/toggleInlineTranslationCommand";
 
-export function registerAllCommands() {
+export function registerAllCommands(context: vscode.ExtensionContext) {
   registerCheckUsageCommand();
   registerMarkAsKnownLangCommand();
   registerSetReferredLangCommand();
@@ -37,7 +38,7 @@ export function registerAllCommands() {
   registerCopyValueCommand();
   registerDeleteUnusedCommand();
   registerEditValueCommand();
-  registerFixCommand();
+  registerFixCommand(context);
   registerSortCommand();
   registerExportCommand();
   registerImportCommand();

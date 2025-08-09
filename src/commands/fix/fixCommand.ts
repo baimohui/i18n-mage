@@ -9,7 +9,7 @@ import { NotificationManager } from "@/utils/notification";
 import { getConfig } from "@/utils/config";
 import { getCommonFilePaths } from "@/utils/regex";
 
-export function registerFixCommand() {
+export function registerFixCommand(context: vscode.ExtensionContext) {
   const mage = LangMage.getInstance();
   const rewrite = async () => {
     const res = await mage.execute({ task: "rewrite" });
@@ -25,12 +25,15 @@ export function registerFixCommand() {
     const { multiFileMode, undefined: undefinedMap } = mage.langDetail;
     const publicCtx = mage.getPublicContext();
     if (publicCtx.autoTranslateMissingKey && Object.keys(undefinedMap).length > 0 && multiFileMode && publicCtx.fileStructure) {
-      const commonFilePaths = getCommonFilePaths(publicCtx.fileStructure);
-      const targetFilePath = await vscode.window.showQuickPick(commonFilePaths, {
+      const commonFiles = getCommonFilePaths(publicCtx.fileStructure);
+      const lastPicked = context.globalState.get<string>("lastPickedFile");
+      const sortedFiles = lastPicked !== undefined ? [lastPicked, ...commonFiles.filter(f => f !== lastPicked)] : commonFiles;
+      const target = await vscode.window.showQuickPick(sortedFiles, {
         placeHolder: t("command.fix.selectFileToWrite")
       });
-      if (typeof targetFilePath === "string" && targetFilePath.trim()) {
-        mage.setOptions({ defaultFilePos: `${targetFilePath.replaceAll("/", ".")}.` });
+      if (typeof target === "string" && target.trim()) {
+        mage.setOptions({ defaultFilePos: `${target.replaceAll("/", ".")}.` });
+        await context.globalState.update("lastPickedFile", target);
       } else {
         return;
       }

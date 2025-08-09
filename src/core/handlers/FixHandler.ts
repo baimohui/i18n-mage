@@ -128,11 +128,7 @@ export class FixHandler {
         if (nameInfo.boundClass && !nameInfo.boundClass.endsWith(this.ctx.nameSeparator)) {
           nameInfo.boundClass += this.ctx.nameSeparator;
         }
-        let baseName = nameInfo.boundClass || namePrefix;
-        const structure = this.ctx.fileStructure?.children?.[this.ctx.referredLang];
-        if (this.ctx.multiFileMode > 0 && structure && getFileLocationFromId(baseName, structure) === null) {
-          baseName = this.ctx.defaultFilePos + baseName;
-        }
+        const baseName = nameInfo.boundClass || namePrefix;
         const maxLen = this.ctx.maxGeneratedKeyLength;
         let entryName = baseName + id;
         const needsAnotherName = entryName.length > maxLen || id.length === 0 || checkExisted(entryName);
@@ -155,6 +151,10 @@ export class FixHandler {
         }
         nameInfo.boundName = entryName;
         newIdSet.add(entryName);
+      }
+      const structure = this.ctx.fileStructure?.children?.[this.ctx.referredLang];
+      if (this.ctx.multiFileMode > 0 && structure && getFileLocationFromId(nameInfo.boundName, structure) === null) {
+        nameInfo.boundName = this.ctx.defaultFilePos + nameInfo.boundName;
       }
       patchedEntryIdList.push({ ...entry, fixedRaw: this.getFixedRaw(entry, nameInfo.boundName) });
       this.needFix = true;

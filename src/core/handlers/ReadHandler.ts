@@ -37,12 +37,10 @@ export class ReadHandler {
     const { structure, lookup } = this.buildEntryTreeAndDictionary(langTree);
     this.ctx.entryTree = structure;
     this.ctx.langDictionary = lookup;
-    if (this.ctx.keyPrefix === "auto-popular") {
-      const entryNameList = Object.keys(lookup).map(key => unescapeString(key));
-      this.ctx.nameSeparator = this.detectCommonSeparator(entryNameList);
-      if (this.ctx.nameSeparator) {
-        entryNameList.forEach(name => this.genEntryClassTree(name));
-      }
+    const entryNameList = Object.keys(lookup).map(key => unescapeString(key));
+    this.ctx.nameSeparator = this.detectCommonSeparator(entryNameList);
+    if (this.ctx.keyPrefix === "auto-popular" && this.ctx.nameSeparator) {
+      entryNameList.forEach(name => this.genEntryClassTree(name));
     }
   }
 
