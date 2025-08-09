@@ -17,6 +17,7 @@
   "command.fix.nullWarn": "No entries to fix",
   "command.fix.progress": "Fixing...",
   "command.fix.progressDetail": "Call {1} ​​API to {0}, adding new translation: {2}",
+  "command.fix.selectFileToWrite": "Select the file to write translations for undefined entries",
   "command.fix.success": "Fix completed",
   "command.fix.translatorFailed": "Translation service is abnormal, please check the network connection and service configuration",
   "command.ignoreFile.progress": "Refreshing...",

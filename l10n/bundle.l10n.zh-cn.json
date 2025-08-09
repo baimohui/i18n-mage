@@ -17,6 +17,7 @@
   "command.fix.nullWarn": "未发现需要修复的词条",
   "command.fix.progress": "修复中",
   "command.fix.progressDetail": "对 {0} 调用 {1} API，新增翻译：{2}",
+  "command.fix.selectFileToWrite": "选择要写入未定义词条翻译的文件",
   "command.fix.success": "修复成功",
   "command.fix.translatorFailed": "翻译服务异常，请检查网络连接和服务配置",
   "command.ignoreFile.progress": "刷新中",

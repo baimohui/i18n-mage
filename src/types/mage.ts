@@ -30,6 +30,7 @@ export interface LangMageOptions {
   quoteStyleForKey?: "auto" | QuoteStyle;
   quoteStyleForValue?: "auto" | QuoteStyle;
   scanStringLiterals?: boolean;
+  defaultFilePos?: string;
 }
 
 export const EXECUTION_RESULT_CODE = {

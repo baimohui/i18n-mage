@@ -7,6 +7,7 @@ import { registerDisposable } from "@/utils/dispose";
 import { t } from "@/utils/i18n";
 import { NotificationManager } from "@/utils/notification";
 import { getConfig } from "@/utils/config";
+import { getCommonFilePaths } from "@/utils/regex";
 
 export function registerFixCommand() {
   const mage = LangMage.getInstance();
@@ -20,13 +21,25 @@ export function registerFixCommand() {
     }, 1000);
   };
   const disposable = vscode.commands.registerCommand("i18nMage.fix", async () => {
+    await mage.execute({ task: "check" });
+    const { multiFileMode, undefined: undefinedMap } = mage.langDetail;
+    const publicCtx = mage.getPublicContext();
+    if (publicCtx.autoTranslateMissingKey && Object.keys(undefinedMap).length > 0 && multiFileMode && publicCtx.fileStructure) {
+      const commonFilePaths = getCommonFilePaths(publicCtx.fileStructure);
+      const targetFilePath = await vscode.window.showQuickPick(commonFilePaths, {
+        placeHolder: t("command.fix.selectFileToWrite")
+      });
+      if (typeof targetFilePath === "string" && targetFilePath.trim()) {
+        mage.setOptions({ defaultFilePos: `${targetFilePath.replaceAll("/", ".")}.` });
+      } else {
+        return;
+      }
+    }
     await wrapWithProgress({ title: t("command.fix.progress"), cancellable: true, timeout: 1000 * 60 * 10 }, async () => {
-      await mage.execute({ task: "check" });
       treeInstance.isSyncing = true;
       treeInstance.refresh();
       const previewChanges = getConfig<boolean>("general.previewChanges", true);
       const res = await mage.execute({ task: "fix" });
-      const publicCtx = mage.getPublicContext();
       const { updatedValues, patchedIds, countryMap } = mage.langDetail;
       if (res.success && [updatedValues, patchedIds].some(o => Object.keys(o).length > 0)) {
         if (previewChanges) {

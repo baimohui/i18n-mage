@@ -9,7 +9,8 @@ import {
   internalToDisplayName,
   generateKey,
   unescapeString,
-  convertKeyToVueI18nPath
+  convertKeyToVueI18nPath,
+  getFileLocationFromId
 } from "@/utils/regex";
 import { getDetectedLangList, setUpdatedEntryValueInfo } from "@/core/tools/contextTools";
 import translateTo from "@/translator/index";
@@ -127,7 +128,11 @@ export class FixHandler {
         if (nameInfo.boundClass && !nameInfo.boundClass.endsWith(this.ctx.nameSeparator)) {
           nameInfo.boundClass += this.ctx.nameSeparator;
         }
-        const baseName = nameInfo.boundClass || namePrefix;
+        let baseName = nameInfo.boundClass || namePrefix;
+        const structure = this.ctx.fileStructure?.children?.[this.ctx.referredLang];
+        if (this.ctx.multiFileMode > 0 && structure && getFileLocationFromId(baseName, structure) === null) {
+          baseName = this.ctx.defaultFilePos + baseName;
+        }
         const maxLen = this.ctx.maxGeneratedKeyLength;
         let entryName = baseName + id;
         const needsAnotherName = entryName.length > maxLen || id.length === 0 || checkExisted(entryName);
@@ -153,7 +158,7 @@ export class FixHandler {
       }
       patchedEntryIdList.push({ ...entry, fixedRaw: this.getFixedRaw(entry, nameInfo.boundName) });
       this.needFix = true;
-      if (this.ctx.isFlat) {
+      if (this.ctx.multiFileMode === 0 && this.ctx.nestedLocale === 0) {
         nameInfo.boundName = escapeString(nameInfo.boundName);
       }
       referredLangMap[nameInfo.boundName] = nameInfo.text;

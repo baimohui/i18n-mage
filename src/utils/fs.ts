@@ -168,3 +168,12 @@ export async function isFileTooLarge(filePath: string): Promise<boolean> {
   const { fileSizeSkipThresholdKB } = getCacheConfig();
   return stats.size > fileSizeSkipThresholdKB * 1024;
 }
+
+export async function checkPathExists(path: string) {
+  try {
+    await fs.access(path);
+    return true;
+  } catch {
+    return false;
+  }
+}

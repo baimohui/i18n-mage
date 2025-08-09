@@ -27,6 +27,7 @@ export const createLangContext = (): LangContextInternal => ({
   quoteStyleForValue: "auto",
   i18nFramework: "none",
   scanStringLiterals: true,
+  defaultFilePos: "",
 
   langDictionary: {},
   langCountryMap: {},
@@ -42,7 +43,8 @@ export const createLangContext = (): LangContextInternal => ({
   usedEntryMap: {},
   usedKeySet: new Set<string>(),
   unusedKeySet: new Set<string>(),
-  isFlat: true,
+  multiFileMode: 0,
+  nestedLocale: 0,
   langFileExtraInfo: {},
   isVacant: true,
   entryTree: {},

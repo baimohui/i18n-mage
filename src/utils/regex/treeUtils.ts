@@ -76,6 +76,32 @@ export function getValueByAmbiguousEntryName(EntryTree: EntryTree, ambiguousPath
   return undefined;
 }
 
+// 获取每个语言共有的文件路径
+export function getCommonFilePaths(fileStructure: EntryNode): string[] {
+  const languages = Object.keys(fileStructure.children ?? {});
+  if (languages.length === 0) return [];
+  function collectCommonPaths(nodes: Record<string, EntryNode>[], basePath: string): string[] {
+    // 找出所有节点中共有的 key
+    const commonKeys = Object.keys(nodes[0] ?? {}).filter(key => nodes.every(n => key in n));
+    let paths: string[] = [];
+    for (const key of commonKeys) {
+      const firstNode = nodes[0][key];
+      if (firstNode.type === "file") {
+        // 公共文件
+        paths.push(basePath ? `${basePath}/${key}` : key);
+      } else if (firstNode.type === "directory") {
+        // 公共目录 → 递归子节点
+        const subNodes = nodes.map(n => n[key].children);
+        paths = paths.concat(collectCommonPaths(subNodes as Record<string, EntryNode>[], basePath ? `${basePath}/${key}` : key));
+      }
+    }
+    return paths;
+  }
+  // 获取所有语言的 children 对象数组
+  const languageChildren = languages.map(lang => fileStructure.children![lang].children);
+  return collectCommonPaths(languageChildren as Record<string, EntryNode>[], "");
+}
+
 export function getFileLocationFromId(id: string, fileStructure: EntryNode): string[] | null {
   const segments = getPathSegsFromId(id);
   const pathSegs: string[] = [];

@@ -46,6 +46,7 @@ export interface LangContextPublic {
   quoteStyleForKey: "auto" | QuoteStyle;
   quoteStyleForValue: "auto" | QuoteStyle;
   scanStringLiterals: boolean;
+  defaultFilePos: string;
 }
 
 // 内部模块才能访问的完整上下文
@@ -64,7 +65,8 @@ export interface LangContextInternal extends LangContextPublic {
   usedEntryMap: Record<string, Record<string, Set<string>>>;
   usedKeySet: Set<string>;
   unusedKeySet: Set<string>;
-  isFlat: boolean;
+  multiFileMode: number; // 0: 单文件模式，>0: 多文件模式
+  nestedLocale: number; // 嵌套的语言级别
   langFileExtraInfo: Record<string, FileExtraInfo>;
   isVacant: boolean;
   entryTree: EntryTree;

@@ -11,6 +11,7 @@ import {
 import { t } from "@/utils/i18n";
 import { SortHandler } from "./SortHandler";
 import { ExecutionResult, EXECUTION_RESULT_CODE } from "@/types";
+import { checkPathExists } from "@/utils/fs";
 
 export class RewriteHandler {
   constructor(private ctx: LangContextInternal) {}
@@ -62,6 +63,10 @@ export class RewriteHandler {
 
   private async rewriteTranslationFile(lang: string, filePos: string): Promise<void> {
     const filePath = this.getLangFilePath(lang, filePos);
+    const isFileExists = await checkPathExists(filePath);
+    if (!isFileExists) {
+      throw new Error(t("command.rewrite.fileNotFound", filePath));
+    }
     let langObj: EntryTree = {};
     const translation = this.ctx.langCountryMap[lang];
     const iterate = (tree: string[] | EntryTree, result: string[] | EntryTree = {}) => {
@@ -79,7 +84,7 @@ export class RewriteHandler {
         }
       }
     };
-    if (this.ctx.isFlat) {
+    if (this.ctx.multiFileMode === 0 && this.ctx.nestedLocale === 0) {
       langObj = new SortHandler(this.ctx).getSortedTree(this.ctx.sortingWriteMode, lang);
     } else {
       const entryTree = getContentAtLocation(filePos, this.ctx.entryTree);

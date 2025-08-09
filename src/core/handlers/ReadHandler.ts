@@ -28,10 +28,11 @@ export class ReadHandler {
     this.ctx.langFileExtraInfo = langData.fileExtraInfo;
     this.ctx.langFileType = langData.fileType;
     this.ctx.fileStructure = langData.fileStructure;
+    this.ctx.multiFileMode = langData.fileNestedLevel;
     Object.entries(langTree).forEach(([lang, tree]) => {
-      const { data, isFlat } = flattenNestedObj(tree);
+      const { data, depth } = flattenNestedObj(tree);
       this.ctx.langCountryMap[lang] = data;
-      if (!isFlat) this.ctx.isFlat = false;
+      this.ctx.nestedLocale = Math.max(this.ctx.nestedLocale, depth - langData.fileNestedLevel);
     });
     const { structure, lookup } = this.buildEntryTreeAndDictionary(langTree);
     this.ctx.entryTree = structure;

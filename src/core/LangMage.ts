@@ -164,7 +164,8 @@ class LangMage {
       quoteStyleForKey: this.ctx.quoteStyleForKey,
       quoteStyleForValue: this.ctx.quoteStyleForValue,
       scanStringLiterals: this.ctx.scanStringLiterals,
-      validateLanguageBeforeTranslate: this.ctx.validateLanguageBeforeTranslate
+      validateLanguageBeforeTranslate: this.ctx.validateLanguageBeforeTranslate,
+      defaultFilePos: this.ctx.defaultFilePos
     };
   }
 
@@ -184,7 +185,9 @@ class LangMage {
       undefined: this.ctx.undefinedEntryMap,
       usedKeySet: this.ctx.usedKeySet,
       unusedKeySet: this.ctx.unusedKeySet,
-      isFlat: this.ctx.isFlat,
+      multiFileMode: this.ctx.multiFileMode,
+      nestedLocale: this.ctx.nestedLocale,
+      isFlat: this.ctx.multiFileMode === 0 && this.ctx.nestedLocale === 0,
       tree: this.ctx.entryTree,
       updatedValues: this.ctx.updatedEntryValueInfo,
       patchedIds: this.ctx.patchedEntryIdInfo
@@ -209,7 +212,8 @@ class LangMage {
     this.ctx.langFileExtraInfo = {};
     this.ctx.usedKeySet = new Set();
     this.ctx.unusedKeySet = new Set();
-    this.ctx.isFlat = true;
+    this.ctx.multiFileMode = 0;
+    this.ctx.nestedLocale = 0;
     this.ctx.isVacant = true;
     this.ctx.entryTree = {};
     this.ctx.updatedEntryValueInfo = {};

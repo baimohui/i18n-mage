@@ -122,23 +122,25 @@ export function getNestedValues(obj: EntryTree | string[]): string[] {
   return values;
 }
 
-export function flattenNestedObj(obj: EntryTree | string[], className = ""): { data: EntryMap; isFlat: boolean } {
+export function flattenNestedObj(obj: EntryTree | string[], className = ""): { data: EntryMap; depth: number } {
   const result: EntryMap = {};
-  let isFlat = true;
-  Object.keys(obj).forEach(key => {
-    if (key.trim() === "") return;
-    const value = obj[key] as EntryTree;
-    const escapedKey = escapeString(key);
-    const keyName = className ? `${className}.${escapedKey}` : escapedKey;
-    if (value != null && typeof value === "object") {
-      const child = flattenNestedObj(value as EntryTree | string[], keyName);
-      Object.assign(result, child.data);
-      isFlat = false;
-    } else if (typeof value === "string") {
-      result[keyName] = value;
-    }
-  });
-  return { data: result, isFlat };
+  let maxDepth = 0;
+  const traverse = (node: EntryTree | string[], prefix: string, depth: number) => {
+    maxDepth = Math.max(maxDepth, depth);
+    Object.keys(node).forEach(key => {
+      if (key.trim() === "") return;
+      const value = node[key] as EntryTree;
+      const escapedKey = escapeString(key);
+      const fullKey = prefix ? `${prefix}.${escapedKey}` : escapedKey;
+      if (value != null && typeof value === "object") {
+        traverse(value, fullKey, depth + 1);
+      } else if (typeof value === "string") {
+        result[fullKey] = value;
+      }
+    });
+  };
+  traverse(obj, className, 0);
+  return { data: result, depth: maxDepth };
 }
 
 export interface ExtractResult {
@@ -146,11 +148,13 @@ export interface ExtractResult {
   langTree: LangTree; // 语言数据树
   fileExtraInfo: Record<string, FileExtraInfo>;
   fileStructure: EntryNode; // 带 type 标记的文件树
+  fileNestedLevel: number; // 文件树最大嵌套层级
 }
 
 export function extractLangDataFromDir(langPath: string): ExtractResult | null {
   let validFileType = "";
   const fileExtraInfo: Record<string, FileExtraInfo> = {};
+  let fileNestedLevel = 0;
 
   function traverse(
     dir: string,
@@ -173,6 +177,7 @@ export function extractLangDataFromDir(langPath: string): ExtractResult | null {
         if (ok) {
           tree[dirent.name] = subTree;
           node.children![dirent.name] = subNode;
+          fileNestedLevel = Math.max(fileNestedLevel, subPathSegs.length);
           hasData = true;
         }
       } else {
@@ -208,7 +213,8 @@ export function extractLangDataFromDir(langPath: string): ExtractResult | null {
     fileType: validFileType,
     langTree,
     fileExtraInfo,
-    fileStructure
+    fileStructure,
+    fileNestedLevel
   };
 }
 
