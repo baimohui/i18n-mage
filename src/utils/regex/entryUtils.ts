@@ -9,7 +9,12 @@ export function catchPossibleEntries(fileContent: string, entryTree: EntryTree):
   const entryInfoList: PEntry[] = [];
   while ((res = regex.exec(fileContent)) !== null) {
     const entryName = displayToInternalName(res[0].slice(1, -1));
-    if (!isValidI18nVarName(entryName) || getValueByAmbiguousEntryName(entryTree, entryName) === undefined) continue;
+    if (
+      !isPositionInComment(fileContent, res.index) ||
+      !isValidI18nVarName(entryName) ||
+      getValueByAmbiguousEntryName(entryTree, entryName) === undefined
+    )
+      continue;
     const startPos = res.index;
     const endPos = startPos + res[0].length;
     entryInfoList.push({ name: entryName, pos: `${startPos},${endPos}` });
