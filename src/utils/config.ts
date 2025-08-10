@@ -18,6 +18,7 @@ let cachedConfig: {
   analysisOnSave: boolean;
   fileSizeSkipThresholdKB: number;
   ignoreCommentedCode: boolean;
+  languageFileParser: "auto" | "json5" | "eval";
 } | null = null;
 
 export function getConfig<T = any>(key: string, defaultValue?: T, scope?: vscode.ConfigurationScope): T {
@@ -55,7 +56,8 @@ export function getCacheConfig() {
       interpolationBrackets: getConfig<"single" | "double" | "auto">("i18nFeatures.interpolationBrackets", "auto"),
       namespaceSeparator: getConfig<"." | "auto" | ":">("i18nFeatures.namespaceSeparator", "auto"),
       fileSizeSkipThresholdKB: getConfig<number>("analysis.fileSizeSkipThresholdKB", 100),
-      ignoreCommentedCode: getConfig<boolean>("analysis.ignoreCommentedCode", true)
+      ignoreCommentedCode: getConfig<boolean>("analysis.ignoreCommentedCode", true),
+      languageFileParser: getConfig<"auto" | "json5" | "eval">("analysis.languageFileParser", "auto")
     };
   }
   return cachedConfig;

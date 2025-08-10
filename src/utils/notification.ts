@@ -72,7 +72,7 @@ export class NotificationManager {
   }
 
   // 记录到输出通道
-  private static logToOutput(message: string, type: "info" | "warn" | "error" = "info"): void {
+  static logToOutput(message: string, type: "info" | "warn" | "error" = "info"): void {
     const timestamp = new Date().toLocaleString();
     const prefix = type === "error" ? "[ERROR] " : type === "warn" ? "[WARN]  " : "[INFO]  ";
     this.outputChannel.appendLine(`[${timestamp}] ${prefix}${message}`);

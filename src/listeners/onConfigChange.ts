@@ -32,7 +32,8 @@ export function registerOnConfigChange() {
       event.affectsConfiguration("i18n-mage.writeRules.enableKeyTagRule") ||
       event.affectsConfiguration("i18n-mage.writeRules.enablePrefixTagRule") ||
       event.affectsConfiguration("i18n-mage.analysis.fileSizeSkipThresholdKB") ||
-      event.affectsConfiguration("i18n-mage.analysis.ignoreCommentedCode")
+      event.affectsConfiguration("i18n-mage.analysis.ignoreCommentedCode") ||
+      event.affectsConfiguration("i18n-mage.analysis.languageFileParser")
     ) {
       clearConfigCache();
     }

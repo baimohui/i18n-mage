@@ -1,10 +1,13 @@
 import fs from "fs";
+import vm from "node:vm";
 import path from "path";
 import JSON5 from "json5";
 import { escapeString } from "./stringUtils";
 import { LangTree, FileExtraInfo, LangFileInfo, EntryNode, EntryMap, EntryTree, I18nFramework, I18N_FRAMEWORK, QuoteStyle } from "@/types";
 import { getFirstOrLastDirName, isPathInsideDirectory, isSamePath } from "../fs";
 import { getCacheConfig } from "../config";
+import { NotificationManager } from "../notification";
+import { t } from "../i18n";
 
 export function isValidI18nCallablePath(inputPath: string): boolean {
   const { ignoredFiles, ignoredDirectories } = getCacheConfig();
@@ -38,42 +41,77 @@ export function isValidI18nCallablePath(inputPath: string): boolean {
 
 export function getLangFileInfo(filePath: string): LangFileInfo | null {
   try {
+    NotificationManager.logToOutput(t("command.parseLangFile.title", filePath), "info");
     const fileContent = fs.readFileSync(filePath, "utf-8");
-    for (let i = 1; i <= 2; i++) {
-      const [prefix, content, suffix] = extractContentByLevel(fileContent, i);
-      if (content) {
-        let jsonObj = content;
-        const { key: keyQuotes, value: valueQuotes } = detectQuoteStyle(jsonObj);
-        const indentSize = detectIndentSize(jsonObj);
-        let innerVar = "";
-        const varMatch = jsonObj.match(/^{\s*([^"']*,[^]*?)\r?\n/);
-        if (varMatch) {
-          innerVar = varMatch[1];
-          jsonObj = jsonObj.replace(innerVar, "");
-        }
-        try {
-          const tree: EntryTree = JSON5.parse(jsonObj);
-          return {
-            data: tree,
-            extraInfo: {
-              indentSize,
-              nestedLevel: i,
-              prefix,
-              suffix,
-              innerVar,
-              keyQuotes,
-              valueQuotes
-            }
-          };
-        } catch (e: unknown) {
-          console.error(`解析文件 ${filePath} 时出错：`, e instanceof Error ? e.message : (e as string));
-          continue;
-        }
+    const [prefix, content, suffix] = extractContentByLevel(fileContent, 1);
+    if (content) {
+      let jsonObj = content;
+      const { key: keyQuotes, value: valueQuotes } = detectQuoteStyle(jsonObj);
+      const indentSize = detectIndentSize(jsonObj);
+      let innerVar = "";
+      const varMatch = jsonObj.match(/^{\s*([^"']*,[^]*?)\r?\n/);
+      if (varMatch) {
+        innerVar = varMatch[1];
+        jsonObj = jsonObj.replace(innerVar, "");
+      }
+      const tree = jsonParse(jsonObj);
+      if (tree !== null) {
+        const extraInfo = {
+          indentSize,
+          nestedLevel: 1,
+          prefix,
+          suffix,
+          innerVar,
+          keyQuotes,
+          valueQuotes
+        } as FileExtraInfo;
+        NotificationManager.logToOutput(t("command.parseLangFile.success", JSON.stringify(extraInfo)), "info");
+        return {
+          data: tree,
+          extraInfo
+        };
       }
     }
     return null;
   } catch (e) {
     console.error(e);
+    return null;
+  }
+}
+
+export function jsonParse(content: string) {
+  const { languageFileParser } = getCacheConfig();
+  if (languageFileParser === "json5") {
+    return json5Parse(content);
+  } else if (languageFileParser === "eval") {
+    return safeEvalParse(content);
+  } else if (languageFileParser === "auto") {
+    let result = json5Parse(content);
+    if (result === null) {
+      result = safeEvalParse(content);
+    }
+    return result;
+  }
+  return null;
+}
+
+export function json5Parse(content: string): EntryTree | null {
+  try {
+    return JSON5.parse(content);
+  } catch (e) {
+    NotificationManager.logToOutput(t("command.parseLangFile.json5Error", (e as Error).message), "error");
+    return null;
+  }
+}
+
+export function safeEvalParse(content: string) {
+  try {
+    const script = new vm.Script(`(${content})`);
+    const sandbox: Record<string, unknown> = {};
+    const context = vm.createContext(sandbox);
+    return script.runInContext(context, { timeout: 500 }) as EntryTree;
+  } catch (e) {
+    NotificationManager.logToOutput(t("command.parseLangFile.evalError", (e as Error).message), "error");
     return null;
   }
 }
