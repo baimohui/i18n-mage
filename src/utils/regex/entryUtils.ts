@@ -10,7 +10,7 @@ export function catchPossibleEntries(fileContent: string, entryTree: EntryTree):
   while ((res = regex.exec(fileContent)) !== null) {
     const entryName = displayToInternalName(res[0].slice(1, -1));
     if (
-      !isPositionInComment(fileContent, res.index) ||
+      isPositionInComment(fileContent, res.index) ||
       !isValidI18nVarName(entryName) ||
       getValueByAmbiguousEntryName(entryTree, entryName) === undefined
     )
