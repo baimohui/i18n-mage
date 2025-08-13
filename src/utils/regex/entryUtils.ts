@@ -53,12 +53,20 @@ export function parseTEntry(fileContent: string, startPos: number, offset: numbe
   const entryNameForm: { type: TEntryPartType; value: string }[] = [];
   const entryVarList: string[] = [];
   let isEntryNameParsed = false;
-  let isApart = false;
+  let isVarSeparated = false;
+  let isNameVarSeparated = false;
+  let whitespaceString = "";
   while (symbolStr !== ")") {
     if (/[\s+,]/.test(symbolStr)) {
       if (symbolStr === ",") {
-        isApart = true;
+        isVarSeparated = true;
         isEntryNameParsed = true;
+      }
+      if (symbolStr === "+") {
+        isNameVarSeparated = true;
+      }
+      if (/\s/.test(symbolStr)) {
+        whitespaceString += symbolStr;
       }
       curPos++;
       symbolStr = fileContent[curPos];
@@ -69,17 +77,26 @@ export function parseTEntry(fileContent: string, startPos: number, offset: numbe
     const { type, value } = matchResult;
     const tPart = { type, value: /["'`]/.test(value) ? value.slice(1, -1) : value };
     if (isEntryNameParsed) {
-      if (isApart) {
+      if (isVarSeparated) {
         entryVarList.push(value);
-        isApart = false;
+        isVarSeparated = false;
       } else {
         const item = entryVarList.pop();
-        entryVarList.push(item + value);
+        entryVarList.push([item, value].join(whitespaceString));
       }
     } else {
-      entryNameForm.push(tPart);
+      if (isNameVarSeparated || entryNameForm.length === 0) {
+        entryNameForm.push(tPart);
+        isNameVarSeparated = false;
+      } else {
+        const item = entryNameForm.pop();
+        if (item) {
+          entryNameForm.push({ type: "var", value: [item.value, value].join(whitespaceString) });
+        }
+      }
       nameEndPos = curPos + value.length;
     }
+    whitespaceString = "";
     curPos += value.length;
     symbolStr = fileContent[curPos];
   }
@@ -158,16 +175,25 @@ export function getEntryNameInfoByForm(nameForm: { type: TEntryPartType; value: 
   if (!isValid || entryReg.replaceAll(".*", "") === "") return null;
   let entryClass = "";
   let entryName = "";
-  const nameRes = entryText.match(/%(\S*?)%([^]*)/);
+  let remainingText = entryText;
+  const nameRes = entryText.match(/^%(\S*?)%([^]*)/);
   if (enableKeyTagRule && nameRes) {
     entryName = nameRes[1];
-    entryText = nameRes[2];
+    remainingText = nameRes[2];
   }
-  const classRes = entryText.match(/#(\S*?)#([^]*)/);
+  const classRes = entryText.match(/^#(\S*?)#([^]*)/);
   if (enablePrefixTagRule && classRes) {
     entryClass = classRes[1];
-    entryText = classRes[2];
+    remainingText = classRes[2];
   }
+  if (enableKeyTagRule && !entryName) {
+    const nameResAgain = remainingText.match(/^%(\S*?)%([^]*)/);
+    if (nameResAgain) {
+      entryName = nameResAgain[1];
+      remainingText = nameResAgain[2];
+    }
+  }
+  entryText = remainingText;
   if (framework === I18N_FRAMEWORK.i18nNext || framework === I18N_FRAMEWORK.reactI18next) {
     if (entryVarList.length === 1) {
       const varItem = extractKeyValuePairs(entryVarList[0]);
