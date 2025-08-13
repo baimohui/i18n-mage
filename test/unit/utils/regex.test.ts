@@ -10,16 +10,36 @@ describe("regex.js 正则方法", () => {
       assert.strictEqual(entries[0].raw.includes("t("), true);
     });
 
-    it("应处理模板字符串带变量", () => {
-      const entries = catchTEntries("const msg = t(`你好，${userName}！`);");
-      assert.strictEqual(entries[0].nameInfo.text, "你好，{0}！");
-      // assert.deepStrictEqual(entries[0].var, { 0: "userName" });
-    });
-
-    it("应处理混合变量和文本", () => {
-      const entries = catchTEntries('const msg = t("你好" + name);');
-      assert.strictEqual(entries[0].nameInfo.text.includes("{0}"), true);
-      // assert.ok(Object.hasOwn(entries[0]?.var ?? {}, "0"));
+    it("应处理含变量的词条名", () => {
+      const testCases = [
+        {
+          code: "const msg = t(`你好，${userName}！`);",
+          expected: { text: "你好，{0}！", vars: ["userName"] }
+        },
+        {
+          code: 'const msg = t("你好" + name + "！");',
+          expected: { text: "你好{0}！", vars: ["name"] }
+        },
+        {
+          code: 'const msg = t("生成额外信息：" + JSON.stringify(extraInfo));',
+          expected: { text: "生成额外信息：{0}", vars: ["JSON.stringify(extraInfo)"] }
+        },
+        {
+          code: 'const msg = t("解析失败：" + (e as Error).message);',
+          expected: { text: "解析失败：{0}", vars: ["(e as Error).message"] }
+        },
+        {
+          code: 'const msg = t(obj[getName(obj.code)] + " is not a function");',
+          expected: { text: "{0} is not a function", vars: ["obj[getName(obj.code)]"] }
+        }
+      ];
+      testCases.forEach((testCase, i) => {
+        const expected = testCase.expected;
+        const entry = catchTEntries(testCase.code)[0];
+        assert.notStrictEqual(entry, undefined, `第 ${i} 个 entry 应存在，expected: ${JSON.stringify(expected)}`);
+        assert.strictEqual(entry.nameInfo.text, expected.text, `第 ${i} 个 text`);
+        assert.deepStrictEqual(entry.nameInfo.vars, expected.vars, `第 ${i} 个 var`);
+      });
     });
 
     it("应处理各种带参数的函数调用", () => {
@@ -50,8 +70,8 @@ describe("regex.js 正则方法", () => {
           expected: { text: "greeting", vars: ["`${userName} 欢迎你`"] }
         },
         {
-          code: "t('deleteConfirm', [row[attrs?.nameField || 'name']])",
-          expected: { text: "deleteConfirm", vars: ['[row[attrs?.nameField || "name"]]'] }
+          code: "const msg = t('deleteConfirm', [row[attrs?.nameField || 'name']])",
+          expected: { text: "deleteConfirm", vars: ["[row[attrs?.nameField || 'name']]"] }
         },
         {
           code: 'const e = t("greeting", userName);',
@@ -75,7 +95,7 @@ describe("regex.js 正则方法", () => {
           expected: null
         },
         {
-          code: 't("command.deleteUnused.modalContent", e.data.map(item => item.name).join(", "))',
+          code: 'const msg = t("command.deleteUnused.modalContent", e.data.map(item => item.name).join(", "))',
           expected: { text: "command.deleteUnused.modalContent", vars: ['e.data.map(item => item.name).join(", ")'] }
         },
         {
@@ -110,7 +130,7 @@ describe("regex.js 正则方法", () => {
           return;
         }
         const entry = catchTEntries(testCase.code)[0];
-        assert.notStrictEqual(entry, undefined, `第 ${i} 个 entry 应存在`);
+        assert.notStrictEqual(entry, undefined, `第 ${i} 个 entry 应存在，expected: ${JSON.stringify(expected)}`);
         assert.strictEqual(entry.nameInfo.text, expected.text, `第 ${i} 个 text`);
         assert.deepStrictEqual(entry.vars, expected.vars, `第 ${i} 个 var`);
         if (expected.class !== undefined) {
@@ -127,10 +147,15 @@ describe("regex.js 正则方法", () => {
       assert.strictEqual(entries.length, 0);
     });
 
-    it("应解析 name 和 class 元信息", () => {
-      const entries = catchTEntries('const msg = t("#btn#%submit%确认提交");');
-      assert.strictEqual(entries[0].nameInfo.boundClass, "btn");
+    it("应解析 name 元信息", () => {
+      const entries = catchTEntries('const msg = t("%submit%确认提交");');
       assert.strictEqual(entries[0].nameInfo.boundName, "submit");
+      assert.strictEqual(entries[0].nameInfo.text, "确认提交");
+    });
+
+    it("应解析 class 元信息", () => {
+      const entries = catchTEntries('const msg = t("#btn#确认提交");');
+      assert.strictEqual(entries[0].nameInfo.boundClass, "btn");
       assert.strictEqual(entries[0].nameInfo.text, "确认提交");
     });
 

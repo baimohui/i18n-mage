@@ -1,29 +1,26 @@
 import * as assert from "assert";
-import * as sinon from "sinon";
-import * as configModule from "@/utils/config";
+// import * as sinon from "sinon";
+// import * as configModule from "@/utils/config";
 import { LANG_CODE_MAPPINGS, getLangIntro, getLangText, getLangCode } from "@/utils/langKey";
 
 describe("const.js 多语言工具", () => {
-  let sandbox: sinon.SinonSandbox;
-
-  beforeEach(() => {
-    sandbox = sinon.createSandbox();
-
-    // Mock VS Code 配置
-    sandbox.stub(configModule, "getConfig").callsFake((key: string) => {
-      if (key === "langAliasCustomMappings") {
-        return {
-          "zh-cn": ["custom-cn", "my-zh"],
-          ja: ["jp-alt"]
-        };
-      }
-      return undefined;
-    });
-  });
-
-  afterEach(() => {
-    sandbox.restore();
-  });
+  // let sandbox: sinon.SinonSandbox;
+  // beforeEach(() => {
+  //   sandbox = sinon.createSandbox();
+  //   // Mock VS Code 配置
+  //   sandbox.stub(configModule, "getConfig").callsFake((key: string) => {
+  //     if (key === "langAliasCustomMappings") {
+  //       return {
+  //         "zh-cn": ["custom-cn", "my-zh"],
+  //         ja: ["jp-alt"]
+  //       };
+  //     }
+  //     return undefined;
+  //   });
+  // });
+  // afterEach(() => {
+  //   sandbox.restore();
+  // });
 
   describe("基础映射数据", () => {
     it("应包含所有支持的语言", () => {
