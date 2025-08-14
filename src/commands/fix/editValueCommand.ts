@@ -22,6 +22,10 @@ export function registerEditValueCommand() {
         const res = await mage.execute();
         if (res.success) {
           e.description = newValue;
+          if (!value) {
+            await mage.execute({ task: "check", globalFlag: false });
+            mage.setOptions({ globalFlag: true });
+          }
           treeInstance.refresh();
           NotificationManager.showResult(res, t("command.editValue.success", newValue));
         }

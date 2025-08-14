@@ -98,3 +98,23 @@ export function getPathSegsFromId(id: string): string[] {
   // 2. 把每段里的 "\." 恢复成真正的 "."
   return rawSegs.map(seg => seg.replace(/\\\./g, "."));
 }
+
+export function escapeMarkdown(text: string): string {
+  return text
+    .replace(/\\/g, "\\\\")
+    .replace(/`/g, "\\`")
+    .replace(/\*/g, "\\*")
+    .replace(/_/g, "\\_")
+    .replace(/{/g, "\\{")
+    .replace(/}/g, "\\}")
+    .replace(/\[/g, "\\[")
+    .replace(/\]/g, "\\]")
+    .replace(/\(/g, "\\(")
+    .replace(/\)/g, "\\)")
+    .replace(/#/g, "\\#")
+    .replace(/\+/g, "\\+")
+    .replace(/-/g, "\\-")
+    .replace(/\./g, "\\.")
+    .replace(/!/g, "\\!")
+    .replace(/~/g, "\\~");
+}

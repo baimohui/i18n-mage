@@ -31,6 +31,10 @@ describe("regex.js 正则方法", () => {
         {
           code: 'const msg = t(obj[getName(obj.code)] + " is not a function");',
           expected: { text: "{0} is not a function", vars: ["obj[getName(obj.code)]"] }
+        },
+        {
+          code: 'const msg = t(obj[getName(obj.code)] + `解析失败：${(e as Error).message}` + "is not a function");',
+          expected: { text: "{0}解析失败：{1}is not a function", vars: ["obj[getName(obj.code)]", "(e as Error).message"] }
         }
       ];
       testCases.forEach((testCase, i) => {
