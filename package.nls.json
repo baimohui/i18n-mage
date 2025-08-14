@@ -81,6 +81,7 @@
   "config.jsonParser.json5": "JSON5 Parser (strict but safe)",
   "config.jsonParser.eval": "eval Parser (loose but unsafe)",
   "config.jsonParser.auto": "Try JSON5 first, fallback to eval if it fails",
+  "config.autoTranslateEmptyKey.desc": "Whether empty value entries should be completed during automatic translation",
   "command.setReferredLang.title": "Set as Source Language",
   "command.setDisplayLang.title": "Set as Display Language",
   "command.markAsKnownLang.title": "Mark as Known Language",

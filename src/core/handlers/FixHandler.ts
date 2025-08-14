@@ -199,6 +199,15 @@ export class FixHandler {
         this.ctx.lackInfo[lang] = this.lackInfoFromUndefined[lang];
       }
     }
+    if (this.ctx.autoTranslateEmptyKey) {
+      for (const lang in this.ctx.nullInfo) {
+        if (Object.hasOwn(this.ctx.lackInfo, lang)) {
+          this.ctx.lackInfo[lang].push(...this.ctx.nullInfo[lang]);
+        } else {
+          this.ctx.lackInfo[lang] = this.ctx.nullInfo[lang];
+        }
+      }
+    }
     for (const lang in this.ctx.lackInfo) {
       if (ExecutionContext.token.isCancellationRequested) {
         this.restoreLackInfo();
@@ -232,7 +241,12 @@ export class FixHandler {
       message = t("command.fix.translatorFailed");
       code = EXECUTION_RESULT_CODE.TranslatorFailed;
     }
-    return { success: true, message, code };
+    return new Promise<ExecutionResult>(resolve => {
+      setTimeout(() => {
+        this.restoreLackInfo();
+        resolve({ success: true, message, code });
+      }, 1500);
+    });
   }
 
   private restoreLackInfo(): void {
@@ -240,6 +254,11 @@ export class FixHandler {
       if (Object.hasOwn(this.ctx.lackInfo, lang)) {
         const undefinedEntries = this.lackInfoFromUndefined[lang];
         this.ctx.lackInfo[lang] = this.ctx.lackInfo[lang].filter(item => !undefinedEntries.includes(item));
+      }
+    }
+    for (const lang in this.ctx.nullInfo) {
+      if (Object.hasOwn(this.ctx.lackInfo, lang)) {
+        this.ctx.lackInfo[lang] = this.ctx.lackInfo[lang].filter(item => !this.ctx.nullInfo[lang].includes(item));
       }
     }
   }

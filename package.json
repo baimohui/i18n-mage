@@ -234,6 +234,12 @@
               }
             }
           },
+          "i18n-mage.translationServices.autoTranslateEmptyKey": {
+            "order": 23,
+            "type": "boolean",
+            "default": true,
+            "description": "%config.autoTranslateEmptyKey.desc%"
+          },
           "i18n-mage.translationServices.matchExistingKey": {
             "order": 24,
             "type": "boolean",

@@ -81,6 +81,7 @@
   "config.jsonParser.json5": "JSON5 解析器（解析严格但安全）",
   "config.jsonParser.eval": "eval 解析器（解析宽松但有安全风险）",
   "config.jsonParser.auto": "先用 json5 尝试解析，如果失败，再 fallback 到 eval 解析器",
+  "config.autoTranslateEmptyKey.desc": "自动翻译空值词条",
   "command.setReferredLang.title": "设为翻译源语言",
   "command.setDisplayLang.title": "设为显示语言",
   "command.markAsKnownLang.title": "标记为已知语言",

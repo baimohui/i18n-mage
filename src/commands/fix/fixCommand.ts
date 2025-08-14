@@ -8,6 +8,7 @@ import { t } from "@/utils/i18n";
 import { NotificationManager } from "@/utils/notification";
 import { getConfig } from "@/utils/config";
 import { getCommonFilePaths } from "@/utils/regex";
+import { EXECUTION_RESULT_CODE } from "@/types";
 
 export function registerFixCommand(context: vscode.ExtensionContext) {
   const mage = LangMage.getInstance();
@@ -21,28 +22,38 @@ export function registerFixCommand(context: vscode.ExtensionContext) {
     }, 1000);
   };
   const disposable = vscode.commands.registerCommand("i18nMage.fix", async () => {
-    await mage.execute({ task: "check" });
-    const { multiFileMode, undefined: undefinedMap } = mage.langDetail;
     const publicCtx = mage.getPublicContext();
-    if (publicCtx.autoTranslateMissingKey && Object.keys(undefinedMap).length > 0 && multiFileMode && publicCtx.fileStructure) {
-      const commonFiles = getCommonFilePaths(publicCtx.fileStructure);
-      const lastPicked = context.globalState.get<string>("lastPickedFile");
-      const sortedFiles = lastPicked !== undefined ? [lastPicked, ...commonFiles.filter(f => f !== lastPicked)] : commonFiles;
-      const target = await vscode.window.showQuickPick(sortedFiles, {
-        placeHolder: t("command.fix.selectFileToWrite")
+    if (publicCtx.autoTranslateMissingKey) {
+      await wrapWithProgress({ title: t("command.fix.progress"), cancellable: true, timeout: 1000 * 60 * 10 }, async () => {
+        await mage.execute({ task: "check" });
+        const { multiFileMode, undefined: undefinedMap } = mage.langDetail;
+        if (Object.keys(undefinedMap).length > 0 && multiFileMode && publicCtx.fileStructure) {
+          const commonFiles = getCommonFilePaths(publicCtx.fileStructure);
+          const lastPicked = context.globalState.get<string>("lastPickedFile");
+          const sortedFiles = lastPicked !== undefined ? [lastPicked, ...commonFiles.filter(f => f !== lastPicked)] : commonFiles;
+          const target = await vscode.window.showQuickPick(sortedFiles, {
+            placeHolder: t("command.fix.selectFileToWrite")
+          });
+          if (typeof target === "string" && target.trim()) {
+            mage.setOptions({ defaultFilePos: `${target.replaceAll("/", ".")}.` });
+            await context.globalState.update("lastPickedFile", target);
+          } else {
+            return;
+          }
+        }
       });
-      if (typeof target === "string" && target.trim()) {
-        mage.setOptions({ defaultFilePos: `${target.replaceAll("/", ".")}.` });
-        await context.globalState.update("lastPickedFile", target);
-      } else {
-        return;
-      }
     }
-    await wrapWithProgress({ title: t("command.fix.progress"), cancellable: true, timeout: 1000 * 60 * 10 }, async () => {
+    await wrapWithProgress({ title: t("command.fix.progress"), cancellable: true, timeout: 1000 * 60 * 10 }, async (_, token) => {
       treeInstance.isSyncing = true;
       treeInstance.refresh();
       const previewChanges = getConfig<boolean>("general.previewChanges", true);
       const res = await mage.execute({ task: "fix" });
+      if (token.isCancellationRequested) {
+        treeInstance.isSyncing = false;
+        treeInstance.refresh();
+        NotificationManager.showResult({ success: false, message: "", code: EXECUTION_RESULT_CODE.Cancelled });
+        return;
+      }
       const { updatedValues, patchedIds, countryMap } = mage.langDetail;
       if (res.success && [updatedValues, patchedIds].some(o => Object.keys(o).length > 0)) {
         if (previewChanges) {
