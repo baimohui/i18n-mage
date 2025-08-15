@@ -35,11 +35,11 @@ export function registerImportCommand() {
         const previewChanges = getConfig<boolean>("general.previewChanges", true);
         const filePath = fileUri[0].fsPath;
         const res = await mage.execute({ task: "import", importExcelFrom: filePath });
-        if (previewChanges) {
+        if (res.success) {
           const publicCtx = mage.getPublicContext();
           const { updatedValues, patchedIds, countryMap } = mage.langDetail;
           if ([updatedValues, patchedIds].some(item => Object.keys(item).length > 0)) {
-            if (res.success) {
+            if (previewChanges) {
               previewFixContent(updatedValues, patchedIds, countryMap, publicCtx.referredLang, async () => {
                 await wrapWithProgress({ title: t("command.rewrite.progress") }, importData);
               });
@@ -47,8 +47,14 @@ export function registerImportCommand() {
               await importData();
             }
           } else {
-            NotificationManager.showWarning(t("command.import.nullWarn"));
+            setTimeout(() => {
+              NotificationManager.showWarning(t("command.import.nullWarn"));
+            }, 1000);
           }
+        } else if (res !== null) {
+          setTimeout(() => {
+            NotificationManager.showResult(res);
+          }, 1000);
         }
       });
     }

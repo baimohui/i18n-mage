@@ -12,7 +12,7 @@ Object.keys(LANG_CODE_MAPPINGS).forEach(key => LANG_CODES.add(key));
 
 // 构建反向映射（代码 -> 主键）
 Object.entries(LANG_CODE_MAPPINGS).forEach(([key, intro]) => {
-  [intro.ggCode, intro.tcCode, intro.bdCode]
+  Object.values(intro)
     .filter(Boolean)
     .map(code => standardizeName(code))
     .forEach(code => REVERSE_MAP.set(code, key as LangKey));

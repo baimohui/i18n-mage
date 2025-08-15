@@ -2,10 +2,11 @@ import fs from "fs";
 import xlsx from "node-xlsx";
 import { ExcelData } from "@/types";
 import { LangContextInternal } from "@/types";
-import { getLangIntro } from "@/utils/langKey";
+import { getLangIntro, getLangText } from "@/utils/langKey";
 import { getDetectedLangList, setUpdatedEntryValueInfo } from "@/core/tools/contextTools";
 import { t } from "@/utils/i18n";
 import { ExecutionResult, EXECUTION_RESULT_CODE } from "@/types";
+import { NotificationManager } from "@/utils/notification";
 
 export class ImportHandler {
   constructor(private ctx: LangContextInternal) {}
@@ -16,6 +17,7 @@ export class ImportHandler {
 
   public run(): ExecutionResult {
     try {
+      NotificationManager.logToOutput(t("command.import.pathDetected", this.ctx.importExcelFrom));
       if (!fs.existsSync(this.ctx.importExcelFrom)) {
         return {
           success: false,
@@ -25,6 +27,7 @@ export class ImportHandler {
       }
       const excelData = xlsx.parse(this.ctx.importExcelFrom) as ExcelData;
       for (let sheetIndex = 0; sheetIndex < excelData.length; sheetIndex++) {
+        NotificationManager.logToOutput(t("command.import.sheetIndex", sheetIndex + 1));
         const sheetData = excelData[sheetIndex].data;
         if (sheetData.length === 0) continue;
         const [headInfo] = sheetData.splice(0, 1);
@@ -36,10 +39,9 @@ export class ImportHandler {
             headInfo[i] = "NULL";
           }
         }
-        const langNum = headInfo
-          .map(item => getLangIntro(item as string)?.enName)
-          .filter(item => item !== null && item !== undefined).length;
-        if (langNum === 0) {
+        const langColumns = headInfo.map(item => getLangText(item as string, "en")).filter(item => item !== "");
+        NotificationManager.logToOutput(t("command.import.langDetected", langColumns.join(", ") || t("common.none")));
+        if (langColumns.length === 0) {
           return {
             success: false,
             message: t("command.import.noLang"),

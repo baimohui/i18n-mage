@@ -66,6 +66,11 @@ describe("const.js 多语言工具", () => {
       assert.deepStrictEqual(getLangIntro("es-419"), LANG_CODE_MAPPINGS["es"]);
     });
 
+    it("应处理自然语言", () => {
+      assert.deepStrictEqual(getLangIntro("英语"), LANG_CODE_MAPPINGS["en"]);
+      assert.deepStrictEqual(getLangIntro("english"), LANG_CODE_MAPPINGS["en"]);
+    });
+
     it("未知语言应返回 null", () => {
       assert.strictEqual(getLangIntro("xx"), null);
       assert.strictEqual(getLangIntro("invalid"), null);

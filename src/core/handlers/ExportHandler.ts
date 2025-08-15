@@ -6,6 +6,7 @@ import { getLangText } from "@/utils/langKey";
 import { t } from "@/utils/i18n";
 import { SortHandler } from "./SortHandler";
 import { ExecutionResult, EXECUTION_RESULT_CODE } from "@/types";
+import { NotificationManager } from "@/utils/notification";
 
 export class ExportHandler {
   constructor(private ctx: LangContextInternal) {}
@@ -16,6 +17,7 @@ export class ExportHandler {
 
   public run(): ExecutionResult {
     try {
+      NotificationManager.logToOutput(t("command.export.pathDetected", this.ctx.exportExcelTo));
       if (!this.ctx.exportExcelTo) {
         return {
           success: false,
@@ -45,6 +47,7 @@ export class ExportHandler {
       const buffer = xlsx.build([{ name: "Sheet1", data: tableData, options: {} }], { sheetOptions });
       // TODO 非管理员模式创建表格会失败
       fs.writeFileSync(this.ctx.exportExcelTo, buffer);
+      fs.writeFileSync(this.ctx.exportExcelTo.replace(".xlsx", ".xlsx"), buffer);
       fs.writeFileSync(this.ctx.exportExcelTo.replace(".xlsx", "New.xlsx"), buffer);
       return { success: true, message: "", code: EXECUTION_RESULT_CODE.Success };
     } catch (e: unknown) {
