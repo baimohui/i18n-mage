@@ -21,7 +21,9 @@ export function registerExportCommand() {
         const filePath = fileUri.fsPath;
         mage.setOptions({ task: "export", exportExcelTo: filePath });
         const res = await mage.execute();
-        NotificationManager.showResult(res, t("command.export.success"));
+        setTimeout(() => {
+          NotificationManager.showResult(res, t("command.export.success"));
+        }, 1000);
       });
     }
   });

@@ -12,7 +12,7 @@ export class SortHandler {
     return await new RewriteHandler(this.ctx).run();
   }
 
-  public getSortedKeys(type: SortMode, lang: string) {
+  public getSortedKeys(type: SortMode, lang: string = "") {
     if (type === SORT_MODE.ByKey) {
       const keys = Object.keys(this.ctx.langDictionary);
       return keys.sort((a, b) => a.localeCompare(b));
