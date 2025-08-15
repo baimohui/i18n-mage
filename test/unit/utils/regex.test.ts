@@ -125,6 +125,10 @@ describe("regex.js 正则方法", () => {
                 .join(", ") || t("common.none")`
             ]
           }
+        },
+        {
+          code: 'NotificationManager.logToOutput(t("command.import.sheetIndex", sheetIndex * 2 + 1 + sheetIndex - 3));',
+          expected: { text: "command.import.sheetIndex", vars: ["sheetIndex * 2 + 1 + sheetIndex - 3"] }
         }
       ];
       testCases.forEach((testCase, i) => {

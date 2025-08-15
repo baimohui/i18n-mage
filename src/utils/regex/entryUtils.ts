@@ -55,7 +55,7 @@ export function parseTEntry(fileContent: string, startPos: number, offset: numbe
   let isEntryNameParsed = false;
   let isVarSeparated = false;
   let isNameVarSeparated = false;
-  let whitespaceString = "";
+  let connectorStr = "";
   while (symbolStr !== ")") {
     if (/[\s+,]/.test(symbolStr)) {
       if (symbolStr === ",") {
@@ -64,9 +64,12 @@ export function parseTEntry(fileContent: string, startPos: number, offset: numbe
       }
       if (symbolStr === "+") {
         isNameVarSeparated = true;
+        if (isEntryNameParsed) {
+          connectorStr += symbolStr;
+        }
       }
       if (/\s/.test(symbolStr)) {
-        whitespaceString += symbolStr;
+        connectorStr += symbolStr;
       }
       curPos++;
       symbolStr = fileContent[curPos];
@@ -82,7 +85,7 @@ export function parseTEntry(fileContent: string, startPos: number, offset: numbe
         isVarSeparated = false;
       } else {
         const item = entryVarList.pop();
-        entryVarList.push([item, value].join(whitespaceString));
+        entryVarList.push([item, value].join(connectorStr));
       }
     } else {
       if (isNameVarSeparated || entryNameForm.length === 0) {
@@ -91,12 +94,12 @@ export function parseTEntry(fileContent: string, startPos: number, offset: numbe
       } else {
         const item = entryNameForm.pop();
         if (item) {
-          entryNameForm.push({ type: "var", value: [item.value, value].join(whitespaceString) });
+          entryNameForm.push({ type: "var", value: [item.value, value].join(connectorStr) });
         }
       }
       nameEndPos = curPos + value.length;
     }
-    whitespaceString = "";
+    connectorStr = "";
     curPos += value.length;
     symbolStr = fileContent[curPos];
   }
