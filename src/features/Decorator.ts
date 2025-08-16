@@ -98,7 +98,7 @@ export class DecoratorController implements vscode.Disposable {
         const globalStartPos = editor.document.positionAt(this.offsetBase + startPos);
         const globalEndPos = editor.document.positionAt(this.offsetBase + endPos);
         const range = new vscode.Range(globalStartPos, globalEndPos);
-        const uniqueId = `${this.offsetBase + startPos}:${entry.nameInfo.id}`;
+        const uniqueId = `${this.offsetBase + startPos}:${entry.nameInfo.name}`;
         const formattedEntryValue = this.formatEntryValue(entryValue, maxLen);
         const translationDec: vscode.DecorationOptions = { range, renderOptions: { before: { contentText: formattedEntryValue } } };
         const hiddenKeyDec: vscode.DecorationOptions = { range };

@@ -40,20 +40,16 @@ export function generateKey(parts: string[], keyStyle: KeyStyle): string {
   }
 }
 
-export function getIdByStr(str: string, genKeyInfo: { keyStyle: KeyStyle; stopWords: string[] } | null = null): string {
+export function getIdByStr(str: string, genKeyInfo: { keyStyle: KeyStyle; stopWords: string[] }): string {
   if (typeof str !== "string" || str.length === 0) return "";
-  let id = str.toLowerCase();
-  if (genKeyInfo) {
-    id = id
-      .replace(/[-_]/g, " ")
-      .split("")
-      .filter(item => /[a-zA-Z0-9\s]/.test(item))
-      .join("");
-    const parts = id.split(/\s/).filter(part => !genKeyInfo.stopWords.includes(part));
-    return generateKey(parts, genKeyInfo.keyStyle);
-  }
-  id = id.replace(/[\s\\]/g, "");
-  return id;
+  const id = str
+    .toLowerCase()
+    .replace(/[-_]/g, " ")
+    .split("")
+    .filter(item => /[a-zA-Z0-9\s]/.test(item))
+    .join("");
+  const parts = id.split(/\s/).filter(part => !genKeyInfo.stopWords.includes(part));
+  return generateKey(parts, genKeyInfo.keyStyle);
 }
 
 export function escapeString(str: string): string {

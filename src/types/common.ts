@@ -48,7 +48,6 @@ export interface TEntry {
     text: string;
     regex: RegExp;
     name: string;
-    id: string;
     boundClass: string;
     boundName: string;
     vars: string[];

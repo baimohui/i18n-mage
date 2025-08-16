@@ -312,36 +312,38 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
           level: 2,
           contextValue: contextValueList.join(","),
           usedInfo: this[element.type === "defined" ? "usedEntryMap" : "undefinedEntryMap"][entry.nameInfo.name],
-          id: this.genId(element, entry.nameInfo.id || ""),
+          id: this.genId(element, entry.nameInfo.name || ""),
           root: element.root
         };
       });
     } else if (element.level === 2) {
       const entryKey = getValueByAmbiguousEntryName(this.tree, element.name as string) ?? "";
       const entryInfo = this.dictionary[entryKey];
-      return this.langInfo.langList.map(lang => {
-        const contextValueList = ["entryTranslationInCurFile", "EDIT_VALUE"];
-        if (entryInfo[lang]) {
-          contextValueList.push("COPY_VALUE");
-        }
-        if (entryInfo[lang] !== undefined) {
-          contextValueList.push("GO_TO_DEFINITION");
-        }
-        if (!getLangText(lang)) {
-          contextValueList.push("UNKNOWN_LANG");
-        }
-        return {
-          label: lang,
-          name: element.name as string,
-          description: entryInfo[lang] ?? false,
-          collapsibleState: vscode.TreeItemCollapsibleState.None,
-          level: 3,
-          data: { name: element.name, key: entryKey, value: entryInfo[lang] ?? "", lang },
-          contextValue: contextValueList.join(","),
-          id: this.genId(element, lang),
-          tooltip: getLangText(lang) || t("common.unknownLang")
-        };
-      });
+      return this.langInfo.langList
+        .filter(lang => !this.publicCtx.ignoredLangs.includes(lang))
+        .map(lang => {
+          const contextValueList = ["entryTranslationInCurFile", "EDIT_VALUE"];
+          if (entryInfo[lang]) {
+            contextValueList.push("COPY_VALUE");
+          }
+          if (entryInfo[lang] !== undefined) {
+            contextValueList.push("GO_TO_DEFINITION");
+          }
+          if (!getLangText(lang)) {
+            contextValueList.push("UNKNOWN_LANG");
+          }
+          return {
+            label: lang,
+            name: element.name as string,
+            description: entryInfo[lang] ?? false,
+            collapsibleState: vscode.TreeItemCollapsibleState.None,
+            level: 3,
+            data: { name: element.name, key: entryKey, value: entryInfo[lang] ?? "", lang },
+            contextValue: contextValueList.join(","),
+            id: this.genId(element, lang),
+            tooltip: getLangText(lang) || t("common.unknownLang")
+          };
+        });
     }
     return [];
   }

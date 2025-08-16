@@ -1,5 +1,5 @@
 import { TEntry, EntryTree, PEntry, TEntryPartType, I18N_FRAMEWORK, I18N_FRAMEWORK_DEFAULT_CONFIG } from "@/types";
-import { escapeRegExp, getIdByStr } from "./stringUtils";
+import { escapeRegExp } from "./stringUtils";
 import { getValueByAmbiguousEntryName } from "./treeUtils";
 import { getCacheConfig } from "../config";
 
@@ -217,7 +217,6 @@ export function getEntryNameInfoByForm(nameForm: { type: TEntryPartType; value: 
     regex: new RegExp(`^${entryReg}$`),
     vars: varList,
     name: displayToInternalName(entryText),
-    id: getIdByStr(entryText),
     boundName: entryName,
     boundClass: entryClass
   };

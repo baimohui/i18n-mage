@@ -55,12 +55,16 @@ export class FixHandler {
     }
   }
 
+  private getIdByText(text: string) {
+    return text.toLowerCase().replace(/[\s\\]/g, "");
+  }
+
   private async processUndefinedEntries(): Promise<ExecutionResult> {
     this.lackInfoFromUndefined = {};
     const referredLangCode = getLangCode(this.ctx.referredLang);
     const referredLangMap = this.ctx.langCountryMap[this.ctx.referredLang];
     const valueKeyMap = Object.keys(referredLangMap).reduce(
-      (prev, cur) => ({ ...prev, [getIdByStr(referredLangMap[cur])]: cur }),
+      (prev, cur) => ({ ...prev, [this.getIdByText(referredLangMap[cur])]: cur }),
       {} as Record<string, string>
     );
     const needTranslateList: TEntry[] = [];
@@ -68,10 +72,11 @@ export class FixHandler {
     const undefinedEntryIdSet = new Set<string>();
     for (const entry of this.ctx.undefinedEntryList) {
       const nameInfo = entry.nameInfo;
+      const entryId = this.getIdByText(nameInfo.text);
       if (this.ctx.i18nFramework === I18N_FRAMEWORK.none && nameInfo.vars.length > 0) continue;
-      if (this.ctx.matchExistingKey && valueKeyMap[nameInfo.id] && !entry.nameInfo.boundName) {
+      if (this.ctx.matchExistingKey && valueKeyMap[entryId] && !entry.nameInfo.boundName) {
         this.needFix = true;
-        let entryName = valueKeyMap[nameInfo.id];
+        let entryName = valueKeyMap[entryId];
         if (this.ctx.i18nFramework === I18N_FRAMEWORK.vueI18n) {
           const quoteMatch = entry.raw.match(/["'`]{1}/);
           const quote = quoteMatch ? `\\${quoteMatch[0]}` : "'";
@@ -80,13 +85,13 @@ export class FixHandler {
         entryName = unescapeString(entryName);
         entry.nameInfo.boundName = entryName;
         patchedEntryIdList.push({ ...entry, fixedRaw: this.getFixedRaw(entry, entryName) });
-      } else if (undefinedEntryIdSet.has(nameInfo.id)) {
+      } else if (undefinedEntryIdSet.has(entryId)) {
         patchedEntryIdList.push({ ...entry, fixedRaw: "" });
       } else if (
         this.ctx.autoTranslateMissingKey &&
         (!this.ctx.validateLanguageBeforeTranslate || validateLang(nameInfo.text, this.ctx.referredLang))
       ) {
-        undefinedEntryIdSet.add(nameInfo.id);
+        undefinedEntryIdSet.add(entryId);
         needTranslateList.push(entry);
       }
     }
@@ -175,13 +180,18 @@ export class FixHandler {
     patchedEntryIdList.forEach(entry => {
       if (entry.fixedRaw === "") {
         const fixedEntryId =
-          patchedEntryIdList.find(item => item.nameInfo.id === entry.nameInfo.id && item.fixedRaw.length > 0)?.nameInfo.boundName ??
-          entry.nameInfo.text;
+          patchedEntryIdList.find(
+            item => this.getIdByText(item.nameInfo.text) === this.getIdByText(entry.nameInfo.text) && item.fixedRaw.length > 0
+          )?.nameInfo.boundName ?? entry.nameInfo.text;
         entry.nameInfo.boundName = fixedEntryId;
         entry.fixedRaw = this.getFixedRaw(entry, fixedEntryId);
       }
       this.ctx.patchedEntryIdInfo[entry.path as string] ??= [];
-      this.ctx.patchedEntryIdInfo[entry.path as string].push({ id: entry.nameInfo.id, raw: entry.raw, fixedRaw: entry.fixedRaw });
+      this.ctx.patchedEntryIdInfo[entry.path as string].push({
+        id: this.getIdByText(entry.nameInfo.text),
+        raw: entry.raw,
+        fixedRaw: entry.fixedRaw
+      });
     });
     return {
       success: true,
