@@ -14,13 +14,17 @@ export class NotificationManager {
     this.outputChannel = vscode.window.createOutputChannel("i18n Mage");
   }
 
+  static setStatusBarMessage(message: string, time: number = 3000) {
+    vscode.window.setStatusBarMessage(`🧙 ${message}`, time);
+  }
+
   // 显示主标题
   static showTitle(title: string): void {
     const divider = "=".repeat(title.length + 4);
     this.outputChannel.appendLine(`\n${divider}`);
     this.outputChannel.appendLine(`  ${title}  `);
     this.outputChannel.appendLine(`${divider}\n`);
-    vscode.window.setStatusBarMessage(`i18nMage: ${title}`, 3000);
+    NotificationManager.setStatusBarMessage(title);
   }
 
   // 进度信息
@@ -28,17 +32,13 @@ export class NotificationManager {
     try {
       ExecutionContext.progress?.report({ message });
     } catch {
-      vscode.window.setStatusBarMessage(message, 2000);
+      NotificationManager.setStatusBarMessage(message, 2000);
     }
     this.logToOutput(`⏳ ${message}`);
   }
 
   static hideProgress(): void {
-    try {
-      ExecutionContext.progress?.report({ message: "" });
-    } catch {
-      vscode.window.setStatusBarMessage("", 0);
-    }
+    ExecutionContext.progress?.report({ message: "" });
   }
 
   static showResult(result: ExecutionResult, successMessage: string = "", errorMessage: string = ""): Thenable<string | undefined> | void {
@@ -61,7 +61,7 @@ export class NotificationManager {
 
   // 成功信息
   static showSuccess(message: string, ...items: string[]): Thenable<string | undefined> {
-    vscode.window.setStatusBarMessage(`${message}`, 3000);
+    NotificationManager.setStatusBarMessage(`${message}`);
     this.logToOutput(`✅ ${message}`);
     return vscode.window.showInformationMessage(`${PREFIX}${message}`, ...items);
   }

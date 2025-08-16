@@ -128,7 +128,6 @@ class LangMage {
       return res;
     } catch (e: unknown) {
       const errorMessage = t("common.progress.error", e instanceof Error ? e.message : (e as string));
-      console.error(e);
       return { success: false, message: errorMessage, code: EXECUTION_RESULT_CODE.UnknownError };
     } finally {
       this.ctx.isVacant = true;

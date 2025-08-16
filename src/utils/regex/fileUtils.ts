@@ -74,7 +74,7 @@ export function getLangFileInfo(filePath: string): LangFileInfo | null {
     }
     return null;
   } catch (e) {
-    console.error(e);
+    NotificationManager.logToOutput((e as Error).message, "error");
     return null;
   }
 }

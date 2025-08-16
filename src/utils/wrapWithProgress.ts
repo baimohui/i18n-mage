@@ -17,7 +17,7 @@ export async function wrapWithProgress(
   callback: (progress: vscode.Progress<{ message?: string; increment?: number }>, token: vscode.CancellationToken) => Promise<void>
 ): Promise<void> {
   if (isProcessing) {
-    NotificationManager.showWarning(t("common.progress.processing"));
+    NotificationManager.setStatusBarMessage(t("common.progress.processing"), 2000);
     return;
   }
   isProcessing = true;

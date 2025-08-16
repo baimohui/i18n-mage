@@ -804,11 +804,6 @@
           "group": "inline@1"
         },
         {
-          "command": "i18nMage.checkUsage",
-          "when": "viewItem == checkUsage",
-          "group": "inline"
-        },
-        {
           "command": "i18nMage.ignoreFile",
           "when": "viewItem == fileItem"
         },
