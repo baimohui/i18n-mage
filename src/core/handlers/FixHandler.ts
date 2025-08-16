@@ -283,7 +283,8 @@ export class FixHandler {
       }
     }
     const quote = entry.raw.match(/["'`]{1}/)![0];
-    return `${entry.raw[0]}t(${quote}${displayName}${quote}${varStr})`;
+    const funcName = entry.raw.match(/^([^]*?)\(/)![1];
+    return `${funcName}(${quote}${displayName}${quote}${varStr})`;
   }
 
   private getPopularClassMap(
