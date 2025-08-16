@@ -9,7 +9,6 @@ import {
   getPathSegsFromId
 } from "@/utils/regex";
 import { t } from "@/utils/i18n";
-import { SortHandler } from "./SortHandler";
 import { ExecutionResult, EXECUTION_RESULT_CODE } from "@/types";
 import { checkPathExists } from "@/utils/fs";
 
@@ -85,7 +84,7 @@ export class RewriteHandler {
       }
     };
     if (this.ctx.multiFileMode === 0 && this.ctx.nestedLocale === 0) {
-      langObj = new SortHandler(this.ctx).getSortedTree(this.ctx.sortingWriteMode, lang);
+      langObj = translation;
     } else {
       const entryTree = getContentAtLocation(filePos, this.ctx.entryTree);
       if (entryTree) {

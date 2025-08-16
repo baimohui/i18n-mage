@@ -116,103 +116,115 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
   }
 
   getChildren(element?: ExtendedTreeItem): vscode.ProviderResult<vscode.TreeItem[]> {
-    if (!this.publicCtx.langPath) {
-      return [];
-    }
-    if (!element) {
-      return this.getRootChildren();
-    }
-    switch (element.root) {
-      case "CURRENT_FILE":
-        return this.getCurrentFileChildren(element);
-      case "SYNC_INFO":
-        return this.getSyncInfoChildren(element);
-      case "USAGE_INFO":
-        return this.getUsageInfoChildren(element);
-      case "DICTIONARY":
-        return this.getDictionaryChildren(element);
-      default:
+    try {
+      if (!this.publicCtx.langPath) {
         return [];
+      }
+      if (!element) {
+        return this.getRootChildren();
+      }
+      switch (element.root) {
+        case "CURRENT_FILE":
+          return this.getCurrentFileChildren(element);
+        case "SYNC_INFO":
+          return this.getSyncInfoChildren(element);
+        case "USAGE_INFO":
+          return this.getUsageInfoChildren(element);
+        case "DICTIONARY":
+          return this.getDictionaryChildren(element);
+        default:
+          return [];
+      }
+    } catch (e: unknown) {
+      const errorMessage = t("tree.getChildren.error", e instanceof Error ? e.message : (e as string));
+      NotificationManager.showError(errorMessage);
+      return [];
     }
   }
 
   async initTree(): Promise<boolean> {
-    const projectPath = toAbsolutePath(getConfig<string>("workspace.projectPath", ""));
-    this.refresh();
-    // const workspaceFolders = vscode.workspace.workspaceFolders;
-    // if (workspaceFolders !== undefined && workspaceFolders.length > 0) {
-    //   projectPath = workspaceFolders[0].uri.fsPath;
-    // }
-    let success = false;
+    try {
+      const projectPath = toAbsolutePath(getConfig<string>("workspace.projectPath", ""));
+      this.refresh();
+      // const workspaceFolders = vscode.workspace.workspaceFolders;
+      // if (workspaceFolders !== undefined && workspaceFolders.length > 0) {
+      //   projectPath = workspaceFolders[0].uri.fsPath;
+      // }
+      let success = false;
 
-    if (projectPath.trim() === "") {
-      NotificationManager.showWarning(t("common.noWorkspaceWarn"));
-      return false;
-    } else if (!(await isLikelyProjectPath(projectPath))) {
-      NotificationManager.showError(t("command.setProjectPath.invalidFolder"));
-      return false;
-    } else {
-      const vscodeLang = vscode.env.language;
-      this.#mage.setOptions({ projectPath, defaultLang: vscodeLang });
-      const configLangPath = getConfig<string>("workspace.languagePath", "");
-      if (configLangPath) {
-        this.#mage.setOptions({ langPath: toAbsolutePath(configLangPath), task: "check" });
-        await this.#mage.execute();
-      }
-      if (this.#mage.detectedLangList.length === 0) {
-        const possibleLangPaths = await getPossibleLangPaths(projectPath);
-        for (const langPath of possibleLangPaths) {
-          this.#mage.setOptions({ langPath, task: "check" });
+      if (projectPath.trim() === "") {
+        NotificationManager.showWarning(t("common.noWorkspaceWarn"));
+        return false;
+      } else if (!(await isLikelyProjectPath(projectPath))) {
+        NotificationManager.showError(t("command.setProjectPath.invalidFolder"));
+        return false;
+      } else {
+        const vscodeLang = vscode.env.language;
+        this.#mage.setOptions({ projectPath, defaultLang: vscodeLang });
+        const configLangPath = getConfig<string>("workspace.languagePath", "");
+        if (configLangPath) {
+          this.#mage.setOptions({ langPath: toAbsolutePath(configLangPath), task: "check" });
           await this.#mage.execute();
-          if (this.#mage.detectedLangList.length > 0) {
-            break;
+        }
+        if (this.#mage.detectedLangList.length === 0) {
+          const possibleLangPaths = await getPossibleLangPaths(projectPath);
+          for (const langPath of possibleLangPaths) {
+            this.#mage.setOptions({ langPath, task: "check" });
+            await this.#mage.execute();
+            if (this.#mage.detectedLangList.length > 0) {
+              break;
+            }
           }
         }
+        if (this.#mage.detectedLangList.length === 0) {
+          NotificationManager.showWarning(t("common.noLangPathDetectedWarn"), t("command.selectLangPath.title")).then(selection => {
+            if (selection === t("command.selectLangPath.title")) {
+              vscode.commands.executeCommand("i18nMage.selectLangPath");
+            }
+          });
+          vscode.commands.executeCommand("setContext", "hasValidLangPath", false);
+          success = false;
+        } else {
+          this.checkUsedInfo();
+          vscode.commands.executeCommand("setContext", "hasValidLangPath", true);
+          success = true;
+          const sortMode = getConfig<string>("writeRules.sortRule");
+          vscode.commands.executeCommand("setContext", "allowSort", this.langInfo.isFlat && sortMode !== SORT_MODE.None);
+          this.publicCtx = this.#mage.getPublicContext();
+          const langPath = toRelativePath(this.publicCtx.langPath);
+          const i18nFramework = detectI18nFramework(projectPath);
+          setTimeout(() => {
+            if (getConfig("workspace.languagePath", "") !== langPath) {
+              setConfig("workspace.languagePath", langPath).catch(error => {
+                NotificationManager.logToOutput(`Failed to set config for langPath: ${error}`, "error");
+              });
+            }
+            if (i18nFramework !== null && i18nFramework !== getConfig<I18nFramework>("i18nFeatures.framework")) {
+              setConfig("i18nFeatures.framework", i18nFramework).catch(error => {
+                NotificationManager.logToOutput(`Failed to set config for i18nFramework: ${error}`, "error");
+              });
+            }
+            if (getConfig("general.displayLanguage", "") === "") {
+              setConfig("general.displayLanguage", vscodeLang, "global").catch(error => {
+                NotificationManager.logToOutput(`Failed to set config for displayLanguage: ${error}`, "error");
+              });
+            }
+            if (getConfig("translationServices.referenceLanguage", "") === "") {
+              setConfig("translationServices.referenceLanguage", vscodeLang, "global").catch(error => {
+                NotificationManager.logToOutput(`Failed to set config for referenceLanguage: ${error}`, "error");
+              });
+            }
+          }, 10000);
+        }
       }
-      if (this.#mage.detectedLangList.length === 0) {
-        NotificationManager.showWarning(t("common.noLangPathDetectedWarn"), t("command.selectLangPath.title")).then(selection => {
-          if (selection === t("command.selectLangPath.title")) {
-            vscode.commands.executeCommand("i18nMage.selectLangPath");
-          }
-        });
-        vscode.commands.executeCommand("setContext", "hasValidLangPath", false);
-        success = false;
-      } else {
-        this.checkUsedInfo();
-        vscode.commands.executeCommand("setContext", "hasValidLangPath", true);
-        success = true;
-        const sortMode = getConfig<string>("writeRules.sortOnWrite");
-        vscode.commands.executeCommand("setContext", "allowSort", this.langInfo.isFlat && sortMode !== SORT_MODE.None);
-        this.publicCtx = this.#mage.getPublicContext();
-        const langPath = toRelativePath(this.publicCtx.langPath);
-        const i18nFramework = detectI18nFramework(projectPath);
-        setTimeout(() => {
-          if (getConfig("workspace.languagePath", "") !== langPath) {
-            setConfig("workspace.languagePath", langPath).catch(error => {
-              console.error("Failed to set config for langPath:", error);
-            });
-          }
-          if (i18nFramework !== null && i18nFramework !== getConfig<I18nFramework>("i18nFeatures.framework")) {
-            setConfig("i18nFeatures.framework", i18nFramework).catch(error => {
-              console.error("Failed to set config for i18nFramework:", error);
-            });
-          }
-          if (getConfig("general.displayLanguage", "") === "") {
-            setConfig("general.displayLanguage", vscodeLang, "global").catch(error => {
-              console.error("Failed to set config for displayLanguage:", error);
-            });
-          }
-          if (getConfig("translationServices.referenceLanguage", "") === "") {
-            setConfig("translationServices.referenceLanguage", vscodeLang, "global").catch(error => {
-              console.error("Failed to set config for referenceLanguage:", error);
-            });
-          }
-        }, 10000);
-      }
+      this.isInitialized = true;
+      vscode.commands.executeCommand("setContext", "initialized", true);
+      return success;
+    } catch (e: unknown) {
+      const errorMessage = t("%tree.init.error%树视图初始化失败:", e instanceof Error ? e.message : (e as string));
+      NotificationManager.showError(errorMessage);
+      return false;
     }
-    this.isInitialized = true;
-    vscode.commands.executeCommand("setContext", "initialized", true);
-    return success;
   }
 
   private getRootChildren(): ExtendedTreeItem[] {

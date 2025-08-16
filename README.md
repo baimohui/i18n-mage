@@ -278,7 +278,7 @@ Set the file size threshold (in KB) above which analysis will be skipped.
 
 ### Writing Rules
 
-#### `i18n-mage.writeRules.sortOnWrite`
+#### `i18n-mage.writeRules.sortRule`
 
 Sorting rules when writing language files (supports flat structures only). Supports alphabetical sorting of term keys and sorting by the source file location of the first occurrence of a term.
 

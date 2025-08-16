@@ -14,6 +14,7 @@ export interface LangMageOptions {
   importExcelFrom?: string;
   exportExcelTo?: string;
   syncBasedOnReferredEntries?: boolean;
+  sortAfterFix?: boolean;
   sortingWriteMode?: SortMode;
   sortingExportMode?: SortMode;
   modifyList?: Array<{ key: string; name: string; value: string; lang: string }>;

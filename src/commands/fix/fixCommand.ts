@@ -13,7 +13,8 @@ import { EXECUTION_RESULT_CODE } from "@/types";
 export function registerFixCommand(context: vscode.ExtensionContext) {
   const mage = LangMage.getInstance();
   const rewrite = async () => {
-    const res = await mage.execute({ task: "rewrite" });
+    const publicCtx = mage.getPublicContext();
+    const res = await mage.execute({ task: publicCtx.sortAfterFix ? "sort" : "rewrite" });
     await mage.execute({ task: "check" });
     setTimeout(() => {
       treeInstance.isSyncing = false;

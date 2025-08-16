@@ -316,7 +316,7 @@
         "type": "object",
         "title": "%config.writeRules.title%",
         "properties": {
-          "i18n-mage.writeRules.sortOnWrite": {
+          "i18n-mage.writeRules.sortRule": {
             "order": 4,
             "type": "string",
             "enum": [
@@ -331,6 +331,12 @@
               "%config.sortBy.byPosition%"
             ],
             "description": "%config.sorting.writeCode%"
+          },
+          "i18n-mage.writeRules.sortAfterFix": {
+            "order": 5,
+            "type": "boolean",
+            "default": false,
+            "description": "%config.sorting.writeBehavior%"
           },
           "i18n-mage.writeRules.languageFileIndent": {
             "order": 6,

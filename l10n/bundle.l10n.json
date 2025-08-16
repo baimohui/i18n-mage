@@ -106,6 +106,7 @@
   "tree.currentFile.title": "Current File",
   "tree.currentFile.undefined": "Undefined",
   "tree.dictionary.title": "Entry Summary",
+  "tree.getChildren.error": "An error occurred while retrieving child nodes in the tree view: {0}",
   "tree.syncInfo.baseline": "Reference Language",
   "tree.syncInfo.display": "Display Language",
   "tree.syncInfo.extra": "Extra",

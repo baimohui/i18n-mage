@@ -336,7 +336,7 @@ const errorInfo = i18n.t("保存失败");
 
 ### 写入规则
 
-#### `i18n-mage.writeRules.sortOnWrite`
+#### `i18n-mage.writeRules.sortRule`
 
 语言文件写入时的排序规则（仅支持扁平结构）。支持按词条键名首字母排序和按词条首次出现的源文件位置排序。
 

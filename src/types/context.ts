@@ -31,6 +31,7 @@ export interface LangContextPublic {
   styleScore: number;
   fileStructure: EntryNode | null;
   syncBasedOnReferredEntries: boolean;
+  sortAfterFix: boolean;
   sortingWriteMode: SortMode;
   sortingExportMode: SortMode;
   manuallyMarkedUsedEntries: string[];

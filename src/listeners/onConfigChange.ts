@@ -10,10 +10,24 @@ export function registerOnConfigChange() {
   const disposable = vscode.workspace.onDidChangeConfiguration(event => {
     if (!event.affectsConfiguration("i18n-mage")) return;
     if (
+      event.affectsConfiguration("i18n-mage.workspace") ||
+      event.affectsConfiguration("i18n-mage.i18nFeatures") ||
+      event.affectsConfiguration("i18n-mage.analysis.onSave") ||
+      event.affectsConfiguration("i18n-mage.writeRules.enableKeyTagRule") ||
+      event.affectsConfiguration("i18n-mage.writeRules.enablePrefixTagRule") ||
+      event.affectsConfiguration("i18n-mage.analysis.languageFileParser")
+    ) {
+      clearConfigCache();
+    } else if (
       event.affectsConfiguration("i18n-mage.analysis.syncBasedOnReferredEntries") ||
-      event.affectsConfiguration("i18n-mage.analysis.scanStringLiterals") ||
+      event.affectsConfiguration("i18n-mage.analysis.scanStringLiterals")
+    ) {
+      vscode.commands.executeCommand("i18nMage.checkUsage");
+    } else if (
+      event.affectsConfiguration("i18n-mage.analysis.fileSizeSkipThresholdKB") ||
       event.affectsConfiguration("i18n-mage.analysis.ignoreCommentedCode")
     ) {
+      clearConfigCache();
       vscode.commands.executeCommand("i18nMage.checkUsage");
     } else if (
       event.affectsConfiguration("i18n-mage.translationHints.light") ||
@@ -22,20 +36,9 @@ export function registerOnConfigChange() {
       event.affectsConfiguration("i18n-mage.translationHints.enableLooseKeyMatch")
     ) {
       decorator.updateTranslationDecoration();
-    } else if (event.affectsConfiguration("i18n-mage.writeRules.sortOnWrite")) {
-      const sortMode = getConfig<string>("writeRules.sortOnWrite");
+    } else if (event.affectsConfiguration("i18n-mage.writeRules.sortRule")) {
+      const sortMode = getConfig<string>("writeRules.sortRule");
       vscode.commands.executeCommand("setContext", "allowSort", mage.langDetail.isFlat && sortMode !== "none");
-    } else if (
-      event.affectsConfiguration("i18n-mage.workspace") ||
-      event.affectsConfiguration("i18n-mage.i18nFeatures") ||
-      event.affectsConfiguration("i18n-mage.analysis.onSave") ||
-      event.affectsConfiguration("i18n-mage.writeRules.enableKeyTagRule") ||
-      event.affectsConfiguration("i18n-mage.writeRules.enablePrefixTagRule") ||
-      event.affectsConfiguration("i18n-mage.analysis.fileSizeSkipThresholdKB") ||
-      event.affectsConfiguration("i18n-mage.analysis.ignoreCommentedCode") ||
-      event.affectsConfiguration("i18n-mage.analysis.languageFileParser")
-    ) {
-      clearConfigCache();
     }
   });
   registerDisposable(decorator);

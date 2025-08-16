@@ -13,6 +13,7 @@ export const createLangContext = (): LangContextInternal => ({
   styleScore: 0,
   fileStructure: null,
   modifyList: [],
+  sortAfterFix: false,
   sortingWriteMode: "none",
   sortingExportMode: "none",
   matchExistingKey: true,

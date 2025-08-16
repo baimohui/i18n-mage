@@ -106,6 +106,7 @@
   "tree.currentFile.title": "当前文件",
   "tree.currentFile.undefined": "未定义",
   "tree.dictionary.title": "词条汇总",
+  "tree.getChildren.error": "树视图获取子节点时发生错误：{0}",
   "tree.syncInfo.baseline": "基准语言",
   "tree.syncInfo.display": "显示语言",
   "tree.syncInfo.extra": "多余",

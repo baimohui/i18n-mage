@@ -24,7 +24,7 @@
       "bundle.l10n.zh-cn"
     ]
   },
-  "i18n-mage.writeRules.sortOnWrite": "byKey",
+  "i18n-mage.writeRules.sortRule": "byKey",
   "i18n-mage.general.displayLanguage": "bundle.l10n.zh-cn",
   "i18n-mage.workspace.languagePath": "l10n",
   "i18n-mage.workspace.ignoredDirectories": [
