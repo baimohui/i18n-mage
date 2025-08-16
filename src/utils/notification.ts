@@ -33,6 +33,14 @@ export class NotificationManager {
     this.logToOutput(`⏳ ${message}`);
   }
 
+  static hideProgress(): void {
+    try {
+      ExecutionContext.progress?.report({ message: "" });
+    } catch {
+      vscode.window.setStatusBarMessage("", 0);
+    }
+  }
+
   static showResult(result: ExecutionResult, successMessage: string = "", errorMessage: string = ""): Thenable<string | undefined> | void {
     const typeNum = Math.floor(result.code / 100);
     this.logToOutput(`📢 code: ${result.code}`);

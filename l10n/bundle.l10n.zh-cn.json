@@ -123,5 +123,7 @@
   "tree.usedInfo.total": "总计",
   "tree.usedInfo.undefined": "未定义",
   "tree.usedInfo.unused": "未使用",
-  "tree.usedInfo.used": "已使用"
+  "tree.usedInfo.used": "已使用",
+  "tree.init.error": "树视图初始化失败：{0}",
+  "command.fix.waitForFileSelection": "等待用户选择文件"
 }

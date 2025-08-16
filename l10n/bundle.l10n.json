@@ -123,5 +123,7 @@
   "tree.usedInfo.total": "Total",
   "tree.usedInfo.undefined": "Undefined",
   "tree.usedInfo.unused": "Unused",
-  "tree.usedInfo.used": "Used"
+  "tree.usedInfo.used": "Used",
+  "tree.init.error": "Tree view initialization failed: {0}",
+  "command.fix.waitForFileSelection": "Waiting for user to select file"
 }

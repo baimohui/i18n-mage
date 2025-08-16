@@ -221,7 +221,7 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
       vscode.commands.executeCommand("setContext", "initialized", true);
       return success;
     } catch (e: unknown) {
-      const errorMessage = t("%tree.init.error%树视图初始化失败:", e instanceof Error ? e.message : (e as string));
+      const errorMessage = t("tree.init.error", e instanceof Error ? e.message : (e as string));
       NotificationManager.showError(errorMessage);
       return false;
     }
