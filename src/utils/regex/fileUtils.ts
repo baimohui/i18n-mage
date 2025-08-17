@@ -28,7 +28,7 @@ export function isValidI18nCallablePath(inputPath: string): boolean {
     return false;
   }
   const firstDirName = getFirstOrLastDirName(normalizedPath, isDirectory);
-  const IGNORED_NAME_REGEX = /^(dist|node_modules|img|image|css|asset|build|out|\.)/i;
+  const IGNORED_NAME_REGEX = /^(node_modules|img|image|css|\..+)$/i;
   if (IGNORED_NAME_REGEX.test(firstDirName)) return false;
   // 如果是文件，检查扩展名
   if (!isDirectory) {

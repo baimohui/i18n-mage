@@ -71,6 +71,7 @@ export class ReadHandler {
           usedEntryNameList = getValueByAmbiguousEntryName(this.ctx.entryTree, nameInfo.name) === undefined ? [] : [nameInfo.name];
         }
         if (usedEntryNameList.length === 0) {
+          if (this.ctx.ignoredUndefinedEntries.includes(nameInfo.text)) continue;
           this.ctx.undefinedEntryList.push({ ...item, path: filePath });
           this.ctx.undefinedEntryMap[nameInfo.text] ??= {};
           this.ctx.undefinedEntryMap[nameInfo.text][filePath] ??= new Set<string>();

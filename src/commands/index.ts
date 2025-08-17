@@ -24,6 +24,7 @@ import { registerIgnoreLangCommand } from "./ignore/ignoreLangCommand";
 import { registerUnignoreLangCommand } from "./ignore/unignoreLangCommand";
 import { registerUnmarkAsUsedCommand } from "./mark/unmarkAsUsedCommand";
 import { registerToggleInlineTranslationCommand } from "./config/toggleInlineTranslationCommand";
+import { registerIgnoreUndefinedCommand } from "./ignore/ignoreUndefinedCommand";
 
 export function registerAllCommands(context: vscode.ExtensionContext) {
   registerCheckUsageCommand();
@@ -51,4 +52,5 @@ export function registerAllCommands(context: vscode.ExtensionContext) {
   registerUnignoreLangCommand();
   registerUnmarkAsUsedCommand();
   registerToggleInlineTranslationCommand();
+  registerIgnoreUndefinedCommand();
 }

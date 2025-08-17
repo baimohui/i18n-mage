@@ -50,7 +50,7 @@ export function getCacheConfig() {
       enableKeyTagRule: getConfig<boolean>("writeRules.enableKeyTagRule", false),
       enablePrefixTagRule: getConfig<boolean>("writeRules.enablePrefixTagRule", false),
       analysisOnSave: getConfig<boolean>("analysis.onSave", true),
-      framework: getConfig<I18nFramework>("i18nFeatures.framework", I18N_FRAMEWORK.vueI18n),
+      framework: getConfig<I18nFramework>("i18nFeatures.framework", I18N_FRAMEWORK.none),
       defaultNamespace: getConfig<string>("i18nFeatures.defaultNamespace", "translation"),
       tFuncNames: getConfig<string[]>("i18nFeatures.translationFunctionNames", []),
       interpolationBrackets: getConfig<"single" | "double" | "auto">("i18nFeatures.interpolationBrackets", "auto"),

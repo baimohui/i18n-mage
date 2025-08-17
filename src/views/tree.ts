@@ -10,10 +10,10 @@ import {
 } from "@/utils/regex";
 import { getPossibleLangPaths, isLikelyProjectPath, toAbsolutePath, toRelativePath } from "@/utils/fs";
 import { getLangCode, getLangText } from "@/utils/langKey";
-import { LangContextPublic, TEntry, LangTree, SORT_MODE, I18nFramework } from "@/types";
+import { LangContextPublic, TEntry, LangTree, SORT_MODE, I18N_FRAMEWORK } from "@/types";
 import { t } from "@/utils/i18n";
 import { NotificationManager } from "@/utils/notification";
-import { getConfig, setConfig } from "@/utils/config";
+import { getCacheConfig, getConfig, setConfig } from "@/utils/config";
 import { DecoratorController } from "@/features/Decorator";
 import { Diagnostics } from "@/features/Diagnostics";
 
@@ -192,14 +192,15 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
           vscode.commands.executeCommand("setContext", "allowSort", this.langInfo.isFlat && sortMode !== SORT_MODE.None);
           this.publicCtx = this.#mage.getPublicContext();
           const langPath = toRelativePath(this.publicCtx.langPath);
-          const i18nFramework = detectI18nFramework(projectPath);
           setTimeout(() => {
             if (getConfig("workspace.languagePath", "") !== langPath) {
               setConfig("workspace.languagePath", langPath).catch(error => {
                 NotificationManager.logToOutput(`Failed to set config for langPath: ${error}`, "error");
               });
             }
-            if (i18nFramework !== null && i18nFramework !== getConfig<I18nFramework>("i18nFeatures.framework")) {
+            const { framework } = getCacheConfig();
+            if (framework === I18N_FRAMEWORK.none) {
+              const i18nFramework = detectI18nFramework(projectPath);
               setConfig("i18nFeatures.framework", i18nFramework).catch(error => {
                 NotificationManager.logToOutput(`Failed to set config for i18nFramework: ${error}`, "error");
               });
@@ -292,6 +293,8 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
         },
         {
           label: t("tree.currentFile.undefined"),
+          contextValue: "IGNORE_UNDEFINED",
+          data: this.undefinedEntriesInCurrentFile.map(item => item.nameInfo.name),
           description: String(this.undefinedEntriesInCurrentFile.length),
           collapsibleState: vscode.TreeItemCollapsibleState[this.undefinedEntriesInCurrentFile.length === 0 ? "None" : "Collapsed"],
           level: 1,
@@ -303,13 +306,19 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
     } else if (element.level === 1) {
       return this[element.type === "defined" ? "definedEntriesInCurrentFile" : "undefinedEntriesInCurrentFile"].map(entry => {
         const entryInfo = this.dictionary[getValueByAmbiguousEntryName(this.tree, entry.nameInfo.name) as string] ?? {};
-        const contextValueList = [element.type === "defined" ? "definedEntryInCurFile" : "undefinedEntryInCurFile", "COPY_NAME"];
+        const contextValueList = ["COPY_NAME"];
+        if (element.type === "defined") {
+          contextValueList.push("definedEntryInCurFile");
+        } else {
+          contextValueList.push("undefinedEntryInCurFile", "IGNORE_UNDEFINED");
+        }
         return {
           name: entry.nameInfo.name,
           label: internalToDisplayName(entry.nameInfo.text),
           description: entryInfo[this.displayLang],
           collapsibleState: vscode.TreeItemCollapsibleState[element.type === "defined" ? "Collapsed" : "None"],
           level: 2,
+          data: [entry.nameInfo.name],
           contextValue: contextValueList.join(","),
           usedInfo: this[element.type === "defined" ? "usedEntryMap" : "undefinedEntryMap"][entry.nameInfo.name],
           id: this.genId(element, entry.nameInfo.name || ""),
@@ -411,22 +420,34 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
 
   private async getUsageInfoChildren(element: ExtendedTreeItem): Promise<ExtendedTreeItem[]> {
     if (element.level === 0) {
+      const undefinedEntries = Object.keys(this.undefinedEntryMap);
       return [
         { type: "used", label: t("tree.usedInfo.used"), num: this.usedKeySet.size },
         { type: "unused", label: t("tree.usedInfo.unused"), num: this.unusedKeySet.size },
-        { type: "undefined", label: t("tree.usedInfo.undefined"), num: Object.keys(this.undefinedEntryMap).length }
-      ].map(item => ({
-        ...item,
-        level: 1,
-        root: element.root,
-        description: String(item.num),
-        id: this.genId(element, item.type),
-        data: Array.from(item.type === "used" ? this.usedKeySet : this.unusedKeySet),
-        contextValue: item.num === 0 ? `${item.type}GroupHeader-None` : `${item.type}GroupHeader`,
-        collapsibleState: vscode.TreeItemCollapsibleState[item.num === 0 ? "None" : "Collapsed"]
-      }));
+        { type: "undefined", label: t("tree.usedInfo.undefined"), num: undefinedEntries.length }
+      ].map(item => {
+        let data: string[] = [];
+        if (item.type === "used") {
+          data = Array.from(this.usedKeySet);
+        } else if (item.type === "unused") {
+          data = Array.from(this.unusedKeySet);
+        } else {
+          data = undefinedEntries;
+        }
+        return {
+          ...item,
+          level: 1,
+          root: element.root,
+          description: String(item.num),
+          id: this.genId(element, item.type),
+          data,
+          contextValue: item.num === 0 ? `${item.type}GroupHeader-None` : `${item.type}GroupHeader`,
+          collapsibleState: vscode.TreeItemCollapsibleState[item.num === 0 ? "None" : "Collapsed"]
+        };
+      });
     } else if (element.level === 1) {
       if (element.type === "undefined") {
+        const contextValueList = ["undefinedEntry", "IGNORE_UNDEFINED"];
         return Object.keys(this.undefinedEntryMap)
           .sort()
           .map(item => {
@@ -435,6 +456,8 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
               key: item,
               label: item,
               level: 2,
+              data: [item],
+              contextValue: contextValueList.join(","),
               description: `<${undefinedNum}>`,
               type: element.type,
               root: element.root,

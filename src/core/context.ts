@@ -60,5 +60,6 @@ export const createLangContext = (): LangContextInternal => ({
   syncBasedOnReferredEntries: false,
   trimKeyList: [],
   manuallyMarkedUsedEntries: [],
+  ignoredUndefinedEntries: [],
   nameSeparator: ""
 });

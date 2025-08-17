@@ -83,6 +83,7 @@
   "config.jsonParser.auto": "先用 json5 尝试解析，如果失败，再 fallback 到 eval 解析器",
   "config.autoTranslateEmptyKey.desc": "自动翻译空值词条",
   "config.sorting.writeBehavior": "启用后，在执行修复操作后会根据配置的规则对所有语言文件进行统一排序",
+  "config.ignoredUndefinedEntries.desc": "手动忽略未定义词条：指定不希望被检测为未定义的词条名称列表",
   "command.setReferredLang.title": "设为翻译源语言",
   "command.setDisplayLang.title": "设为显示语言",
   "command.markAsKnownLang.title": "标记为已知语言",
@@ -107,5 +108,6 @@
   "command.ignoreLang.title": "忽略该语言",
   "command.unignoreLang.title": "取消忽略该语言",
   "command.toggleInlineTranslation.title": "启用/禁用翻译内联提示",
+  "command.delete.title": "移除",
   "view.welcome.title": "尚未检测到翻译文件目录\n[选择翻译文件目录](command:i18nMage.selectLangPath)"
 }

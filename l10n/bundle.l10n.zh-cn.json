@@ -125,5 +125,6 @@
   "tree.usedInfo.unused": "未使用",
   "tree.usedInfo.used": "已使用",
   "tree.init.error": "树视图初始化失败：{0}",
-  "command.fix.waitForFileSelection": "等待用户选择文件"
+  "command.fix.waitForFileSelection": "等待用户选择文件",
+  "command.delete.success": "已移除：{0}"
 }

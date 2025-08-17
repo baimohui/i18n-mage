@@ -35,6 +35,7 @@ export interface LangContextPublic {
   sortingWriteMode: SortMode;
   sortingExportMode: SortMode;
   manuallyMarkedUsedEntries: string[];
+  ignoredUndefinedEntries: string[];
   modifyList: Array<{ key: string; name: string; value: string; lang: string }>;
   matchExistingKey: boolean;
   autoTranslateMissingKey: boolean;

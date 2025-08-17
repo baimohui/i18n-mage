@@ -125,5 +125,6 @@
   "tree.usedInfo.unused": "Unused",
   "tree.usedInfo.used": "Used",
   "tree.init.error": "Tree view initialization failed: {0}",
-  "command.fix.waitForFileSelection": "Waiting for user to select file"
+  "command.fix.waitForFileSelection": "Waiting for user to select file",
+  "command.delete.success": "Removed: {0}"
 }

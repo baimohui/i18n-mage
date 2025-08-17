@@ -20,6 +20,7 @@ export interface LangMageOptions {
   modifyList?: Array<{ key: string; name: string; value: string; lang: string }>;
   trimKeyList?: string[];
   manuallyMarkedUsedEntries?: string[];
+  ignoredUndefinedEntries?: string[];
   matchExistingKey?: boolean;
   autoTranslateMissingKey?: boolean;
   autoTranslateEmptyKey?: boolean;

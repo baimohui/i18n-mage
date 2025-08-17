@@ -143,7 +143,10 @@ export function getEntryNameInfoByForm(nameForm: { type: TEntryPartType; value: 
     getCacheConfig();
   const useDoubleBrackets =
     interpolationBrackets === "double" ||
-    (interpolationBrackets === "auto" && framework !== I18N_FRAMEWORK.none && !I18N_FRAMEWORK_DEFAULT_CONFIG[framework].singleBrackets);
+    (interpolationBrackets === "auto" &&
+      framework &&
+      framework !== I18N_FRAMEWORK.none &&
+      !I18N_FRAMEWORK_DEFAULT_CONFIG[framework].singleBrackets);
   if (useDoubleBrackets) {
     varPrefix = "{{";
     varSuffix = "}}";
