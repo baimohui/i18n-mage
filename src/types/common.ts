@@ -63,6 +63,7 @@ export interface FixedTEntry {
 
 export interface PEntry {
   name: string;
+  value: string;
   pos: string;
 }
 

@@ -385,7 +385,11 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
         const tooltip = new vscode.MarkdownString();
         Object.entries(definedInfo).forEach(([lang, value]) => {
           const args = encodeURIComponent(JSON.stringify({ description: value }));
-          tooltip.appendMarkdown(`- **${escapeMarkdown(lang)}:** ${escapeMarkdown(value)} [📋](command:i18nMage.copyValue?${args})\n`);
+          if (value) {
+            tooltip.appendMarkdown(`- **${escapeMarkdown(lang)}:** ${escapeMarkdown(value)} [📋](command:i18nMage.copyValue?${args})\n`);
+          } else {
+            tooltip.appendMarkdown(`- **${escapeMarkdown(lang)}:** ${t("tree.syncInfo.null")}\n`);
+          }
         });
         tooltip.isTrusted = true; // 允许点击链接
         const name = unescapeString(item[0]);

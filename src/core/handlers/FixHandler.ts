@@ -292,9 +292,9 @@ export class FixHandler {
           break;
       }
     }
-    const quote = entry.raw.match(/["'`]{1}/)![0];
-    const funcName = entry.raw.match(/^([^]+?)\(/)![1];
-    return `${funcName}(${quote}${displayName}${quote}${varStr})`;
+    const quote = entry.raw.match(/["'`]{1}/)?.[0] ?? '"';
+    const funcName = entry.raw.match(/^([^]+?)\(/)?.[1] ?? "";
+    return funcName ? `${funcName}(${quote}${displayName}${quote}${varStr})` : `${quote}${displayName}${quote}`;
   }
 
   private getPopularClassMap(

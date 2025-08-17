@@ -3,21 +3,31 @@ import { escapeRegExp } from "./stringUtils";
 import { getValueByAmbiguousEntryName } from "./treeUtils";
 import { getCacheConfig } from "../config";
 
-export function catchPossibleEntries(fileContent: string, entryTree: EntryTree): { name: string; pos: string }[] {
+export function catchPossibleEntries(fileContent: string, entryTree: EntryTree, fileName: string): PEntry[] {
   const regex = /(["'`])(?:\\[\s\S]|(?!\1)[^\\])*?\1/g;
   let res: RegExpExecArray | null = null;
   const entryInfoList: PEntry[] = [];
   while ((res = regex.exec(fileContent)) !== null) {
-    const entryName = displayToInternalName(res[0].slice(1, -1));
+    let entryName = displayToInternalName(res[0].slice(1, -1));
+    let entryValue = "";
+    const { framework } = getCacheConfig();
+    if (framework === I18N_FRAMEWORK.vscodeL10n && fileName === "package.json") {
+      const match = entryName.match(/%(.*?)%(.*)/);
+      if (match) {
+        entryName = match[1];
+        entryValue = match[2];
+      }
+    }
     if (
-      isPositionInComment(fileContent, res.index) ||
-      !isValidI18nVarName(entryName) ||
-      getValueByAmbiguousEntryName(entryTree, entryName) === undefined
+      !entryValue &&
+      (isPositionInComment(fileContent, res.index) ||
+        !isValidI18nVarName(entryName) ||
+        getValueByAmbiguousEntryName(entryTree, entryName) === undefined)
     )
       continue;
     const startPos = res.index;
     const endPos = startPos + res[0].length;
-    entryInfoList.push({ name: entryName, pos: `${startPos},${endPos}` });
+    entryInfoList.push({ name: entryName, value: entryValue, pos: `${startPos},${endPos}` });
   }
   return entryInfoList;
 }

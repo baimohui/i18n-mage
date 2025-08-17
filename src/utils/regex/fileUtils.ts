@@ -33,7 +33,7 @@ export function isValidI18nCallablePath(inputPath: string): boolean {
   // 如果是文件，检查扩展名
   if (!isDirectory) {
     const ext = path.extname(normalizedPath);
-    const supportedExt = [".js", ".ts", ".jsx", ".tsx", ".vue", ".html"];
+    const supportedExt = [".js", ".ts", ".jsx", ".tsx", ".vue", ".html", ".json"];
     if (!supportedExt.includes(ext)) return false;
   }
   return true;

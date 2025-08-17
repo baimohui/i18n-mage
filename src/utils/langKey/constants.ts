@@ -150,7 +150,7 @@ export const DEFAULT_LANG_ALIAS_MAP: Partial<Record<LangKey, string[]>> = {
   ms: ["ms-MY", "ms-BN", "may"],
   my: ["my-MM", "bur"],
   nl: ["nl-NL", "nld"],
-  no: ["no-NO", "nor"],
+  no: ["no-NO", "nor", "nb-NO", "nb"],
   pl: ["pl-PL", "pol"],
   pt: ["pt-PT", "pt-BR", "po", "por"],
   ro: ["ro-RO", "rom"],

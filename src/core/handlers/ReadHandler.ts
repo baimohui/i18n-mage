@@ -56,7 +56,7 @@ export class ReadHandler {
       const tItems = catchTEntries(fileContent);
       let usedEntryList: { name: string; pos: string }[] = [];
       if (this.ctx.scanStringLiterals) {
-        const existedItems = catchPossibleEntries(fileContent, this.ctx.entryTree);
+        const existedItems = catchPossibleEntries(fileContent, this.ctx.entryTree, path.basename(filePath));
         usedEntryList = existedItems.slice();
       }
       for (const item of tItems) {
