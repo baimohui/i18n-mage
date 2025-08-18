@@ -71,7 +71,9 @@ export function registerFixCommand(context: vscode.ExtensionContext) {
           setTimeout(() => {
             treeInstance.isSyncing = false;
             treeInstance.refresh();
-            if (res !== null) NotificationManager.showResult(res);
+            if (res.success) {
+              NotificationManager.showResult(res);
+            }
           }, 1000);
         }
       });

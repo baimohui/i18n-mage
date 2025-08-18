@@ -242,19 +242,21 @@ export class FixHandler {
         }
       }
     }
+    let success = true;
     let message = "";
     let code = EXECUTION_RESULT_CODE.Success;
     if (!this.needFix) {
       message = t("command.fix.nullWarn");
       code = EXECUTION_RESULT_CODE.NoLackEntries;
     } else if (hasTranslatorFailed) {
+      success = false;
       message = t("command.fix.translatorFailed");
       code = EXECUTION_RESULT_CODE.TranslatorFailed;
     }
     return new Promise<ExecutionResult>(resolve => {
       setTimeout(() => {
         this.restoreLackInfo();
-        resolve({ success: true, message, code });
+        resolve({ success, message, code });
       }, 1500);
     });
   }

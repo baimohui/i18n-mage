@@ -45,7 +45,6 @@ export const EXECUTION_RESULT_CODE = {
   NoLangPathDetected: 303,
   ImportNoKey: 304,
   ImportNoLang: 305,
-  TranslatorFailed: 306,
   NoReferredLang: 307,
   UnknownError: 400,
   UnknownCheckError: 401,
@@ -54,6 +53,7 @@ export const EXECUTION_RESULT_CODE = {
   UnknownExportError: 404,
   UnknownImportError: 405,
   UnknownModifyError: 406,
+  TranslatorFailed: 407,
   InvalidExportPath: 420,
   InvalidEntryName: 421
 };

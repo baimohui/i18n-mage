@@ -25,46 +25,61 @@ export interface TranslateData {
 
 type ApiMap = Record<ApiPlatform, (string | undefined)[]>;
 
-let curApiId = 0;
-
-export default async function translateTo(data: TranslateData): Promise<TranslateResult> {
+export default async function translateTo(data: TranslateData, startIndex = 0): Promise<TranslateResult> {
   const { source = "", target = "", sourceTextList = [] } = data;
+
   const baiduAppId = getConfig<string>("translationServices.baiduAppId", "");
   const baiduSecretKey = getConfig<string>("translationServices.baiduSecretKey", "");
   const tencentSecretId = getConfig<string>("translationServices.tencentSecretId", "");
   const tencentSecretKey = getConfig<string>("translationServices.tencentSecretKey", "");
   const deepseekApiKey = getConfig<string>("translationServices.deepseekApiKey", "");
-  const translateApiPriority = getConfig<string[]>("translationServices.translateApiPriority", ["google", "baidu", "tencent"]);
+  const translateApiPriority = getConfig<string[]>("translationServices.translateApiPriority", []);
+
   const apiMap: ApiMap = {
     google: [],
     baidu: [baiduAppId, baiduSecretKey],
     tencent: [tencentSecretId, tencentSecretKey],
     deepseek: ["none", deepseekApiKey]
   };
+
   const availableApiList = translateApiPriority.filter(
     api => Array.isArray(apiMap[api]) && !apiMap[api].some(token => typeof token !== "string" || token.trim() === "")
   ) as ApiPlatform[];
-  let availableApi = availableApiList[curApiId];
-  const hasBackupApi = availableApiList.length > curApiId + 1;
-  if (!availableApi) {
+
+  if (startIndex >= availableApiList.length) {
     const message = t("translator.noAvailableApi");
     NotificationManager.showWarning(message);
     return { success: false, message };
   }
 
-  let res: TranslateResult;
+  const availableApi = availableApiList[startIndex];
   const sourceLangCode = getLangCode(source, availableApi);
   const targetLangCode = getLangCode(target, availableApi);
+
+  // 源语言不支持 → 直接换下一个
   if (sourceLangCode === null) {
-    const message = t(`translator.invalidSourceCode`, source, availableApi);
-    NotificationManager.showWarning(message);
-    return { success: false, message };
+    NotificationManager.showWarning(t("translator.invalidSourceCode", source, availableApi));
+    if (startIndex + 1 < availableApiList.length) {
+      const backupApi = availableApiList[startIndex + 1];
+      NotificationManager.showProgress(t("translator.useOtherApi", backupApi));
+      const res = await translateTo(data, startIndex + 1);
+      return res;
+    }
+    return { success: false, message: t("translator.noAvailableApi") };
   }
+
+  // 目标语言不支持 → 尝试临时接力
   if (targetLangCode === null) {
-    const message = t(`translator.invalidTargetCode`, target, availableApi);
-    NotificationManager.showWarning(message);
-    return { success: false, message };
+    NotificationManager.showWarning(t("translator.invalidTargetCode", target, availableApi));
+    if (startIndex + 1 < availableApiList.length) {
+      const backupApi = availableApiList[startIndex + 1];
+      NotificationManager.showProgress(t("translator.useOtherApi", backupApi));
+      const res = await translateTo(data, startIndex + 1);
+      return res;
+    }
+    return { success: false, message: t("translator.noAvailableApi") };
   }
+
   const params: TranslateParams = {
     source: sourceLangCode,
     target: targetLangCode,
@@ -72,52 +87,44 @@ export default async function translateTo(data: TranslateData): Promise<Translat
     apiId: apiMap[availableApi][0] ?? "",
     apiKey: apiMap[availableApi][1] ?? ""
   };
-  switch (availableApi) {
-    case "tencent":
-      res = await tcTranslateTo(params);
-      break;
-    case "baidu":
-      res = await bdTranslateTo(params);
-      break;
-    case "google":
-      res = await ggTranslateTo(params);
-      break;
-    case "deepseek":
-      res = await dsTranslateTo(params);
-      break;
-    default:
-      return { success: false, message: t("translator.unknownService") };
-  }
+
+  const res = await doTranslate(availableApi, params);
+
   if (res.success) {
+    res.api = availableApi;
     NotificationManager.showProgress(
       t("command.fix.progressDetail", target, availableApi, res?.data?.map(item => item.replace(/\n/g, "\\n")).join(", ") ?? "")
     );
-  } else {
-    NotificationManager.showError(t("command.fix.error", `[${availableApi}]${res.message}`));
-    if (hasBackupApi) {
-      availableApi = availableApiList[++curApiId];
-      if (res.langUnsupported === true) {
-        NotificationManager.showProgress(t("translator.useOtherApi", availableApi));
+    return new Promise(resolve => {
+      if (availableApi === "google") {
+        setTimeout(() => resolve(res), 1000);
       } else {
-        NotificationManager.showProgress(t("translator.useApi", availableApi));
-      }
-      const newRes = await translateTo({ source, target, sourceTextList });
-      if (res.langUnsupported === true) {
-        curApiId--;
-      }
-      return newRes;
-    } else {
-      return { success: false };
-    }
-  }
-  return new Promise(resolve => {
-    res.api = availableApi;
-    if (availableApi === "google") {
-      setTimeout(() => {
         resolve(res);
-      }, 1000);
-    } else {
-      resolve(res);
+      }
+    });
+  } else {
+    if (startIndex + 1 < availableApiList.length) {
+      NotificationManager.showWarning(`${availableApi}: ${res.message}`);
+      const nextApi = availableApiList[startIndex + 1];
+      NotificationManager.showProgress(t("translator.useOtherApi", nextApi));
+      return translateTo(data, startIndex + 1);
     }
-  });
+    NotificationManager.showError(t("command.fix.error", `[${availableApi}]${res.message}`));
+    return { success: false, message: res.message };
+  }
+}
+
+async function doTranslate(api: ApiPlatform, params: TranslateParams): Promise<TranslateResult> {
+  switch (api) {
+    case "tencent":
+      return tcTranslateTo(params);
+    case "baidu":
+      return bdTranslateTo(params);
+    case "google":
+      return ggTranslateTo(params);
+    case "deepseek":
+      return dsTranslateTo(params);
+    default:
+      return { success: false, message: t("translator.unknownService") };
+  }
 }

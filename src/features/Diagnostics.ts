@@ -30,17 +30,16 @@ export class Diagnostics {
     const entries = catchTEntries(text);
     const diagnostics: vscode.Diagnostic[] = [];
     const { tree, countryMap } = mage.langDetail;
+    const publicCtx = mage.getPublicContext();
     const translations = countryMap[treeInstance.displayLang];
     if (translations === undefined) return;
     const totalEntryList = Object.keys(mage.langDetail.dictionary).map(key => unescapeString(key));
 
     for (const entry of entries) {
-      const entryKey = getValueByAmbiguousEntryName(tree, entry.nameInfo.name);
-      const entryValue = translations[entryKey as string];
-      if (entryValue === undefined) {
-        if (entry.nameInfo.vars.length > 0 && totalEntryList.some(entryName => entry.nameInfo.regex.test(entryName))) {
-          continue;
-        }
+      if (publicCtx.ignoredUndefinedEntries.includes(entry.nameInfo.name)) continue;
+      const entryKey = getValueByAmbiguousEntryName(tree, entry.nameInfo.name) ?? "";
+      if (!entryKey || translations[entryKey] === undefined) {
+        if (entry.nameInfo.vars.length > 0 && totalEntryList.some(entryName => entry.nameInfo.regex.test(entryName))) continue;
         const [startPos, endPos] = entry.pos.split(",").map(pos => document.positionAt(+pos));
         const range = new vscode.Range(startPos, endPos);
         const diagnostic = new vscode.Diagnostic(
