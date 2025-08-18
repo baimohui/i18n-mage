@@ -6,6 +6,7 @@ const NAMESPACE = "i18n-mage";
 type Scope = "global" | "workspace" | "workspaceFolder";
 
 let cachedConfig: {
+  languagePath: string;
   ignoredFiles: string[];
   ignoredDirectories: string[];
   framework: I18nFramework;
@@ -45,6 +46,7 @@ export async function setConfig<T = any>(
 export function getCacheConfig() {
   if (!cachedConfig) {
     cachedConfig = {
+      languagePath: getConfig<string>("workspace.languagePath", ""),
       ignoredFiles: getConfig<string[]>("workspace.ignoredFiles", []),
       ignoredDirectories: getConfig<string[]>("workspace.ignoredDirectories", []),
       enableKeyTagRule: getConfig<boolean>("writeRules.enableKeyTagRule", false),

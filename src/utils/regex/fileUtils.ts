@@ -10,7 +10,7 @@ import { NotificationManager } from "../notification";
 import { t } from "../i18n";
 
 export function isValidI18nCallablePath(inputPath: string): boolean {
-  const { ignoredFiles, ignoredDirectories } = getCacheConfig();
+  const { ignoredFiles, ignoredDirectories, languagePath } = getCacheConfig();
   const normalizedPath = path.normalize(inputPath);
   // 判断是否是文件或目录
   let isDirectory = false;
@@ -23,7 +23,7 @@ export function isValidI18nCallablePath(inputPath: string): boolean {
   // 检查是否被忽略
   if (
     ignoredFiles.some(ignoredFile => isSamePath(normalizedPath, ignoredFile)) ||
-    ignoredDirectories.some(ignoredDir => isPathInsideDirectory(ignoredDir, normalizedPath))
+    [...ignoredDirectories, languagePath].some(ignoredDir => isPathInsideDirectory(ignoredDir, normalizedPath))
   ) {
     return false;
   }

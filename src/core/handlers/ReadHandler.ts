@@ -113,13 +113,13 @@ export class ReadHandler {
     for (let i = 0; i < results.length; i++) {
       const targetName = results[i].name;
       const tempPath = path.join(dir, targetName);
-      const isLangPath = path.resolve(tempPath) === path.resolve(this.ctx.langPath);
-      if (results[i].isDirectory() && isValidI18nCallablePath(tempPath) && !isLangPath) {
-        const tempPathList = this._readAllFiles(tempPath);
-        pathList.push(...tempPathList);
-      }
-      if (!results[i].isDirectory() && isValidI18nCallablePath(tempPath)) {
-        pathList.push(tempPath);
+      if (isValidI18nCallablePath(tempPath)) {
+        if (results[i].isDirectory()) {
+          const tempPathList = this._readAllFiles(tempPath);
+          pathList.push(...tempPathList);
+        } else {
+          pathList.push(tempPath);
+        }
       }
     }
     return pathList;
