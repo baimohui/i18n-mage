@@ -180,7 +180,17 @@ export function formatForFile(str: string, doubleQuotes = true): string {
 
 export function isEnglishVariable(str: string): boolean {
   if (!str?.trim()) return false;
-  const isLikelyVariable = /^[a-zA-Z_][\w.-{}]*$/.test(str) && !/\s/.test(str) && !/[.!?]$/.test(str);
-  if (!isLikelyVariable) return false;
-  return /[_\-.]/.test(str) || /[a-z][A-Z]|[A-Z][a-z]/.test(str) || (str === str.toUpperCase() && str.length > 1) || /\d/.test(str);
+  // 基础字符约束
+  if (!/^[A-Za-z_][A-Za-z0-9_.-]*$/.test(str) || /[.!?]\s*$/.test(str)) return false;
+  // 忽略前导下划线（_private、__dirname 等）
+  const s = str.replace(/^_+/, "");
+  // 具体形态
+  const isSnake = /^[a-z]+(?:_[a-z0-9]+)+$/.test(s); // snake_case
+  const isKebab = /^[a-z]+(?:-[a-z0-9]+)+$/.test(s); // kebab-case
+  const isDotCase = /^[a-z]+(?:\.[a-z0-9]+)+$/.test(s); // dot.case
+  const isCamel = /^[a-z]+(?:[A-Z][a-z0-9]*)+$/.test(s); // camelCase（至少一处上边界）
+  const isPascal = /^(?:[A-Z][a-z0-9]*){2,}$/.test(s); // PascalCase（≥2 段，避免 "Name"）
+  const isScream = /^[A-Z0-9]+(?:_[A-Z0-9]+)+$/.test(s); // SCREAMING_SNAKE_CASE
+  const isAllCapsWithDigit = /^[A-Z0-9]+$/.test(s) && /\d/.test(s); // 如 MD5、ISO8601
+  return isSnake || isKebab || isDotCase || isCamel || isPascal || isScream || isAllCapsWithDigit;
 }

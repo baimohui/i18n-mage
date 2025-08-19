@@ -74,7 +74,6 @@ class ExtensionState {
     // 清除装饰器
     const decorator = DecoratorController.getInstance();
     decorator.dispose();
-    // NotificationManager.showSuccess(t("common.disabled"));
   }
 }
 
