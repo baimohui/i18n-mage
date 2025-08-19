@@ -4,7 +4,7 @@ import path from "path";
 import JSON5 from "json5";
 import { escapeString } from "./stringUtils";
 import { LangTree, FileExtraInfo, LangFileInfo, EntryNode, EntryMap, EntryTree, I18nFramework, I18N_FRAMEWORK, QuoteStyle } from "@/types";
-import { getFirstOrLastDirName, isPathInsideDirectory, isSamePath } from "../fs";
+import { isPathInsideDirectory, isSamePath, toRelativePath } from "../fs";
 import { getCacheConfig } from "../config";
 import { NotificationManager } from "../notification";
 import { t } from "../i18n";
@@ -27,14 +27,14 @@ export function isValidI18nCallablePath(inputPath: string): boolean {
   ) {
     return false;
   }
-  const firstDirName = getFirstOrLastDirName(normalizedPath, isDirectory);
-  const IGNORED_NAME_REGEX = /^(node_modules|img|image|css|\..+)$/i;
-  if (IGNORED_NAME_REGEX.test(firstDirName)) return false;
+  const dirParts = toRelativePath(normalizedPath).split("/");
+  const IGNORED_NAME_REGEX = /^(node_modules|\..+)$/i;
+  if (dirParts.some(dirPart => IGNORED_NAME_REGEX.test(dirPart))) return false;
   // 如果是文件，检查扩展名
   if (!isDirectory) {
     const ext = path.extname(normalizedPath);
-    const supportedExt = [".js", ".ts", ".jsx", ".tsx", ".vue", ".html", ".json"];
-    if (!supportedExt.includes(ext)) return false;
+    const { fileExtensions } = getCacheConfig();
+    if (!fileExtensions.includes(ext)) return false;
   }
   return true;
 }

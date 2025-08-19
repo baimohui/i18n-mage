@@ -6,6 +6,7 @@ const NAMESPACE = "i18n-mage";
 type Scope = "global" | "workspace" | "workspaceFolder";
 
 let cachedConfig: {
+  fileExtensions: string[];
   languagePath: string;
   ignoredFiles: string[];
   ignoredDirectories: string[];
@@ -46,6 +47,7 @@ export async function setConfig<T = any>(
 export function getCacheConfig() {
   if (!cachedConfig) {
     cachedConfig = {
+      fileExtensions: getConfig<string[]>("general.fileExtensions", []),
       languagePath: getConfig<string>("workspace.languagePath", ""),
       ignoredFiles: getConfig<string[]>("workspace.ignoredFiles", []),
       ignoredDirectories: getConfig<string[]>("workspace.ignoredDirectories", []),

@@ -10,18 +10,18 @@ import { wrapWithProgress } from "@/utils/wrapWithProgress";
 
 export function registerOnFileSave() {
   const debouncedHandler = throttle(async (doc: vscode.TextDocument) => {
+    const filePath = doc.fileName;
+    const workspacePath = vscode.workspace.getWorkspaceFolder(doc.uri)?.uri.fsPath;
+    const mage = LangMage.getInstance();
+    const publicCtx = mage.getPublicContext();
+    const { analysisOnSave } = getCacheConfig();
+    if (
+      !analysisOnSave ||
+      workspacePath === undefined ||
+      (!isValidI18nCallablePath(filePath) && !isPathInsideDirectory(publicCtx.langPath, filePath))
+    )
+      return;
     await wrapWithProgress({ title: "" }, async () => {
-      const filePath = doc.fileName;
-      const workspacePath = vscode.workspace.getWorkspaceFolder(doc.uri)?.uri.fsPath;
-      const mage = LangMage.getInstance();
-      const publicCtx = mage.getPublicContext();
-      const { analysisOnSave } = getCacheConfig();
-      if (
-        !analysisOnSave ||
-        workspacePath === undefined ||
-        (!isValidI18nCallablePath(filePath) && !isPathInsideDirectory(publicCtx.langPath, filePath))
-      )
-        return;
       await mage.execute({ task: "check" });
       treeInstance.checkUsedInfo();
     });

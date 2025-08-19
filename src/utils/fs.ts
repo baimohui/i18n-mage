@@ -155,13 +155,6 @@ export function isSamePath(absolutePath: string, relativePath: string): boolean 
   return resolvedPath === normalizedAbsolute;
 }
 
-// 获取首段或最后一级目录名（供正则匹配）
-export function getFirstOrLastDirName(p: string, isDirectory: boolean): string {
-  const segments = path.resolve(p).split(path.sep);
-  if (segments.length === 0) return "";
-  return isDirectory ? segments[segments.length - 1] : segments[0];
-}
-
 // 检测文件大小是否超过 50KB（可调整）
 export async function isFileTooLarge(filePath: string): Promise<boolean> {
   const stats = await fs.stat(filePath);

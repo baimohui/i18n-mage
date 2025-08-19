@@ -49,6 +49,23 @@
             "default": "",
             "description": "%config.displayLanguage.desc%"
           },
+          "i18n-mage.general.fileExtensions": {
+            "order": 12,
+            "type": "array",
+            "default": [
+              ".js",
+              ".ts",
+              ".jsx",
+              ".tsx",
+              ".vue",
+              ".html",
+              ".json"
+            ],
+            "description": "%config.fileExtensions.desc%",
+            "items": {
+              "type": "string"
+            }
+          },
           "i18n-mage.general.sortOnExport": {
             "order": 16,
             "type": "string",

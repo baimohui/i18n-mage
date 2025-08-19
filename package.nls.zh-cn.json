@@ -84,6 +84,7 @@
   "config.autoTranslateEmptyKey.desc": "修复时自动翻译空值词条",
   "config.sorting.writeBehavior": "启用后，在执行修复操作后会根据配置的规则对所有语言文件进行统一排序",
   "config.ignoredUndefinedEntries.desc": "手动忽略未定义词条：指定不希望被检测为未定义的词条名称列表",
+  "config.fileExtensions.desc": "指定需要扫描的文件扩展名",
   "command.setReferredLang.title": "设为翻译源语言",
   "command.setDisplayLang.title": "设为显示语言",
   "command.markAsKnownLang.title": "标记为已知语言",

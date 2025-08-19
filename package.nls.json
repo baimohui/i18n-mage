@@ -84,6 +84,7 @@
   "config.autoTranslateEmptyKey.desc": "Whether empty value entries should be completed during automatic translation",
   "config.sorting.writeBehavior": "When enabled, all language files will be sorted using the configured rule after a fix operation",
   "config.ignoredUndefinedEntries.desc": "Manually ignore undefined entries: specify a list of entry names that you do not want to be detected as undefined",
+  "config.fileExtensions.desc": "File extensions to scan for i18n keys",
   "command.setReferredLang.title": "Set as Source Language",
   "command.setDisplayLang.title": "Set as Display Language",
   "command.markAsKnownLang.title": "Mark as Known Language",
