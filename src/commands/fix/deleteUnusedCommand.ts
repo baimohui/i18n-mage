@@ -23,7 +23,8 @@ export function registerDeleteUnusedCommand() {
         await mage.execute();
         treeInstance.refresh();
       }
-      NotificationManager.showResult(res, t("command.deleteUnused.success"));
+      res.defaultSuccessMessage = t("command.deleteUnused.success");
+      NotificationManager.showResult(res);
     }
   });
 

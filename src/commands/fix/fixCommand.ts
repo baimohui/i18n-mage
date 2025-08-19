@@ -19,7 +19,8 @@ export function registerFixCommand(context: vscode.ExtensionContext) {
     setTimeout(() => {
       treeInstance.isSyncing = false;
       treeInstance.refresh();
-      NotificationManager.showResult(res, t("command.rewrite.success"));
+      res.defaultSuccessMessage = t("command.rewrite.success");
+      NotificationManager.showResult(res);
     }, 1000);
   };
   const disposable = vscode.commands.registerCommand("i18nMage.fix", async () => {
@@ -29,7 +30,7 @@ export function registerFixCommand(context: vscode.ExtensionContext) {
         await mage.execute({ task: "check" });
         const { multiFileMode, undefined: undefinedMap } = mage.langDetail;
         if (Object.keys(undefinedMap).length > 0 && multiFileMode && publicCtx.fileStructure) {
-          NotificationManager.showProgress(t("command.fix.waitForFileSelection"));
+          NotificationManager.showProgress({ message: t("command.fix.waitForFileSelection") });
           const commonFiles = getCommonFilePaths(publicCtx.fileStructure);
           const lastPicked = context.globalState.get<string>("lastPickedFile");
           const sortedFiles = lastPicked !== undefined ? [lastPicked, ...commonFiles.filter(f => f !== lastPicked)] : commonFiles;
@@ -54,27 +55,27 @@ export function registerFixCommand(context: vscode.ExtensionContext) {
           NotificationManager.showResult({ success: false, message: "", code: EXECUTION_RESULT_CODE.Cancelled });
           return;
         }
+        setTimeout(() => {
+          NotificationManager.showResult(res, t("command.fix.viewDetails")).then(selection => {
+            if (selection === t("command.fix.viewDetails")) {
+              NotificationManager.showOutputChannel();
+            }
+          });
+        }, 1000);
         const { updatedValues, patchedIds, countryMap } = mage.langDetail;
         if (res.success && [updatedValues, patchedIds].some(o => Object.keys(o).length > 0)) {
           if (previewChanges) {
-            if ([updatedValues, patchedIds].some(item => Object.keys(item).length > 0)) {
-              treeInstance.isSyncing = false;
-              treeInstance.refresh();
-              previewFixContent(updatedValues, patchedIds, countryMap, publicCtx.referredLang, async () => {
-                await wrapWithProgress({ title: t("command.rewrite.progress") }, rewrite);
-              });
-            }
+            treeInstance.isSyncing = false;
+            treeInstance.refresh();
+            previewFixContent(updatedValues, patchedIds, countryMap, publicCtx.referredLang, async () => {
+              await wrapWithProgress({ title: t("command.rewrite.progress") }, rewrite);
+            });
           } else {
             await rewrite();
           }
         } else {
-          setTimeout(() => {
-            treeInstance.isSyncing = false;
-            treeInstance.refresh();
-            if (res.success) {
-              NotificationManager.showResult(res);
-            }
-          }, 1000);
+          treeInstance.isSyncing = false;
+          treeInstance.refresh();
         }
       });
     }

@@ -58,25 +58,37 @@ export default async function translateTo(data: TranslateData, startIndex = 0): 
 
   // 源语言不支持 → 直接换下一个
   if (sourceLangCode === null) {
-    NotificationManager.showWarning(t("translator.invalidSourceCode", source, availableApi));
     if (startIndex + 1 < availableApiList.length) {
       const backupApi = availableApiList[startIndex + 1];
-      NotificationManager.showProgress(t("translator.useOtherApi", backupApi));
+      NotificationManager.showProgress({
+        message: t("translator.useOtherApi", availableApi, target, t("translator.invalidSourceCode", source), backupApi),
+        type: "error"
+      });
       const res = await translateTo(data, startIndex + 1);
       return res;
     }
+    NotificationManager.showProgress({
+      message: t("translator.failedToFix", availableApi, target, t("translator.invalidSourceCode", source)),
+      type: "error"
+    });
     return { success: false, message: t("translator.noAvailableApi") };
   }
 
   // 目标语言不支持 → 尝试临时接力
   if (targetLangCode === null) {
-    NotificationManager.showWarning(t("translator.invalidTargetCode", target, availableApi));
     if (startIndex + 1 < availableApiList.length) {
       const backupApi = availableApiList[startIndex + 1];
-      NotificationManager.showProgress(t("translator.useOtherApi", backupApi));
+      NotificationManager.showProgress({
+        message: t("translator.useOtherApi", availableApi, target, t("translator.invalidTargetCode", target), backupApi),
+        type: "error"
+      });
       const res = await translateTo(data, startIndex + 1);
       return res;
     }
+    NotificationManager.showProgress({
+      message: t("translator.failedToFix", availableApi, target, t("translator.invalidTargetCode", target)),
+      type: "error"
+    });
     return { success: false, message: t("translator.noAvailableApi") };
   }
 
@@ -92,9 +104,10 @@ export default async function translateTo(data: TranslateData, startIndex = 0): 
 
   if (res.success) {
     res.api = availableApi;
-    NotificationManager.showProgress(
-      t("command.fix.progressDetail", target, availableApi, res?.data?.map(item => item.replace(/\n/g, "\\n")).join(", ") ?? "")
-    );
+    NotificationManager.showProgress({
+      message: t("command.fix.progressDetail", target, availableApi, res?.data?.map(item => item.replace(/\n/g, "\\n")).join(", ") ?? ""),
+      type: "success"
+    });
     return new Promise(resolve => {
       if (availableApi === "google") {
         setTimeout(() => resolve(res), 1000);
@@ -104,12 +117,17 @@ export default async function translateTo(data: TranslateData, startIndex = 0): 
     });
   } else {
     if (startIndex + 1 < availableApiList.length) {
-      NotificationManager.showWarning(`${availableApi}: ${res.message}`);
       const nextApi = availableApiList[startIndex + 1];
-      NotificationManager.showProgress(t("translator.useOtherApi", nextApi));
+      NotificationManager.showProgress({
+        message: t("translator.useOtherApi", availableApi, target, res.message ?? t("common.unknownError"), nextApi),
+        type: "error"
+      });
       return translateTo(data, startIndex + 1);
     }
-    NotificationManager.showError(t("command.fix.error", `[${availableApi}]${res.message}`));
+    NotificationManager.showProgress({
+      message: t("translator.failedToFix", availableApi, target, res.message ?? t("common.unknownError")),
+      type: "error"
+    });
     return { success: false, message: res.message };
   }
 }

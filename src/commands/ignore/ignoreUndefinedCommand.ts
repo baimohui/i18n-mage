@@ -16,7 +16,8 @@ export function registerIgnoreUndefinedCommand() {
     mage.setOptions({ task: "check" });
     const res = await mage.execute();
     treeInstance.refresh();
-    NotificationManager.showResult(res, t("command.delete.success", e.data.join(", ")));
+    res.defaultSuccessMessage = t("command.delete.success", e.data.join(", "));
+    NotificationManager.showResult(res);
   });
 
   registerDisposable(disposable);

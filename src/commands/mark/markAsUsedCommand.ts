@@ -18,7 +18,8 @@ export function registerMarkAsUsedCommand() {
     mage.setOptions({ task: "check" });
     const res = await mage.execute();
     treeInstance.refresh();
-    NotificationManager.showResult(res, t("command.markAsUsed.success", usedNameList.join(", ")));
+    res.defaultSuccessMessage = t("command.markAsUsed.success", usedNameList.join(", "));
+    NotificationManager.showResult(res);
   });
 
   registerDisposable(disposable);

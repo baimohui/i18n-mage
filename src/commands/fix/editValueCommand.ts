@@ -27,7 +27,8 @@ export function registerEditValueCommand() {
             mage.setOptions({ globalFlag: true });
           }
           treeInstance.refresh();
-          NotificationManager.showResult(res, t("command.editValue.success", newValue));
+          res.defaultSuccessMessage = t("command.editValue.success", newValue);
+          NotificationManager.showResult(res);
         }
       }
     }

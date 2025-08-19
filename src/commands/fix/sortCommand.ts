@@ -14,7 +14,10 @@ export function registerSortCommand() {
       res = await mage.execute({ task: "sort" });
     });
     setTimeout(() => {
-      if (res !== null) NotificationManager.showResult(res, t("command.sort.success"));
+      if (res !== null) {
+        res.defaultSuccessMessage = t("command.sort.success");
+        NotificationManager.showResult(res);
+      }
     }, 1000);
   });
 

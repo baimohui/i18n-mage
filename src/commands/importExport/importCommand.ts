@@ -17,7 +17,8 @@ export function registerImportCommand() {
     await mage.execute();
     setTimeout(() => {
       treeInstance.refresh();
-      NotificationManager.showResult(res, t("command.import.success"));
+      res.defaultSuccessMessage = t("command.import.success");
+      NotificationManager.showResult(res);
     }, 1000);
   };
   const disposable = vscode.commands.registerCommand("i18nMage.import", async () => {

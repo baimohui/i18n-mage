@@ -17,6 +17,7 @@ import translateTo from "@/translator/index";
 import { t } from "@/utils/i18n";
 import { ExecutionContext } from "@/utils/context";
 import { ExecutionResult, EXECUTION_RESULT_CODE } from "@/types";
+import { NotificationManager } from "@/utils/notification";
 
 export class FixHandler {
   private lackInfoFromUndefined: LackInfo;
@@ -201,7 +202,6 @@ export class FixHandler {
   }
 
   private async fillMissingTranslations(): Promise<ExecutionResult> {
-    let hasTranslatorFailed = false;
     for (const lang in this.lackInfoFromUndefined) {
       if (Object.hasOwn(this.ctx.lackInfo, lang)) {
         this.ctx.lackInfo[lang].push(...this.lackInfoFromUndefined[lang]);
@@ -218,6 +218,10 @@ export class FixHandler {
         }
       }
     }
+    let successCount = 0;
+    let failCount = 0;
+    let addedCount = 0;
+    const langNum = Object.keys(this.ctx.lackInfo).length;
     for (const lang in this.ctx.lackInfo) {
       if (ExecutionContext.token.isCancellationRequested) {
         this.restoreLackInfo();
@@ -234,13 +238,16 @@ export class FixHandler {
           sourceTextList: referredEntriesText
         });
         if (res.success && res.data) {
+          successCount++;
           lackEntries.forEach((entryName, index) => {
+            addedCount++;
             setUpdatedEntryValueInfo(this.ctx, entryName, res.data?.[index], lang);
           });
         } else {
-          hasTranslatorFailed = true;
+          failCount++;
         }
       }
+      NotificationManager.showProgress({ increment: (1 / langNum) * 100 });
     }
     let success = true;
     let message = "";
@@ -248,9 +255,15 @@ export class FixHandler {
     if (!this.needFix) {
       message = t("command.fix.nullWarn");
       code = EXECUTION_RESULT_CODE.NoLackEntries;
-    } else if (hasTranslatorFailed) {
+    } else if (failCount === 0) {
+      message = t("command.fix.translatorSuccess", successCount, addedCount);
+      code = EXECUTION_RESULT_CODE.Success;
+    } else if (successCount > 0) {
+      message = t("command.fix.translatorPartialSuccess", successCount + failCount, successCount, addedCount, failCount);
+      code = EXECUTION_RESULT_CODE.TranslatorPartialFailed;
+    } else {
       success = false;
-      message = t("command.fix.translatorFailed");
+      message = t("command.fix.translatorFailed", successCount + failCount);
       code = EXECUTION_RESULT_CODE.TranslatorFailed;
     }
     return new Promise<ExecutionResult>(resolve => {
