@@ -80,6 +80,9 @@ export function isPathInsideDirectory(dir: string, targetPath: string): boolean 
   // if (!path.isAbsolute(dir) || !path.isAbsolute(targetPath)) {
   //   throw new Error("Both dir and targetPath must be absolute paths");
   // }
+  if (!dir || !targetPath) {
+    return false;
+  }
   if (!path.isAbsolute(dir)) {
     dir = toAbsolutePath(dir);
   }

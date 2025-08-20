@@ -293,6 +293,11 @@ export class FixHandler {
   }
 
   private restoreLackInfo(): void {
+    [...new Set(Object.values(this.lackInfoFromUndefined).flat())].forEach(key => {
+      if (Object.hasOwn(this.ctx.langDictionary, key)) {
+        delete this.ctx.langDictionary[key];
+      }
+    });
     for (const lang in this.lackInfoFromUndefined) {
       if (Object.hasOwn(this.ctx.lackInfo, lang)) {
         const undefinedEntries = this.lackInfoFromUndefined[lang];

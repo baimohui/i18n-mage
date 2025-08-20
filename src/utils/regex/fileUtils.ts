@@ -307,29 +307,83 @@ export function detectQuoteStyle(code: string): {
   };
 }
 
+/**
+ * 估算文件的默认缩进空格数（只识别空格缩进；混用/Tab 将回退到默认值）
+ * 算法要点：
+ * 1) 使用缩进“差值”来推断单位，避免更深层倍数（如 4）压过真实单位（如 2）。
+ * 2) 计算差值集合的 GCD；若 GCD 不可靠，则在 2..8 中选覆盖率最高者。
+ * 3) 设置样本量与覆盖率阈值，混乱缩进或样本不足时回退默认值。
+ */
 export function detectIndentSize(fileContent: string): number {
-  const lines = fileContent.split("\n");
-  const defaultIndentSize = 4;
-  const indents: number[] = [];
-  for (const line of lines) {
-    if (!line.trim()) continue;
-    if (/^\s*(\/\/|\/\*|\*)/.test(line)) continue;
-    const match = line.match(/^(\s+)\S/);
-    if (!match) continue;
-    const indent = match[1];
-    if (indent.includes("\t")) continue;
-    indents.push(indent.length);
+  const lines = fileContent.split(/\r?\n/);
+  const DEFAULT = 4;
+  const MAX_STEP = 16; // 允许的最大缩进步长
+  const MIN_SAMPLES = 5; // 最小样本量要求
+  const RELIABLE_COVER = 0.8; // GCD 可靠覆盖率阈值
+  const FALLBACK_COVER = 0.6; // 备用投票的最低覆盖率
+  const spaceIndents: number[] = [];
+  const diffs: number[] = [];
+  // 收集仅由空格组成的缩进长度，并记录相邻有效行的缩进差
+  let prevIndent: number | null = null;
+  for (const raw of lines) {
+    if (!raw || !raw.trim()) continue;
+    if (/^\s*(\/\/|\/\*|\*)/.test(raw)) continue; // 跳过注释行（简化处理）
+    const m = raw.match(/^(\s+)\S/);
+    if (!m) continue;
+    const ws = m[1];
+    if (/\t/.test(ws)) continue; // 只分析空格缩进
+    const indent = ws.length;
+    if (indent > 0 && indent <= MAX_STEP) {
+      spaceIndents.push(indent);
+    }
+    if (prevIndent !== null) {
+      const d = Math.abs(indent - prevIndent);
+      if (d > 0 && d <= MAX_STEP) diffs.push(d);
+    }
+    prevIndent = indent;
   }
-  // if (indents.length < 5) return defaultIndentSize; // 提高默认值并增加最小样本要求
-  // 计算缩进差值和原始缩进
-  const candidates: number[] = [];
-  for (let i = 1; i < indents.length; i++) {
-    const diff = Math.abs(indents[i] - indents[i - 1]);
-    if (diff > 0 && diff <= 8) candidates.push(diff);
+  // 样本不足直接回退
+  if (spaceIndents.length < MIN_SAMPLES && diffs.length < MIN_SAMPLES) {
+    return DEFAULT;
   }
-  candidates.push(...indents.filter(n => n <= 8 && n > 0));
-  const count: Record<number, number> = {};
-  for (const d of candidates) count[d] = (count[d] || 0) + 1;
-  const sorted = Object.entries(count).sort((a, b) => b[1] - a[1]);
-  return sorted.length ? Number(sorted[0][0]) : defaultIndentSize; // 更常见的默认值
+  // 使用“层级集合”的两两差，弱化深层倍数的偏置
+  const levels = Array.from(new Set(spaceIndents)).sort((a, b) => a - b);
+  for (let i = 0; i < levels.length; i++) {
+    for (let j = i + 1; j < levels.length; j++) {
+      const d = levels[j] - levels[i];
+      if (d > 0 && d <= MAX_STEP) diffs.push(d);
+    }
+  }
+  if (diffs.length === 0) return DEFAULT;
+  // 计算 GCD
+  const gcd = (a: number, b: number): number => {
+    a = Math.abs(a);
+    b = Math.abs(b);
+    while (b !== 0) {
+      const t = a % b;
+      a = b;
+      b = t;
+    }
+    return a;
+  };
+  let g = diffs[0];
+  for (let i = 1; i < diffs.length; i++) g = gcd(g, diffs[i]);
+  // 覆盖率评估函数：有多少差值是候选步长的整数倍
+  const coverage = (step: number) => diffs.filter(d => d % step === 0).length / diffs.length;
+  // 先信任 GCD，但需通过合理性校验
+  if (g >= 2 && g <= 8 && coverage(g) >= RELIABLE_COVER) {
+    return g;
+  }
+  // 备用：在 2..8 中选择覆盖率最高且通过阈值的最小值
+  let best = DEFAULT;
+  let bestScore = -1;
+  for (let k = 2; k <= 8; k++) {
+    const score = diffs.filter(d => d % k === 0).length;
+    if (score > bestScore || (score === bestScore && k < best)) {
+      best = k;
+      bestScore = score;
+    }
+  }
+  if (bestScore / diffs.length >= FALLBACK_COVER) return best;
+  return DEFAULT;
 }
