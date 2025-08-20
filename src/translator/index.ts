@@ -104,10 +104,12 @@ export default async function translateTo(data: TranslateData, startIndex = 0): 
 
   if (res.success) {
     res.api = availableApi;
-    NotificationManager.showProgress({
-      message: t("command.fix.progressDetail", target, availableApi, res?.data?.map(item => item.replace(/\n/g, "\\n")).join(", ") ?? ""),
-      type: "success"
-    });
+    res.message = t(
+      "command.fix.progressDetail",
+      target,
+      availableApi,
+      res?.data?.map(item => item.replace(/\n/g, "\\n")).join(", ") ?? ""
+    );
     return new Promise(resolve => {
       if (availableApi === "google") {
         setTimeout(() => resolve(res), 1000);
@@ -124,10 +126,7 @@ export default async function translateTo(data: TranslateData, startIndex = 0): 
       });
       return translateTo(data, startIndex + 1);
     }
-    NotificationManager.showProgress({
-      message: t("translator.failedToFix", availableApi, target, res.message ?? t("common.unknownError")),
-      type: "error"
-    });
+    res.message = t("translator.failedToFix", availableApi, target, res.message ?? t("common.unknownError"));
     return { success: false, message: res.message };
   }
 }

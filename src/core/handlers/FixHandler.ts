@@ -110,7 +110,7 @@ export class FixHandler {
         } else {
           return {
             success: false,
-            message: t("command.fix.translatorFailed"),
+            message: t("translator.noAvailableApi"),
             code: EXECUTION_RESULT_CODE.TranslatorFailed
           };
         }
@@ -194,6 +194,14 @@ export class FixHandler {
         fixedRaw: entry.fixedRaw
       });
     });
+    NotificationManager.showProgress({
+      message: t(
+        "command.fix.undefinedEntriesPatched",
+        patchedEntryIdList.length,
+        patchedEntryIdList.map(item => item.nameInfo.text).join(", ")
+      ),
+      type: "success"
+    });
     return {
       success: true,
       message: "",
@@ -221,13 +229,13 @@ export class FixHandler {
     let successCount = 0;
     let failCount = 0;
     let addedCount = 0;
-    const langNum = Object.keys(this.ctx.lackInfo).length;
+    const referredLangMap = this.ctx.langCountryMap[this.ctx.referredLang];
+    const steps = Object.values(this.ctx.lackInfo).filter(keys => keys.some(key => referredLangMap[key])).length;
     for (const lang in this.ctx.lackInfo) {
       if (ExecutionContext.token.isCancellationRequested) {
         this.restoreLackInfo();
         return { success: false, message: "", code: EXECUTION_RESULT_CODE.Cancelled };
       }
-      const referredLangMap = this.ctx.langCountryMap[this.ctx.referredLang];
       const lackEntries = this.ctx.lackInfo[lang].filter(key => referredLangMap[key]);
       if (lackEntries.length > 0) {
         this.needFix = true;
@@ -246,8 +254,12 @@ export class FixHandler {
         } else {
           failCount++;
         }
+        NotificationManager.showProgress({
+          message: res.message,
+          type: res.success ? "success" : "error",
+          increment: (1 / steps) * 100
+        });
       }
-      NotificationManager.showProgress({ increment: (1 / langNum) * 100 });
     }
     let success = true;
     let message = "";
@@ -255,6 +267,9 @@ export class FixHandler {
     if (!this.needFix) {
       message = t("command.fix.nullWarn");
       code = EXECUTION_RESULT_CODE.NoLackEntries;
+    } else if (successCount === 0 && failCount === 0) {
+      message = t("command.fix.existingUndefinedSuccess");
+      code = EXECUTION_RESULT_CODE.Success;
     } else if (failCount === 0) {
       message = t("command.fix.translatorSuccess", successCount, addedCount);
       code = EXECUTION_RESULT_CODE.Success;

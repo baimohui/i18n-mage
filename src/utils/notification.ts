@@ -8,12 +8,10 @@ const PREFIX = "i18n Mage 🪄 ";
  */
 export class NotificationManager {
   private static outputChannel: vscode.OutputChannel;
-  private static lastProgressMessage: string;
 
   // 初始化输出通道
   static init() {
     this.outputChannel = vscode.window.createOutputChannel("i18n Mage");
-    this.lastProgressMessage = "";
   }
 
   static showOutputChannel() {
@@ -36,10 +34,8 @@ export class NotificationManager {
   // 进度信息
   static showProgress(data: { message?: string; type?: "info" | "warn" | "error" | "success"; increment?: number }): void {
     if (data.message !== undefined) {
-      this.lastProgressMessage = data.message;
       this.logToOutput(data.message, data.type);
     }
-    data.message ??= this.lastProgressMessage;
     ExecutionContext.progress?.report(data);
   }
 
