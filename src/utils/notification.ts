@@ -48,15 +48,15 @@ export class NotificationManager {
     // this.logToOutput(`📢 code: ${result.code}`);
     switch (typeNum) {
       case 1:
-        return this.showSuccess((result.message || result.defaultSuccessMessage) ?? result.code.toString(), ...items);
+        return this.showSuccess((result.message || result.defaultSuccessMessage) ?? "", ...items);
       case 2:
-        return this.showSuccess((result.message || result.defaultSuccessMessage) ?? result.code.toString(), ...items);
+        return this.showSuccess((result.message || result.defaultSuccessMessage) ?? "", ...items);
       case 3:
-        return this.showWarning(result.message ?? result.code.toString(), ...items);
+        return this.showWarning(result.message ?? "", ...items);
       case 4:
-        return this.showError((result.message || result.defaultErrorMessage) ?? result.code.toString(), ...items);
+        return this.showError((result.message || result.defaultErrorMessage) ?? "", ...items);
       default:
-        return this.showSuccess((result.message || result.defaultSuccessMessage) ?? result.code.toString(), ...items);
+        return this.showSuccess((result.message || result.defaultSuccessMessage) ?? "", ...items);
     }
   }
 

@@ -30,5 +30,8 @@
   "i18n-mage.workspace.languagePath": "l10n",
   "i18n-mage.workspace.ignoredDirectories": [
     "test"
+  ],
+  "i18n-mage.general.fileExtensions": [
+    ".ts",
   ]
 }

@@ -598,16 +598,19 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
       contextValueList.push("UNKNOWN_LANG");
     }
     const list: string[] = [];
-    const lackNum = this.langInfo.lack[lang]?.length ?? 0;
-    const extraNum = this.langInfo.extra[lang]?.length ?? 0;
-    const nullNum = this.langInfo.null[lang]?.length ?? 0;
     let icon = "pass";
-    if (lackNum > 0 || nullNum > 0) {
-      icon = this.isSyncing ? "sync~spin" : "sync";
-      list.push(`-${lackNum + nullNum}`);
-    }
-    if (extraNum > 0) {
-      list.push(`+${extraNum}`);
+    if (this.#mage.detectedLangList.includes(lang)) {
+      list.push(getLangText(lang) || t("common.unknownLang"));
+      const lackNum = this.langInfo.lack[lang]?.length ?? 0;
+      const extraNum = this.langInfo.extra[lang]?.length ?? 0;
+      const nullNum = this.langInfo.null[lang]?.length ?? 0;
+      if (lackNum > 0 || nullNum > 0) {
+        icon = this.isSyncing ? "sync~spin" : "sync";
+        list.push(`-${lackNum + nullNum}`);
+      }
+      if (extraNum > 0) {
+        list.push(`+${extraNum}`);
+      }
     }
     if (lang === this.publicCtx.referredLang && lang === this.displayLang) {
       list.push("🧙");

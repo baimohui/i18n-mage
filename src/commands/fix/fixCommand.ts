@@ -8,7 +8,6 @@ import { t } from "@/utils/i18n";
 import { NotificationManager } from "@/utils/notification";
 import { getConfig } from "@/utils/config";
 import { getCommonFilePaths } from "@/utils/regex";
-import { EXECUTION_RESULT_CODE } from "@/types";
 
 export function registerFixCommand(context: vscode.ExtensionContext) {
   const mage = LangMage.getInstance();
@@ -30,14 +29,18 @@ export function registerFixCommand(context: vscode.ExtensionContext) {
         await mage.execute({ task: "check" });
         const { multiFileMode, undefined: undefinedMap } = mage.langDetail;
         if (Object.keys(undefinedMap).length > 0 && multiFileMode && publicCtx.fileStructure) {
-          NotificationManager.showProgress({ message: t("command.fix.waitForFileSelection") });
           const commonFiles = getCommonFilePaths(publicCtx.fileStructure);
-          const lastPicked = context.globalState.get<string>("lastPickedFile");
-          const sortedFiles = lastPicked !== undefined ? [lastPicked, ...commonFiles.filter(f => f !== lastPicked)] : commonFiles;
-          const target = await vscode.window.showQuickPick(sortedFiles, {
-            placeHolder: t("command.fix.selectFileToWrite")
-          });
-          NotificationManager.hideProgress();
+          let target: string | undefined = undefined;
+          if (commonFiles.length > 1) {
+            NotificationManager.showProgress({ message: t("command.fix.waitForFileSelection"), increment: 0 });
+            const lastPicked = context.globalState.get<string>("lastPickedFile");
+            const sortedFiles = lastPicked !== undefined ? [lastPicked, ...commonFiles.filter(f => f !== lastPicked)] : commonFiles;
+            target = await vscode.window.showQuickPick(sortedFiles, {
+              placeHolder: t("command.fix.selectFileToWrite")
+            });
+          } else if (commonFiles.length === 1) {
+            target = commonFiles[0];
+          }
           if (typeof target === "string" && target.trim()) {
             mage.setOptions({ defaultFilePos: `${target.replaceAll("/", ".")}.` });
             await context.globalState.update("lastPickedFile", target);
@@ -52,7 +55,6 @@ export function registerFixCommand(context: vscode.ExtensionContext) {
         if (token.isCancellationRequested) {
           treeInstance.isSyncing = false;
           treeInstance.refresh();
-          NotificationManager.showResult({ success: false, message: "", code: EXECUTION_RESULT_CODE.Cancelled });
           return;
         }
         setTimeout(() => {

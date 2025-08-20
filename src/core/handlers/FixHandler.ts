@@ -168,6 +168,9 @@ export class FixHandler {
         nameInfo.boundName = escapeString(nameInfo.boundName);
       }
       referredLangMap[nameInfo.boundName] = nameInfo.text;
+      this.ctx.langDictionary[nameInfo.boundName] ??= {
+        [this.ctx.referredLang]: nameInfo.text
+      };
       this.detectedLangList.forEach(lang => {
         if ([this.ctx.referredLang, enLang].includes(lang)) {
           setUpdatedEntryValueInfo(this.ctx, nameInfo.boundName, lang === this.ctx.referredLang ? nameInfo.text : enNameList[index], lang);

@@ -748,10 +748,10 @@
       },
       {
         "command": "i18nMage.ignoreUndefined",
-        "title": "%command.delete.title%",
+        "title": "%command.ignore.title%",
         "icon": {
-          "light": "./images/delete-light.svg",
-          "dark": "./images/delete-dark.svg"
+          "light": "./images/remove-light.svg",
+          "dark": "./images/remove-dark.svg"
         }
       },
       {

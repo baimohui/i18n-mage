@@ -109,6 +109,6 @@
   "command.ignoreLang.title": "Ignore This Language",
   "command.unignoreLang.title": "Unignore This Language",
   "command.toggleInlineTranslation.title": "Toggle Inline Translation",
-  "command.delete.title": "Remove",
+  "command.ignore.title": "Ignore",
   "view.welcome.title": "No translation file directory has been detected\n[Select translation file directory](command:i18nMage.selectLangPath)"
 }
