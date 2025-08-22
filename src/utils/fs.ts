@@ -6,7 +6,7 @@ import { NotificationManager } from "@/utils/notification";
 import { isValidI18nCallablePath } from "@/utils/regex";
 import { getCacheConfig } from "./config";
 
-const langPathRegex = /\b(lang|language|i18n|l10n|locale|translation|translate|message|intl|fanyi)s?\b/i;
+const langPathRegex = /^(lang|language|i18n|l10n|locale|translation|translate|message|intl|fanyi)s?$/i;
 const localeCodeRegex = /(^|^\w.*\b)[a-z]{2,3}([-_][a-z]{2,4})?$/i;
 const localeFileRegex = /(^|^\w.*\b)([a-z]{2,3}(?:[-_][a-z]{2,4})?)\.(js|ts|json|json5|mjs|cjs)$/i;
 

@@ -175,6 +175,11 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
               break;
             }
           }
+          if (this.#mage.detectedLangList.length > 0) {
+            this.publicCtx = this.#mage.getPublicContext();
+            const relativeLangPath = toRelativePath(this.publicCtx.langPath);
+            NotificationManager.showSuccess(t("command.selectLangPath.success", relativeLangPath));
+          }
         }
         if (this.#mage.detectedLangList.length === 0) {
           NotificationManager.showWarning(t("common.noLangPathDetectedWarn"), t("command.selectLangPath.title")).then(selection => {
@@ -201,9 +206,11 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
             const { framework } = getCacheConfig();
             if (framework === I18N_FRAMEWORK.none) {
               const i18nFramework = detectI18nFramework(projectPath);
-              setConfig("i18nFeatures.framework", i18nFramework).catch(error => {
-                NotificationManager.logToOutput(`Failed to set config for i18nFramework: ${error}`, "error");
-              });
+              if (i18nFramework) {
+                setConfig("i18nFeatures.framework", i18nFramework).catch(error => {
+                  NotificationManager.logToOutput(`Failed to set config for i18nFramework: ${error}`, "error");
+                });
+              }
             }
             if (getConfig("general.displayLanguage", "") === "") {
               setConfig("general.displayLanguage", vscodeLang, "global").catch(error => {

@@ -19,9 +19,10 @@ export function registerSetLangPathCommand() {
         NotificationManager.showWarning(t("command.selectLangPath.error"));
         vscode.commands.executeCommand("setContext", "hasValidLangPath", false);
       } else {
-        vscode.window.showInformationMessage(t("command.selectLangPath.success", langPath));
+        const relativeLangPath = toRelativePath(langPath);
+        NotificationManager.showSuccess(t("command.selectLangPath.success", relativeLangPath));
         vscode.commands.executeCommand("setContext", "hasValidLangPath", true);
-        await setConfig("workspace.languagePath", toRelativePath(langPath));
+        await setConfig("workspace.languagePath", relativeLangPath);
         treeInstance.refresh();
       }
     });
