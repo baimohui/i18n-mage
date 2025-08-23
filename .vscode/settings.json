@@ -15,19 +15,11 @@
     "editor.defaultFormatter": "dbaeumer.vscode-eslint"
   },
   "i18n-mage.i18nFeatures.framework": "vscode-l10n",
-  "i18n-mage.translationServices.referenceLanguage": "bundle.l10n.zh-cn",
-  "i18n-mage.translationServices.langAliasCustomMappings": {
-    "en": [
-      "bundle.l10n"
-    ],
-    "zh-CN": [
-      "bundle.l10n.zh-cn"
-    ]
-  },
+  "i18n-mage.translationServices.referenceLanguage": "zh-CN",
   "i18n-mage.writeRules.sortRule": "byKey",
   "i18n-mage.writeRules.sortAfterFix": true,
-  "i18n-mage.general.displayLanguage": "bundle.l10n.zh-cn",
-  "i18n-mage.workspace.languagePath": "l10n",
+  "i18n-mage.general.displayLanguage": "zh-CN",
+  "i18n-mage.workspace.languagePath": "src/locales",
   "i18n-mage.workspace.ignoredDirectories": [
     "test"
   ],

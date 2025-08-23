@@ -24,7 +24,6 @@
     "workspaceContains:package.json"
   ],
   "main": "dist/extension.js",
-  "l10n": "./l10n",
   "contributes": {
     "configuration": [
       {

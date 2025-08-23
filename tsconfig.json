@@ -12,6 +12,7 @@
     "checkJs": true,
     "esModuleInterop": true,
     "moduleResolution": "node",
+    "resolveJsonModule": true,
     "types": [
       "node",
       "mocha"
