@@ -1,3 +1,4 @@
+import * as vscode from "vscode";
 import { LangKey, LangKeyIntro } from "./types";
 import { ApiPlatform } from "@/types";
 import { LANG_CODE_MAPPINGS, DEFAULT_LANG_ALIAS_MAP } from "./constants";
@@ -86,14 +87,13 @@ export function getLangIntro(str: string): LangKeyIntro | null {
 }
 
 // 根据多语言文件名获取对应语种名称
-export function getLangText(str: string, type: "cn" | "en" = "cn"): string {
+export function getLangText(str: string, langCode: string = ""): string {
   const intro = getLangIntro(str) as LangKeyIntro;
-  if (type === "cn") {
+  const isCn = getLangCode(langCode || vscode.env.language) === "zh-CN";
+  if (isCn) {
     return intro?.cnName || "";
-  } else if (type === "en") {
-    return intro?.enName || "";
   } else {
-    return str;
+    return intro?.enName || "";
   }
 }
 
