@@ -197,14 +197,16 @@ export class FixHandler {
         fixedRaw: entry.fixedRaw
       });
     });
-    NotificationManager.showProgress({
-      message: t(
-        "command.fix.undefinedEntriesPatched",
-        patchedEntryIdList.length,
-        patchedEntryIdList.map(item => item.nameInfo.text).join(", ")
-      ),
-      type: "success"
-    });
+    if (patchedEntryIdList.length > 0) {
+      NotificationManager.showProgress({
+        message: t(
+          "command.fix.undefinedEntriesPatched",
+          patchedEntryIdList.length,
+          patchedEntryIdList.map(item => item.nameInfo.text).join(", ")
+        ),
+        type: "success"
+      });
+    }
     return {
       success: true,
       message: "",

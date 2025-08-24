@@ -1,7 +1,7 @@
 {
   "name": "i18n-mage",
   "displayName": "i18n Mage",
-  "description": "🪄 Your magical i18n assistant for VS Code. Excel import/export, fuzzy matching, and quick fixes with minimal setup!",
+  "description": "🪄 i18n Mage: The All-in-One VSCode Extension for Frontend i18n. Featuring auto-translation, Excel sync, and smart fixes with minimal setup!",
   "repository": {
     "type": "git",
     "url": "https://github.com/baimohui/i18n-mage.git"

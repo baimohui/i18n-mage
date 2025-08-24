@@ -245,6 +245,14 @@ const errorInfo = i18n.t("保存失败");
 
 指定内联翻译提示和信息面板的默认语言来源。
 
+#### `i18n-mage.general.fileExtensions`
+
+指定需要扫描的文件扩展名。
+
+#### `i18n-mage.general.sortOnExport`
+
+导出翻译为表格时的排序规则。支持按词条键名首字母排序和按词条首次出现的源文件位置排序。
+
 ### 国际化特性
 
 #### `i18n-mage.i18nFeatures.framework`
@@ -304,6 +312,10 @@ const errorInfo = i18n.t("保存失败");
 - 语言代码：必须使用 Google 翻译的标准国家/地区码（如 'zh-CN'）
 - 别名：支持设置多个替代名称（如 ['简体中文', '中文简体']）
 
+#### `i18n-mage.translationServices.autoTranslateEmptyKey`
+
+修复时是否要翻译空值词条。
+
 #### `i18n-mage.translationServices.matchExistingKey`
 
 启用未定义词条自动匹配功能：当修复时检测到未定义的翻译文本（如 `t('未定义')`），插件会在参考语言文件中查找相同文本的现有词条，若找到匹配项，则自动用该词条的 Key（如 'undefined'）替换源文件。匹配成功时将不会触发自动翻译。
@@ -318,6 +330,10 @@ const errorInfo = i18n.t("保存失败");
 
 ### 检查规则
 
+#### `i18n-mage.analysis.languageFileParser`
+
+用于选择语言文件的解析方式，可以根据对安全性和宽松性的需求，在严格安全的 JSON5、宽松但有风险的 eval 以及自动降级三种模式中进行选择。
+
 #### `i18n-mage.analysis.onSave`
 
 启用时，每次保存文件都会触发全局词条检查。内置防抖机制，避免频繁触发。
@@ -325,6 +341,10 @@ const errorInfo = i18n.t("保存失败");
 #### `i18n-mage.analysis.scanStringLiterals`
 
 在统计词条使用信息时，是否扫描代码中的字符串文本。启用后，将识别文件中字符串类型的值作为可能被使用的 key；关闭则仅分析 t() 等国际化函数的参数。
+
+#### `i18n-mage.analysis.ignoreCommentedCode`
+
+在统计词条使用信息时，是否忽略被注释掉的代码。
 
 #### `i18n-mage.analysis.syncBasedOnReferredEntries`
 
@@ -339,6 +359,10 @@ const errorInfo = i18n.t("保存失败");
 #### `i18n-mage.writeRules.sortRule`
 
 语言文件写入时的排序规则（仅支持扁平结构）。支持按词条键名首字母排序和按词条首次出现的源文件位置排序。
+
+#### `i18n-mage.writeRules.sortAfterFix`
+
+修复时是否对词条进行排序。
 
 #### `i18n-mage.writeRules.languageFileIndent`
 
@@ -454,6 +478,10 @@ const errorInfo = i18n.t("保存失败");
 
 设置需要忽略的语言文件列表。
 
+#### `i18n-mage.workspace.ignoredUndefinedEntries`
+
+设置需要忽略的未定义词条列表。
+
 ---
 
 ## 🧩 贡献指南
@@ -472,4 +500,4 @@ npm run build
 
 ## 📄 License
 
-MIT License © 2025 Jensen Wen
+MIT License © 2024-2025 Jensen Wen

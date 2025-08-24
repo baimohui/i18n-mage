@@ -25,16 +25,22 @@
 * Tree-structured view of translation entries.
 * Functional buttons: Export, Import, Sort, Fix.
 
+![Tree Provider](https://raw.githubusercontent.com/baimohui/FigureBed/main/img/20250824175521409.png)
+
 ### 🧠 Inline Translation Hints
 
 * Show actual translation inline where `t()` is used.
 * Supports custom styles (color, max length, etc.).
 * Toggleable via shortcuts.
 
+![Inline Hints](https://raw.githubusercontent.com/baimohui/FigureBed/main/img/20250824212251966.gif)
+
 ### 🚧 Auto-Fill Missing Translations
 
 * Integrates Google, DeepSeek, Baidu, Tencent translation services.
 * Preview and confirm missing translations before applying.
+
+![Auto-Fill Missing Translations](https://raw.githubusercontent.com/baimohui/FigureBed/main/img/20250824213054961.gif)
 
 ### 🧹 Auto-Fix Undefined Entries
 
@@ -42,20 +48,28 @@
 * Replaces with existing key if value matches.
 * Otherwise, generates a new key with customizable naming.
 
+![Auto-Fix Undefined Entries](https://raw.githubusercontent.com/baimohui/FigureBed/main/img/20250824214025411.gif)
+
 ### 🕵️ Detect Unused Keys
 
 * Analyzes usage of all keys.
 * Pattern matching for dynamic keys.
 * Delete or mark as used manually.
 
+![Detect Unused Keys](https://raw.githubusercontent.com/baimohui/FigureBed/main/img/20250824215036038.gif)
+
 ### 📊 Excel Import/Export
 
 * Export translation entries to Excel for translators.
 * Import translations from Excel back into language files.
 
+![Excel Import/Export](https://raw.githubusercontent.com/baimohui/FigureBed/main/img/20250824215122071.png)
+
 ### 📋 Copy Translation Data
 
 * One-click copy of all keys/values on the current page.
+
+![Copy Translation Data](https://raw.githubusercontent.com/baimohui/FigureBed/main/img/20250824220214611.gif)
 
 ## ⚡ Quick Start
 
@@ -187,6 +201,14 @@ Enables previewing translation changes. When enabled, when fixing or importing t
 
 Specifies the default language source for inline translation tooltips and the information panel.
 
+#### `i18n-mage.general.fileExtensions`
+
+Specifies the file extensions to be scanned.
+
+#### `i18n-mage.general.sortOnExport`
+
+Sorting rules when exporting translations to an excel. Supports sorting by the first letter of the term key name and by the source file location where the term first appears.
+
 ### Internationalization Features
 
 #### `i18n-mage.i18nFeatures.framework`
@@ -246,6 +268,10 @@ Configure custom language alias mappings (format: { 'language code': ['alias 1',
 - Language code: Must use the standard Google Translate country code (e.g., 'zh-CN')
 - Alias: Supports multiple alternative names (e.g., ['简体中文', '中文简体'])
 
+#### `i18n-mage.translationServices.autoTranslateEmptyKey`
+
+Whether to translate empty value terms when repairing.
+
 #### `i18n-mage.translationServices.matchExistingKey`
 
 Enable automatic matching of undefined terms: When undefined translation text (e.g., `t('未定义')`) is detected during translation, the plugin searches for existing entries in the reference language file for the same text. If a match is found, the source file will be automatically replaced with the key of the entry (e.g., 'undefined'). A successful match will not trigger automatic translation.
@@ -260,6 +286,10 @@ Enable language validation before translation: Before translating undefined term
 
 ### Checking Rules
 
+#### `i18n-mage.analysis.languageFileParser`
+
+Used to select the parsing method of language files. You can choose from three modes: strictly secure JSON5, relaxed but risky eval, and automatic degradation, based on your needs for security and leniency.
+
 #### `i18n-mage.analysis.onSave`
 
 When enabled, global term checking will be triggered every time a file is saved. A built-in debounce mechanism is included to prevent frequent triggering.
@@ -267,6 +297,10 @@ When enabled, global term checking will be triggered every time a file is saved.
 #### `i18n-mage.analysis.scanStringLiterals`
 
 Whether to scan string literals in the code when counting term usage information. When enabled, string values in the identified file will be used as possible keys; when disabled, only the parameters of internationalization functions such as t() will be analyzed.
+
+#### `i18n-mage.analysis.ignoreCommentedCode`
+
+Whether to ignore commented-out code when analyzing term usage information. When enabled, terms in commented-out code will not be counted.
 
 #### `i18n-mage.analysis.syncBasedOnReferredEntries`
 
@@ -281,6 +315,10 @@ Set the file size threshold (in KB) above which analysis will be skipped.
 #### `i18n-mage.writeRules.sortRule`
 
 Sorting rules when writing language files (supports flat structures only). Supports alphabetical sorting of term keys and sorting by the source file location of the first occurrence of a term.
+
+#### `i18n-mage.writeRules.sortAfterFix`
+
+Whether to sort language files after repairing.
 
 #### `i18n-mage.writeRules.languageFileIndent`
 
@@ -400,6 +438,10 @@ Sets a list of directories to be ignored.
 
 Sets a list of language files to be ignored.
 
+#### `i18n-mage.workspace.ignoredUndefinedEntries`
+
+Sets a list of entries to be ignored when checking for undefined entries.
+
 ## 🤝 Contributing
 
 ```bash
@@ -414,4 +456,4 @@ Feel free to submit issues or PRs!
 
 ## 📄 License
 
-MIT License © 2025 Jensen Wen
+MIT License © 2024-2025 Jensen Wen
