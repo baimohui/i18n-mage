@@ -1,31 +1,38 @@
-# 默认排除所有文件
-*
+# 开发配置文件
+.editorconfig
+.eslintignore
+.eslintrc.json
+.gitattributes
+.gitignore
+.prettierrc
+.vscode-test.mjs
+.vscodeignore  # 这个文件本身也应该被忽略
 
-# 必须在此处立刻兜住 LICENSE
-!LICENSE
+# 构建配置和脚本
+esbuild.config.js
+jcconfig.json
+tsconfig.json
+tsconfig.test.json
 
-# 强制保留必要文件
-!dist/extension.js       # 主入口文件
-!package.json            # 必须包含
-!README.md               # 市场页展示
-!CHANGELOG.md            # 更新日志
+# 依赖锁文件
+package-lock.json
 
-# 选择性保留资源文件（如有）
-!images/**
-!package.nls.json
-!package.nls.*.json
-!l10n/**
+# 源代码目录（如果有的话）
+src/**
 
-# 完全排除 node_modules（除非有必须的二方包）
+# 文档资源
+doc-assets
+README.zh-CN.md
+
+# 依赖目录
 node_modules/**
 
-# 排除开发配置和源码
-src/**
-.*
-doc-assets
-*.config.js
-tsconfig.json
-.vscode/**
-.husky/**
+# 测试文件（如果有的话）
 test/**
+
+# 开发过程中的临时文件
+.*.swp
+.DS_Store
+
+# 源代码映射文件
 dist/*.map

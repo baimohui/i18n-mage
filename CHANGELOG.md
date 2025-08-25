@@ -15,11 +15,5 @@ All notable changes to the "i18n-mage" extension will be documented in this file
 - **Deep Configuration**: Over 50 options to customize the extension's behavior to fit any project.
 - **Built-in optimization for Chinese developers**: Native Chinese UI and built-in access to domestic translation APIs.
 
-### Changed
-- N/A
-
-### Fixed
-- N/A
-
 ### Known Issues
 - Please report any issues on our [GitHub Issues](https://github.com/baimohui/i18n-mage/issues) page. Your feedback is valued!
