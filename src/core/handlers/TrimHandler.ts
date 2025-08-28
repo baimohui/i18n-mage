@@ -17,7 +17,6 @@ export class TrimHandler {
       } else {
         return { success: true, message: t("command.trim.nullWarn"), code: EXECUTION_RESULT_CODE.NoTrimEntries };
       }
-      return { success: true, message: "", code: EXECUTION_RESULT_CODE.Success };
     } catch (e: unknown) {
       const errorMessage = t("common.progress.error", e instanceof Error ? e.message : (e as string));
       return { success: false, message: errorMessage, code: EXECUTION_RESULT_CODE.UnknownExportError };
