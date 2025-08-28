@@ -1,6 +1,6 @@
 # 🪄 i18n Mage - Frontend Internationalization Assistant
 
-🌍 [English](./README.md) | [Simplified Chinese](./README.zh-CN.md)
+🌍 [English](./README.md) | [简体中文](./README.zh-CN.md)
 
 `i18n Mage` is a VS Code extension designed to significantly enhance the internationalization experience for frontend developers. It supports popular i18n frameworks like Vue I18n and React I18next, offering features such as auto-completion, inline translation hints, key management, Excel import/export, and more to streamline and improve your i18n workflow.
 
