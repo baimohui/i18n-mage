@@ -17,3 +17,8 @@ All notable changes to the "i18n-mage" extension will be documented in this file
 
 ### Known Issues
 - Please report any issues on our [GitHub Issues](https://github.com/baimohui/i18n-mage/issues) page. Your feedback is valued!
+
+## [1.0.1] - 2025-08-28
+
+### Fixed
+- **Language File Indentation Detection Fix**: Corrected the method for detecting indentation levels in language files, resolving misidentification issues in flat files.
