@@ -20,7 +20,7 @@
   "config.translateApiPriority.desc": "Translation API priority",
   "config.translationHints.title": "Translate Inline Hints",
   "config.translateHintsEnabled.desc": "Enable/disable translate inline hints",
-  "config.translateHintsEnableLooseKeyMatch.desc": "Enable fuzzy matching for dynamically constructed keys (e.g. t(`prefix.${key}.suffix`)`). When multiple translations match, only the first result will be displayed. Recommended only if such patterns are widely used in your project, as false positives may occur",
+  "config.translateHintsEnableLooseKeyMatch.desc": "Enable fuzzy matching for dynamically constructed keys (e.g. t(`prefix.${key}.suffix`)`). When multiple translations match, only the first result will be displayed",
   "config.translateHintsMaxLength.desc": "Maximum number of characters for inline translation hints",
   "config.translateHintsFontColorInLight.desc": "Hint text color in light theme (hexadecimal)",
   "config.translateHintsBackgroundColorInLight.desc": "Hint background base color in light theme (hexadecimal)",

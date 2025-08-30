@@ -222,9 +222,9 @@
             "type": "array",
             "default": [
               "google",
-              "deepseek",
               "baidu",
-              "tencent"
+              "tencent",
+              "deepseek"
             ],
             "description": "%config.translateApiPriority.desc%",
             "items": {
@@ -429,7 +429,7 @@
           "i18n-mage.writeRules.keyPrefix": {
             "order": 18,
             "type": "string",
-            "default": "auto-popular",
+            "default": "none",
             "description": "%config.keyPrefix.desc%",
             "enum": [
               "none",

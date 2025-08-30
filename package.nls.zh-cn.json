@@ -21,7 +21,7 @@
   "config.langAliasCustomMappings.desc": "自定义语言别名映射（格式：{ '语言代码': ['别名 1', '别名 2'] }），其中语言代码采用谷歌翻译的国家/地区码标准",
   "config.translationHints.title": "翻译内联提示",
   "config.translateHintsEnabled.desc": "是否在代码中显示翻译内容作为内联提示",
-  "config.translateHintsEnableLooseKeyMatch.desc": "启用对动态拼接的词条（如 t(`prefix.${key}.suffix`)）进行模糊匹配装饰。匹配多个翻译时，仅显示第一个匹配结果。建议仅在项目中广泛使用此类写法时开启，可能存在误判",
+  "config.translateHintsEnableLooseKeyMatch.desc": "启用对动态拼接的词条（如 t(`prefix.${key}.suffix`)）进行模糊匹配装饰。匹配多个翻译时，仅显示第一个匹配结果",
   "config.translateHintsMaxLength.desc": "翻译内联提示的最大字符数",
   "config.translateHintsFontColorInLight.desc": "浅色主题下提示文字颜色（十六进制）",
   "config.translateHintsBackgroundColorInLight.desc": "浅色主题下提示背景基色（十六进制）",
