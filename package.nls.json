@@ -1,4 +1,5 @@
 {
+  "extension.name": "i18n Mage",
   "config.general.title": "General",
   "config.enable.desc": "Enable/disable i18n Mage",
   "config.i18nFramework.desc": "I18n Framework",

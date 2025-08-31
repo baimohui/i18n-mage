@@ -1,4 +1,5 @@
 {
+  "extension.name": "i18n Mage",
   "config.general.title": "通用",
   "config.enable.desc": "启用/禁用 i18n Mage",
   "config.i18nFramework.desc": "国际化框架",

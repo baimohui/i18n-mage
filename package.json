@@ -604,14 +604,17 @@
     "commands": [
       {
         "command": "i18nMage.setReferredLang",
+        "category": "%extension.name%",
         "title": "%command.setReferredLang.title%"
       },
       {
         "command": "i18nMage.setDisplayLang",
+        "category": "%extension.name%",
         "title": "%command.setDisplayLang.title%"
       },
       {
         "command": "i18nMage.markAsKnownLang",
+        "category": "%extension.name%",
         "title": "%command.markAsKnownLang.title%",
         "icon": {
           "light": "./images/claim-light.svg",
@@ -620,6 +623,7 @@
       },
       {
         "command": "i18nMage.checkUsage",
+        "category": "%extension.name%",
         "title": "%command.refresh.title%",
         "icon": {
           "light": "./images/refresh-light.svg",
@@ -628,6 +632,7 @@
       },
       {
         "command": "i18nMage.fix",
+        "category": "%extension.name%",
         "title": "%command.fix.title%",
         "icon": {
           "light": "./images/translate-light.svg",
@@ -636,6 +641,7 @@
       },
       {
         "command": "i18nMage.sort",
+        "category": "%extension.name%",
         "title": "%command.sort.title%",
         "icon": {
           "light": "./images/sort-light.svg",
@@ -644,6 +650,7 @@
       },
       {
         "command": "i18nMage.export",
+        "category": "%extension.name%",
         "title": "%command.export.title%",
         "icon": {
           "light": "./images/share-light.svg",
@@ -652,6 +659,7 @@
       },
       {
         "command": "i18nMage.import",
+        "category": "%extension.name%",
         "title": "%command.import.title%",
         "icon": {
           "light": "./images/import-light.svg",
@@ -660,6 +668,7 @@
       },
       {
         "command": "i18nMage.ignoreFile",
+        "category": "%extension.name%",
         "title": "%command.ignoreFile.title%",
         "icon": {
           "light": "./images/remove-light.svg",
@@ -668,18 +677,22 @@
       },
       {
         "command": "i18nMage.ignoreDirectory",
+        "category": "%extension.name%",
         "title": "%command.ignoreDirectory.title%"
       },
       {
         "command": "i18nMage.ignoreLang",
+        "category": "%extension.name%",
         "title": "%command.ignoreLang.title%"
       },
       {
         "command": "i18nMage.unignoreLang",
+        "category": "%extension.name%",
         "title": "%command.unignoreLang.title%"
       },
       {
         "command": "i18nMage.copyName",
+        "category": "%extension.name%",
         "title": "%command.copyName.title%",
         "icon": {
           "light": "./images/copy-light.svg",
@@ -688,6 +701,7 @@
       },
       {
         "command": "i18nMage.copyKeyValue",
+        "category": "%extension.name%",
         "title": "%command.copyKeyValue.title%",
         "icon": {
           "light": "./images/copy-light.svg",
@@ -696,6 +710,7 @@
       },
       {
         "command": "i18nMage.goToReference",
+        "category": "%extension.name%",
         "title": "%command.goToReference.title%",
         "icon": {
           "light": "./images/source-light.svg",
@@ -704,6 +719,7 @@
       },
       {
         "command": "i18nMage.goToDefinition",
+        "category": "%extension.name%",
         "title": "%command.goToDefinition.title%",
         "icon": {
           "light": "./images/definition-light.svg",
@@ -712,6 +728,7 @@
       },
       {
         "command": "i18nMage.copyValue",
+        "category": "%extension.name%",
         "title": "%command.copyValue.title%",
         "icon": {
           "light": "./images/copy-light.svg",
@@ -720,6 +737,7 @@
       },
       {
         "command": "i18nMage.editValue",
+        "category": "%extension.name%",
         "title": "%command.editValue.title%",
         "icon": {
           "light": "./images/edit-light.svg",
@@ -728,6 +746,7 @@
       },
       {
         "command": "i18nMage.deleteUnused",
+        "category": "%extension.name%",
         "title": "%command.deleteUnused.title%",
         "icon": {
           "light": "./images/delete-light.svg",
@@ -736,6 +755,7 @@
       },
       {
         "command": "i18nMage.markAsUsed",
+        "category": "%extension.name%",
         "title": "%command.markAsUsed.title%",
         "icon": {
           "light": "./images/pin-light.svg",
@@ -744,6 +764,7 @@
       },
       {
         "command": "i18nMage.unmarkAsUsed",
+        "category": "%extension.name%",
         "title": "%command.unmarkAsUsed.title%",
         "icon": {
           "light": "./images/pinFill-light.svg",
@@ -752,6 +773,7 @@
       },
       {
         "command": "i18nMage.ignoreUndefined",
+        "category": "%extension.name%",
         "title": "%command.ignore.title%",
         "icon": {
           "light": "./images/remove-light.svg",
@@ -760,14 +782,17 @@
       },
       {
         "command": "i18nMage.setProjectPath",
+        "category": "%extension.name%",
         "title": "%command.setProjectPath.title%"
       },
       {
         "command": "i18nMage.setLangPath",
+        "category": "%extension.name%",
         "title": "%command.setLangPath.title%"
       },
       {
         "command": "i18nMage.toggleInlineTranslation",
+        "category": "%extension.name%",
         "title": "%command.toggleInlineTranslation.title%"
       }
     ],
@@ -924,14 +949,14 @@
     "submenus": [
       {
         "id": "i18nMage.menu",
-        "label": "i18n Mage"
+        "label": "%extension.name%"
       }
     ],
     "viewsContainers": {
       "activitybar": [
         {
           "id": "i18nMage",
-          "title": "i18n Mage",
+          "title": "%extension.name%",
           "icon": "images/i18nMage.png"
         }
       ]
