@@ -37,6 +37,8 @@
   "command.fix.waitForFileSelection": "等待用户选择文件",
   "command.goToDefinition.selectEntry": "选择要定位的词条",
   "command.goToDefinition.selectLang": "选择要定位的语言",
+  "command.goToReference.selectEntry": "选择要跳转的词条",
+  "command.goToReference.selectFile": "选择要跳转的文件",
   "command.ignoreDirectory.title": "选择需要忽略的文件夹",
   "command.ignoreFile.openLabel": "选择需要忽略的文件",
   "command.ignoreFile.progress": "刷新中",
@@ -157,6 +159,7 @@
   "tree.usedInfo.undefined": "未定义",
   "tree.usedInfo.unused": "未使用",
   "tree.usedInfo.used": "已使用",
-  "command.goToReference.selectEntry": "选择要跳转的词条",
-  "command.goToReference.selectFile": "选择要跳转的文件"
+  "tree.usedInfo.undefinedAutoTranslateEnabled": "已开启自动翻译未定义词条功能",
+  "tree.usedInfo.undefinedAutoTranslateDisabled": "未开启自动翻译未定义词条功能",
+  "tree.usedInfo.undefinedValidLang": "语言不符合要求，无法自动翻译"
 }

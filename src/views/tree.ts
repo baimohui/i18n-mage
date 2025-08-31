@@ -6,7 +6,8 @@ import {
   getValueByAmbiguousEntryName,
   detectI18nFramework,
   internalToDisplayName,
-  escapeMarkdown
+  escapeMarkdown,
+  validateLang
 } from "@/utils/regex";
 import { getPossibleLangPaths, isLikelyProjectPath, toAbsolutePath, toRelativePath } from "@/utils/fs";
 import { getLangCode, getLangText } from "@/utils/langKey";
@@ -251,6 +252,7 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
         label: t("tree.syncInfo.title"),
         id: "SYNC_INFO",
         root: "SYNC_INFO",
+        tooltip: toRelativePath(this.publicCtx.langPath),
         iconPath: new vscode.ThemeIcon(this.isSyncing ? "sync~spin" : "sync"),
         collapsibleState: vscode.TreeItemCollapsibleState.Expanded,
         description: this.getSyncPercent()
@@ -434,20 +436,35 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
         { type: "undefined", label: t("tree.usedInfo.undefined"), num: undefinedEntries.length }
       ].map(item => {
         let data: string[] = [];
+        let descriptions: string[] = [String(item.num)];
+        let tooltip = "";
         if (item.type === "used") {
           data = Array.from(this.usedKeySet);
         } else if (item.type === "unused") {
           data = Array.from(this.unusedKeySet);
         } else {
           data = undefinedEntries;
+          if (this.publicCtx.autoTranslateMissingKey) {
+            tooltip = t("tree.usedInfo.undefinedAutoTranslateEnabled");
+            if (item.num > 0) {
+              if (this.publicCtx.validateLanguageBeforeTranslate) {
+                descriptions = [`${item.num}-${undefinedEntries.filter(key => validateLang(key, this.publicCtx.referredLang)).length}`];
+              } else {
+                descriptions = [`${item.num}-${item.num}`];
+              }
+            }
+          } else {
+            tooltip = t("tree.usedInfo.undefinedAutoTranslateDisabled");
+          }
         }
         return {
           ...item,
           level: 1,
           root: element.root,
-          description: String(item.num),
+          description: descriptions.join(" "),
           id: this.genId(element, item.type),
           data,
+          tooltip,
           contextValue: item.num === 0 ? `${item.type}GroupHeader-None` : `${item.type}GroupHeader`,
           collapsibleState: vscode.TreeItemCollapsibleState[item.num === 0 ? "None" : "Collapsed"]
         };
@@ -459,13 +476,21 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
           .sort()
           .map(item => {
             const undefinedNum = Object.values(this.undefinedEntryMap[item]).reduce((acc, cur) => acc + cur.size, 0);
+            const descriptions = [`<${undefinedNum}>`];
+            if (
+              this.publicCtx.autoTranslateMissingKey &&
+              this.publicCtx.validateLanguageBeforeTranslate &&
+              !validateLang(item, this.publicCtx.referredLang)
+            ) {
+              descriptions.push(t("tree.usedInfo.undefinedValidLang"));
+            }
             return {
               key: item,
               label: item,
               level: 2,
               data: [item],
               contextValue: contextValueList.join(","),
-              description: `<${undefinedNum}>`,
+              description: descriptions.join(" "),
               type: element.type,
               root: element.root,
               id: this.genId(element, item),

@@ -37,6 +37,8 @@
   "command.fix.waitForFileSelection": "Waiting for user to select file",
   "command.goToDefinition.selectEntry": "Select the entry to locate",
   "command.goToDefinition.selectLang": "Select the language to locate",
+  "command.goToReference.selectEntry": "Select the entry to jump",
+  "command.goToReference.selectFile": "Select the file to jump",
   "command.ignoreDirectory.title": "Select the folder you want to ignore",
   "command.ignoreFile.openLabel": "Select the file you want to ignore",
   "command.ignoreFile.progress": "Refreshing...",
@@ -157,6 +159,7 @@
   "tree.usedInfo.undefined": "Undefined",
   "tree.usedInfo.unused": "Unused",
   "tree.usedInfo.used": "Used",
-  "command.goToReference.selectEntry": "Select the entry to jump",
-  "command.goToReference.selectFile": "Select the file to jump"
+  "tree.usedInfo.undefinedAutoTranslateEnabled": "Automatic translation undefined entries function has been enabled",
+  "tree.usedInfo.undefinedAutoTranslateDisabled": "Automatic translation undefined entries function not enabled",
+  "tree.usedInfo.undefinedValidLang": "Unsupported language for auto-translation"
 }
