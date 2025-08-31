@@ -774,7 +774,7 @@
       {
         "command": "i18nMage.ignoreUndefined",
         "category": "%extension.name%",
-        "title": "%command.ignore.title%",
+        "title": "%command.ignoreUndefined.title%",
         "icon": {
           "light": "./images/remove-light.svg",
           "dark": "./images/remove-dark.svg"

@@ -13,6 +13,7 @@ export function registerSelectLangPathCommand() {
   const disposable = vscode.commands.registerCommand("i18nMage.selectLangPath", async () => {
     const selectedUri = await vscode.window.showOpenDialog({
       canSelectFolders: true,
+      canSelectFiles: false,
       openLabel: t("command.selectLangPath.title"),
       canSelectMany: false
     });

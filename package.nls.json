@@ -99,7 +99,7 @@
   "command.copyValue.title": "Copy Entry Value",
   "command.copyKeyValue.title": "Copy Key-Value Pair",
   "command.editValue.title": "Edit Entry Value",
-  "command.deleteUnused.title": "Delete",
+  "command.deleteUnused.title": "Delete Unused",
   "command.markAsUsed.title": "Mark as Used",
   "command.unmarkAsUsed.title": "Unmark as used",
   "command.goToReference.title": "Go to Reference",
@@ -111,5 +111,6 @@
   "command.unignoreLang.title": "Unignore This Language",
   "command.toggleInlineTranslation.title": "Toggle Inline Translation",
   "command.ignore.title": "Ignore",
+  "command.ignoreUndefined.title": "Ignore Undefined",
   "view.welcome.title": "No translation file directory has been detected\n[Select translation file directory](command:i18nMage.selectLangPath)"
 }

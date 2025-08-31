@@ -9,11 +9,21 @@ import { toRelativePath } from "@/utils/fs";
 
 export function registerIgnoreDirectoryCommand() {
   const mage = LangMage.getInstance();
-  const disposable = vscode.commands.registerCommand("i18nMage.ignoreDirectory", async (uri: vscode.Uri) => {
+  const disposable = vscode.commands.registerCommand("i18nMage.ignoreDirectory", async (uri: vscode.Uri | undefined) => {
+    if (uri === undefined) {
+      const folders = await vscode.window.showOpenDialog({
+        canSelectFiles: false,
+        canSelectFolders: true,
+        canSelectMany: false,
+        openLabel: t("command.ignoreDirectory.title")
+      });
+      if (folders === undefined || folders.length === 0) return;
+      uri = folders[0];
+    }
     await wrapWithProgress({ title: t("command.ignoreFile.progress") }, async () => {
       const ignoredDirectories = getConfig<string[]>("workspace.ignoredDirectories", []);
       const dirPath = toRelativePath(uri.fsPath);
-      if (dirPath !== undefined) {
+      if (dirPath !== undefined && !ignoredDirectories.includes(dirPath)) {
         ignoredDirectories.push(dirPath);
         await setConfig("workspace.ignoredDirectories", [...new Set(ignoredDirectories)]);
         mage.setOptions({ task: "check" });

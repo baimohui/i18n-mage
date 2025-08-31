@@ -10,7 +10,11 @@ import { toRelativePath } from "@/utils/fs";
 
 export function registerSetLangPathCommand() {
   const mage = LangMage.getInstance();
-  const disposable = vscode.commands.registerCommand("i18nMage.setLangPath", async (uri: vscode.Uri) => {
+  const disposable = vscode.commands.registerCommand("i18nMage.setLangPath", async (uri: vscode.Uri | undefined) => {
+    if (uri === undefined) {
+      vscode.commands.executeCommand("i18nMage.selectLangPath");
+      return;
+    }
     await wrapWithProgress({ title: "" }, async () => {
       const langPath = uri.fsPath;
       mage.setOptions({ langPath, task: "check" });

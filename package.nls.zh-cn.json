@@ -111,5 +111,6 @@
   "command.unignoreLang.title": "取消忽略该语言",
   "command.toggleInlineTranslation.title": "启用/禁用翻译内联提示",
   "command.ignore.title": "忽略",
+  "command.ignoreUndefined.title": "忽略未定义词条",
   "view.welcome.title": "尚未检测到翻译文件目录\n[选择翻译文件目录](command:i18nMage.selectLangPath)"
 }
