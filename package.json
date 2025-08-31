@@ -21,7 +21,12 @@
     "Other"
   ],
   "activationEvents": [
-    "workspaceContains:package.json"
+    "workspaceContains:package.json",
+    "onCommand:i18nMage.*",
+    "onLanguage:javascript",
+    "onLanguage:typescript",
+    "onLanguage:json",
+    "onLanguage:vue"
   ],
   "main": "dist/extension.js",
   "contributes": {
