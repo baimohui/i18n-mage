@@ -24,4 +24,20 @@ All notable changes to the "i18n-mage" extension will be documented in this file
 - **Language File Indentation Detection Fix**: Corrected the method for detecting indentation levels in language files, resolving misidentification issues in flat files.
 
 ## [1.0.2] - 2025-08-28
+### Fixed
 - **Fix for Undefined Entry Repair Logic**: Resolved an issue where the repair logic could not be properly enabled due to the undefined entry repair feature being turned off.
+
+## [1.0.3] - 2025-09-01
+
+### Added
+- **Enhanced Tooltip Information**: Added tooltips in the "Sync Info" module to display language directories, and in the "Undefined" usage section to indicate whether undefined entry correction is enabled, with additional validation status for sub-items.
+
+### Changed
+- **Key Prefix Default Change**: Updated the default value for the "Key Prefix" configuration in "Write Rules" from `auto-popular` to `none` to prevent user confusion.
+- **Translation API Priority Adjustment**: Modified the default "Translation API Priority" configuration to move Deepseek to the last position due to output instability.
+
+### Fixed
+- **Improved Activation Conditions**: Expanded plugin activation conditions to include additional language and command triggers for better reliability.
+- **Command Categorization**: Added plugin-specific categories to commands for easier identification in the command palette.
+- **Command Palette Argument Handling**: Resolved errors when invoking commands without arguments from the command palette.
+- **Documentation and Text Optimization**: Refined UI text and documentation for clarity and completeness.
