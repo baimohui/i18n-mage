@@ -25,7 +25,7 @@
 * Tree-structured view of translation entries.
 * Functional buttons: Export, Import, Sort, Fix.
 
-![Tree Provider](https://raw.githubusercontent.com/baimohui/FigureBed/main/img/20250824175521409.png)
+![Tree Provider](https://raw.githubusercontent.com/baimohui/i18n-mage/refs/heads/main/doc-assets/panelView_en.png)
 
 ### 🧠 Inline Translation Hints
 
@@ -33,14 +33,14 @@
 * Supports custom styles (color, max length, etc.).
 * Toggleable via shortcuts.
 
-![Inline Hints](https://raw.githubusercontent.com/baimohui/FigureBed/main/img/20250824212251966.gif)
+![Inline Hints](https://raw.githubusercontent.com/baimohui/i18n-mage/refs/heads/main/doc-assets/inlineHints_en.gif)
 
 ### 🚧 Auto-Fill Missing Translations
 
 * Integrates Google, DeepSeek, Baidu, Tencent translation services.
 * Preview and confirm missing translations before applying.
 
-![Auto-Fill Missing Translations](https://raw.githubusercontent.com/baimohui/FigureBed/main/img/20250824213054961.gif)
+![Auto-Fill Missing Translations](https://raw.githubusercontent.com/baimohui/i18n-mage/refs/heads/main/doc-assets/fixMissingTranslation_en.gif)
 
 ### 🧹 Auto-Fix Undefined Entries
 
@@ -48,7 +48,7 @@
 * Replaces with existing key if value matches.
 * Otherwise, generates a new key with customizable naming.
 
-![Auto-Fix Undefined Entries](https://raw.githubusercontent.com/baimohui/FigureBed/main/img/20250824214025411.gif)
+![Auto-Fix Undefined Entries](https://raw.githubusercontent.com/baimohui/i18n-mage/refs/heads/main/doc-assets/fixUndefinedTranslation_en.gif)
 
 ### 🕵️ Detect Unused Keys
 
@@ -56,20 +56,20 @@
 * Pattern matching for dynamic keys.
 * Delete or mark as used manually.
 
-![Detect Unused Keys](https://raw.githubusercontent.com/baimohui/FigureBed/main/img/20250824215036038.gif)
+![Detect Unused Keys](https://raw.githubusercontent.com/baimohui/i18n-mage/refs/heads/main/doc-assets/checkUsage_en.gif)
 
 ### 📊 Excel Import/Export
 
 * Export translation entries to Excel for translators.
 * Import translations from Excel back into language files.
 
-![Excel Import/Export](https://raw.githubusercontent.com/baimohui/FigureBed/main/img/20250824215122071.png)
+![Excel Import/Export](https://raw.githubusercontent.com/baimohui/i18n-mage/refs/heads/main/doc-assets/excel.png)
 
 ### 📋 Copy Translation Data
 
 * One-click copy of all keys/values on the current page.
 
-![Copy Translation Data](https://raw.githubusercontent.com/baimohui/FigureBed/main/img/20250824220214611.gif)
+![Copy Translation Data](https://raw.githubusercontent.com/baimohui/i18n-mage/refs/heads/main/doc-assets/copyCurrentPage_en.gif)
 
 ## ⚡ Quick Start
 
@@ -164,7 +164,7 @@ Use `%key%text` or `#prefix#text` to control generated key names during fix oper
 
 ### Q: Which translation service should I choose?
 
-* **Google Translate**: High quality, needs VPN.
+* **Google Translate**: High quality.
 * **DeepSeek**: AI-powered, cheap, requires API key and recharge.
 * **Baidu Translate**: Free up to 1M chars/month, requires developer account.
 * **Tencent Translate**: Free up to 5M chars/month, requires Tencent Cloud account.
