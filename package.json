@@ -161,69 +161,47 @@
         "type": "object",
         "title": "%config.translateServices.title%",
         "properties": {
-          "i18n-mage.translationServices.referenceLanguage": {
+          "i18n-mage.translationServices.autoTranslateMissingKey": {
             "order": 2,
+            "type": "boolean",
+            "default": false,
+            "description": "%config.autoTranslateMissingKey.desc%"
+          },
+          "i18n-mage.translationServices.matchExistingKey": {
+            "order": 4,
+            "type": "boolean",
+            "default": true,
+            "description": "%config.matchExistingKey.desc%"
+          },
+          "i18n-mage.translationServices.validateLanguageBeforeTranslate": {
+            "order": 6,
+            "type": "boolean",
+            "default": true,
+            "description": "%config.validateLanguageBeforeTranslate.desc%"
+          },
+          "i18n-mage.translationServices.autoTranslateEmptyKey": {
+            "order": 8,
+            "type": "boolean",
+            "default": true,
+            "description": "%config.autoTranslateEmptyKey.desc%"
+          },
+          "i18n-mage.translationServices.referenceLanguage": {
+            "order": 10,
             "type": "string",
             "default": "",
             "description": "%config.referenceLanguage.desc%"
           },
-          "i18n-mage.translationServices.deepseekApiKey": {
-            "order": 5,
-            "type": "string",
-            "default": "",
-            "description": "%config.deepseekApiKey.desc%"
-          },
-          "i18n-mage.translationServices.baiduAppId": {
-            "order": 7,
-            "type": "string",
-            "default": "",
-            "description": "%config.baiduAppId.desc%"
-          },
-          "i18n-mage.translationServices.baiduSecretKey": {
-            "order": 8,
-            "type": "string",
-            "default": "",
-            "description": "%config.baiduSecretKey.desc%"
-          },
-          "i18n-mage.translationServices.tencentSecretId": {
-            "order": 11,
-            "type": "string",
-            "default": "",
-            "description": "%config.tencentSecretId.desc%"
-          },
-          "i18n-mage.translationServices.tencentSecretKey": {
+          "i18n-mage.translationServices.langAliasCustomMappings": {
             "order": 12,
-            "type": "string",
-            "default": "",
-            "description": "%config.tencentSecretKey.desc%"
-          },
-          "i18n-mage.translationServices.proxy.enable": {
-            "order": 15,
-            "type": "boolean",
-            "default": false,
-            "description": "%config.enableProxy.desc%"
-          },
-          "i18n-mage.translationServices.proxy.host": {
-            "order": 16,
-            "type": "string",
-            "default": "127.0.0.1",
-            "description": "%config.proxyHost.desc%"
-          },
-          "i18n-mage.translationServices.proxy.port": {
-            "order": 17,
-            "type": "number",
-            "default": 7890,
-            "description": "%config.proxyPort.desc%"
-          },
-          "i18n-mage.translationServices.proxy.protocol": {
-            "order": 18,
-            "type": "string",
-            "default": "http",
-            "enum": [
-              "http",
-              "https"
-            ],
-            "description": "%config.proxyProtocol.desc%"
+            "type": "object",
+            "description": "%config.langAliasCustomMappings.desc%",
+            "default": {},
+            "additionalProperties": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
           },
           "i18n-mage.translationServices.translateApiPriority": {
             "order": 20,
@@ -246,41 +224,63 @@
             },
             "uniqueItems": true
           },
-          "i18n-mage.translationServices.langAliasCustomMappings": {
-            "order": 22,
-            "type": "object",
-            "description": "%config.langAliasCustomMappings.desc%",
-            "default": {},
-            "additionalProperties": {
-              "type": "array",
-              "items": {
-                "type": "string"
-              }
-            }
-          },
-          "i18n-mage.translationServices.autoTranslateEmptyKey": {
-            "order": 23,
-            "type": "boolean",
-            "default": true,
-            "description": "%config.autoTranslateEmptyKey.desc%"
-          },
-          "i18n-mage.translationServices.matchExistingKey": {
-            "order": 24,
-            "type": "boolean",
-            "default": true,
-            "description": "%config.matchExistingKey.desc%"
-          },
-          "i18n-mage.translationServices.autoTranslateMissingKey": {
+          "i18n-mage.translationServices.deepseekApiKey": {
             "order": 25,
+            "type": "string",
+            "default": "",
+            "description": "%config.deepseekApiKey.desc%"
+          },
+          "i18n-mage.translationServices.baiduAppId": {
+            "order": 27,
+            "type": "string",
+            "default": "",
+            "description": "%config.baiduAppId.desc%"
+          },
+          "i18n-mage.translationServices.baiduSecretKey": {
+            "order": 28,
+            "type": "string",
+            "default": "",
+            "description": "%config.baiduSecretKey.desc%"
+          },
+          "i18n-mage.translationServices.tencentSecretId": {
+            "order": 31,
+            "type": "string",
+            "default": "",
+            "description": "%config.tencentSecretId.desc%"
+          },
+          "i18n-mage.translationServices.tencentSecretKey": {
+            "order": 32,
+            "type": "string",
+            "default": "",
+            "description": "%config.tencentSecretKey.desc%"
+          },
+          "i18n-mage.translationServices.proxy.enable": {
+            "order": 35,
             "type": "boolean",
             "default": false,
-            "description": "%config.autoTranslateMissingKey.desc%"
+            "description": "%config.enableProxy.desc%"
           },
-          "i18n-mage.translationServices.validateLanguageBeforeTranslate": {
-            "order": 26,
-            "type": "boolean",
-            "default": true,
-            "description": "%config.validateLanguageBeforeTranslate.desc%"
+          "i18n-mage.translationServices.proxy.host": {
+            "order": 36,
+            "type": "string",
+            "default": "127.0.0.1",
+            "description": "%config.proxyHost.desc%"
+          },
+          "i18n-mage.translationServices.proxy.port": {
+            "order": 37,
+            "type": "number",
+            "default": 7890,
+            "description": "%config.proxyPort.desc%"
+          },
+          "i18n-mage.translationServices.proxy.protocol": {
+            "order": 38,
+            "type": "string",
+            "default": "http",
+            "enum": [
+              "http",
+              "https"
+            ],
+            "description": "%config.proxyProtocol.desc%"
           }
         }
       },
