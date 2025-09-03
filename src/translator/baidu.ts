@@ -1,7 +1,8 @@
 import md5 from "js-md5";
 import axios from "axios";
 import { t } from "@/utils/i18n";
-import { TranslateParams, TranslateResult } from "../types";
+import { batchTranslate } from "./utils/batchTranslate";
+import { TranslateParams, TranslateResult } from "@/types";
 
 const baseUrl = "https://fanyi-api.baidu.com/api/trans/vip/translate";
 
@@ -26,78 +27,18 @@ let baiduSecretKey = "";
 export default async function translateTo({ source, target, sourceTextList, apiId, apiKey }: TranslateParams): Promise<TranslateResult> {
   baiduAppId = apiId;
   baiduSecretKey = apiKey;
-  const translateLenLimit = 2000; // a request content max length
-  const secondRequestLimit = 10; // the max times per second to request
-  let sum = 0;
-  let pack: string[] = [];
-  const packList: string[][] = [];
-  sourceTextList.forEach(text => {
-    sum += text.length;
-    if (text.length > translateLenLimit) {
-      return { success: false, message: t("translator.exceedTextLenPerRequest", text) };
-    }
-    if (sum > translateLenLimit) {
-      packList.push(pack);
-      pack = [];
-      sum = text.length;
-    }
-    pack.push(text);
-  });
-  packList.push(pack);
-  return await sendBatch(source, target, packList, 0, secondRequestLimit);
-}
-
-async function sendBatch(
-  source: string,
-  target: string,
-  packList: string[][],
-  batchNum: number,
-  batchSize: number
-): Promise<TranslateResult> {
-  const result: TranslateResult = { success: true, message: "", data: [] };
-  const packNum = batchNum * batchSize;
-  for (let i = packNum; i < packNum + batchSize; i++) {
-    if (packList[i] === undefined) {
-      break;
-    }
-    const res = await send(source, target, packList[i]);
-    if (!res.success) {
-      return res;
-    }
-    result.data!.push(...res.data!);
-  }
-  if (packList.length > packNum + batchSize) {
-    return new Promise(resolve => {
-      setTimeout(() => {
-        sendBatch(source, target, packList, batchNum + 1, batchSize)
-          .then(batchRes => {
-            if (batchRes.success) {
-              result.data!.push(...batchRes.data!);
-              resolve(result);
-            } else {
-              resolve(batchRes);
-            }
-          })
-          .catch(error => {
-            resolve({ success: false, message: error instanceof Error ? error.message : (error as string) });
-          });
-      }, 1100);
-    });
-  } else {
-    return result;
-  }
+  return batchTranslate(source, target, sourceTextList, { maxLen: 2000, batchSize: 10, interval: 1000 }, send);
 }
 
 interface TranslationResponse {
   error_code?: number;
   trans_result: Array<{ dst: string }>;
-  // 其他可能的响应字段
 }
 
-async function send(source: string, target: string, sourceTextList: string[]): Promise<TranslateResult> {
+async function send(source: string, target: string, texts: string[]): Promise<TranslateResult> {
   try {
     const salt = Math.random();
-    const sourceText = sourceTextList.join("\n");
+    const sourceText = texts.join("\n");
     const params = {
       from: source,
       to: target,
@@ -108,25 +49,24 @@ async function send(source: string, target: string, sourceTextList: string[]): P
     };
     const requestUrl = createUrl(baseUrl, params);
     const { data } = await axios.get<TranslationResponse>(requestUrl);
+
     if (data.error_code != null) {
-      return { success: false, langUnsupported: data.error_code == 58001, message: `${errorCodeMap[data.error_code]}[${data.error_code}]` };
-    } else {
-      const transformedList: string[] = [];
-      const resList = data.trans_result.map((item: { dst: string }) => item.dst);
-      let curResIndex = 0;
-      sourceTextList.forEach(text => {
-        const newlineCount = (text.match(/\n/g) || []).length + 1;
-        transformedList.push(resList.slice(curResIndex, curResIndex + newlineCount).join("\n"));
-        curResIndex += newlineCount;
-      });
-      return { success: true, data: transformedList };
+      return { success: false, message: `${errorCodeMap[data.error_code]}[${data.error_code}]` };
     }
+
+    // 还原按行拆分
+    const resList = data.trans_result.map((item: { dst: string }) => item.dst);
+    const transformed: string[] = [];
+    let curIndex = 0;
+    texts.forEach(text => {
+      const lineCount = (text.match(/\n/g) || []).length + 1;
+      transformed.push(resList.slice(curIndex, curIndex + lineCount).join("\n"));
+      curIndex += lineCount;
+    });
+
+    return { success: true, data: transformed };
   } catch (e: unknown) {
-    if (e instanceof Error) {
-      return { success: false, message: e.message };
-    } else {
-      return { success: false, message: e as string };
-    }
+    return { success: false, message: e instanceof Error ? e.message : (e as string) };
   }
 }
 

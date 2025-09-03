@@ -10,7 +10,6 @@ export interface TranslateParams {
 
 export interface TranslateResult {
   success: boolean;
-  langUnsupported?: boolean;
   data?: string[];
   message?: string;
   api?: ApiPlatform;

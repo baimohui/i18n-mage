@@ -110,13 +110,7 @@ export default async function translateTo(data: TranslateData, startIndex = 0): 
       availableApi,
       res?.data?.map(item => item.replace(/\n/g, "\\n")).join(", ") ?? ""
     );
-    return new Promise(resolve => {
-      if (availableApi === "google") {
-        setTimeout(() => resolve(res), 1000);
-      } else {
-        resolve(res);
-      }
-    });
+    return res;
   } else {
     if (startIndex + 1 < availableApiList.length) {
       const nextApi = availableApiList[startIndex + 1];

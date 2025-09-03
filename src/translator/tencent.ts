@@ -1,6 +1,7 @@
 import { tmt } from "tencentcloud-sdk-nodejs-tmt";
 import { TranslateParams, TranslateResult } from "../types";
 import { t } from "@/utils/i18n";
+import { batchTranslate } from "./utils/batchTranslate";
 
 const TmtClient = tmt.v20180321.Client;
 
@@ -32,91 +33,22 @@ export default async function translateTo({ source, target, sourceTextList, apiI
   if (!Object.hasOwn(supportLangMap, source)) {
     return {
       success: false,
-      langUnsupported: true,
       message: t(`translator.tencentError.unsupportedLanguage`, source)
     };
   }
   if (!supportLangMap[source]?.includes(target)) {
     return {
       success: false,
-      langUnsupported: true,
       message: t(`translator.tencentError.unsupportedLanguageMap`, source, target)
     };
   }
   tencentSecretId = apiId;
   tencentSecretKey = apiKey;
-  const translateLenLimit = 2000; // a request content max length
-  const secondRequestLimit = 5; // the max times per second to request
-  let sum = 0;
-  let pack: string[] = [];
-  const packList: string[][] = [];
-  for (let i = 0; i < sourceTextList.length; i++) {
-    const text = sourceTextList[i];
-    sum += text.length;
-    if (text.length > translateLenLimit) {
-      return {
-        success: false,
-        message: t(`translator.tencentError.limitedTextLength`, text)
-      };
-    }
-    if (sum > translateLenLimit) {
-      packList.push(pack);
-      pack = [];
-      sum = text.length;
-    }
-    pack.push(text);
-  }
-  packList.push(pack);
-  return await sendBatch(source, target, packList, 0, secondRequestLimit);
+  return batchTranslate(source, target, sourceTextList, { maxLen: 2000, batchSize: 5, interval: 1100 }, send);
 }
 
-async function sendBatch(
-  source: string,
-  target: string,
-  packList: string[][],
-  batchNum: number,
-  batchSize: number
-): Promise<TranslateResult> {
-  const result: string[] = [];
-  const packNum = batchNum * batchSize;
-  try {
-    for (let i = packNum; i < packNum + batchSize; i++) {
-      if (packList[i] === undefined) {
-        break;
-      }
-      const res = await send(source, target, packList[i]);
-      result.push(...res);
-    }
-    if (packList.length > packNum + batchSize) {
-      return new Promise(resolve => {
-        setTimeout(() => {
-          sendBatch(source, target, packList, batchNum + 1, batchSize)
-            .then(batchRes => {
-              result.push(...(batchRes.data || [])); // 确保 batchRes.data 存在，否则 fallback 空数组
-              resolve({ success: true, data: result });
-            })
-            .catch(error => {
-              // 捕获可能的错误
-              resolve({
-                success: false,
-                message: error instanceof Error ? error.message : t("common.unknownError")
-              });
-            });
-        }, 1100);
-      });
-    } else {
-      return { success: true, data: result };
-    }
-  } catch (e) {
-    return {
-      success: false,
-      message: (e as Error).message
-    };
-  }
-}
-
-function send(source: string, target: string, sourceTextList: string[]): Promise<string[]> {
-  return new Promise((resolve, reject) => {
+function send(source: string, target: string, sourceTextList: string[]): Promise<TranslateResult> {
+  return new Promise(resolve => {
     const params = {
       Source: source,
       Target: target,
@@ -137,10 +69,10 @@ function send(source: string, target: string, sourceTextList: string[]): Promise
     });
     client.TextTranslateBatch(params).then(
       data => {
-        resolve(data.TargetTextList || []);
+        resolve({ success: true, data: data.TargetTextList || [] });
       },
-      err => {
-        reject(err as Error);
+      (e: unknown) => {
+        resolve({ success: false, message: e instanceof Error ? e.message : (e as string) });
       }
     );
   });

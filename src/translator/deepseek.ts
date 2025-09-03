@@ -1,6 +1,6 @@
 import axios from "axios";
-import { t } from "@/utils/i18n";
 import { TranslateParams, TranslateResult } from "../types";
+import { batchTranslate } from "./utils/batchTranslate";
 
 const baseUrl = "https://api.deepseek.com/v1/chat/completions";
 
@@ -8,66 +8,7 @@ let deepseekApiKey = "";
 
 export default async function translateTo({ source, target, sourceTextList, apiKey }: TranslateParams): Promise<TranslateResult> {
   deepseekApiKey = apiKey;
-  const translateLenLimit = 1000; // a request content max length
-  const secondRequestLimit = 10; // the max times per second to request
-  let sum = 0;
-  let pack: string[] = [];
-  const packList: string[][] = [];
-  sourceTextList.forEach(text => {
-    sum += text.length;
-    if (text.length > translateLenLimit) {
-      return { success: false, message: t("translator.exceedTextLenPerRequest", text) };
-    }
-    if (sum > translateLenLimit) {
-      packList.push(pack);
-      pack = [];
-      sum = text.length;
-    }
-    pack.push(text);
-  });
-  packList.push(pack);
-  return await sendBatch(source, target, packList, 0, secondRequestLimit);
-}
-
-async function sendBatch(
-  source: string,
-  target: string,
-  packList: string[][],
-  batchNum: number,
-  batchSize: number
-): Promise<TranslateResult> {
-  const result: TranslateResult = { success: true, message: "", data: [] };
-  const packNum = batchNum * batchSize;
-  for (let i = packNum; i < packNum + batchSize; i++) {
-    if (packList[i] === undefined) {
-      break;
-    }
-    const res = await send(source, target, packList[i]);
-    if (!res.success) {
-      return res;
-    }
-    result.data!.push(...res.data!);
-  }
-  if (packList.length > packNum + batchSize) {
-    return new Promise(resolve => {
-      setTimeout(() => {
-        sendBatch(source, target, packList, batchNum + 1, batchSize)
-          .then(batchRes => {
-            if (batchRes.success) {
-              result.data!.push(...batchRes.data!);
-              resolve(result);
-            } else {
-              resolve(batchRes);
-            }
-          })
-          .catch(error => {
-            resolve({ success: false, message: error instanceof Error ? error.message : (error as string) });
-          });
-      }, 1100);
-    });
-  } else {
-    return result;
-  }
+  return batchTranslate(source, target, sourceTextList, { maxLen: 1000, batchSize: 10, interval: 1100 }, send);
 }
 
 interface DeepSeekAPIResponse {
