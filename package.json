@@ -1,7 +1,7 @@
 {
   "name": "i18n-mage",
   "displayName": "i18n Mage",
-  "description": "🪄 i18n Mage: The All-in-One VSCode Extension for Frontend i18n. Featuring auto-translation, Excel sync, and smart fixes with minimal setup!",
+  "description": "🪄 Wave your i18n wand. Conjure order from the chaos with auto-translation, smart fixes, and Excel sync.",
   "repository": {
     "type": "git",
     "url": "https://github.com/baimohui/i18n-mage.git"
@@ -19,6 +19,9 @@
   "icon": "images/icon.png",
   "categories": [
     "Other"
+  ],
+  "extensionKind": [
+    "ui"
   ],
   "activationEvents": [
     "workspaceContains:package.json",
@@ -635,8 +638,8 @@
         "category": "%extension.name%",
         "title": "%command.fix.title%",
         "icon": {
-          "light": "./images/translate-light.svg",
-          "dark": "./images/translate-dark.svg"
+          "light": "./images/wand-light.svg",
+          "dark": "./images/wand-dark.svg"
         }
       },
       {
