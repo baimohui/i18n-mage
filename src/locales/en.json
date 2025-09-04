@@ -103,6 +103,8 @@
   "common.progress.timeout": "Operation timed out after {0}ms",
   "common.unknownError": "An unknown error occurred",
   "common.unknownLang": "Unknown language",
+  "config.toggleInlineTranslation.disabled": "Inline translation prompts disabled",
+  "config.toggleInlineTranslation.enabled": "Inline translation prompts enabled",
   "diagnostics.undefinedWarn": "\"{0}\": Undefined entry",
   "preview.apply": "Apply",
   "preview.cancel": "Cancel",
@@ -162,6 +164,5 @@
   "tree.usedInfo.undefinedValidLang": "Unsupported language for auto-translation",
   "tree.usedInfo.unused": "Unused",
   "tree.usedInfo.used": "Used",
-  "config.toggleInlineTranslation.enabled": "Inline translation prompts enabled",
-  "config.toggleInlineTranslation.disabled": "Inline translation prompts disabled"
+  "translator.deepseek.lineCountMismatch": "The number of output translations does not match the number of source texts. Translations: {0}"
 }
