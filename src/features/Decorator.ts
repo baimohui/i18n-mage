@@ -50,6 +50,7 @@ export class DecoratorController implements vscode.Disposable {
     if (this.disposed || !editor) return;
     if (!getConfig<boolean>("translationHints.enable", true)) {
       editor.setDecorations(this.translationDecoration, []);
+      editor.setDecorations(this.looseTranslationDecoration, []);
       editor.setDecorations(this.hiddenKeyDecoration, []);
       return;
     }

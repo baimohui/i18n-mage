@@ -214,7 +214,7 @@ export async function detectI18nProject(dirPath: string): Promise<boolean> {
     }
   }
 
-  // 判定阈值（调整为 8 分以提高准确性）
+  // 判定阈值
   NotificationManager.logToOutput("检测 i18n 项目得分：" + score);
   NotificationManager.logToOutput("检测 i18n 项目信号：" + signals.join(", "));
   const isI18nProject = score >= 3;
