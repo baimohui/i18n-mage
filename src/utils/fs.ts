@@ -98,19 +98,127 @@ export function isPathInsideDirectory(dir: string, targetPath: string): boolean 
   return isInside;
 }
 
-export async function isLikelyProjectPath(dirPath: string): Promise<boolean> {
-  try {
-    const stat = await fs.stat(dirPath);
-    if (!stat.isDirectory()) return false;
-    const packageJsonPath = path.join(dirPath, "package.json");
-    const srcPath = path.join(dirPath, "src");
-    const checks = await Promise.allSettled([fs.stat(packageJsonPath), fs.stat(srcPath)]);
-    const hasPkg = checks[0].status === "fulfilled" && checks[0].value.isFile();
-    const hasSrc = checks[1].status === "fulfilled" && checks[1].value.isDirectory();
-    return hasPkg || hasSrc;
-  } catch {
-    return false;
+export async function detectI18nProject(dirPath: string): Promise<boolean> {
+  let score = 0;
+  const signals: string[] = [];
+
+  async function exists(p: string) {
+    try {
+      await fs.stat(p);
+      return true;
+    } catch {
+      return false;
+    }
   }
+
+  // 扩展的 i18n 库列表
+  const i18nLibs = [
+    "vue-i18n",
+    "@intlify/core",
+    "i18next",
+    "react-i18next",
+    "@ngx-translate/core",
+    "svelte-i18n",
+    "react-intl",
+    "formatjs",
+    "polyglot",
+    "lingui",
+    "next-intl",
+    "vuex-i18n"
+  ];
+
+  // 扩展的配置文件列表
+  const configFiles = [
+    "i18n.config.js",
+    "i18n.config.ts",
+    ".i18nrc",
+    ".i18nrc.json",
+    "next-i18next.config.js",
+    "nuxt-i18n.config.js",
+    "lingui.config.js"
+  ];
+
+  // 1️⃣ 一级信号：package.json 中依赖
+  const pkgPath = path.join(dirPath, "package.json");
+  if (await exists(pkgPath)) {
+    try {
+      const pkg = JSON.parse(await fs.readFile(pkgPath, "utf8")) as {
+        dependencies?: Record<string, string>;
+        devDependencies?: Record<string, string>;
+        keywords?: string[];
+      };
+      const deps = {
+        ...pkg.dependencies,
+        ...pkg.devDependencies
+      };
+
+      for (const lib of i18nLibs) {
+        if (deps?.[lib]) {
+          score += 5;
+          signals.push(`依赖了 ${lib}`);
+        }
+      }
+
+      if (pkg.keywords?.some((k: string) => k.includes("i18n") || k.includes("intl")) ?? false) {
+        score += 2;
+        signals.push("package.json 包含 i18n 相关关键词");
+      }
+    } catch {
+      // ignore JSON parse errors
+    }
+  }
+
+  // 2️⃣ 二级信号：配置文件
+  for (const file of configFiles) {
+    const filePath = path.join(dirPath, file);
+    if (await exists(filePath)) {
+      // 验证配置文件是否包含 i18n 相关内容
+      try {
+        const content = await fs.readFile(filePath, "utf8");
+        if (content.includes("i18n") || content.includes("locale") || content.includes("language")) {
+          score += 5;
+          signals.push(`存在配置文件 ${file} (且包含 i18n 相关内容)`);
+        } else {
+          score += 3;
+          signals.push(`存在配置文件 ${file}`);
+        }
+      } catch {
+        score += 3;
+        signals.push(`存在配置文件 ${file}`);
+      }
+    }
+  }
+
+  // 3️⃣ 三级信号：常见框架特定的 i18n 文件
+  const frameworkFiles = [
+    "messages.js",
+    "messages.ts", // React Intl
+    "lang.js",
+    "lang.ts", // Vue I18n
+    "i18n.js",
+    "i18n.ts" // 通用
+  ];
+
+  for (const file of frameworkFiles) {
+    const filePath = path.join(dirPath, file);
+    if (await exists(filePath)) {
+      try {
+        const content = await fs.readFile(filePath, "utf8");
+        if (content.includes("i18n") || content.includes("locale") || content.includes("language")) {
+          score += 2;
+          signals.push(`存在框架文件 ${file} (且包含 i18n 相关内容)`);
+        }
+      } catch {
+        // 忽略读取错误
+      }
+    }
+  }
+
+  // 判定阈值（调整为 8 分以提高准确性）
+  NotificationManager.logToOutput("检测 i18n 项目得分：" + score);
+  NotificationManager.logToOutput("检测 i18n 项目信号：" + signals.join(", "));
+  const isI18nProject = score >= 3;
+  return isI18nProject;
 }
 
 /**

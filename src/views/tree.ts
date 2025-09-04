@@ -9,7 +9,7 @@ import {
   escapeMarkdown,
   validateLang
 } from "@/utils/regex";
-import { getPossibleLangPaths, isLikelyProjectPath, toAbsolutePath, toRelativePath } from "@/utils/fs";
+import { detectI18nProject, getPossibleLangPaths, toAbsolutePath, toRelativePath } from "@/utils/fs";
 import { getLangCode, getLangText } from "@/utils/langKey";
 import { LangContextPublic, TEntry, LangTree, SORT_MODE, I18N_FRAMEWORK } from "@/types";
 import { t } from "@/utils/i18n";
@@ -154,10 +154,7 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
       let success = false;
 
       if (projectPath.trim() === "") {
-        NotificationManager.showWarning(t("common.noWorkspaceWarn"));
-        return false;
-      } else if (!(await isLikelyProjectPath(projectPath))) {
-        NotificationManager.showError(t("command.setProjectPath.invalidFolder"));
+        // NotificationManager.showWarning(t("common.noWorkspaceWarn"));
         return false;
       } else {
         const vscodeLang = vscode.env.language;
@@ -183,13 +180,16 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
           }
         }
         if (this.#mage.detectedLangList.length === 0) {
+          vscode.commands.executeCommand("setContext", "hasValidLangPath", false);
+          success = false;
+          if (!(await detectI18nProject(projectPath))) {
+            return false;
+          }
           NotificationManager.showWarning(t("common.noLangPathDetectedWarn"), t("command.selectLangPath.title")).then(selection => {
             if (selection === t("command.selectLangPath.title")) {
               vscode.commands.executeCommand("i18nMage.selectLangPath");
             }
           });
-          vscode.commands.executeCommand("setContext", "hasValidLangPath", false);
-          success = false;
         } else {
           this.checkUsedInfo();
           vscode.commands.executeCommand("setContext", "hasValidLangPath", true);

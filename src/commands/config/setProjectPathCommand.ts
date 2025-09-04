@@ -5,8 +5,7 @@ import { wrapWithProgress } from "@/utils/wrapWithProgress";
 import { registerDisposable } from "@/utils/dispose";
 import { setConfig } from "@/utils/config";
 import { t } from "@/utils/i18n";
-import { isLikelyProjectPath, toRelativePath } from "@/utils/fs";
-import { NotificationManager } from "@/utils/notification";
+import { toRelativePath } from "@/utils/fs";
 
 export function registerSetProjectPathCommand() {
   const mage = LangMage.getInstance();
@@ -23,10 +22,6 @@ export function registerSetProjectPathCommand() {
     }
     await wrapWithProgress({ title: "" }, async () => {
       const projectPath = uri.fsPath;
-      if (!(await isLikelyProjectPath(projectPath))) {
-        NotificationManager.showWarning(t("command.setProjectPath.invalidFolder"));
-        return;
-      }
       mage.setOptions({ task: "check", projectPath });
       await mage.execute();
       await setConfig("workspace.projectPath", toRelativePath(projectPath));

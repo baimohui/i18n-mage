@@ -970,7 +970,7 @@
           "icon": "images/i18nMage.png",
           "id": "treeProvider",
           "name": "",
-          "when": "workspaceFolderCount != 0 && enabled"
+          "when": "initialized && workspaceFolderCount != 0 && enabled"
         }
       ]
     },
