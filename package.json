@@ -204,9 +204,10 @@
             }
           },
           "i18n-mage.translationServices.translateApiPriority": {
-            "order": 20,
+            "order": 14,
             "type": "array",
             "default": [
+              "deepl",
               "google",
               "baidu",
               "tencent",
@@ -216,6 +217,7 @@
             "items": {
               "type": "string",
               "enum": [
+                "deepl",
                 "deepseek",
                 "google",
                 "baidu",
@@ -223,6 +225,22 @@
               ]
             },
             "uniqueItems": true
+          },
+          "i18n-mage.translationServices.deeplVersion": {
+            "order": 18,
+            "type": "string",
+            "enum": [
+              "free",
+              "pro"
+            ],
+            "default": "free",
+            "description": "%config.deeplVersion.desc%"
+          },
+          "i18n-mage.translationServices.deeplApiKey": {
+            "order": 19,
+            "type": "string",
+            "default": "",
+            "description": "%config.deeplApiKey.desc%"
           },
           "i18n-mage.translationServices.deepseekApiKey": {
             "order": 25,

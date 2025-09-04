@@ -86,6 +86,8 @@
   "config.sorting.writeBehavior": "修复后根据配置规则统一排序语言文件",
   "config.ignoredUndefinedEntries.desc": "忽略未定义检测的词条列表",
   "config.fileExtensions.desc": "需要扫描的文件扩展名",
+  "config.deeplVersion.desc": "选择 DeepL 版本：免费版（free）或专业版（pro）",
+  "config.deeplApiKey.desc": "DeepL API Key（根据所选版本填写对应的 Key）",
   "command.setReferredLang.title": "设为翻译源语言",
   "command.setDisplayLang.title": "设为显示语言",
   "command.markAsKnownLang.title": "标记为已知语言",

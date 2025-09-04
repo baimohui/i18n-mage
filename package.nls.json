@@ -86,6 +86,8 @@
   "config.sorting.writeBehavior": "On fix, sort language files using the configured rule",
   "config.ignoredUndefinedEntries.desc": "Entries to ignore from undefined check",
   "config.fileExtensions.desc": "File extensions to scan",
+  "config.deeplVersion.desc": "Choose DeepL version: Free (free) or Pro (pro)",
+  "config.deeplApiKey.desc": "DeepL API Key (enter the key corresponding to the chosen version)",
   "command.setReferredLang.title": "Set as Source Language",
   "command.setDisplayLang.title": "Set as Display Language",
   "command.markAsKnownLang.title": "Mark as Known Language",

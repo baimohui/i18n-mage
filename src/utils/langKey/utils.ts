@@ -100,7 +100,13 @@ export function getLangText(str: string, langCode: string = ""): string {
 // 根据多语言文件名和平台获取对应语种代码
 export function getLangCode(str: string, platform: ApiPlatform = "google"): string | null {
   const intro = getLangIntro(str) as LangKeyIntro;
-  const map: Record<string, keyof LangKeyIntro> = { google: "ggCode", tencent: "tcCode", baidu: "bdCode", deepseek: "ggCode" };
+  const map: Record<string, keyof LangKeyIntro> = {
+    google: "ggCode",
+    tencent: "tcCode",
+    baidu: "bdCode",
+    deepseek: "ggCode",
+    deepl: "dlCode"
+  };
   return intro?.[map[platform]] || null;
 }
 

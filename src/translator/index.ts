@@ -3,6 +3,7 @@ import tcTranslateTo from "./tencent";
 import bdTranslateTo from "./baidu";
 import ggTranslateTo from "./google";
 import dsTranslateTo from "./deepseek";
+import dlTranslateTo from "./deepl";
 import { TranslateParams, TranslateResult, ApiPlatform } from "@/types";
 import { t } from "@/utils/i18n";
 import { NotificationManager } from "@/utils/notification";
@@ -28,6 +29,7 @@ type ApiMap = Record<ApiPlatform, (string | undefined)[]>;
 export default async function translateTo(data: TranslateData, startIndex = 0): Promise<TranslateResult> {
   const { source = "", target = "", sourceTextList = [] } = data;
 
+  const deeplApiKey = getConfig<string>("translationServices.deeplApiKey", "");
   const baiduAppId = getConfig<string>("translationServices.baiduAppId", "");
   const baiduSecretKey = getConfig<string>("translationServices.baiduSecretKey", "");
   const tencentSecretId = getConfig<string>("translationServices.tencentSecretId", "");
@@ -39,7 +41,8 @@ export default async function translateTo(data: TranslateData, startIndex = 0): 
     google: [],
     baidu: [baiduAppId, baiduSecretKey],
     tencent: [tencentSecretId, tencentSecretKey],
-    deepseek: ["none", deepseekApiKey]
+    deepseek: ["none", deepseekApiKey],
+    deepl: ["none", deeplApiKey]
   };
 
   const availableApiList = translateApiPriority.filter(
@@ -135,6 +138,8 @@ async function doTranslate(api: ApiPlatform, params: TranslateParams): Promise<T
       return ggTranslateTo(params);
     case "deepseek":
       return dsTranslateTo(params);
+    case "deepl":
+      return dlTranslateTo(params);
     default:
       return { success: false, message: t("translator.unknownService") };
   }

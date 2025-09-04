@@ -38,7 +38,7 @@
 
 ### 🚧 缺漏翻译一键补全
 
-- 集成谷歌、百度、腾讯、DeepSeek 翻译服务
+- 集成 DeepL、谷歌、百度、腾讯、DeepSeek 翻译服务
 - 自动补全缺失翻译，支持预览与人工校验
 
 ![补全缺漏翻译](./doc-assets/fixMissingTranslation.gif)
@@ -104,7 +104,7 @@ ext install jensen-wen.i18n-mage
 
 4. **配置翻译服务（可选）**：
 
-- 支持谷歌、DeepSeek、百度、腾讯。
+- 支持 DeepL、谷歌、DeepSeek、百度、腾讯。
 - 配置路径：`设置 -> 扩展 -> i18n Mage -> 翻译服务`
 
 ---
@@ -204,6 +204,8 @@ const errorInfo = i18n.t("保存失败");
 
 1. 谷歌翻译：翻译质量较高，支持多语言，无需账号配置，但需要科学上网。由于谷歌翻译 API 的调用频率限制，在短时间内的多次调用可能让发起请求的 IP 地址被限制，从而一段时间内无法再进行调用。遇到这种情况时，可以选择切换代理地址或使用其他 API 进行翻译。
 
+2. DeepL：以精准流畅著称，尤其适合欧美语言互译，提供免费和付费版本。
+
 2. 百度翻译：翻译质量良好，调用 API 服务前需要先在[百度翻译开放平台](https://fanyi-api.baidu.com/choose)开通通用文本翻译服务，并完成个人认证以此使用高级版服务。高级版拥有每月 100 万字符的免费调用额度，并支持 28 种语言的互译。
 
 3. 腾讯翻译：翻译质量良好，调用 API 服务前需要先访问[腾讯云控制台](https://console.cloud.tencent.com/cam)进行注册登录，腾讯翻译拥有每月 500 万字符的免费调用额度，并支持 17 种语言。
@@ -280,6 +282,14 @@ const errorInfo = i18n.t("保存失败");
 #### `i18n-mage.translationServices.referenceLanguage`
 
 设置翻译服务使用的参考（源）语言，支持使用各翻译平台的语言代码或插件可识别的语言名称。
+
+#### `i18n-mage.translationServices.deeplVersion`
+
+设置 DeepL 翻译 API 版本。
+
+#### `i18n-mage.translationServices.deeplApiKey`
+
+设置 DeepL 翻译 API 密钥。
 
 #### `i18n-mage.translationServices.deepseekApiKey`
 

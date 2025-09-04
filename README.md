@@ -37,7 +37,7 @@
 
 ### 🚧 Auto-Fill Missing Translations
 
-* Integrates Google, DeepSeek, Baidu, Tencent translation services.
+* Integrates DeepL, Google, DeepSeek, Baidu, Tencent translation services.
 * Preview and confirm missing translations before applying.
 
 ![Auto-Fill Missing Translations](https://raw.githubusercontent.com/baimohui/i18n-mage/refs/heads/main/doc-assets/fixMissingTranslation_en.gif)
@@ -96,7 +96,7 @@ Or visit [i18n Mage on Marketplace](https://marketplace.visualstudio.com/items?i
 
 4. **Configure Translation Services (Optional)**:
 
-* Supports Google, DeepSeek, Baidu, Tencent.
+* Supports DeepL, Google, DeepSeek, Baidu, Tencent.
 * Path: `Settings -> Extensions -> i18n Mage -> Translation Services`
 
 ## 🧰 Configuration
@@ -164,10 +164,13 @@ Use `%key%text` or `#prefix#text` to control generated key names during fix oper
 
 ### Q: Which translation service should I choose?
 
-* **Google Translate**: High quality.
-* **DeepSeek**: AI-powered, cheap, requires API key and recharge.
-* **Baidu Translate**: Free up to 1M chars/month, requires developer account.
-* **Tencent Translate**: Free up to 5M chars/month, requires Tencent Cloud account.
+Here’s a comparison of some popular translation services for your reference:
+
+* **Google Translate**: Offers high-quality translations, suitable for everyday use.
+* **DeepL**: Known for accurate and fluent translations, especially for European languages. Offers both free and paid plans.
+* **DeepSeek**: AI-powered with lower cost, but requires an API key and account top-up.
+* **Baidu Translate**: Free up to 1 million characters per month; requires a developer account.
+* **Tencent Translate**: Offers a larger free quota—up to 5 million characters monthly; requires a Tencent Cloud account.
 
 ### Q: Supported language file formats?
 
@@ -236,6 +239,14 @@ Specifies a default namespace, used to simplify `t` function calls in frameworks
 #### `i18n-mage.translationServices.referenceLanguage`
 
 Set the reference language used by the translation service. You can use the language code of each translation platform or a language name recognized by the plugin.
+
+#### `i18n-mage.translationServices.deeplVersion`
+
+Set the DeepL API version.
+
+#### `i18n-mage.translationServices.deeplApiKey`
+
+Set the DeepL Translation API key.
 
 #### `i18n-mage.translationServices.deepseekApiKey`
 
