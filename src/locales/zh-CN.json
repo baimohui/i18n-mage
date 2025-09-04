@@ -157,9 +157,11 @@
   "tree.usedInfo.title": "使用情况",
   "tree.usedInfo.total": "总计",
   "tree.usedInfo.undefined": "未定义",
+  "tree.usedInfo.undefinedAutoTranslateDisabled": "未开启自动翻译未定义词条功能",
+  "tree.usedInfo.undefinedAutoTranslateEnabled": "已开启自动翻译未定义词条功能",
+  "tree.usedInfo.undefinedValidLang": "语言不符合要求，无法自动翻译",
   "tree.usedInfo.unused": "未使用",
   "tree.usedInfo.used": "已使用",
-  "tree.usedInfo.undefinedAutoTranslateEnabled": "已开启自动翻译未定义词条功能",
-  "tree.usedInfo.undefinedAutoTranslateDisabled": "未开启自动翻译未定义词条功能",
-  "tree.usedInfo.undefinedValidLang": "语言不符合要求，无法自动翻译"
+  "config.toggleInlineTranslation.enabled": "已开启内联翻译提示",
+  "config.toggleInlineTranslation.disabled": "已关闭内联翻译提示"
 }

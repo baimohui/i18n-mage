@@ -157,9 +157,11 @@
   "tree.usedInfo.title": "Usage Info",
   "tree.usedInfo.total": "Total",
   "tree.usedInfo.undefined": "Undefined",
+  "tree.usedInfo.undefinedAutoTranslateDisabled": "Automatic translation undefined entries function not enabled",
+  "tree.usedInfo.undefinedAutoTranslateEnabled": "Automatic translation undefined entries function has been enabled",
+  "tree.usedInfo.undefinedValidLang": "Unsupported language for auto-translation",
   "tree.usedInfo.unused": "Unused",
   "tree.usedInfo.used": "Used",
-  "tree.usedInfo.undefinedAutoTranslateEnabled": "Automatic translation undefined entries function has been enabled",
-  "tree.usedInfo.undefinedAutoTranslateDisabled": "Automatic translation undefined entries function not enabled",
-  "tree.usedInfo.undefinedValidLang": "Unsupported language for auto-translation"
+  "config.toggleInlineTranslation.enabled": "Inline translation prompts enabled",
+  "config.toggleInlineTranslation.disabled": "Inline translation prompts disabled"
 }

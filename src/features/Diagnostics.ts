@@ -2,7 +2,6 @@ import * as vscode from "vscode";
 import { t } from "@/utils/i18n";
 import LangMage from "@/core/LangMage";
 import { treeInstance } from "@/views/tree";
-import { getConfig } from "@/utils/config";
 import { getValueByAmbiguousEntryName, catchTEntries, unescapeString, isValidI18nCallablePath } from "@/utils/regex";
 
 export class Diagnostics {
@@ -23,7 +22,6 @@ export class Diagnostics {
 
   public update(document: vscode.TextDocument) {
     if (this.disposed) return;
-    if (!getConfig<boolean>("translationHints.enable", true)) return;
     if (!isValidI18nCallablePath(document.uri.fsPath)) return;
     const mage = LangMage.getInstance();
     const text = document.getText();
