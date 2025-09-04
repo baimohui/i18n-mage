@@ -10,7 +10,8 @@ import {
   generateKey,
   unescapeString,
   convertKeyToVueI18nPath,
-  getFileLocationFromId
+  getFileLocationFromId,
+  splitFileName
 } from "@/utils/regex";
 import { getDetectedLangList, setUpdatedEntryValueInfo } from "@/core/tools/contextTools";
 import translateTo from "@/translator/index";
@@ -110,7 +111,7 @@ export class FixHandler {
         } else {
           return {
             success: false,
-            message: t("translator.noAvailableApi"),
+            message: res.message ?? t("translator.noAvailableApi"),
             code: EXECUTION_RESULT_CODE.TranslatorFailed
           };
         }
@@ -141,11 +142,9 @@ export class FixHandler {
         if (needsAnotherName) {
           let nameParts = [entryName];
           if (!checkExisted(entryName)) {
-            let fileName = entry.path!.match(/([a-zA-Z0-9]+)\./)?.[1];
-            if (fileName === undefined || this.ctx.stopWords.includes(fileName)) {
-              fileName = "unknown";
-            }
-            nameParts = [fileName, "text"];
+            const fileName = entry.path!.match(/([a-zA-Z0-9_-]+)\./)?.[1] ?? "unknown";
+            const fileNameSplit = splitFileName(fileName).filter(item => !this.ctx.stopWords.includes(item));
+            nameParts = [...fileNameSplit, "text"];
           }
           let index = 1;
           const keyLen = maxLen - baseName.length;
@@ -332,7 +331,7 @@ export class FixHandler {
           break;
       }
     }
-    const quote = entry.raw.match(/["'`]{1}/)?.[0] ?? '"';
+    const quote = entry.raw.slice(1).match(/["'`]{1}/)?.[0] ?? '"';
     const funcName = entry.raw.match(/^([^]+?)\(/)?.[1] ?? "";
     return funcName ? `${funcName}(${quote}${displayName}${quote}${varStr})` : `${quote}${displayName}${quote}`;
   }

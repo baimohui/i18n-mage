@@ -15,11 +15,7 @@ export function escapeRegExp(str: string): string {
 export function generateKey(parts: string[], keyStyle: KeyStyle): string {
   if (!Array.isArray(parts) || parts.length === 0) return "";
   const toCamelCase = (arr: string[]) =>
-    arr[0].toLowerCase() +
-    arr
-      .slice(1)
-      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-      .join("");
+    arr.map((word, index) => (index === 0 ? word.charAt(0).toLowerCase() : word.charAt(0).toUpperCase()) + word.slice(1)).join("");
   const toPascalCase = (arr: string[]) => arr.map(word => word.charAt(0).toUpperCase() + word.slice(1)).join("");
   const toSnakeCase = (arr: string[]) => arr.map(word => word.toLowerCase()).join("_");
   const toKebabCase = (arr: string[]) => arr.map(word => word.toLowerCase()).join("-");
@@ -38,6 +34,19 @@ export function generateKey(parts: string[], keyStyle: KeyStyle): string {
     default:
       return toCamelCase(parts);
   }
+}
+
+export function splitFileName(name: string): string[] {
+  if (!name) return [];
+  // 先统一处理分隔符：下划线和横杠替换成空格
+  let normalized = name.replace(/[-_]/g, " ");
+  // 再把驼峰/大驼峰分词：在小写和大写之间加空格
+  normalized = normalized.replace(/([a-z])([A-Z])/g, "$1 $2");
+  // 最后按空格切分
+  return normalized
+    .split(/\s+/)
+    .filter(Boolean) // 去掉空项
+    .map(word => word.toLowerCase()); // 统一小写，可根据需要调整
 }
 
 export function getIdByStr(str: string, genKeyInfo: { keyStyle: KeyStyle; stopWords: string[] }): string {
