@@ -208,10 +208,10 @@
             "type": "array",
             "default": [
               "deepl",
-              "google",
               "baidu",
               "tencent",
-              "deepseek"
+              "deepseek",
+              "google"
             ],
             "description": "%config.translateApiPriority.desc%",
             "items": {

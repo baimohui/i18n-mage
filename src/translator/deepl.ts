@@ -12,7 +12,7 @@ let url = "";
 export default async function translateTo({ source, target, sourceTextList, apiKey }: TranslateParams): Promise<TranslateResult> {
   deeplApiKey = apiKey;
   url = getConfig<string>("translationServices.deeplVersion") === "pro" ? proUrl : freeUrl;
-  return batchTranslate(source, target, sourceTextList, { maxLen: 2000, batchSize: 10, interval: 1000 }, send);
+  return batchTranslate(source, target, sourceTextList, { maxLen: 5000, batchSize: 5, interval: 1000 }, send);
 }
 
 interface TranslationResponse {
