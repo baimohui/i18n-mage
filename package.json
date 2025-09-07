@@ -208,9 +208,9 @@
             "type": "array",
             "default": [
               "deepl",
+              "deepseek",
               "baidu",
               "tencent",
-              "deepseek",
               "google"
             ],
             "description": "%config.translateApiPriority.desc%",
@@ -1017,7 +1017,7 @@
         {
           "icon": "images/i18nMage.png",
           "id": "treeProvider",
-          "name": "",
+          "name": "Grimoire",
           "when": "initialized && workspaceFolderCount != 0 && enabled"
         }
       ]
