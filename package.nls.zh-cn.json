@@ -114,5 +114,8 @@
   "command.toggleInlineTranslation.title": "切换内联提示",
   "command.ignore.title": "忽略",
   "command.ignoreUndefined.title": "忽略未定义词条",
+  "command.openDocs.title": "打开文档",
+  "command.openSettings.title": "打开设置",
+  "command.feedback.title": "反馈",
   "view.welcome.title": "未检测到翻译文件目录\n[选择翻译文件目录](command:i18nMage.selectLangPath)"
 }

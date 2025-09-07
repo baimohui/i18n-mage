@@ -114,5 +114,8 @@
   "command.toggleInlineTranslation.title": "Toggle Inline Translation",
   "command.ignore.title": "Ignore",
   "command.ignoreUndefined.title": "Ignore Undefined Entries",
+  "command.openDocs.title": "Open Documentation",
+  "command.openSettings.title": "Open Settings",
+  "command.feedback.title": "Feedback",
   "view.welcome.title": "No translation directory detected\n[Select translation directory](command:i18nMage.selectLangPath)"
 }

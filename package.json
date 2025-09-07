@@ -697,6 +697,21 @@
         }
       },
       {
+        "command": "i18nMage.openDocs",
+        "category": "%extension.name%",
+        "title": "%command.openDocs.title%"
+      },
+      {
+        "command": "i18nMage.openSettings",
+        "category": "%extension.name%",
+        "title": "%command.openSettings.title%"
+      },
+      {
+        "command": "i18nMage.feedback",
+        "category": "%extension.name%",
+        "title": "%command.feedback.title%"
+      },
+      {
         "command": "i18nMage.ignoreDirectory",
         "category": "%extension.name%",
         "title": "%command.ignoreDirectory.title%"
@@ -839,27 +854,42 @@
         {
           "command": "i18nMage.checkUsage",
           "when": "view == treeProvider && hasValidLangPath",
-          "group": "navigation@1"
+          "group": "navigation@5"
         },
         {
           "command": "i18nMage.export",
           "when": "view == treeProvider && hasValidLangPath",
-          "group": "navigation@2"
+          "group": "navigation@10"
         },
         {
           "command": "i18nMage.import",
           "when": "view == treeProvider && hasValidLangPath",
-          "group": "navigation@3"
+          "group": "navigation@15"
         },
         {
           "command": "i18nMage.sort",
           "when": "view == treeProvider && hasValidLangPath && allowSort",
-          "group": "navigation@4"
+          "group": "navigation@20"
         },
         {
           "command": "i18nMage.fix",
           "when": "view == treeProvider && hasValidLangPath",
-          "group": "navigation@5"
+          "group": "navigation@25"
+        },
+        {
+          "command": "i18nMage.openDocs",
+          "when": "view == treeProvider",
+          "group": "view@1"
+        },
+        {
+          "command": "i18nMage.openSettings",
+          "when": "view == treeProvider",
+          "group": "view@2"
+        },
+        {
+          "command": "i18nMage.feedback",
+          "when": "view == treeProvider",
+          "group": "view@3"
         }
       ],
       "view/item/context": [
