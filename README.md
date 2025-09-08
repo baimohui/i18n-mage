@@ -73,31 +73,36 @@
 
 ## ⚡ Quick Start
 
-1. **Install the extension**:
+### 1. Install the Extension
 
-Search in VS Code extensions:
+**Option 1: Install from VS Code**
+1. Open VS Code and go to Extensions (`Ctrl+Shift+X` / `Cmd+Shift+X`)
+2. Search for `i18n Mage`
+3. Click **Install**
 
+**Option 2: Command Line Installation**
 ```bash
 ext install jensen-wen.i18n-mage
 ```
 
-Or visit [i18n Mage on Marketplace](https://marketplace.visualstudio.com/items?itemName=jensen-wen.i18n-mage)
+**Option 3: Manual Installation**  
+Visit the [Marketplace Page](https://marketplace.visualstudio.com/items?itemName=jensen-wen.i18n-mage) to install.
 
-2. **Open Translation Panel**:
+### 2. Open Translation Panel
 
-* Automatically scans your i18n directory after activation.
-* Click the extension icon in the sidebar to open the panel.
-* Right-click to set translation directory if not detected.
+- The extension automatically scans your project's i18n directory after activation
+- Click the i18n Mage icon in the sidebar to open the translation panel
+- Right-click in the panel to manually set translation directory if not auto-detected
 
-3. **Set Languages**:
+### 3. Set Languages
 
-* Right-click to set display and source languages.
-* Manually mark file types if language detection fails.
+- Right-click to configure display and source languages
+- Manually assign languages to files if automatic detection fails
 
-4. **Configure Translation Services (Optional)**:
+### 4. Configure Translation Services (Optional)
 
-* Supports DeepL, Google, DeepSeek, Baidu, Tencent.
-* Path: `Settings -> Extensions -> i18n Mage -> Translation Services`
+- Supported services: DeepL, Google, DeepSeek, Baidu, Tencent
+- Configuration path: `Settings → Extensions → i18n Mage → Translation Services`
 
 ## 🧰 Configuration
 
@@ -119,7 +124,7 @@ See [Full Config Reference](#-full-config-reference) for all options.
 
 | Command ID                         | Description                     | Shortcut   |
 | ---------------------------------- | ------------------------------- | ---------- |
-| `i18nMage.check`                   | Check key usage                 | Ctrl+Alt+C |
+| `i18nMage.check`                   | Check key information                 | Ctrl+Alt+C |
 | `i18nMage.fix`                     | Fix undefined entries           | Ctrl+Alt+F |
 | `i18nMage.toggleInlineTranslation` | Toggle inline translation hints | Ctrl+Alt+D |
 | `i18nMage.export`                  | Export entries to Excel         | -          |
