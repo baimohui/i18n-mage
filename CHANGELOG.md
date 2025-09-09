@@ -1,6 +1,54 @@
 # Changelog
 
-All notable changes to the "i18n-mage" extension will be documented in this file.
+All notable changes to the i18n Mage VS Code extension will be documented in this file.
+
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [1.0.4] - 2025-09-09
+
+### Added
+- **DeepL Translation Service**: Added support for DeepL as a new translation service provider.
+- **Container Menu**: Added a three-dot menu at the container top with buttons to view documentation, open extension settings, and provide feedback.
+- **Status Bar Toggle Indicator**: The status bar now displays an enabled/disabled indicator when toggling inline hints via keyboard shortcut.
+
+### Changed
+- **Enhanced DeepSeek Parsing**: Optimized the text segmentation logic for DeepSeek translation service to correctly handle and remove extra line breaks in its output.
+- **Translation Priority Update**: Adjusted the default translation API priority, raising DeepSeek (due to improved parsing) and lowering Google Translate (which has no API key requirement).
+- **Magical Branding**: Updated the fix button icon, extension description, and view names to better reflect the "magical" theme.
+- **Auto-Switch View**: The `Refresh` command now automatically switches to the extension's view in the Activity Bar.
+
+### Fixed
+- **Diagnostics with Disabled Hints**: Resolved an issue where disabling inline hints also incorrectly disabled entry diagnostics.
+- **Dynamic Decoration Cleanup**: Fixed an issue where dynamic entry decorations persisted after disabling inline hints.
+- **Quote Writing Error**: Corrected a bug that caused incorrect quotation marks to be written when fixing undefined entries.
+- **Key Case Sensitivity**: Fixed a bug where using the filename to generate a key for long entries converted the filename to all lowercase.
+- **Activity Bar Visibility**: Resolved an issue where the extension icon remained in the Activity Bar when opening a non-i18n project.
+- **Documentation and Text Optimization**: Refined UI text and documentation for clarity and completeness.
+
+## [1.0.3] - 2025-09-01
+
+### Added
+- **Enhanced Tooltip Information**: Added tooltips in the "Sync Info" module to display language directories, and in the "Undefined" usage section to indicate whether undefined entry correction is enabled, with additional validation status for sub-items.
+
+### Changed
+- **Key Prefix Default Change**: Updated the default value for the "Key Prefix" configuration in "Write Rules" from `auto-popular` to `none` to prevent user confusion.
+- **Translation API Priority Adjustment**: Modified the default "Translation API Priority" configuration to move Deepseek to the last position due to output instability.
+
+### Fixed
+- **Improved Activation Conditions**: Expanded plugin activation conditions to include additional language and command triggers for better reliability.
+- **Command Categorization**: Added plugin-specific categories to commands for easier identification in the command palette.
+- **Command Palette Argument Handling**: Resolved errors when invoking commands without arguments from the command palette.
+- **Documentation and Text Optimization**: Refined UI text and documentation for clarity and completeness.
+
+## [1.0.2] - 2025-08-28
+
+### Fixed
+- **Fix for Undefined Entry Repair Logic**: Resolved an issue where the repair logic could not be properly enabled due to the undefined entry repair feature being turned off.
+
+## [1.0.1] - 2025-08-28
+
+### Fixed
+- **Language File Indentation Detection Fix**: Corrected the method for detecting indentation levels in language files, resolving misidentification issues in flat files.
 
 ## [1.0.0] - 2025-08-25
 
@@ -18,26 +66,3 @@ All notable changes to the "i18n-mage" extension will be documented in this file
 ### Known Issues
 - Please report any issues on our [GitHub Issues](https://github.com/baimohui/i18n-mage/issues) page. Your feedback is valued!
 
-## [1.0.1] - 2025-08-28
-
-### Fixed
-- **Language File Indentation Detection Fix**: Corrected the method for detecting indentation levels in language files, resolving misidentification issues in flat files.
-
-## [1.0.2] - 2025-08-28
-### Fixed
-- **Fix for Undefined Entry Repair Logic**: Resolved an issue where the repair logic could not be properly enabled due to the undefined entry repair feature being turned off.
-
-## [1.0.3] - 2025-09-01
-
-### Added
-- **Enhanced Tooltip Information**: Added tooltips in the "Sync Info" module to display language directories, and in the "Undefined" usage section to indicate whether undefined entry correction is enabled, with additional validation status for sub-items.
-
-### Changed
-- **Key Prefix Default Change**: Updated the default value for the "Key Prefix" configuration in "Write Rules" from `auto-popular` to `none` to prevent user confusion.
-- **Translation API Priority Adjustment**: Modified the default "Translation API Priority" configuration to move Deepseek to the last position due to output instability.
-
-### Fixed
-- **Improved Activation Conditions**: Expanded plugin activation conditions to include additional language and command triggers for better reliability.
-- **Command Categorization**: Added plugin-specific categories to commands for easier identification in the command palette.
-- **Command Palette Argument Handling**: Resolved errors when invoking commands without arguments from the command palette.
-- **Documentation and Text Optimization**: Refined UI text and documentation for clarity and completeness.
