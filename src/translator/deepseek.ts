@@ -39,7 +39,7 @@ async function send(source: string, target: string, sourceTextList: string[]): P
     const messages = [
       {
         role: "system",
-        content: `你是专业翻译助手，请直接翻译用户提供的文本，保持分隔符 ${SEP} 不变，不要添加解释。`
+        content: `你是专业翻译助手，请直接翻译用户提供的文本，${sourceTextList.length > 1 ? "保持分隔符 " + SEP + " 不变，" : ""}不要输出任何额外内容。`
       },
       {
         role: "user",
@@ -64,7 +64,7 @@ async function send(source: string, target: string, sourceTextList: string[]): P
     if (result.length !== sourceTextList.length) {
       return {
         success: false,
-        message: t("translator.deepseek.lineCountMismatch", result.join("\n"))
+        message: t("translator.deepseek.lineCountMismatch", result.join(SEP))
       };
     }
     const transformedList: string[] = [];

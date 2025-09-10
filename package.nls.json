@@ -19,7 +19,7 @@
   "config.tencentSecretId.desc": "Tencent Cloud SecretId",
   "config.tencentSecretKey.desc": "Tencent Cloud SecretKey",
   "config.translateApiPriority.desc": "Priority order of translation APIs",
-  "config.langAliasCustomMappings.desc": "Custom language alias mapping (format: { 'code': ['alias1', 'alias2'] })",
+  "config.langAliasCustomMappings.desc": "Custom language alias mapping (format: { 'language_code': ['alias1', 'alias2'] }), where language codes follow Google Translate's country/region code standard",
   "config.translationHints.title": "Inline Translation Hints",
   "config.translateHintsEnabled.desc": "Enable inline translation hints",
   "config.translateHintsEnableLooseKeyMatch.desc": "Enable fuzzy match for dynamic keys (e.g. t(`prefix.${key}.suffix`)). If multiple results match, only the first is shown",
