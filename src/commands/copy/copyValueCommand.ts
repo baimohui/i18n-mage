@@ -3,6 +3,7 @@ import { registerDisposable } from "@/utils/dispose";
 import { t } from "@/utils/i18n";
 import { NotificationManager } from "@/utils/notification";
 import LangMage from "@/core/LangMage";
+import { formatEscapeChar } from "@/utils/regex";
 
 export function registerCopyValueCommand() {
   const mage = LangMage.getInstance();
@@ -24,8 +25,9 @@ export function registerCopyValueCommand() {
     } else {
       target = e.description;
     }
-    await vscode.env.clipboard.writeText(String(target));
-    NotificationManager.showSuccess(t("command.copy.success", target));
+    const formattedEntryValue = formatEscapeChar(target);
+    await vscode.env.clipboard.writeText(formattedEntryValue);
+    NotificationManager.showSuccess(t("command.copy.success", formattedEntryValue));
   });
 
   registerDisposable(disposable);

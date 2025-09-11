@@ -1,7 +1,14 @@
 import * as vscode from "vscode";
 import LangMage from "@/core/LangMage";
 import { treeInstance } from "@/views/tree";
-import { getValueByAmbiguousEntryName, catchTEntries, getLineEnding, unescapeString, isValidI18nCallablePath } from "@/utils/regex";
+import {
+  getValueByAmbiguousEntryName,
+  catchTEntries,
+  getLineEnding,
+  unescapeString,
+  isValidI18nCallablePath,
+  formatEscapeChar
+} from "@/utils/regex";
 import { getConfig } from "@/utils/config";
 import { TEntry } from "@/types";
 
@@ -159,9 +166,9 @@ export class DecoratorController implements vscode.Disposable {
   }
 
   private formatEntryValue(entryValue: string, maxLen?: number): string {
-    const clean = entryValue.replace(/\n/g, " ");
-    if (maxLen === undefined || clean.length <= maxLen) return clean;
-    return clean.slice(0, maxLen) + "...";
+    const formattedEntryValue = formatEscapeChar(entryValue);
+    if (maxLen === undefined || formattedEntryValue.length <= maxLen) return formattedEntryValue;
+    return formattedEntryValue.slice(0, maxLen) + "...";
   }
 
   // 应用装饰器（根据光标位置切换状态）

@@ -4,7 +4,7 @@ import { treeInstance } from "@/views/tree";
 import { registerDisposable } from "@/utils/dispose";
 import { t } from "@/utils/i18n";
 import { NotificationManager } from "@/utils/notification";
-import { unescapeString } from "@/utils/regex";
+import { formatEscapeChar, unescapeString, unFormatEscapeChar } from "@/utils/regex";
 
 export function registerEditValueCommand() {
   const mage = LangMage.getInstance();
@@ -34,10 +34,10 @@ export function registerEditValueCommand() {
       const { name, value, lang } = target;
       const newValue = await vscode.window.showInputBox({
         prompt: t("command.editValue.prompt", name, lang),
-        value
+        value: formatEscapeChar(value)
       });
       if (typeof newValue === "string" && newValue !== value && newValue.trim() !== "") {
-        mage.setOptions({ task: "modify", modifyList: [{ ...target, value: newValue }] });
+        mage.setOptions({ task: "modify", modifyList: [{ ...target, value: unFormatEscapeChar(newValue) }] });
         const res = await mage.execute();
         if (res.success) {
           if (e) e.description = newValue;

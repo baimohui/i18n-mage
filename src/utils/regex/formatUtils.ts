@@ -172,10 +172,18 @@ export function formatObjectToString(tree: EntryTree, filePath: string, extraInf
 
 export function formatForFile(str: string, doubleQuotes = true): string {
   if (doubleQuotes) {
-    return '"' + str.replace(/\\/g, "\\\\").replace(/"/g, '\\"').replace(/\r/g, "\\r").replace(/\n/g, "\\n").replace(/\t/g, "\\t") + '"';
+    return '"' + formatEscapeChar(str).replace(/"/g, '\\"') + '"';
   } else {
-    return "'" + str.replace(/\\/g, "\\\\").replace(/'/g, "\\'").replace(/\r/g, "\\r").replace(/\n/g, "\\n").replace(/\t/g, "\\t") + "'";
+    return "'" + formatEscapeChar(str).replace(/'/g, "\\'") + "'";
   }
+}
+
+export function formatEscapeChar(str: string) {
+  return str.replace(/\\/g, "\\\\").replace(/\r/g, "\\r").replace(/\n/g, "\\n").replace(/\t/g, "\\t");
+}
+
+export function unFormatEscapeChar(str: string) {
+  return str.replace(/\\r/g, "\r").replace(/\\n/g, "\n").replace(/\\t/g, "\t").replace(/\\\\/g, "\\");
 }
 
 export function isEnglishVariable(str: string): boolean {
