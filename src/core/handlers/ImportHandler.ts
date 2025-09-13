@@ -66,7 +66,7 @@ export class ImportHandler {
               if (!langAlias.includes(lang)) {
                 langAlias.push(lang);
               }
-              const oldLangText = this.ctx.langDictionary[entryName][lang];
+              const oldLangText = this.ctx.langDictionary[entryName].value[lang];
               const newLangText =
                 item[
                   headInfo.findIndex(item => langAlias.some(alias => String(alias).toLowerCase() === String(item).toLowerCase()))

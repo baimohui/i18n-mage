@@ -1,4 +1,4 @@
-import { EntryTree, EntryNode } from "@/types";
+import { EntryTree, EntryNode, LangDictionary } from "@/types";
 import { parseEscapedPath, getPathSegsFromId } from "./stringUtils";
 
 export function genLangTree(tree: EntryTree = {}, content: EntryTree | string[] = {}, type = ""): void {
@@ -118,17 +118,24 @@ export function getFileLocationFromId(id: string, fileStructure: EntryNode): str
   return pathSegs;
 }
 
-export function getContentAtLocation(location: string, tree: EntryTree): EntryTree | null {
-  const segments = getPathSegsFromId(location);
-  let cursor: EntryTree = tree;
-  for (const seg of segments) {
-    if (typeof cursor === "object" && Object.hasOwn(cursor, seg)) {
-      cursor = cursor[seg] as EntryTree;
-    } else {
-      return null;
+export function getContentAtLocation(location: string, tree: EntryTree, dictionary: LangDictionary): EntryTree | null {
+  function helper(node: EntryTree) {
+    if (typeof node === "string") {
+      // 叶子节点：直接判断是否有效
+      return dictionary[node].fileScope === location ? node : null;
     }
+    // 非叶子节点：递归处理子节点
+    const result = {};
+    for (const key in node) {
+      const child = helper(node[key] as EntryTree);
+      if (child !== null) {
+        result[key] = child;
+      }
+    }
+    // 如果子节点全部被过滤掉，返回 null
+    return Object.keys(result).length > 0 ? result : null;
   }
-  return cursor;
+  return helper(tree) || {};
 }
 
 function buildSplit(parts: string[], i: number, m: number): string[] {

@@ -24,7 +24,7 @@ export function registerEditValueCommand() {
           placeHolder: t("command.editValue.selectLang")
         });
         if (lang === undefined) return;
-        const value = dictionary?.[key]?.[lang] ?? "";
+        const value = dictionary?.[key]?.value?.[lang] ?? "";
         target = { name: unescapeString(key), key, value, lang };
       } else {
         target = e.data;

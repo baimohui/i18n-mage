@@ -23,7 +23,7 @@ export function registerCopyKeyValueCommand() {
           placeHolder: t("command.copyKeyValue.selectLang")
         });
         if (lang === undefined) return;
-        target = keys.map(key => ({ name: unescapeString(key), value: dictionary[key]?.[lang] ?? "" }));
+        target = keys.map(key => ({ name: unescapeString(key), value: dictionary[key]?.value?.[lang] ?? "" }));
       } else {
         target = e.data ?? [];
       }

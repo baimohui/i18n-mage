@@ -8,6 +8,14 @@ export const I18N_FRAMEWORK = {
 
 export type I18nFramework = (typeof I18N_FRAMEWORK)[keyof typeof I18N_FRAMEWORK];
 
+export const NAMESPACE_STRATEGY = {
+  full: "full",
+  file: "file",
+  none: "none"
+} as const;
+
+export type NamespaceStrategy = (typeof NAMESPACE_STRATEGY)[keyof typeof NAMESPACE_STRATEGY];
+
 export interface I18nFrameworkConfig {
   singleBrackets: boolean;
 }

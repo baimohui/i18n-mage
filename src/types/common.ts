@@ -36,7 +36,13 @@ export type EntryMap = Record<EntryKey, EntryValue>;
 
 export type LangCountryMap = Record<LangName, EntryMap>;
 
-export type LangDictionary = Record<EntryKey, Record<LangName, EntryValue>>;
+export interface LangDictionary {
+  [key: EntryKey]: {
+    fullPath: string;
+    fileScope: string;
+    value: Record<LangName, EntryValue>;
+  };
+}
 
 export type TEntryPartType = "" | "text" | "varText" | "var" | "obj" | "arr" | "logic";
 

@@ -12,7 +12,8 @@ import {
   SortMode,
   KeyStyle,
   QuoteStyle,
-  I18nFramework
+  I18nFramework,
+  NamespaceStrategy
 } from "@/types";
 
 // 外部模块可访问的公共上下文
@@ -22,6 +23,7 @@ export interface LangContextPublic {
   langFileType: string;
   projectPath: string;
   i18nFramework: I18nFramework;
+  namespaceStrategy: NamespaceStrategy;
   referredLang: string;
   defaultLang: string;
   ignoredLangs: string[];
@@ -59,8 +61,6 @@ export interface LangContextInternal extends LangContextPublic {
   lackInfo: LackInfo;
   extraInfo: Record<string, string[]>;
   nullInfo: NullInfo;
-  singleLangRepeatTextInfo: Record<string, Record<string, string[]>>;
-  multiLangRepeatTextInfo: Record<string, string[]>;
   entryClassTree: Record<string, any>;
   entryClassInfo: EntryClassInfo;
   undefinedEntryList: TEntry[];

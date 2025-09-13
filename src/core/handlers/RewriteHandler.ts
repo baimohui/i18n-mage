@@ -23,7 +23,7 @@ export class RewriteHandler {
           this.updateEntryValue(key, value, lang);
           const structure = this.ctx.fileStructure?.children?.[lang];
           if (!structure) continue;
-          const filePos = getFileLocationFromId(key, structure);
+          const filePos = getFileLocationFromId(this.ctx.langDictionary[key].fullPath, structure);
           if (Array.isArray(filePos) && filePos.length > 0) filePosSet.add(filePos.join("."));
         }
         const filePosList = Array.from(filePosSet);
@@ -47,9 +47,9 @@ export class RewriteHandler {
   private updateEntryValue(key: string, value: string | undefined, lang: string): void {
     if (typeof value === "string") {
       if (Object.hasOwn(this.ctx.langDictionary, key)) {
-        this.ctx.langDictionary[key][lang] = value;
+        this.ctx.langDictionary[key].value[lang] = value;
       } else {
-        this.ctx.langDictionary[key] = { [lang]: value };
+        this.ctx.langDictionary[key] = { fullPath: "", fileScope: "", value: { [lang]: value } };
       }
       this.ctx.langCountryMap[lang][key] = value;
       setValueByEscapedEntryName(this.ctx.entryTree, key, key);
@@ -86,7 +86,7 @@ export class RewriteHandler {
     if (this.ctx.multiFileMode === 0 && this.ctx.nestedLocale === 0) {
       langObj = translation;
     } else {
-      const entryTree = getContentAtLocation(filePos, this.ctx.entryTree);
+      const entryTree = getContentAtLocation(filePos, this.ctx.entryTree, this.ctx.langDictionary);
       if (entryTree) {
         iterate(entryTree, langObj);
       }

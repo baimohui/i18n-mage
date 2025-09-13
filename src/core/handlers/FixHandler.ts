@@ -10,7 +10,7 @@ import {
   generateKey,
   unescapeString,
   convertKeyToVueI18nPath,
-  getFileLocationFromId,
+  // getFileLocationFromId,
   splitFileName
 } from "@/utils/regex";
 import { getDetectedLangList, setUpdatedEntryValueInfo } from "@/core/tools/contextTools";
@@ -157,10 +157,10 @@ export class FixHandler {
         nameInfo.boundName = entryName;
         newIdSet.add(entryName);
       }
-      const structure = this.ctx.fileStructure?.children?.[this.ctx.referredLang];
-      if (this.ctx.multiFileMode > 0 && structure && getFileLocationFromId(nameInfo.boundName, structure) === null) {
-        nameInfo.boundName = this.ctx.defaultFilePos + nameInfo.boundName;
-      }
+      // const structure = this.ctx.fileStructure?.children?.[this.ctx.referredLang];
+      // if (this.ctx.multiFileMode > 0 && structure && getFileLocationFromId(nameInfo.boundName, structure) === null) {
+      //   nameInfo.boundName = this.ctx.defaultFilePos + nameInfo.boundName;
+      // }
       patchedEntryIdList.push({ ...entry, fixedRaw: this.getFixedRaw(entry, nameInfo.boundName) });
       this.needFix = true;
       if (this.ctx.multiFileMode === 0 && this.ctx.nestedLocale === 0) {
@@ -168,7 +168,11 @@ export class FixHandler {
       }
       referredLangMap[nameInfo.boundName] = nameInfo.text;
       this.ctx.langDictionary[nameInfo.boundName] ??= {
-        [this.ctx.referredLang]: nameInfo.text
+        fullPath: this.ctx.defaultFilePos + nameInfo.boundName,
+        fileScope: this.ctx.defaultFilePos,
+        value: {
+          [this.ctx.referredLang]: nameInfo.text
+        }
       };
       this.detectedLangList.forEach(lang => {
         if ([this.ctx.referredLang, enLang].includes(lang)) {

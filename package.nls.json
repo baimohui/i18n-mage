@@ -1,5 +1,6 @@
 {
   "extension.name": "i18n Mage",
+  "extension.submenu.pathConfig": "Path Config",
   "config.general.title": "General",
   "config.enable.desc": "Enable i18n Mage",
   "config.i18nFramework.desc": "I18n Framework",
@@ -88,6 +89,10 @@
   "config.fileExtensions.desc": "File extensions to scan",
   "config.deeplVersion.desc": "Choose DeepL version: Free (free) or Pro (pro)",
   "config.deeplApiKey.desc": "DeepL API Key (enter the key corresponding to the chosen version)",
+  "config.namespaceStrategy.desc": "Namespace Generation Strategy",
+  "config.namespaceStrategy.full": "Use full path",
+  "config.namespaceStrategy.file": "Use filename only",
+  "config.namespaceStrategy.none": "No namespace",
   "command.setReferredLang.title": "Set as Source Language",
   "command.setDisplayLang.title": "Set as Display Language",
   "command.markAsKnownLang.title": "Mark as Known Language",

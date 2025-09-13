@@ -21,7 +21,7 @@ export function registerCopyValueCommand() {
         placeHolder: t("command.copyValue.selectLang")
       });
       if (lang === undefined) return;
-      target = dictionary?.[key]?.[lang] ?? "";
+      target = dictionary?.[key]?.value?.[lang] ?? "";
     } else {
       target = e.description;
     }

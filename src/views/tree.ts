@@ -314,7 +314,7 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
       ];
     } else if (element.level === 1) {
       return this[element.type === "defined" ? "definedEntriesInCurrentFile" : "undefinedEntriesInCurrentFile"].map(entry => {
-        const entryInfo = this.dictionary[getValueByAmbiguousEntryName(this.tree, entry.nameInfo.name) as string] ?? {};
+        const entryInfo = this.dictionary[getValueByAmbiguousEntryName(this.tree, entry.nameInfo.name) as string]?.value ?? {};
         const contextValueList = ["COPY_NAME"];
         if (element.type === "defined") {
           contextValueList.push("definedEntryInCurFile");
@@ -336,7 +336,7 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
       });
     } else if (element.level === 2) {
       const entryKey = getValueByAmbiguousEntryName(this.tree, element.name as string) ?? "";
-      const entryInfo = this.dictionary[entryKey];
+      const entryInfo = this.dictionary[entryKey].value;
       return this.langInfo.langList
         .filter(lang => !this.publicCtx.ignoredLangs.includes(lang))
         .map(lang => {
@@ -399,7 +399,7 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
         if (element.type !== "lack") {
           contextValueList.push("GO_TO_DEFINITION");
         }
-        const definedInfo = this.dictionary[item[0]];
+        const definedInfo = this.dictionary[item[0]].value;
         const tooltip = new vscode.MarkdownString();
         Object.entries(definedInfo).forEach(([lang, value]) => {
           const args = encodeURIComponent(JSON.stringify({ description: value }));
@@ -506,7 +506,7 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
             key,
             name,
             label: internalToDisplayName(name),
-            description: `<${usedNum || "?"}>${entryInfo[this.displayLang]}`,
+            description: `<${usedNum || "?"}>${entryInfo.value[this.displayLang]}`,
             level: 2,
             contextValue: usedNum === 0 ? "usedGroupItem-None" : "usedGroupItem",
             type: element.type,
@@ -522,7 +522,7 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
           const contextValueList = ["unusedGroupItem", "COPY_NAME"];
           return {
             label: internalToDisplayName(name),
-            description: entryInfo[this.displayLang],
+            description: entryInfo.value[this.displayLang],
             level: 2,
             root: element.root,
             data: [key],
@@ -557,7 +557,7 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
     const res = (element.stack || []).reduce((acc, item) => acc[item] as LangTree, this.tree) as string | LangTree;
     if (typeof res === "string") {
       const contextValueList = ["dictionaryItem", "COPY_VALUE", "GO_TO_DEFINITION", "EDIT_VALUE"];
-      return Object.entries(this.dictionary[res]).map(item => ({
+      return Object.entries(this.dictionary[res].value).map(item => ({
         label: internalToDisplayName(item[0]),
         description: item[1],
         tooltip: getLangText(item[0]) || t("common.unknownLang"),
@@ -579,7 +579,7 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
           const stack = (element.stack || []).concat(item[0]);
           return {
             label: internalToDisplayName(item[0]),
-            description: typeof item[1] === "string" ? this.dictionary[item[1]][this.displayLang] : false,
+            description: typeof item[1] === "string" ? this.dictionary[item[1]].value[this.displayLang] : false,
             root: element.root,
             id: this.genId(element, item[0]),
             stack,
@@ -679,8 +679,8 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
         commonEntries.push(item);
       }
     });
-    const lackEntries = (this.langInfo.lack?.[lang] ?? []).map(item => [item, this.dictionary[item][this.publicCtx.referredLang]]);
-    const nullEntries = nullEntryNameList.map(item => [item, this.dictionary[item][this.publicCtx.referredLang]]);
+    const lackEntries = (this.langInfo.lack?.[lang] ?? []).map(item => [item, this.dictionary[item].value[this.publicCtx.referredLang]]);
+    const nullEntries = nullEntryNameList.map(item => [item, this.dictionary[item].value[this.publicCtx.referredLang]]);
     const res = [
       { label: t("tree.syncInfo.normal"), num: commonEntries.length, data: commonEntries, type: "common" },
       { label: t("tree.syncInfo.null"), num: nullEntries.length, data: nullEntries, type: "null" },

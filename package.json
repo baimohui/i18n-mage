@@ -119,6 +119,21 @@
               "type": "string"
             }
           },
+          "i18n-mage.i18nFeatures.namespaceStrategy": {
+            "order": 7,
+            "enum": [
+              "full",
+              "file",
+              "none"
+            ],
+            "enumDescriptions": [
+              "%config.namespaceStrategy.full%",
+              "%config.namespaceStrategy.file%",
+              "%config.namespaceStrategy.none%"
+            ],
+            "default": "full",
+            "description": "%config.namespaceStrategy.desc%"
+          },
           "i18n-mage.i18nFeatures.interpolationBrackets": {
             "order": 8,
             "type": "string",
@@ -974,12 +989,12 @@
       ],
       "explorer/context": [
         {
-          "submenu": "i18nMage.menu",
+          "submenu": "i18nMage.pathConfigMenu",
           "when": "enabled",
           "group": "3_i18n@1"
         }
       ],
-      "i18nMage.menu": [
+      "i18nMage.pathConfigMenu": [
         {
           "command": "i18nMage.setLangPath",
           "when": "explorerResourceIsFolder",
@@ -999,8 +1014,8 @@
     },
     "submenus": [
       {
-        "id": "i18nMage.menu",
-        "label": "%extension.name%"
+        "id": "i18nMage.pathConfigMenu",
+        "label": "%extension.submenu.pathConfig%"
       }
     ],
     "viewsContainers": {

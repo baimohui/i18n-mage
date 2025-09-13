@@ -32,7 +32,7 @@ export class ExportHandler {
         const itemList = [key];
         const entryMap = this.ctx.langDictionary[key];
         this.detectedLangList.forEach(lang => {
-          itemList.push(entryMap[lang]);
+          itemList.push(entryMap.value[lang]);
         });
         tableData.push(itemList);
       });

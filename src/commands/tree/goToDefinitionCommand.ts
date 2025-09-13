@@ -11,8 +11,8 @@ export function registerGoToDefinitionCommand() {
     "i18nMage.goToDefinition",
     async (e: { data: { key: string; lang: string } } | undefined) => {
       let target: { key: string; lang: string } | undefined = undefined;
+      const dictionary = mage.langDetail.dictionary;
       if (e === undefined) {
-        const dictionary = mage.langDetail.dictionary;
         const key = await vscode.window.showQuickPick(Object.keys(dictionary), {
           canPickMany: false,
           placeHolder: t("command.goToDefinition.selectEntry")
@@ -28,12 +28,13 @@ export function registerGoToDefinitionCommand() {
         target = e.data;
       }
       const { key, lang } = target;
+      const fullKey = dictionary[key].fullPath;
       const publicCtx = mage.getPublicContext();
       let filePathSegs: string[] = [];
       if (publicCtx.fileStructure?.children) {
-        filePathSegs = getFileLocationFromId(key, publicCtx.fileStructure.children[lang]) ?? [];
+        filePathSegs = getFileLocationFromId(fullKey, publicCtx.fileStructure.children[lang]) ?? [];
       }
-      const realKey = filePathSegs.length > 0 ? key.replace(`${filePathSegs.join(".")}.`, "") : key;
+      const realKey = filePathSegs.length > 0 ? fullKey.replace(`${filePathSegs.join(".")}.`, "") : fullKey;
       const resourceUri = vscode.Uri.file(path.join(publicCtx.langPath, lang, ...filePathSegs) + `.${publicCtx.langFileType}`);
       await selectProperty(resourceUri, realKey);
     }

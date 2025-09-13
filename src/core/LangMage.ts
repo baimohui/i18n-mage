@@ -1,4 +1,4 @@
-import type { I18nFramework, LangContextInternal, LangContextPublic, QuoteStyle, SortMode } from "@/types";
+import type { I18nFramework, LangContextInternal, LangContextPublic, NamespaceStrategy, QuoteStyle, SortMode } from "@/types";
 import { createLangContext } from "@/core/context";
 import { CheckHandler } from "./handlers/CheckHandler";
 import { FixHandler } from "./handlers/FixHandler";
@@ -36,6 +36,7 @@ class LangMage {
       const combinedOptions: LangMageOptions = {
         referredLang: getConfig<string>("translationServices.referenceLanguage", this.ctx.referredLang),
         i18nFramework: getConfig<I18nFramework>("i18nFeatures.framework", this.ctx.i18nFramework),
+        namespaceStrategy: getConfig<NamespaceStrategy>("i18nFeatures.namespaceStrategy", this.ctx.namespaceStrategy),
         ignoredLangs: getConfig<string[]>("workspace.ignoredLanguages", this.ctx.ignoredLangs),
         manuallyMarkedUsedEntries: getConfig<string[]>("workspace.manuallyMarkedUsedEntries", this.ctx.manuallyMarkedUsedEntries),
         ignoredUndefinedEntries: getConfig<string[]>("workspace.ignoredUndefinedEntries", this.ctx.ignoredUndefinedEntries),
@@ -158,6 +159,7 @@ class LangMage {
       ignoredUndefinedEntries: this.ctx.ignoredUndefinedEntries,
       modifyList: this.ctx.modifyList,
       i18nFramework: this.ctx.i18nFramework,
+      namespaceStrategy: this.ctx.namespaceStrategy,
       matchExistingKey: this.ctx.matchExistingKey,
       autoTranslateMissingKey: this.ctx.autoTranslateMissingKey,
       autoTranslateEmptyKey: this.ctx.autoTranslateEmptyKey,
@@ -206,8 +208,6 @@ class LangMage {
     this.ctx.lackInfo = {};
     this.ctx.extraInfo = {};
     this.ctx.nullInfo = {};
-    this.ctx.singleLangRepeatTextInfo = {};
-    this.ctx.multiLangRepeatTextInfo = {};
     this.ctx.entryClassTree = {};
     this.ctx.entryClassInfo = {};
     this.ctx.styleScore = 0;

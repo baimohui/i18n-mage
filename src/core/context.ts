@@ -28,6 +28,7 @@ export const createLangContext = (): LangContextInternal => ({
   quoteStyleForKey: "auto",
   quoteStyleForValue: "auto",
   i18nFramework: "none",
+  namespaceStrategy: "none",
   scanStringLiterals: true,
   defaultFilePos: "",
 
@@ -36,8 +37,6 @@ export const createLangContext = (): LangContextInternal => ({
   lackInfo: {},
   extraInfo: {},
   nullInfo: {},
-  singleLangRepeatTextInfo: {},
-  multiLangRepeatTextInfo: {},
   entryClassTree: {},
   entryClassInfo: {},
   undefinedEntryList: [],

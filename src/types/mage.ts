@@ -1,10 +1,11 @@
-import { I18nFramework, KeyStyle, QuoteStyle, SortMode } from "@/types";
+import { I18nFramework, KeyStyle, NamespaceStrategy, QuoteStyle, SortMode } from "@/types";
 
 export interface LangMageOptions {
   task?: string;
   langPath?: string;
   projectPath?: string;
   i18nFramework?: I18nFramework;
+  namespaceStrategy?: NamespaceStrategy;
   ignoredLangs?: string[];
   referredLang?: string;
   defaultLang?: string;
