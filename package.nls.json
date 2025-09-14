@@ -93,6 +93,7 @@
   "config.namespaceStrategy.full": "Use full path",
   "config.namespaceStrategy.file": "Use filename only",
   "config.namespaceStrategy.none": "No namespace",
+  "config.enableDiagnostics.desc": "Enable diagnostics to underline undefined keys in code",
   "command.setReferredLang.title": "Set as Source Language",
   "command.setDisplayLang.title": "Set as Display Language",
   "command.markAsKnownLang.title": "Mark as Known Language",

@@ -45,10 +45,16 @@
             "description": "%config.enable.desc%"
           },
           "i18n-mage.general.previewChanges": {
-            "order": 6,
+            "order": 4,
             "type": "boolean",
             "default": true,
             "description": "%config.previewChanges.desc%"
+          },
+          "i18n-mage.general.enableDiagnostics": {
+            "order": 6,
+            "type": "boolean",
+            "default": true,
+            "description": "%config.enableDiagnostics.desc%"
           },
           "i18n-mage.general.displayLanguage": {
             "order": 8,
