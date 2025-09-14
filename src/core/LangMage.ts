@@ -152,7 +152,8 @@ class LangMage {
       quoteStyleForValue: this.ctx.quoteStyleForValue,
       scanStringLiterals: this.ctx.scanStringLiterals,
       validateLanguageBeforeTranslate: this.ctx.validateLanguageBeforeTranslate,
-      defaultFilePos: this.ctx.defaultFilePos
+      defaultFilePos: this.ctx.defaultFilePos,
+      fileToProcess: this.ctx.fileToProcess
     };
   }
 

@@ -123,5 +123,6 @@
   "command.openDocs.title": "Open Documentation",
   "command.openSettings.title": "Open Settings",
   "command.feedback.title": "Feedback",
+  "command.fixSingleFile.title": "Fix Undefined Entries in Current File",
   "view.welcome.title": "No translation directory detected\n[Select translation directory](command:i18nMage.selectLangPath)"
 }

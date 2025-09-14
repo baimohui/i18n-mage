@@ -682,6 +682,11 @@
         }
       },
       {
+        "command": "i18nMage.fixSingleFile",
+        "category": "%extension.name%",
+        "title": "%command.fixSingleFile.title%"
+      },
+      {
         "command": "i18nMage.sort",
         "category": "%extension.name%",
         "title": "%command.sort.title%",
@@ -991,6 +996,18 @@
           "command": "i18nMage.ignoreUndefined",
           "when": "viewItem == undefinedGroupHeader || viewItem =~ /IGNORE_UNDEFINED/",
           "group": "inline@3"
+        }
+      ],
+      "editor/context": [
+        {
+          "command": "i18nMage.copyKeyValue",
+          "when": "hasDefinedEntriesInFile",
+          "group": "2_i18n@1"
+        },
+        {
+          "command": "i18nMage.fixSingleFile",
+          "when": "hasUndefinedEntriesInFile",
+          "group": "2_i18n@3"
         }
       ],
       "explorer/context": [

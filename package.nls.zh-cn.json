@@ -105,7 +105,7 @@
   "command.ignoreFile.title": "忽略文件",
   "command.copyName.title": "复制词条名",
   "command.copyValue.title": "复制词条值",
-  "command.copyKeyValue.title": "复制键值对",
+  "command.copyKeyValue.title": "复制词条键值对",
   "command.editValue.title": "编辑词条值",
   "command.deleteUnused.title": "删除未使用词条",
   "command.markAsUsed.title": "标记为已使用",
@@ -123,5 +123,6 @@
   "command.openDocs.title": "打开文档",
   "command.openSettings.title": "打开设置",
   "command.feedback.title": "反馈",
+  "command.fixSingleFile.title": "修复未定义词条",
   "view.welcome.title": "未检测到翻译文件目录\n[选择翻译文件目录](command:i18nMage.selectLangPath)"
 }

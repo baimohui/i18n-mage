@@ -31,6 +31,7 @@ export const createLangContext = (): LangContextInternal => ({
   namespaceStrategy: "none",
   scanStringLiterals: true,
   defaultFilePos: "",
+  fileToProcess: "",
 
   langDictionary: {},
   langCountryMap: {},

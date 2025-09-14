@@ -290,10 +290,7 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
           label: t("tree.currentFile.defined"),
           description: String(this.definedEntriesInCurrentFile.length),
           collapsibleState: vscode.TreeItemCollapsibleState[this.definedEntriesInCurrentFile.length === 0 ? "None" : "Collapsed"],
-          data: this.definedEntriesInCurrentFile.map(item => ({
-            name: item.nameInfo.name,
-            value: this.countryMap[this.displayLang][getValueByAmbiguousEntryName(this.tree, item.nameInfo.name) as string] ?? ""
-          })),
+          data: vscode.window.activeTextEditor?.document.uri,
           contextValue: definedContextValueList.join(","),
           level: 1,
           type: "defined",
@@ -594,6 +591,8 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
     this.definedEntriesInCurrentFile = [];
     this.undefinedEntriesInCurrentFile = [];
     const editor = vscode.window.activeTextEditor;
+    vscode.commands.executeCommand("setContext", "hasDefinedEntriesInFile", false);
+    vscode.commands.executeCommand("setContext", "hasUndefinedEntriesInFile", false);
     if (editor) {
       const text = editor.document.getText();
       this.usedEntries = catchTEntries(text);
@@ -619,6 +618,8 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
           }
         });
       });
+      vscode.commands.executeCommand("setContext", "hasDefinedEntriesInFile", this.definedEntriesInCurrentFile.length > 0);
+      vscode.commands.executeCommand("setContext", "hasUndefinedEntriesInFile", this.undefinedEntriesInCurrentFile.length > 0);
       this.refresh();
     }
   }

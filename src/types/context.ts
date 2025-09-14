@@ -52,6 +52,7 @@ export interface LangContextPublic {
   quoteStyleForValue: "auto" | QuoteStyle;
   scanStringLiterals: boolean;
   defaultFilePos: string;
+  fileToProcess: string;
 }
 
 // 内部模块才能访问的完整上下文

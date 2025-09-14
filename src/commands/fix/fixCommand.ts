@@ -22,7 +22,8 @@ export function registerFixCommand(context: vscode.ExtensionContext) {
       NotificationManager.showResult(res);
     }, 1000);
   };
-  const disposable = vscode.commands.registerCommand("i18nMage.fix", async () => {
+
+  const fix = async (fixAll: boolean = true) => {
     const publicCtx = mage.getPublicContext();
     await wrapWithProgress({ title: t("command.fix.progress"), cancellable: true, timeout: 1000 * 60 * 10 }, async (_, token) => {
       await mage.execute({ task: "check" });
@@ -53,7 +54,16 @@ export function registerFixCommand(context: vscode.ExtensionContext) {
       treeInstance.isSyncing = true;
       treeInstance.refresh();
       const previewChanges = getConfig<boolean>("general.previewChanges", true);
-      const res = await mage.execute({ task: "fix" });
+      const task = { task: "fix", fileToProcess: "" };
+      if (!fixAll) {
+        const currentFile = vscode.window.activeTextEditor?.document.uri.fsPath;
+        if (currentFile === undefined) {
+          NotificationManager.showWarning(t("common.noActiveEditorWarn"));
+          return;
+        }
+        task.fileToProcess = currentFile;
+      }
+      const res = await mage.execute(task);
       if (token.isCancellationRequested) {
         treeInstance.isSyncing = false;
         treeInstance.refresh();
@@ -82,7 +92,11 @@ export function registerFixCommand(context: vscode.ExtensionContext) {
         treeInstance.refresh();
       }
     });
-  });
+  };
 
-  registerDisposable(disposable);
+  const fixDisposable = vscode.commands.registerCommand("i18nMage.fix", fix);
+  const fixSingleFileDisposable = vscode.commands.registerCommand("i18nMage.fixSingleFile", () => fix(false));
+
+  registerDisposable(fixDisposable);
+  registerDisposable(fixSingleFileDisposable);
 }

@@ -76,6 +76,7 @@ export class FixHandler {
       const nameInfo = entry.nameInfo;
       const entryId = this.getIdByText(nameInfo.text);
       if (this.ctx.i18nFramework === I18N_FRAMEWORK.none && nameInfo.vars.length > 0) continue;
+      if (this.ctx.fileToProcess && entry.path !== this.ctx.fileToProcess) continue;
       if (this.ctx.matchExistingKey && valueKeyMap[entryId] && !entry.nameInfo.boundName) {
         this.needFix = true;
         let entryName = valueKeyMap[entryId];
@@ -218,33 +219,36 @@ export class FixHandler {
   }
 
   private async fillMissingTranslations(): Promise<ExecutionResult> {
-    for (const lang in this.lackInfoFromUndefined) {
-      if (Object.hasOwn(this.ctx.lackInfo, lang)) {
-        this.ctx.lackInfo[lang].push(...this.lackInfoFromUndefined[lang]);
-      } else {
-        this.ctx.lackInfo[lang] = this.lackInfoFromUndefined[lang];
-      }
-    }
-    if (this.ctx.autoTranslateEmptyKey) {
-      for (const lang in this.ctx.nullInfo) {
-        if (Object.hasOwn(this.ctx.lackInfo, lang)) {
-          this.ctx.lackInfo[lang].push(...this.ctx.nullInfo[lang]);
+    const lackInfo = { ...this.lackInfoFromUndefined };
+    if (!this.ctx.fileToProcess) {
+      Object.keys(this.ctx.lackInfo).forEach(lang => {
+        if (Object.hasOwn(lackInfo, lang)) {
+          lackInfo[lang] = [...new Set([...lackInfo[lang], ...this.ctx.lackInfo[lang]])];
         } else {
-          this.ctx.lackInfo[lang] = this.ctx.nullInfo[lang];
+          lackInfo[lang] = this.ctx.lackInfo[lang];
         }
+      });
+      if (this.ctx.autoTranslateEmptyKey) {
+        Object.keys(this.ctx.nullInfo).forEach(lang => {
+          if (Object.hasOwn(lackInfo, lang)) {
+            lackInfo[lang] = [...new Set([...lackInfo[lang], ...this.ctx.nullInfo[lang]])];
+          } else {
+            lackInfo[lang] = this.ctx.nullInfo[lang];
+          }
+        });
       }
     }
     let successCount = 0;
     let failCount = 0;
     let addedCount = 0;
     const referredLangMap = this.ctx.langCountryMap[this.ctx.referredLang];
-    const steps = Object.values(this.ctx.lackInfo).filter(keys => keys.some(key => referredLangMap[key])).length;
-    for (const lang in this.ctx.lackInfo) {
+    const steps = Object.values(lackInfo).filter(keys => keys.some(key => referredLangMap[key])).length;
+    for (const lang in lackInfo) {
       if (ExecutionContext.token.isCancellationRequested) {
         this.restoreLackInfo();
         return { success: false, message: "", code: EXECUTION_RESULT_CODE.Cancelled };
       }
-      const lackEntries = this.ctx.lackInfo[lang].filter(key => referredLangMap[key]);
+      const lackEntries = lackInfo[lang].filter(key => referredLangMap[key]);
       if (lackEntries.length > 0) {
         this.needFix = true;
         const referredEntriesText = lackEntries.map(key => referredLangMap[key]);
