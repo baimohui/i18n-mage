@@ -34,7 +34,7 @@ class LangMage {
   public setOptions(options: LangMageOptions = {}): void {
     if (Object.prototype.toString.call(options) === "[object Object]") {
       const combinedOptions: LangMageOptions = {
-        referredLang: getConfig<string>("translationServices.referenceLanguage", this.ctx.referredLang),
+        referredLang: this.ctx.referredLang || getConfig<string>("translationServices.referenceLanguage", this.ctx.referredLang),
         i18nFramework: getConfig<I18nFramework>("i18nFeatures.framework", this.ctx.i18nFramework),
         namespaceStrategy: getConfig<NamespaceStrategy>("i18nFeatures.namespaceStrategy", this.ctx.namespaceStrategy),
         ignoredLangs: getConfig<string[]>("workspace.ignoredLanguages", this.ctx.ignoredLangs),
@@ -77,31 +77,11 @@ class LangMage {
       this.ctx.isVacant = false;
       console.time("elapsed");
       if (options) this.setOptions(options);
-      if (this.ctx.task === "check") this.reset();
-      const reader = new ReadHandler(this.ctx);
-      reader.readLangFiles();
-      if (this.detectedLangList.length === 0) {
-        return { success: true, message: t("common.noLangPathDetectedWarn"), code: EXECUTION_RESULT_CODE.NoLangPathDetected };
-      }
-      const resolveLang = (target: string, isValidCode = false) => {
-        const targetCode = getLangCode(target);
-        const defaultCode = getLangCode(this.ctx.defaultLang);
-        return (
-          this.detectedLangList.find(lang => lang === target) ??
-          this.detectedLangList.find(lang => getLangCode(lang) === targetCode) ??
-          this.detectedLangList.find(lang => getLangCode(lang) === defaultCode) ??
-          this.detectedLangList.find(lang => getLangCode(lang) === "en") ??
-          this.detectedLangList.find(lang => (isValidCode ? getLangCode(lang) !== null : Boolean(lang))) ??
-          ""
-        );
-      };
-      this.ctx.referredLang = resolveLang(this.ctx.referredLang, true);
-
       let res = { success: true, message: "", code: EXECUTION_RESULT_CODE.Success };
       switch (this.ctx.task) {
         case "check":
-          if (this.ctx.globalFlag) {
-            await reader.startCensus();
+          if (!(await this.read())) {
+            return { success: true, message: t("common.noLangPathDetectedWarn"), code: EXECUTION_RESULT_CODE.NoLangPathDetected };
           }
           res = new CheckHandler(this.ctx).run();
           break;
@@ -199,6 +179,32 @@ class LangMage {
       updatedValues: this.ctx.updatedEntryValueInfo,
       patchedIds: this.ctx.patchedEntryIdInfo
     };
+  }
+
+  private async read() {
+    this.reset();
+    const reader = new ReadHandler(this.ctx);
+    reader.readLangFiles();
+    if (this.detectedLangList.length === 0) {
+      return false;
+    }
+    const resolveLang = (target: string, isValidCode = false) => {
+      const targetCode = getLangCode(target);
+      const defaultCode = getLangCode(this.ctx.defaultLang);
+      return (
+        this.detectedLangList.find(lang => lang === target) ??
+        this.detectedLangList.find(lang => getLangCode(lang) === targetCode) ??
+        this.detectedLangList.find(lang => getLangCode(lang) === defaultCode) ??
+        this.detectedLangList.find(lang => getLangCode(lang) === "en") ??
+        this.detectedLangList.find(lang => (isValidCode ? getLangCode(lang) !== null : Boolean(lang))) ??
+        ""
+      );
+    };
+    this.ctx.referredLang = resolveLang(this.ctx.referredLang, true);
+    if (this.ctx.globalFlag) {
+      await reader.startCensus();
+    }
+    return true;
   }
 
   private reset(): void {

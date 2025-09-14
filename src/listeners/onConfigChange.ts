@@ -19,6 +19,7 @@ export function registerOnConfigChange() {
     ) {
       clearConfigCache();
     } else if (
+      event.affectsConfiguration("i18n-mage.i18nFeatures.namespaceStrategy") ||
       event.affectsConfiguration("i18n-mage.analysis.syncBasedOnReferredEntries") ||
       event.affectsConfiguration("i18n-mage.analysis.scanStringLiterals")
     ) {

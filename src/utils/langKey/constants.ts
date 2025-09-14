@@ -105,7 +105,7 @@ export const LANG_CODE_MAPPINGS = {
   yi: { cnName: "意第绪语", enName: "Yiddish", ggCode: "yi", tcCode: "", bdCode: "", dlCode: "" },
   yo: { cnName: "约鲁巴语", enName: "Yoruba", ggCode: "yo", tcCode: "", bdCode: "", dlCode: "" },
   "zh-cn": { cnName: "简体中文", enName: "Simplified Chinese", ggCode: "zh-CN", tcCode: "zh", bdCode: "zh", dlCode: "ZH" },
-  "zh-tw": { cnName: "繁体中文", enName: "Traditional Chinese", ggCode: "zh-TW", tcCode: "zh-TW", bdCode: "cht", dlCode: "ZH" },
+  "zh-tw": { cnName: "繁体中文", enName: "Traditional Chinese", ggCode: "zh-TW", tcCode: "zh-TW", bdCode: "cht", dlCode: "" },
   zu: { cnName: "祖鲁语", enName: "Zulu", ggCode: "zu", tcCode: "", bdCode: "", dlCode: "" }
 } as const;
 

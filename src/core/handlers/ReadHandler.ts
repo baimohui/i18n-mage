@@ -49,7 +49,7 @@ export class ReadHandler {
     const { structure, lookup } = this.buildEntryTreeAndDictionary(langTree, keyPathMap);
     this.ctx.entryTree = structure;
     this.ctx.langDictionary = lookup;
-    const entryNameList = Object.keys(lookup).map(key => unescapeString(key));
+    const entryNameList = Object.keys(lookup);
     this.ctx.nameSeparator = this.detectCommonSeparator(entryNameList);
     if (this.ctx.keyPrefix === "auto-popular" && this.ctx.nameSeparator) {
       entryNameList.forEach(name => this.genEntryClassTree(name));
@@ -162,12 +162,12 @@ export class ReadHandler {
           setAtPath(idTree, path, id, isFromArray);
           if (!(id in lookup)) {
             lookup[id] = {
-              fullPath: keyPathMap ? keyPathMap[id].fullPath : "",
+              fullPath: keyPathMap ? keyPathMap[id].fullPath : id,
               fileScope: keyPathMap ? keyPathMap[id].fileScope : "",
               value: {}
             };
           }
-          lookup[id]["value"][lang] = node;
+          lookup[id].value[lang] = node;
         }
       } else if (Array.isArray(node)) {
         node.forEach((item, index) => {
@@ -221,8 +221,8 @@ export class ReadHandler {
   }
 
   private detectCommonSeparator(keys: string[] = [], threshold = 0.3) {
-    const separators = [".", "-", "_"];
-    const counts = { ".": 0, "-": 0, _: 0 };
+    const separators = ["\\.", ".", "-", "_"];
+    const counts = { "\\.": 0, ".": 0, "-": 0, _: 0 };
     for (const key of keys) {
       for (const sep of separators) {
         if (key.includes(sep)) {
@@ -292,7 +292,7 @@ export class ReadHandler {
         const fileName = currentPath.split(".").pop() ?? "";
         const fileData = (langData[fileName] ?? {}) as EntryTree;
 
-        if (strategy === "full" || strategy === "file") {
+        if (strategy === NAMESPACE_STRATEGY.full || strategy === NAMESPACE_STRATEGY.file) {
           data[fileName] ??= fileData;
         } else if (strategy === "none") {
           Object.assign(data, fileData);
@@ -302,7 +302,7 @@ export class ReadHandler {
         // 递归处理子目录
         for (const [name, child] of Object.entries(node.children)) {
           let newData = data;
-          if (strategy === "full") {
+          if (strategy === NAMESPACE_STRATEGY.full) {
             data[currentPath] ??= {};
             newData = data[currentPath] as EntryTree;
           }
@@ -347,13 +347,13 @@ export class ReadHandler {
           let finalKey: string;
 
           switch (strategy) {
-            case "full":
+            case NAMESPACE_STRATEGY.full:
               finalKey = `${fileScope}.${currentKey}`;
               break;
-            case "file":
+            case NAMESPACE_STRATEGY.file:
               finalKey = `${fileName}.${currentKey}`;
               break;
-            case "none":
+            case NAMESPACE_STRATEGY.none:
             default:
               finalKey = currentKey;
               break;

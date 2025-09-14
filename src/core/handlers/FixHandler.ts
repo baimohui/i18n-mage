@@ -168,7 +168,7 @@ export class FixHandler {
       }
       referredLangMap[nameInfo.boundName] = nameInfo.text;
       this.ctx.langDictionary[nameInfo.boundName] ??= {
-        fullPath: this.ctx.defaultFilePos + nameInfo.boundName,
+        fullPath: `${this.ctx.defaultFilePos}.${nameInfo.boundName}}`,
         fileScope: this.ctx.defaultFilePos,
         value: {
           [this.ctx.referredLang]: nameInfo.text
@@ -291,7 +291,7 @@ export class FixHandler {
     }
     return new Promise<ExecutionResult>(resolve => {
       setTimeout(() => {
-        this.restoreLackInfo();
+        // this.restoreLackInfo();
         resolve({ success, message, code });
       }, 1500);
     });

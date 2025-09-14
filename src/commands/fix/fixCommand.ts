@@ -32,8 +32,11 @@ export function registerFixCommand(context: vscode.ExtensionContext) {
         let target: string | undefined = undefined;
         if (commonFiles.length > 1) {
           NotificationManager.showProgress({ message: t("command.fix.waitForFileSelection"), increment: 0 });
+          let sortedFiles: string[] = commonFiles;
           const lastPicked = context.globalState.get<string>("lastPickedFile");
-          const sortedFiles = lastPicked !== undefined ? [lastPicked, ...commonFiles.filter(f => f !== lastPicked)] : commonFiles;
+          if (lastPicked !== undefined && commonFiles.includes(lastPicked)) {
+            sortedFiles = [lastPicked, ...commonFiles.filter(f => f !== lastPicked)];
+          }
           target = await vscode.window.showQuickPick(sortedFiles, {
             placeHolder: t("command.fix.selectFileToWrite")
           });
@@ -41,7 +44,7 @@ export function registerFixCommand(context: vscode.ExtensionContext) {
           target = commonFiles[0];
         }
         if (typeof target === "string" && target.trim()) {
-          mage.setOptions({ defaultFilePos: `${target.replaceAll("/", ".")}.` });
+          mage.setOptions({ defaultFilePos: `${target.replaceAll("/", ".")}` });
           await context.globalState.update("lastPickedFile", target);
         } else {
           return;
