@@ -34,7 +34,7 @@
   "command.fix.translatorSuccess": "Processed {0} languages: all succeeded ({1} new translations)",
   "command.fix.undefinedEntriesPatched": "Processing {0} correctable undefined entries: {1}",
   "command.fix.viewDetails": "View Details",
-  "command.fix.waitForFileSelection": "Waiting for file selection...",
+  "command.fix.waitForFileSelection": "Waiting for user to select write location",
   "command.goToDefinition.selectEntry": "Select the entry to locate",
   "command.goToDefinition.selectLang": "Select the language to locate",
   "command.goToReference.selectEntry": "Select the entry to jump",
@@ -125,6 +125,7 @@
   "translator.baiduErrorInfo.unauthorizedUser": "Unauthorized user, please verify if the appid is correct or the service is activated",
   "translator.baiduErrorInfo.unsupportedLanguage": "Target language not supported, please check if the language is included in the supported languages list",
   "translator.baiduErrorInfo.wrongIp": "Invalid client IP. Please verify and update it in Developer Information → Basic Information",
+  "translator.deepseek.lineCountMismatch": "The number of output translations does not match the number of source texts. Translations: {0}",
   "translator.exceedTextLenPerRequest": "The translation text length exceeds the single request limit: {0}",
   "translator.failedToFix": "Failed to translate {1} using {0} ({2})",
   "translator.googleError.limitedTextLength": "The text character count exceeds the single translation request limit: {0}",
@@ -164,5 +165,7 @@
   "tree.usedInfo.undefinedValidLang": "Unsupported language for auto-translation",
   "tree.usedInfo.unused": "Unused",
   "tree.usedInfo.used": "Used",
-  "translator.deepseek.lineCountMismatch": "The number of output translations does not match the number of source texts. Translations: {0}"
+  "command.fix.customKey": "Custom key category",
+  "command.fix.selectKeyToWrite": "Select the category for the write key",
+  "command.fix.customKeyInput": "Please enter a value (can be left blank)"
 }

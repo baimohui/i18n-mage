@@ -30,7 +30,8 @@ export const createLangContext = (): LangContextInternal => ({
   i18nFramework: "none",
   namespaceStrategy: "none",
   scanStringLiterals: true,
-  defaultFilePos: "",
+  missingEntryFile: "",
+  missingEntryPath: "",
   fileToProcess: "",
 
   langDictionary: {},

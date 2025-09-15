@@ -1,11 +1,10 @@
-import { LangContextInternal, LackInfo } from "@/types";
+import { LangContextInternal, LackInfo, NAMESPACE_STRATEGY } from "@/types";
 import { getLangCode } from "@/utils/langKey";
 import { TEntry, I18N_FRAMEWORK } from "@/types";
 import {
   validateLang,
   getIdByStr,
   getValueByAmbiguousEntryName,
-  escapeString,
   internalToDisplayName,
   generateKey,
   unescapeString,
@@ -118,10 +117,12 @@ export class FixHandler {
         }
       }
     }
-    const pcList = this.getPopularClassList();
     let namePrefix = "";
     if (this.ctx.keyPrefix === "auto-popular") {
+      const pcList = this.getPopularClassList();
       namePrefix = pcList[0]?.name ?? "";
+    } else if (this.ctx.keyPrefix === "manual-selection") {
+      namePrefix = this.ctx.missingEntryPath;
     } else if (this.ctx.keyPrefix && this.ctx.keyPrefix !== "none") {
       namePrefix = this.ctx.keyPrefix;
     }
@@ -133,10 +134,10 @@ export class FixHandler {
       const id = getIdByStr(enNameList[index], genKeyInfo);
       const nameInfo = entry.nameInfo;
       if (!nameInfo.boundName) {
-        if (nameInfo.boundClass && !nameInfo.boundClass.endsWith(this.ctx.nameSeparator)) {
-          nameInfo.boundClass += this.ctx.nameSeparator;
+        let baseName = nameInfo.boundClass || namePrefix;
+        if (!baseName.endsWith(this.ctx.nameSeparator)) {
+          baseName += this.ctx.nameSeparator;
         }
-        const baseName = nameInfo.boundClass || namePrefix;
         const maxLen = this.ctx.maxGeneratedKeyLength;
         let entryName = baseName + id;
         const needsAnotherName = entryName.length > maxLen || id.length === 0 || checkExisted(entryName);
@@ -160,17 +161,23 @@ export class FixHandler {
       }
       // const structure = this.ctx.fileStructure?.children?.[this.ctx.referredLang];
       // if (this.ctx.multiFileMode > 0 && structure && getFileLocationFromId(nameInfo.boundName, structure) === null) {
-      //   nameInfo.boundName = this.ctx.defaultFilePos + nameInfo.boundName;
+      //   nameInfo.boundName = this.ctx.missingEntryFile + nameInfo.boundName;
       // }
-      patchedEntryIdList.push({ ...entry, fixedRaw: this.getFixedRaw(entry, nameInfo.boundName) });
+      patchedEntryIdList.push({ ...entry, fixedRaw: this.getFixedRaw(entry, unescapeString(nameInfo.boundName)) });
       this.needFix = true;
-      if (this.ctx.multiFileMode === 0 && this.ctx.nestedLocale === 0) {
-        nameInfo.boundName = escapeString(nameInfo.boundName);
-      }
+      // if (this.ctx.multiFileMode === 0 && this.ctx.nestedLocale === 0) {
+      //   nameInfo.boundName = escapeString(nameInfo.boundName);
+      // }
       referredLangMap[nameInfo.boundName] = nameInfo.text;
+      let fullPath = nameInfo.boundName;
+      if (this.ctx.namespaceStrategy === NAMESPACE_STRATEGY.none) {
+        fullPath = `${this.ctx.missingEntryFile}.${nameInfo.boundName}`;
+      } else if (this.ctx.namespaceStrategy === NAMESPACE_STRATEGY.file) {
+        fullPath = `${this.ctx.missingEntryFile}.${nameInfo.boundName.replace(/^.*?\./, "")}`;
+      }
       this.ctx.langDictionary[nameInfo.boundName] ??= {
-        fullPath: `${this.ctx.defaultFilePos}.${nameInfo.boundName}}`,
-        fileScope: this.ctx.defaultFilePos,
+        fullPath,
+        fileScope: this.ctx.missingEntryFile,
         value: {
           [this.ctx.referredLang]: nameInfo.text
         }

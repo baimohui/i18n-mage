@@ -102,6 +102,22 @@ export function getCommonFilePaths(fileStructure: EntryNode): string[] {
   return collectCommonPaths(languageChildren as Record<string, EntryNode>[], "");
 }
 
+export function getParentKeys(obj: Record<string, any>, nameSeparator = ".", parentKey = "") {
+  let keys: string[] = [];
+  // 遍历对象的每个键
+  for (const key in obj) {
+    if (Object.hasOwn(obj, key)) {
+      const fullKey = parentKey ? `${parentKey}${nameSeparator}${key}` : key;
+      // 如果值是对象，则说明它是父节点，递归遍历其子节点
+      if (typeof obj[key] === "object" && obj[key] !== null) {
+        keys.push(fullKey); // 记录父节点
+        keys = keys.concat(getParentKeys(obj[key] as Record<string, any>, nameSeparator, fullKey)); // 递归遍历子节点
+      }
+    }
+  }
+  return keys;
+}
+
 export function getFileLocationFromId(id: string, fileStructure: EntryNode): string[] | null {
   const segments = getPathSegsFromId(id);
   const pathSegs: string[] = [];

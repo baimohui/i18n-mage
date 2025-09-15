@@ -51,7 +51,7 @@ export class ReadHandler {
     this.ctx.langDictionary = lookup;
     const entryNameList = Object.keys(lookup);
     this.ctx.nameSeparator = this.detectCommonSeparator(entryNameList);
-    if (this.ctx.keyPrefix === "auto-popular" && this.ctx.nameSeparator) {
+    if (this.ctx.nameSeparator) {
       entryNameList.forEach(name => this.genEntryClassTree(name));
     }
   }

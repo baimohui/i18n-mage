@@ -480,10 +480,12 @@
             "description": "%config.keyPrefix.desc%",
             "enum": [
               "none",
+              "manual-selection",
               "auto-popular"
             ],
             "enumDescriptions": [
               "%config.keyPrefix.none%",
+              "%config.keyPrefix.manual-selection%",
               "%config.keyPrefix.auto-popular%"
             ]
           },

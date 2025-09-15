@@ -7,7 +7,8 @@ import { registerDisposable } from "@/utils/dispose";
 import { t } from "@/utils/i18n";
 import { NotificationManager } from "@/utils/notification";
 import { getConfig } from "@/utils/config";
-import { getCommonFilePaths } from "@/utils/regex";
+import { getCommonFilePaths, getParentKeys } from "@/utils/regex";
+import { NAMESPACE_STRATEGY } from "@/types";
 
 export function registerFixCommand(context: vscode.ExtensionContext) {
   const mage = LangMage.getInstance();
@@ -27,28 +28,67 @@ export function registerFixCommand(context: vscode.ExtensionContext) {
     const publicCtx = mage.getPublicContext();
     await wrapWithProgress({ title: t("command.fix.progress"), cancellable: true, timeout: 1000 * 60 * 10 }, async (_, token) => {
       await mage.execute({ task: "check" });
-      const { multiFileMode, undefined: undefinedMap } = mage.langDetail;
-      if (publicCtx.autoTranslateMissingKey && Object.keys(undefinedMap).length > 0 && multiFileMode && publicCtx.fileStructure) {
-        const commonFiles = getCommonFilePaths(publicCtx.fileStructure);
-        let target: string | undefined = undefined;
-        if (commonFiles.length > 1) {
-          NotificationManager.showProgress({ message: t("command.fix.waitForFileSelection"), increment: 0 });
-          let sortedFiles: string[] = commonFiles;
-          const lastPicked = context.globalState.get<string>("lastPickedFile");
-          if (lastPicked !== undefined && commonFiles.includes(lastPicked)) {
-            sortedFiles = [lastPicked, ...commonFiles.filter(f => f !== lastPicked)];
+      const { multiFileMode, nameSeparator, undefined: undefinedMap, classTree } = mage.langDetail;
+      if (publicCtx.autoTranslateMissingKey && Object.keys(undefinedMap).length > 0) {
+        if (multiFileMode && publicCtx.fileStructure) {
+          let missingEntryFile: string | undefined = undefined;
+          const commonFiles = getCommonFilePaths(publicCtx.fileStructure);
+          if (commonFiles.length > 1) {
+            NotificationManager.showProgress({ message: t("command.fix.waitForFileSelection"), increment: 0 });
+            let sortedFiles: string[] = commonFiles;
+            const lastPicked = context.globalState.get<string>("lastPickedFile");
+            if (lastPicked !== undefined && commonFiles.includes(lastPicked)) {
+              sortedFiles = [lastPicked, ...commonFiles.filter(f => f !== lastPicked)];
+            }
+            missingEntryFile = await vscode.window.showQuickPick(sortedFiles, {
+              placeHolder: t("command.fix.selectFileToWrite")
+            });
+          } else if (commonFiles.length === 1) {
+            missingEntryFile = commonFiles[0];
           }
-          target = await vscode.window.showQuickPick(sortedFiles, {
-            placeHolder: t("command.fix.selectFileToWrite")
-          });
-        } else if (commonFiles.length === 1) {
-          target = commonFiles[0];
+          if (typeof missingEntryFile === "string" && missingEntryFile.trim()) {
+            mage.setOptions({ missingEntryFile: `${missingEntryFile.replaceAll("/", ".")}` });
+            await context.globalState.update("lastPickedFile", missingEntryFile);
+          } else {
+            return;
+          }
         }
-        if (typeof target === "string" && target.trim()) {
-          mage.setOptions({ defaultFilePos: `${target.replaceAll("/", ".")}` });
-          await context.globalState.update("lastPickedFile", target);
-        } else {
-          return;
+        const keyPrefix = getConfig<string>("writeRules.keyPrefix", "");
+        if (nameSeparator && keyPrefix === "manual-selection") {
+          let commonKeys = getParentKeys(classTree, nameSeparator);
+          if (publicCtx.namespaceStrategy !== NAMESPACE_STRATEGY.none) {
+            commonKeys = commonKeys
+              .map(key => {
+                const keyParts = key.split(".");
+                const offset = publicCtx.namespaceStrategy === NAMESPACE_STRATEGY.file ? 1 : multiFileMode;
+                return keyParts.slice(offset).join(".");
+              })
+              .filter(Boolean);
+          }
+          let missingEntryPath: string | undefined = undefined;
+          if (commonKeys.length > 0) {
+            NotificationManager.showProgress({ message: t("command.fix.waitForFileSelection"), increment: 0 });
+            let sortedKeys: string[] = commonKeys;
+            const lastPicked = context.globalState.get<string>("lastPickedKey");
+            if (lastPicked !== undefined && commonKeys.includes(lastPicked)) {
+              sortedKeys = [lastPicked, ...commonKeys.filter(f => f !== lastPicked)];
+            }
+            missingEntryPath = await vscode.window.showQuickPick([...sortedKeys, t("command.fix.customKey")], {
+              placeHolder: t("command.fix.selectKeyToWrite")
+            });
+          }
+          if (typeof missingEntryPath === "string" && missingEntryPath.trim()) {
+            if (missingEntryPath === t("command.fix.customKey")) {
+              missingEntryPath = await vscode.window.showInputBox({
+                placeHolder: t("command.fix.customKeyInput")
+              });
+            } else {
+              await context.globalState.update("lastPickedKey", missingEntryPath);
+            }
+            mage.setOptions({ missingEntryPath });
+          } else {
+            return;
+          }
         }
       }
       treeInstance.isSyncing = true;

@@ -152,7 +152,8 @@ class LangMage {
       quoteStyleForValue: this.ctx.quoteStyleForValue,
       scanStringLiterals: this.ctx.scanStringLiterals,
       validateLanguageBeforeTranslate: this.ctx.validateLanguageBeforeTranslate,
-      defaultFilePos: this.ctx.defaultFilePos,
+      missingEntryFile: this.ctx.missingEntryFile,
+      missingEntryPath: this.ctx.missingEntryPath,
       fileToProcess: this.ctx.fileToProcess
     };
   }
@@ -177,6 +178,8 @@ class LangMage {
       nestedLocale: this.ctx.nestedLocale,
       isFlat: this.ctx.multiFileMode === 0 && this.ctx.nestedLocale === 0,
       tree: this.ctx.entryTree,
+      classTree: this.ctx.entryClassTree,
+      nameSeparator: this.ctx.nameSeparator,
       updatedValues: this.ctx.updatedEntryValueInfo,
       patchedIds: this.ctx.patchedEntryIdInfo
     };
