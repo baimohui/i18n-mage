@@ -30,8 +30,8 @@ export function registerFixCommand(context: vscode.ExtensionContext) {
       await mage.execute({ task: "check" });
       const { multiFileMode, nameSeparator, undefined: undefinedMap, classTree } = mage.langDetail;
       if (publicCtx.autoTranslateMissingKey && Object.keys(undefinedMap).length > 0) {
+        let missingEntryFile: string | undefined = undefined;
         if (multiFileMode && publicCtx.fileStructure) {
-          let missingEntryFile: string | undefined = undefined;
           const commonFiles = getCommonFilePaths(publicCtx.fileStructure);
           if (commonFiles.length > 1) {
             NotificationManager.showProgress({ message: t("command.fix.waitForFileSelection"), increment: 0 });
@@ -61,6 +61,9 @@ export function registerFixCommand(context: vscode.ExtensionContext) {
               .map(key => {
                 const keyParts = key.split(".");
                 const offset = publicCtx.namespaceStrategy === NAMESPACE_STRATEGY.file ? 1 : multiFileMode;
+                if (missingEntryFile !== undefined && !missingEntryFile.endsWith(keyParts.slice(0, offset).join("."))) {
+                  return "";
+                }
                 return keyParts.slice(offset).join(".");
               })
               .filter(Boolean);
