@@ -50,12 +50,14 @@ export function registerFixCommand(context: vscode.ExtensionContext) {
             mage.setOptions({ missingEntryFile: `${missingEntryFile.replaceAll("/", ".")}` });
             await context.globalState.update("lastPickedFile", missingEntryFile);
           } else {
+            mage.setOptions({ missingEntryFile: "" });
             return;
           }
         }
         const keyPrefix = getConfig<string>("writeRules.keyPrefix", "");
         if (nameSeparator && keyPrefix === "manual-selection") {
-          let commonKeys = getParentKeys(classTree, nameSeparator);
+          const classTreeItem = classTree.find(item => item.filePos === (missingEntryFile ?? ""));
+          let commonKeys = classTreeItem ? getParentKeys(classTreeItem.data, nameSeparator) : [];
           if (publicCtx.namespaceStrategy !== NAMESPACE_STRATEGY.none) {
             commonKeys = commonKeys
               .map(key => {
@@ -90,6 +92,7 @@ export function registerFixCommand(context: vscode.ExtensionContext) {
             }
             mage.setOptions({ missingEntryPath });
           } else {
+            mage.setOptions({ missingEntryPath: "" });
             return;
           }
         }

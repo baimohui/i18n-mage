@@ -10,6 +10,12 @@ export function registerOnConfigChange() {
   const disposable = vscode.workspace.onDidChangeConfiguration(event => {
     if (!event.affectsConfiguration("i18n-mage")) return;
     if (
+      event.affectsConfiguration("i18n-mage.i18nFeatures.namespaceStrategy") ||
+      event.affectsConfiguration("i18n-mage.analysis.syncBasedOnReferredEntries") ||
+      event.affectsConfiguration("i18n-mage.analysis.scanStringLiterals")
+    ) {
+      vscode.commands.executeCommand("i18nMage.checkUsage");
+    } else if (
       event.affectsConfiguration("i18n-mage.workspace") ||
       event.affectsConfiguration("i18n-mage.i18nFeatures") ||
       event.affectsConfiguration("i18n-mage.analysis.onSave") ||
@@ -18,12 +24,6 @@ export function registerOnConfigChange() {
       event.affectsConfiguration("i18n-mage.writeRules.enablePrefixTagRule")
     ) {
       clearConfigCache();
-    } else if (
-      event.affectsConfiguration("i18n-mage.i18nFeatures.namespaceStrategy") ||
-      event.affectsConfiguration("i18n-mage.analysis.syncBasedOnReferredEntries") ||
-      event.affectsConfiguration("i18n-mage.analysis.scanStringLiterals")
-    ) {
-      vscode.commands.executeCommand("i18nMage.checkUsage");
     } else if (
       event.affectsConfiguration("i18n-mage.general.fileExtensions") ||
       event.affectsConfiguration("i18n-mage.analysis.fileSizeSkipThresholdKB") ||

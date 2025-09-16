@@ -13,7 +13,8 @@ import {
   KeyStyle,
   QuoteStyle,
   I18nFramework,
-  NamespaceStrategy
+  NamespaceStrategy,
+  EntryClassTree
 } from "@/types";
 
 // 外部模块可访问的公共上下文
@@ -63,7 +64,7 @@ export interface LangContextInternal extends LangContextPublic {
   lackInfo: LackInfo;
   extraInfo: Record<string, string[]>;
   nullInfo: NullInfo;
-  entryClassTree: Record<string, any>;
+  entryClassTree: EntryClassTree;
   entryClassInfo: EntryClassInfo;
   undefinedEntryList: TEntry[];
   undefinedEntryMap: Record<string, Record<string, Set<string>>>;

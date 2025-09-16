@@ -1,12 +1,4 @@
-import { CaseType, KeyStyle, KEY_STYLE } from "@/types";
-
-export function getCaseType(str: string): CaseType {
-  if (!/^[a-zA-Z][a-zA-Z0-9]*$/.test(str)) return "wc"; // weird-case
-  if (str === str.toUpperCase()) return "au"; // Uppercase
-  if (/^[a-z][A-Za-z0-9]*$/.test(str)) return "cc"; // camelCase
-  if (/^[A-Z][A-Za-z0-9]*$/.test(str)) return "pc"; // PascalCase
-  return "unknown";
-}
+import { KeyStyle, KEY_STYLE } from "@/types";
 
 export function escapeRegExp(str: string): string {
   return str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");

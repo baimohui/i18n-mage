@@ -86,7 +86,7 @@ export class RewriteHandler {
     if (this.ctx.multiFileMode === 0 && this.ctx.nestedLocale === 0) {
       langObj = translation;
     } else {
-      const entryTree = getContentAtLocation(filePos, this.ctx.entryTree, this.ctx.langDictionary);
+      const entryTree = getContentAtLocation(filePos, this.ctx.entryTree, this.ctx.langDictionary, this.ctx.namespaceStrategy);
       if (entryTree) {
         iterate(entryTree, langObj);
       }

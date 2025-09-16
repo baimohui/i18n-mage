@@ -1,6 +1,6 @@
 import fs from "fs";
 import path from "path";
-import { EntryNode, I18N_FRAMEWORK, LangContextInternal, NAMESPACE_STRATEGY, NamespaceStrategy } from "@/types";
+import { EntryClassTreeItem, EntryNode, I18N_FRAMEWORK, LangContextInternal, NAMESPACE_STRATEGY, NamespaceStrategy } from "@/types";
 import {
   catchTEntries,
   catchPossibleEntries,
@@ -9,7 +9,6 @@ import {
   flattenNestedObj,
   escapeString,
   unescapeString,
-  getCaseType,
   isValidI18nCallablePath
 } from "@/utils/regex";
 import { EntryTree, LangDictionary, LangTree } from "@/types";
@@ -186,37 +185,42 @@ export class ReadHandler {
   }
 
   private genEntryClassTree(name: string = ""): void {
+    const filePos = this.ctx.langDictionary[name].fileScope;
+    let entryClassInfo = this.ctx.entryClassInfo.find(item => item.filePos === filePos);
+    if (entryClassInfo === undefined) {
+      entryClassInfo = { filePos, data: {} };
+      this.ctx.entryClassInfo.push(entryClassInfo);
+    }
+    let entryClassTree = this.ctx.entryClassTree.find(item => item.filePos === filePos);
+    if (entryClassTree === undefined) {
+      entryClassTree = { filePos, data: {} };
+      this.ctx.entryClassTree.push(entryClassTree);
+    }
     const structure = name.split(this.ctx.nameSeparator);
     const structureLayer = structure.length;
     const primaryClass = structure[0];
-    if (Object.hasOwn(this.ctx.entryClassInfo, primaryClass)) {
-      const classInfo = this.ctx.entryClassInfo[primaryClass];
+    if (Object.hasOwn(entryClassInfo.data, primaryClass)) {
+      const classInfo = entryClassInfo.data[primaryClass];
       classInfo.num++;
       if (!classInfo.layer.includes(structureLayer)) {
         classInfo.layer.push(structureLayer);
       }
     } else {
-      this.ctx.entryClassInfo[primaryClass] = {
+      entryClassInfo.data[primaryClass] = {
         num: 1,
-        layer: [structureLayer],
-        case: getCaseType(primaryClass),
-        childrenCase: {}
+        layer: [structureLayer]
       };
     }
-    let tempObj = this.ctx.entryClassTree;
+    let treeData = entryClassTree.data;
     structure.forEach((key, index) => {
-      if (tempObj[key] === undefined || tempObj[key] === null) {
+      if (treeData[key] === undefined || treeData[key] === null) {
         if (structureLayer > index + 1) {
-          tempObj[key] = {};
+          treeData[key] = {};
         } else {
-          tempObj[key] = null;
-          const keyCase = getCaseType(key);
-          const childrenCase = this.ctx.entryClassInfo[primaryClass].childrenCase;
-          childrenCase[keyCase] ??= 0;
-          childrenCase[keyCase]++;
+          treeData[key] = null;
         }
       }
-      tempObj = tempObj[key] as object;
+      treeData = treeData[key] as EntryClassTreeItem;
     });
   }
 

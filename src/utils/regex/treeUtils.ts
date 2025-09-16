@@ -1,4 +1,4 @@
-import { EntryTree, EntryNode, LangDictionary } from "@/types";
+import { EntryTree, EntryNode, LangDictionary, NamespaceStrategy, NAMESPACE_STRATEGY } from "@/types";
 import { parseEscapedPath, getPathSegsFromId } from "./stringUtils";
 
 export function genLangTree(tree: EntryTree = {}, content: EntryTree | string[] = {}, type = ""): void {
@@ -134,7 +134,12 @@ export function getFileLocationFromId(id: string, fileStructure: EntryNode): str
   return pathSegs;
 }
 
-export function getContentAtLocation(location: string, tree: EntryTree, dictionary: LangDictionary): EntryTree | null {
+export function getContentAtLocation(
+  location: string,
+  tree: EntryTree,
+  dictionary: LangDictionary,
+  namespaceStrategy: NamespaceStrategy
+): EntryTree | null {
   function helper(node: EntryTree) {
     if (typeof node === "string") {
       // 叶子节点：直接判断是否有效
@@ -151,7 +156,17 @@ export function getContentAtLocation(location: string, tree: EntryTree, dictiona
     // 如果子节点全部被过滤掉，返回 null
     return Object.keys(result).length > 0 ? result : null;
   }
-  return helper(tree) || {};
+  const filteredTree = helper(tree);
+  if (filteredTree && location && namespaceStrategy !== NAMESPACE_STRATEGY.none) {
+    const parts = location.split(".").slice(namespaceStrategy === NAMESPACE_STRATEGY.full ? 0 : -1);
+    return parts.reduce((acc, part) => {
+      if (Object.hasOwn(acc, part)) {
+        return acc[part] as EntryTree;
+      }
+      return {};
+    }, filteredTree);
+  }
+  return filteredTree || {};
 }
 
 function buildSplit(parts: string[], i: number, m: number): string[] {

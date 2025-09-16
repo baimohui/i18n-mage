@@ -74,17 +74,26 @@ export interface PEntry {
 }
 
 // export type CaseType = "upper" | "lower" | "title" | "sentence" | "camel" | "pascal" | "snake" | "kebab" | "screaming-snake" | "screaming-kebab";
-export type CaseType = "wc" | "au" | "cc" | "pc" | "unknown";
 
-export type EntryClassInfo = Record<
-  string,
-  {
-    num: number;
-    layer: number[];
-    case: CaseType;
-    childrenCase: Record<CaseType, number> | object;
-  }
->;
+export type EntryClassInfo = {
+  filePos: string;
+  data: Record<
+    string,
+    {
+      num: number;
+      layer: number[];
+    }
+  >;
+}[];
+
+export type EntryClassTreeItem = {
+  [key: EntryKeySeg]: null | EntryClassTreeItem;
+};
+
+export type EntryClassTree = {
+  filePos: string;
+  data: EntryClassTreeItem;
+}[];
 
 export type LackInfo = Record<LangName, EntryKey[]>;
 export type NullInfo = Record<LangName, EntryKey[]>;

@@ -1,4 +1,4 @@
-import { LangContextInternal, LackInfo, NAMESPACE_STRATEGY } from "@/types";
+import { LangContextInternal, LackInfo, NAMESPACE_STRATEGY, EntryClassTreeItem } from "@/types";
 import { getLangCode } from "@/utils/langKey";
 import { TEntry, I18N_FRAMEWORK } from "@/types";
 import {
@@ -122,7 +122,14 @@ export class FixHandler {
       const pcList = this.getPopularClassList();
       namePrefix = pcList[0]?.name ?? "";
     } else if (this.ctx.keyPrefix === "manual-selection") {
-      namePrefix = this.ctx.missingEntryPath;
+      if (this.ctx.missingEntryFile) {
+        if (this.ctx.namespaceStrategy === NAMESPACE_STRATEGY.full) {
+          namePrefix = `${this.ctx.missingEntryFile}.`;
+        } else if (this.ctx.namespaceStrategy === NAMESPACE_STRATEGY.file) {
+          namePrefix = `${this.ctx.missingEntryFile.replace(/^.*\./, "")}.`;
+        }
+      }
+      namePrefix += this.ctx.missingEntryPath;
     } else if (this.ctx.keyPrefix && this.ctx.keyPrefix !== "none") {
       namePrefix = this.ctx.keyPrefix;
     }
@@ -135,7 +142,7 @@ export class FixHandler {
       const nameInfo = entry.nameInfo;
       if (!nameInfo.boundName) {
         let baseName = nameInfo.boundClass || namePrefix;
-        if (!baseName.endsWith(this.ctx.nameSeparator)) {
+        if (baseName && !baseName.endsWith(this.ctx.nameSeparator) && !baseName.endsWith(".")) {
           baseName += this.ctx.nameSeparator;
         }
         const maxLen = this.ctx.maxGeneratedKeyLength;
@@ -170,10 +177,12 @@ export class FixHandler {
       // }
       referredLangMap[nameInfo.boundName] = nameInfo.text;
       let fullPath = nameInfo.boundName;
-      if (this.ctx.namespaceStrategy === NAMESPACE_STRATEGY.none) {
-        fullPath = `${this.ctx.missingEntryFile}.${nameInfo.boundName}`;
-      } else if (this.ctx.namespaceStrategy === NAMESPACE_STRATEGY.file) {
-        fullPath = `${this.ctx.missingEntryFile}.${nameInfo.boundName.replace(/^.*?\./, "")}`;
+      if (this.ctx.missingEntryFile) {
+        if (this.ctx.namespaceStrategy === NAMESPACE_STRATEGY.none) {
+          fullPath = `${this.ctx.missingEntryFile}.${nameInfo.boundName}`;
+        } else if (this.ctx.namespaceStrategy === NAMESPACE_STRATEGY.file) {
+          fullPath = `${this.ctx.missingEntryFile}.${nameInfo.boundName.replace(/^.*?\./, "")}`;
+        }
       }
       this.ctx.langDictionary[nameInfo.boundName] ??= {
         fullPath,
@@ -351,23 +360,23 @@ export class FixHandler {
     return funcName ? `${funcName}(${quote}${displayName}${quote}${varStr})` : `${quote}${displayName}${quote}`;
   }
 
-  private getPopularClassMap(
-    tree: Record<string, object>,
-    map: Record<string, number> = {},
-    classPrefix: string = ""
-  ): Record<string, number> {
+  private getPopularClassMap(tree: EntryClassTreeItem, map: Record<string, number> = {}, classPrefix: string = ""): Record<string, number> {
     for (const [key, value] of Object.entries(tree)) {
       const itemName = classPrefix + key + this.ctx.nameSeparator;
       if (value !== null && value !== undefined) {
         map[itemName] = Object.keys(value).length;
-        this.getPopularClassMap(value as Record<string, object>, map, itemName);
+        this.getPopularClassMap(value, map, itemName);
       }
     }
     return map;
   }
 
   private getPopularClassList(): Array<{ name: string; value: number }> {
-    const map = this.getPopularClassMap(this.ctx.entryClassTree);
+    const classTree = this.ctx.entryClassTree.find((item, index) =>
+      this.ctx.missingEntryFile ? item.filePos === this.ctx.missingEntryFile : index === 0
+    );
+    if (classTree === undefined) return [];
+    const map = this.getPopularClassMap(classTree.data);
     return Object.keys(map)
       .sort((a, b) => (map[a] > map[b] ? -1 : 1))
       .map(item => ({ name: item, value: map[item] }));

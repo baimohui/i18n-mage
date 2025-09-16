@@ -54,7 +54,7 @@
   "config.generatedKeyStyle.raw": "原样（helloworld）",
   "config.stopWords.desc": "生成 key 时剔除的停用词",
   "config.maxGeneratedKeyLength.desc": "生成 key 的最大长度，超长时自动优化",
-  "config.keyPrefix.desc": "生成 key 的前缀：最常见、无前缀或手动选择",
+  "config.keyPrefix.desc": "生成 key 的前缀：无前缀、手动选择或最常见",
   "config.keyPrefix.auto-popular": "使用最常见前缀",
   "config.keyPrefix.none": "无前缀",
   "config.keyPrefix.manual-selection": "手动选择前缀",
