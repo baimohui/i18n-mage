@@ -277,6 +277,31 @@ const errorInfo = i18n.t("保存失败");
 
 指定国际化转换函数名称列表，默认为 `t`。当框架为 `vue-i18n` 时，会强制启用 `t` 和 `tc`。
 
+#### `i18n-mage.i18nFeatures.namespaceStrategy`
+
+控制翻译键命名空间的生成策略。可选值：`'auto'` | `'full'` | `'file'` | `'none'`  
+
+**选项说明：**
+
+- **`'auto'` (自动推断)**:
+  - 自动选择词条使用率不为 0 的命名空间策略
+
+- **`'full'` (完整路径)**:
+  - 使用语言文件的完整相对路径作为命名空间前缀
+  - 路径分隔符（如 `/`）会被替换为点号（`.`）
+  - 示例：文件 `zh/modules/components.json` 会生成前缀 `modules.components`
+  - 适合复杂项目结构，确保键的唯一性
+
+- **`'file'` (仅文件名)**:
+  - 仅使用文件名（不含扩展名）作为命名空间前缀
+  - 示例：文件 `zh/modules/components.json` 会生成前缀 `components`
+  - 适合简单项目结构，键较短但可能不够唯一
+
+- **`'none'` (无命名空间)**:
+  - 不使用任何命名空间前缀，直接将语言文件内容合并到顶层
+  - 示例：文件 `zh/modules/components.json` 中的键直接使用，不加前缀
+  - 需要确保所有语言文件中的键全局唯一，否则会发生覆盖
+
 #### `i18n-mage.i18nFeatures.interpolationBrackets`
 
 设置变量插值使用的花括号风格，默认跟随所选国际化框架（如 `vue-i18n` 用{}，`react-i18next` 用 `{{}}` ）

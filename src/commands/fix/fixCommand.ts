@@ -47,7 +47,8 @@ export function registerFixCommand(context: vscode.ExtensionContext) {
             missingEntryFile = commonFiles[0];
           }
           if (typeof missingEntryFile === "string" && missingEntryFile.trim()) {
-            mage.setOptions({ missingEntryFile: `${missingEntryFile.replaceAll("/", ".")}` });
+            missingEntryFile = missingEntryFile.replaceAll("/", ".");
+            mage.setOptions({ missingEntryFile });
             await context.globalState.update("lastPickedFile", missingEntryFile);
           } else {
             mage.setOptions({ missingEntryFile: "" });

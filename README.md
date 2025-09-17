@@ -227,6 +227,31 @@ Select the internationalization framework to use: e.g., `vue-i18n`, `react-i18ne
 
 Specifies a list of internationalization translation function names. The default is `t`. When `vue-i18n` is used as the framework, `t` and `tc` are forcibly enabled.
 
+#### `i18n-mage.i18nFeatures.namespaceStrategy`
+
+Controls the generation strategy for translation key namespaces. Options: `'auto'` | `'full'` | `'file'` | `'none'`  
+
+**Option Details:**
+
+- **`'auto'` (Auto Inference)**:
+  - Automatically select a namespace strategy with a non-zero term usage rate
+
+- **`'full'` (Full Path)**:
+  - Uses the full relative path of the language file as the namespace prefix
+  - Path separators (e.g., `/`) are replaced with dots (`.`)
+  - Example: File `zh/modules/components.json` generates the prefix `modules.components`
+  - Suitable for complex project structures, ensuring key uniqueness
+
+- **`'file'` (File Name Only)**:
+  - Uses only the file name (without extension) as the namespace prefix
+  - Example: File `zh/modules/components.json` generates the prefix `components`
+  - Suitable for simple project structures, producing shorter keys but potentially less unique
+
+- **`'none'` (No Namespace)**:
+  - Does not use any namespace prefix, directly merging language file contents to the top level
+  - Example: Keys from file `zh/modules/components.json` are used directly without any prefix
+  - Requires all keys across language files to be globally unique to avoid overwrites
+
 #### `i18n-mage.i18nFeatures.interpolationBrackets`
 
 Sets the brace style used for variable interpolation. By default, it follows the selected internationalization framework (e.g., `vue-i18n` uses {}, `react-i18next` uses `{{}}`).
