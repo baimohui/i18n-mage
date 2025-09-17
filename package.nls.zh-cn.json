@@ -91,6 +91,7 @@
   "config.deeplVersion.desc": "选择 DeepL 版本：免费版（free）或专业版（pro）",
   "config.deeplApiKey.desc": "DeepL API Key（根据所选版本填写对应的 Key）",
   "config.namespaceStrategy.desc": "命名空间生成策略",
+  "config.namespaceStrategy.auto": "自动推断",
   "config.namespaceStrategy.full": "使用完整路径",
   "config.namespaceStrategy.file": "仅使用文件名",
   "config.namespaceStrategy.none": "不使用命名空间",

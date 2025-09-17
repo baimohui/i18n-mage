@@ -56,8 +56,9 @@ export class ReadHandler {
   }
 
   public async startCensus(): Promise<void> {
-    const filePaths = this._readAllFiles(this.ctx.projectPath);
     const totalEntryList = Object.keys(this.ctx.langDictionary).map(key => unescapeString(key));
+    if (!this.ctx.globalFlag || totalEntryList.length === 0) return;
+    const filePaths = this._readAllFiles(this.ctx.projectPath);
     this.ctx.usedEntryMap = {};
     this.ctx.undefinedEntryList = [];
     this.ctx.undefinedEntryMap = {};
@@ -293,12 +294,15 @@ export class ReadHandler {
     function traverseStructure(node: EntryNode, currentPath = "", data: EntryTree) {
       if (node.type === "file") {
         // 处理文件
-        const fileName = currentPath.split(".").pop() ?? "";
-        const fileData = (langData[fileName] ?? {}) as EntryTree;
+        const pathList = currentPath.split(".");
+        const fileData = pathList.reduce((acc, key) => {
+          return acc[key] as EntryTree;
+        }, langData);
+        const fileName = pathList.pop() ?? "";
 
         if (strategy === NAMESPACE_STRATEGY.full || strategy === NAMESPACE_STRATEGY.file) {
           data[fileName] ??= fileData;
-        } else if (strategy === "none") {
+        } else if (strategy === NAMESPACE_STRATEGY.none) {
           Object.assign(data, fileData);
         }
         processFileData(fileData, currentPath, fileName, strategy, keyMap);

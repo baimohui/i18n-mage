@@ -9,6 +9,7 @@ export const I18N_FRAMEWORK = {
 export type I18nFramework = (typeof I18N_FRAMEWORK)[keyof typeof I18N_FRAMEWORK];
 
 export const NAMESPACE_STRATEGY = {
+  auto: "auto",
   full: "full",
   file: "file",
   none: "none"

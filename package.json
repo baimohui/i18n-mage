@@ -128,16 +128,18 @@
           "i18n-mage.i18nFeatures.namespaceStrategy": {
             "order": 7,
             "enum": [
+              "auto",
               "full",
               "file",
               "none"
             ],
             "enumDescriptions": [
+              "%config.namespaceStrategy.auto%",
               "%config.namespaceStrategy.full%",
               "%config.namespaceStrategy.file%",
               "%config.namespaceStrategy.none%"
             ],
-            "default": "full",
+            "default": "auto",
             "description": "%config.namespaceStrategy.desc%"
           },
           "i18n-mage.i18nFeatures.interpolationBrackets": {

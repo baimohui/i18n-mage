@@ -9,7 +9,7 @@ import { SortHandler } from "./handlers/SortHandler";
 import { TrimHandler } from "./handlers/TrimHandler";
 import { ModifyHandler } from "./handlers/ModifyHandler";
 import { ReadHandler } from "./handlers/ReadHandler";
-import { LangMageOptions, ExecutionResult, EXECUTION_RESULT_CODE, KeyStyle } from "@/types";
+import { LangMageOptions, ExecutionResult, EXECUTION_RESULT_CODE, KeyStyle, NAMESPACE_STRATEGY } from "@/types";
 import { getDetectedLangList } from "@/core/tools/contextTools";
 import { getLangCode } from "@/utils/langKey";
 import { t } from "@/utils/i18n";
@@ -186,9 +186,25 @@ class LangMage {
   }
 
   private async read() {
-    this.reset();
     const reader = new ReadHandler(this.ctx);
-    reader.readLangFiles();
+    const detect = async () => {
+      this.reset();
+      reader.readLangFiles();
+      await reader.startCensus();
+    };
+    if (this.ctx.namespaceStrategy === NAMESPACE_STRATEGY.auto) {
+      const strategyList = [NAMESPACE_STRATEGY.full, NAMESPACE_STRATEGY.file, NAMESPACE_STRATEGY.none];
+      for (const strategy of strategyList) {
+        this.ctx.namespaceStrategy = strategy;
+        if (this.ctx.multiFileMode === 1 && strategy === NAMESPACE_STRATEGY.file) continue;
+        await detect();
+        if (this.ctx.multiFileMode === 0 || !this.ctx.globalFlag || this.ctx.usedKeySet.size > 0) {
+          break;
+        }
+      }
+    } else {
+      await detect();
+    }
     if (this.detectedLangList.length === 0) {
       return false;
     }
@@ -205,9 +221,6 @@ class LangMage {
       );
     };
     this.ctx.referredLang = resolveLang(this.ctx.referredLang, true);
-    if (this.ctx.globalFlag) {
-      await reader.startCensus();
-    }
     return true;
   }
 

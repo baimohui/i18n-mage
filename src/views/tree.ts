@@ -223,6 +223,11 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
                 NotificationManager.logToOutput(`Failed to set config for referenceLanguage: ${error}`, "error");
               });
             }
+            if (getConfig("i18nFeatures.namespaceStrategy") !== this.publicCtx.namespaceStrategy && this.langInfo.multiFileMode > 0) {
+              setConfig("i18nFeatures.namespaceStrategy", this.publicCtx.namespaceStrategy).catch(error => {
+                NotificationManager.logToOutput(`Failed to set config for namespaceStrategy: ${error}`, "error");
+              });
+            }
           }, 10000);
         }
       }
