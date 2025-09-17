@@ -4,6 +4,24 @@ All notable changes to the i18n Mage VS Code extension will be documented in thi
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.5] - 2025-09-17
+
+### Added
+- **Single File Operations**: Added context menu options to copy translation entries and fix undefined entries directly from the right-click menu in open files.
+- **Namespace Configuration**: Introduced a new namespace generation strategy with four options: `'auto'` (auto-inference), `'full'` (full path), `'file'` (filename only), and `'none'` (no namespace).
+- **Diagnostics Toggle**: Added configuration option to enable or disable diagnostics as needed.
+- **Manual Prefix Selection**: Enhanced key prefix generation with a "manual-selection" option that allows users to choose from existing prefixes when generating translation keys for undefined entries.
+
+### Changed
+- **Refined Inline Hint Colors**: Updated default color scheme for translation inline hints with more professional, subtle tones that minimize visual disruption:
+  - Light Theme: Font color #2E7D9A with background #9EC9D7 at 40% opacity
+  - Dark Theme: Font color #4EC9B0 with background #264F48 at 60% opacity
+- **Enhanced DeepSeek Parsing**: Further optimized text segmentation logic to prevent delimiter output when translating single text entries.
+
+### Fixed
+- **Chinese Language Detection**: Resolved an issue where "zh" was incorrectly identified as Traditional Chinese instead of Simplified Chinese.
+- **Escape Character Handling**: Added proper escape sequence processing for line breaks and special characters when editing entry values, copying entries, and displaying translation tooltips.
+
 ## [1.0.4] - 2025-09-09
 
 ### Added
