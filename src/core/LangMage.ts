@@ -34,7 +34,7 @@ class LangMage {
   public setOptions(options: LangMageOptions = {}): void {
     if (Object.prototype.toString.call(options) === "[object Object]") {
       const combinedOptions: LangMageOptions = {
-        referredLang: this.ctx.referredLang || getConfig<string>("translationServices.referenceLanguage", this.ctx.referredLang),
+        referredLang: this.resolveLang(getConfig<string>("translationServices.referenceLanguage", this.ctx.referredLang)),
         i18nFramework: getConfig<I18nFramework>("i18nFeatures.framework", this.ctx.i18nFramework),
         namespaceStrategy: getConfig<NamespaceStrategy>("i18nFeatures.namespaceStrategy", this.ctx.namespaceStrategy),
         ignoredLangs: getConfig<string[]>("workspace.ignoredLanguages", this.ctx.ignoredLangs),
@@ -208,20 +208,22 @@ class LangMage {
     if (this.detectedLangList.length === 0) {
       return false;
     }
-    const resolveLang = (target: string, isValidCode = false) => {
-      const targetCode = getLangCode(target);
-      const defaultCode = getLangCode(this.ctx.defaultLang);
-      return (
-        this.detectedLangList.find(lang => lang === target) ??
-        this.detectedLangList.find(lang => getLangCode(lang) === targetCode) ??
-        this.detectedLangList.find(lang => getLangCode(lang) === defaultCode) ??
-        this.detectedLangList.find(lang => getLangCode(lang) === "en") ??
-        this.detectedLangList.find(lang => (isValidCode ? getLangCode(lang) !== null : Boolean(lang))) ??
-        ""
-      );
-    };
-    this.ctx.referredLang = resolveLang(this.ctx.referredLang, true);
+    this.ctx.referredLang = this.resolveLang(this.ctx.referredLang);
     return true;
+  }
+
+  private resolveLang(target: string) {
+    if (this.detectedLangList.length === 0) return target;
+    const targetCode = getLangCode(target);
+    const defaultCode = getLangCode(this.ctx.defaultLang);
+    return (
+      this.detectedLangList.find(lang => lang === target) ??
+      this.detectedLangList.find(lang => getLangCode(lang) === targetCode) ??
+      this.detectedLangList.find(lang => getLangCode(lang) === defaultCode) ??
+      this.detectedLangList.find(lang => getLangCode(lang) === "en") ??
+      this.detectedLangList.find(lang => getLangCode(lang) !== null) ??
+      ""
+    );
   }
 
   private reset(): void {
