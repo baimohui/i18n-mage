@@ -162,8 +162,8 @@ export class ReadHandler {
           setAtPath(idTree, path, id, isFromArray);
           if (!(id in lookup)) {
             lookup[id] = {
-              fullPath: keyPathMap ? keyPathMap[id].fullPath : id,
-              fileScope: keyPathMap ? keyPathMap[id].fileScope : "",
+              fullPath: keyPathMap?.[id] ? keyPathMap[id].fullPath : id,
+              fileScope: keyPathMap?.[id] ? keyPathMap[id].fileScope : "",
               value: {}
             };
           }
@@ -347,7 +347,7 @@ export class ReadHandler {
       for (const [key, value] of Object.entries(obj as EntryTree)) {
         const currentKey = baseKey ? `${baseKey}.${escapeString(key)}` : escapeString(key);
 
-        if (typeof value === "object" && value !== null && !Array.isArray(value)) {
+        if (typeof value === "object" && value !== null) {
           // 如果是嵌套对象，继续递归处理
           processNestedObject(value, currentKey);
         } else {

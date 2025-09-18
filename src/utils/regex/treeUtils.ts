@@ -146,7 +146,7 @@ export function getContentAtLocation(
       return dictionary[node].fileScope === location ? node : null;
     }
     // 非叶子节点：递归处理子节点
-    const result = {};
+    const result = Array.isArray(node) ? [] : {};
     for (const key in node) {
       const child = helper(node[key] as EntryTree);
       if (child !== null) {
