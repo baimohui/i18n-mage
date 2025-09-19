@@ -4,6 +4,14 @@ All notable changes to the i18n Mage VS Code extension will be documented in thi
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.6] - 2025-09-19
+
+### Fixed
+- **Array Value Parsing**: Resolved an issue where translation files containing array values caused entry parsing exceptions.
+- **Reference Language Sync**: Fixed a bug where changing the reference language in configuration files wasn't automatically synchronized within the extension.
+- **Array Value Navigation**: Corrected an issue where entries with array values couldn't properly navigate to their definition locations.
+- **Single File Cleanup**: Solved a problem where the "Clear Unused Entries" function couldn't remove all entries within a single file.
+
 ## [1.0.5] - 2025-09-17
 
 ### Added
