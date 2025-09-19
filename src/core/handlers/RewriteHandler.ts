@@ -91,7 +91,7 @@ export class RewriteHandler {
         iterate(entryTree, langObj);
       }
     }
-    if (Object.keys(langObj).length > 0) {
+    if (langObj != null) {
       const extraInfo = this.ctx.langFileExtraInfo[filePos ? `${lang}.${filePos}` : lang];
       if (this.ctx.quoteStyleForKey !== "auto") {
         extraInfo.keyQuotes = this.ctx.quoteStyleForKey;
