@@ -87,24 +87,23 @@ export class RewriteHandler {
       langObj = translation;
     } else {
       const entryTree = getContentAtLocation(filePos, this.ctx.entryTree, this.ctx.langDictionary, this.ctx.namespaceStrategy);
-      if (entryTree) {
-        iterate(entryTree, langObj);
+      if (entryTree === null) {
+        throw new Error(t("command.rewrite.fileNotFound", filePath));
       }
+      iterate(entryTree, langObj);
     }
-    if (langObj != null) {
-      const extraInfo = this.ctx.langFileExtraInfo[filePos ? `${lang}.${filePos}` : lang];
-      if (this.ctx.quoteStyleForKey !== "auto") {
-        extraInfo.keyQuotes = this.ctx.quoteStyleForKey;
-      }
-      if (this.ctx.quoteStyleForValue !== "auto") {
-        extraInfo.valueQuotes = this.ctx.quoteStyleForValue;
-      }
-      if (this.ctx.languageFileIndent !== null) {
-        extraInfo.indentSize = this.ctx.languageFileIndent;
-      }
-      const fileContent = formatObjectToString(langObj, filePath, extraInfo);
-      await fs.promises.writeFile(filePath, fileContent);
+    const extraInfo = this.ctx.langFileExtraInfo[filePos ? `${lang}.${filePos}` : lang];
+    if (this.ctx.quoteStyleForKey !== "auto") {
+      extraInfo.keyQuotes = this.ctx.quoteStyleForKey;
     }
+    if (this.ctx.quoteStyleForValue !== "auto") {
+      extraInfo.valueQuotes = this.ctx.quoteStyleForValue;
+    }
+    if (this.ctx.languageFileIndent !== null) {
+      extraInfo.indentSize = this.ctx.languageFileIndent;
+    }
+    const fileContent = formatObjectToString(langObj, filePath, extraInfo);
+    await fs.promises.writeFile(filePath, fileContent);
   }
 
   private getLangFilePath(lang: string, filePos: string): string {

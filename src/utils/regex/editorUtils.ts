@@ -2,6 +2,7 @@ import * as vscode from "vscode";
 
 export async function selectProperty(uri: vscode.Uri, key: string) {
   // 1. 拆分并还原转义的点
+  const isEndWithNum = key.match(/\.(\d+)$/);
   const parts = key.split(/(?<!\\)\./).map(p => p.replace(/\\\./g, "."));
   const doc = await vscode.workspace.openTextDocument(uri);
   const editor = await vscode.window.showTextDocument(doc);
@@ -12,9 +13,10 @@ export async function selectProperty(uri: vscode.Uri, key: string) {
   for (let i = 0; i < parts.length; i++) {
     const key = parts[i];
     const isLast = i === parts.length - 1;
+    const isBeforeLast = i === parts.length - 2;
     const keyEsc = escapeReg(key);
     const lookaround = `(?<![\\w$])["']?${keyEsc}["']?(?![\\w$])`;
-    const suffix = isLast ? `` : `\\s*\\{`;
+    const suffix = isLast ? `` : `\\s*[\\{\\[]`;
     const pat = new RegExp(lookaround + `\\s*:` + suffix);
     const m = pat.exec(text.slice(searchStart));
     // 未找到属性 key
@@ -22,7 +24,7 @@ export async function selectProperty(uri: vscode.Uri, key: string) {
       return;
     }
     const matchIndex = searchStart + m.index;
-    if (isLast) {
+    if (isLast || (isBeforeLast && isEndWithNum)) {
       // 最后一级，直接定位属性名开始
       const offset = matchIndex + m[0].indexOf(key);
       rangeStart = offset;
@@ -45,7 +47,7 @@ export async function selectProperty(uri: vscode.Uri, key: string) {
   // 3. 设置选区并高亮属性名
   if (rangeStart !== undefined) {
     const startPos = doc.positionAt(rangeStart);
-    const endPos = startPos.translate(0, parts[parts.length - 1].length);
+    const endPos = startPos.translate(0, parts[parts.length - (isEndWithNum ? 2 : 1)].length);
     editor.selection = new vscode.Selection(startPos, endPos);
     editor.revealRange(new vscode.Range(startPos, endPos));
   }
