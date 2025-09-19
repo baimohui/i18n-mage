@@ -3,6 +3,7 @@ import { registerDisposable } from "@/utils/dispose";
 import { DecoratorController } from "@/features/Decorator";
 import LangMage from "@/core/LangMage";
 import { clearConfigCache, getConfig } from "@/utils/config";
+import { treeInstance } from "@/views/tree";
 
 export function registerOnConfigChange() {
   const mage = LangMage.getInstance();
@@ -25,12 +26,15 @@ export function registerOnConfigChange() {
     ) {
       clearConfigCache();
     } else if (
+      event.affectsConfiguration("i18n-mage.translationServices.referenceLanguage") ||
       event.affectsConfiguration("i18n-mage.general.fileExtensions") ||
       event.affectsConfiguration("i18n-mage.analysis.fileSizeSkipThresholdKB") ||
       event.affectsConfiguration("i18n-mage.analysis.ignoreCommentedCode")
     ) {
       clearConfigCache();
       vscode.commands.executeCommand("i18nMage.checkUsage");
+    } else if (event.affectsConfiguration("i18n-mage.general.displayLanguage")) {
+      treeInstance.refresh();
     } else if (
       event.affectsConfiguration("i18n-mage.translationHints.light") ||
       event.affectsConfiguration("i18n-mage.translationHints.dark") ||
