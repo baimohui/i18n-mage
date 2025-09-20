@@ -97,5 +97,11 @@ export function getPathSegsFromId(id: string): string[] {
 }
 
 export function escapeMarkdown(text: string): string {
-  return text.replace(/`/g, "\\`").replace(/\*/g, "\\*").replace(/_/g, "\\_").replace(/#/g, "\\#").replace(/~/g, "\\~");
+  return text
+    .replace(/\\/g, "\\\\")
+    .replace(/`/g, "\\`")
+    .replace(/\*/g, "\\*")
+    .replace(/_/g, "\\_")
+    .replace(/#/g, "\\#")
+    .replace(/~/g, "\\~");
 }
