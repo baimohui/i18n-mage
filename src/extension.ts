@@ -9,6 +9,7 @@ import { NotificationManager } from "@/utils/notification";
 import { getConfig } from "@/utils/config";
 import { HoverProvider } from "./features/HoverProvider";
 import { registerDisposable } from "@/utils/dispose";
+import { StatusBarItemManager } from "./features/StatusBarItemManager";
 
 // 全局状态管理
 class ExtensionState {
@@ -54,6 +55,9 @@ class ExtensionState {
     registerAllCommands(this._context);
     registerAllListeners();
     registerDisposable(vscode.languages.registerHoverProvider("*", new HoverProvider()));
+    const statusBarItemManager = StatusBarItemManager.getInstance();
+    statusBarItemManager.createStatusBarItem();
+    registerDisposable(statusBarItemManager);
     this._extensionSubscriptions = bindDisposablesToContext(this._context);
     await wrapWithProgress({ title: "" }, async () => {
       await treeInstance.initTree();

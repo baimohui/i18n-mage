@@ -15,7 +15,7 @@ export function registerSetDisplayLangCommand() {
     } else {
       const publicCtx = mage.getPublicContext();
       const langList = mage.detectedLangList.filter(l => !publicCtx.ignoredLangs.includes(l));
-      target = await vscode.window.showQuickPick(langList, { placeHolder: t("command.pick.selectLang") });
+      target = await vscode.window.showQuickPick(langList, { placeHolder: t("command.pick.selectDisplayLang") });
     }
     if (target !== undefined) {
       await wrapWithProgress({ title: "" }, async () => {

@@ -26,7 +26,6 @@ export function registerOnConfigChange() {
     ) {
       clearConfigCache();
     } else if (
-      event.affectsConfiguration("i18n-mage.translationServices.referenceLanguage") ||
       event.affectsConfiguration("i18n-mage.general.fileExtensions") ||
       event.affectsConfiguration("i18n-mage.analysis.fileSizeSkipThresholdKB") ||
       event.affectsConfiguration("i18n-mage.analysis.ignoreCommentedCode")

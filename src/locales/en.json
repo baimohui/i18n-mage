@@ -21,6 +21,8 @@
   "command.export.success": "Successfully exported",
   "command.export.title": "Export translation",
   "command.export.wrongPath": "Export path error",
+  "command.fix.customKey": "Custom key category",
+  "command.fix.customKeyInput": "Please enter a value (can be left blank)",
   "command.fix.error": "Fix failed: {0}",
   "command.fix.existingUndefinedSuccess": "Processing complete",
   "command.fix.noReferredLang": "No valid source language for translation detected",
@@ -28,6 +30,7 @@
   "command.fix.progress": "Fixing...",
   "command.fix.progressDetail": "Call {1} API to {0}, adding new translation: {2}",
   "command.fix.selectFileToWrite": "Select the file to write translations for undefined entries",
+  "command.fix.selectKeyToWrite": "Select the category for the write key",
   "command.fix.success": "Successfully fixed",
   "command.fix.translatorFailed": "Processed {0} languages: all failed",
   "command.fix.translatorPartialSuccess": "Processed {0} languages: {1} succeeded ({2} new translations), {3} failed",
@@ -67,8 +70,10 @@
   "command.parseLangFile.json5Error": "Language file JSON5 parsing failed: {0}",
   "command.parseLangFile.success": "The language file is successfully parsed, and additional information of the file is generated: {0}",
   "command.parseLangFile.title": "Reading language file: {0}",
+  "command.pick.selectDisplayLang": "Select display language",
   "command.pick.selectKey": "Select the entry to mark as used",
   "command.pick.selectLang": "Select a language",
+  "command.pick.selectReferredLang": "Select source language",
   "command.rewrite.fileNotFound": "Invalid file path ({0})",
   "command.rewrite.progress": "Writing...",
   "command.rewrite.success": "Successfully written",
@@ -164,8 +169,5 @@
   "tree.usedInfo.undefinedAutoTranslateEnabled": "Automatic translation undefined entries function has been enabled",
   "tree.usedInfo.undefinedValidLang": "Unsupported language for auto-translation",
   "tree.usedInfo.unused": "Unused",
-  "tree.usedInfo.used": "Used",
-  "command.fix.customKey": "Custom key category",
-  "command.fix.selectKeyToWrite": "Select the category for the write key",
-  "command.fix.customKeyInput": "Please enter a value (can be left blank)"
+  "tree.usedInfo.used": "Used"
 }

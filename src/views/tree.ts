@@ -17,6 +17,7 @@ import { NotificationManager } from "@/utils/notification";
 import { getCacheConfig, getConfig, setConfig } from "@/utils/config";
 import { DecoratorController } from "@/features/Decorator";
 import { Diagnostics } from "@/features/Diagnostics";
+import { StatusBarItemManager } from "@/features/StatusBarItemManager";
 
 interface ExtendedTreeItem extends vscode.TreeItem {
   level?: number;
@@ -108,6 +109,8 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
     const decorator = DecoratorController.getInstance();
     decorator.update(vscode.window.activeTextEditor);
     const diagnostics = Diagnostics.getInstance();
+    const statusBarItemManager = StatusBarItemManager.getInstance();
+    statusBarItemManager.update();
     vscode.workspace.textDocuments.forEach(doc => diagnostics.update(doc));
     this._onDidChangeTreeData.fire();
   }
