@@ -105,7 +105,7 @@ export function validateLang(str: string, lang: string): boolean {
       res = /[\u0900-\u097F]/.test(str);
       break;
     case "vi": // 越南语
-      res = /[a-zA-ZÀ-ỹĀ-ỹăâđêôơưáàảãạấầẩẫậắằẳẵặéèẻẽẹếềểễệíìỉĩịóòỏõọốồổỗộớờởỡợúùủũụứừửữựýỳỷỹỵ]/i.test(str);
+      res = /[a-zA-Zăâđêôơưáàảãạấầẩẫậắằẳẵặéèẻẽẹếềểễệíìỉĩịóòỏõọốồổỗộớờởỡợúùủũụứừửữựýỳỷỹỵ]/i.test(str);
       break;
     default:
       res = true; // 未知语言默认通过
