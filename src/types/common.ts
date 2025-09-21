@@ -106,10 +106,16 @@ export type ExcelData = {
 }[];
 
 // 定义节点类型
-export interface EntryNode {
-  type: "directory" | "file";
-  children?: Record<string, EntryNode>; // 只有目录有 children
-  ext?: string; // 只有文件有扩展名
-}
+type FileNode = {
+  type: "file";
+  ext: string;
+};
+
+export type DirNode = {
+  type: "directory";
+  children: Record<string, FileNode | DirNode>;
+};
+
+export type EntryNode = FileNode | DirNode;
 
 export type QuoteStyle = "single" | "double" | "none";

@@ -3,7 +3,18 @@ import vm from "node:vm";
 import path from "path";
 import JSON5 from "json5";
 import { escapeString } from "./stringUtils";
-import { LangTree, FileExtraInfo, LangFileInfo, EntryNode, EntryMap, EntryTree, I18nFramework, I18N_FRAMEWORK, QuoteStyle } from "@/types";
+import {
+  LangTree,
+  FileExtraInfo,
+  LangFileInfo,
+  EntryNode,
+  EntryMap,
+  EntryTree,
+  I18nFramework,
+  I18N_FRAMEWORK,
+  QuoteStyle,
+  DirNode
+} from "@/types";
 import { isPathInsideDirectory, isSamePath, toRelativePath } from "../fs";
 import { getCacheConfig } from "../config";
 import { NotificationManager } from "../notification";
@@ -184,7 +195,7 @@ export interface ExtractResult {
   fileType: string; // 最终使用的文件后缀
   langTree: LangTree; // 语言数据树
   fileExtraInfo: Record<string, FileExtraInfo>;
-  fileStructure: EntryNode; // 带 type 标记的文件树
+  fileStructure: DirNode; // 带 type 标记的文件树
   fileNestedLevel: number; // 文件树最大嵌套层级
 }
 
@@ -198,11 +209,11 @@ export function extractLangDataFromDir(langPath: string): ExtractResult | null {
     pathSegs: string[]
   ): {
     tree: LangTree;
-    node: EntryNode;
+    node: DirNode;
     hasData: boolean;
   } {
     const tree: LangTree = {};
-    const node: EntryNode = { type: "directory", children: {} };
+    const node: DirNode = { type: "directory", children: {} };
     let hasData = false;
 
     for (const dirent of fs.readdirSync(dir, { withFileTypes: true })) {
@@ -213,7 +224,7 @@ export function extractLangDataFromDir(langPath: string): ExtractResult | null {
         const { tree: subTree, node: subNode, hasData: ok } = traverse(fullPath, subPathSegs);
         if (ok) {
           tree[dirent.name] = subTree;
-          node.children![dirent.name] = subNode;
+          node.children[dirent.name] = subNode;
           fileNestedLevel = Math.max(fileNestedLevel, subPathSegs.length);
           hasData = true;
         }
@@ -233,7 +244,7 @@ export function extractLangDataFromDir(langPath: string): ExtractResult | null {
         // 挂到语言树
         tree[base] = data;
         // 在结构树中标记为文件
-        node.children![base] = { type: "file", ext };
+        node.children[base] = { type: "file", ext };
         hasData = true;
         // 生成位置键：pathSegs + base
         const locationKey = [...pathSegs, base].join(".");
@@ -280,6 +291,57 @@ export function detectI18nFramework(projectRoot: string): I18nFramework | null {
     return I18N_FRAMEWORK.vscodeL10n;
   }
   return null;
+}
+
+/**
+ * 将语言目录结构转化为不包含语言名称的结构
+ * @param root 原始结构
+ * @returns DirNode | null
+ */
+export function stripLanguageLayer(root: DirNode): DirNode | null {
+  const children = root.children;
+
+  // 判断是否所有子节点都是文件（语言文件的情况）
+  const allFiles = Object.values(children).every(c => c.type === "file");
+  if (allFiles) {
+    return null;
+  }
+
+  // 情况：每个子节点是一个语言目录
+  const mergedChildren: Record<string, EntryNode> = {};
+
+  for (const lang of Object.keys(children)) {
+    const node = children[lang];
+    if (node.type !== "directory") {
+      // 出现非目录，说明不是标准语言结构，直接忽略
+      continue;
+    }
+
+    // 遍历语言目录的子项
+    for (const [name, child] of Object.entries(node.children)) {
+      if (!Object.hasOwn(mergedChildren, name)) {
+        // 直接拷贝
+        mergedChildren[name] = JSON.parse(JSON.stringify(child)) as EntryNode;
+      } else {
+        // 已存在 -> 合并
+        const existing = mergedChildren[name];
+        if (existing.type === "directory" && child.type === "directory") {
+          // 递归合并目录
+          existing.children = {
+            ...existing.children,
+            ...child.children
+          };
+        }
+        // 如果都是 file，直接保持一致即可
+        // 如果一边是 file 一边是 directory，优先保持 directory
+        if (existing.type === "file" && child.type === "directory") {
+          mergedChildren[name] = JSON.parse(JSON.stringify(child)) as EntryNode;
+        }
+      }
+    }
+  }
+
+  return { type: "directory", children: mergedChildren };
 }
 
 export function detectQuoteStyle(code: string): {

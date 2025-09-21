@@ -166,15 +166,8 @@ export class FixHandler {
         nameInfo.boundName = entryName;
         newIdSet.add(entryName);
       }
-      // const structure = this.ctx.fileStructure?.children?.[this.ctx.referredLang];
-      // if (this.ctx.multiFileMode > 0 && structure && getFileLocationFromId(nameInfo.boundName, structure) === null) {
-      //   nameInfo.boundName = this.ctx.missingEntryFile + nameInfo.boundName;
-      // }
       patchedEntryIdList.push({ ...entry, fixedRaw: this.getFixedRaw(entry, unescapeString(nameInfo.boundName)) });
       this.needFix = true;
-      // if (this.ctx.multiFileMode === 0 && this.ctx.nestedLocale === 0) {
-      //   nameInfo.boundName = escapeString(nameInfo.boundName);
-      // }
       referredLangMap[nameInfo.boundName] = nameInfo.text;
       let fullPath = nameInfo.boundName;
       if (this.ctx.missingEntryFile) {

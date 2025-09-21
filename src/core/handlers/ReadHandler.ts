@@ -9,7 +9,8 @@ import {
   flattenNestedObj,
   escapeString,
   unescapeString,
-  isValidI18nCallablePath
+  isValidI18nCallablePath,
+  stripLanguageLayer
 } from "@/utils/regex";
 import { EntryTree, LangDictionary, LangTree } from "@/types";
 import { isFileTooLarge } from "@/utils/fs";
@@ -27,11 +28,11 @@ export class ReadHandler {
     let keyPathMap: Record<string, { fullPath: string; fileScope: string }> | null = null;
     this.ctx.langFileExtraInfo = langData.fileExtraInfo;
     this.ctx.langFileType = langData.fileType;
-    this.ctx.fileStructure = langData.fileStructure;
+    this.ctx.fileStructure = stripLanguageLayer(langData.fileStructure);
     this.ctx.multiFileMode = langData.fileNestedLevel;
     let fileNestedLevelOffset = 0;
     if (this.ctx.multiFileMode > 0) {
-      const { treeData, keyMap } = this.processLanguageData(langData.fileStructure, langTree, this.ctx.namespaceStrategy);
+      const { treeData, keyMap } = this.processLanguageData(langTree, this.ctx.namespaceStrategy);
       langTree = treeData;
       keyPathMap = keyMap;
       if (this.ctx.namespaceStrategy === NAMESPACE_STRATEGY.full) {
@@ -245,85 +246,55 @@ export class ReadHandler {
   /**
    * 根据文件结构和语言数据生成处理后的树数据和键映射表
    * 保持语言文件中原有的键结构，不进行扁平化处理
-   * @param {Object} fileStructure 文件结构对象
    * @param {Object} langData 语言数据对象
    * @param {string} namespaceStrategy 命名空间策略：'full'、'file' 或 'none'
    * @returns {Object} 包含 treeData 和 keyMap 的对象
    */
-  private processLanguageData(fileStructure: EntryNode, langData: LangTree, namespaceStrategy: NamespaceStrategy) {
+  private processLanguageData(langTree: LangTree, namespaceStrategy: NamespaceStrategy) {
     const treeData: LangTree = {};
     const keyMap: Record<string, { fullPath: string; fileScope: string }> = {};
 
-    // 初始化所有语言的树数据
-    for (const lang of Object.keys(langData)) {
-      treeData[lang] = {};
-    }
-
-    // 遍历所有语言目录
-    const langFileStructure = fileStructure.children as Record<string, EntryNode>;
-    for (const lang of Object.keys(langFileStructure)) {
-      const langStruct = langFileStructure[lang];
-      if (langStruct.type !== "directory" || !langStruct.children) continue;
-
-      // 处理当前语言目录下的所有文件
-      this.processLanguageDirectory(lang, langStruct, langData[lang], namespaceStrategy, treeData, keyMap);
-    }
-
-    return { treeData, keyMap };
-  }
-
-  /**
-   * 处理特定语言目录
-   * @param {string} lang 语言代码
-   * @param {Object} langStruct 语言目录结构
-   * @param {Object} langData 语言数据
-   * @param {string} strategy 命名空间策略
-   * @param {Object} treeData 树数据对象
-   * @param {Object} keyMap 键映射表
-   */
-  private processLanguageDirectory(
-    lang: string,
-    langStruct: EntryNode,
-    langData: EntryTree,
-    strategy: NamespaceStrategy,
-    treeData: EntryTree,
-    keyMap: Record<string, { fullPath: string; fileScope: string }>
-  ) {
-    // 递归遍历目录结构
-    const processFileData = this.processFileData.bind(this);
-    function traverseStructure(node: EntryNode, currentPath = "", data: EntryTree) {
+    // const processFileData = this.processFileData.bind(this);
+    const traverseStructure = (node: EntryNode, currentPath = "", data: EntryTree, langData: EntryTree) => {
       if (node.type === "file") {
         // 处理文件
         const pathList = currentPath.split(".");
         const fileData = pathList.reduce((acc, key) => {
-          return acc[key] as EntryTree;
+          return (acc[key] ?? {}) as EntryTree;
         }, langData);
         const fileName = pathList.pop() ?? "";
 
-        if (strategy === NAMESPACE_STRATEGY.full || strategy === NAMESPACE_STRATEGY.file) {
+        if (namespaceStrategy === NAMESPACE_STRATEGY.full || namespaceStrategy === NAMESPACE_STRATEGY.file) {
           data[fileName] ??= fileData;
-        } else if (strategy === NAMESPACE_STRATEGY.none) {
+        } else if (namespaceStrategy === NAMESPACE_STRATEGY.none) {
           Object.assign(data, fileData);
         }
-        processFileData(fileData, currentPath, fileName, strategy, keyMap);
-      } else if (node.type === "directory" && node.children) {
+        this.processFileData(fileData, currentPath, fileName, namespaceStrategy, keyMap);
+      } else if (node.type === "directory") {
         // 递归处理子目录
         for (const [name, child] of Object.entries(node.children)) {
           let newData = data;
-          if (strategy === NAMESPACE_STRATEGY.full) {
+          if (namespaceStrategy === NAMESPACE_STRATEGY.full) {
             data[currentPath] ??= {};
             newData = data[currentPath] as EntryTree;
           }
           const newPath = currentPath ? `${currentPath}.${name}` : name;
-          traverseStructure(child, newPath, newData);
+          traverseStructure(child, newPath, newData, langData);
         }
+      }
+    };
+
+    // 初始化所有语言的树数据
+    for (const lang of Object.keys(langTree)) {
+      treeData[lang] = {};
+      if (this.ctx.fileStructure === null) continue;
+      // 递归遍历目录结构
+      for (const [name, child] of Object.entries(this.ctx.fileStructure.children)) {
+        traverseStructure(child, name, treeData[lang], langTree[lang]);
       }
     }
 
-    // 开始遍历
-    for (const [name, child] of Object.entries(langStruct.children as Record<string, EntryNode>)) {
-      traverseStructure(child, name, treeData[lang] as EntryTree);
-    }
+    return { treeData, keyMap };
   }
 
   /**

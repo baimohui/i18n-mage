@@ -7,14 +7,14 @@ import {
   FixedTEntry,
   LackInfo,
   NullInfo,
-  EntryNode,
   FileExtraInfo,
   SortMode,
   KeyStyle,
   QuoteStyle,
   I18nFramework,
   NamespaceStrategy,
-  EntryClassTree
+  EntryClassTree,
+  DirNode
 } from "@/types";
 
 // 外部模块可访问的公共上下文
@@ -32,7 +32,7 @@ export interface LangContextPublic {
   exportDir: string;
   cachePath: string;
   styleScore: number;
-  fileStructure: EntryNode | null;
+  fileStructure: DirNode | null;
   syncBasedOnReferredEntries: boolean;
   sortAfterFix: boolean;
   sortingWriteMode: SortMode;

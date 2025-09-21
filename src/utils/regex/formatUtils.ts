@@ -26,7 +26,7 @@ export function getLineEnding(filePath?: string): string {
  */
 function getDocumentEol(filePath?: string): string | null {
   let text = "";
-  if (filePath !== undefined) {
+  if (filePath !== undefined && fs.existsSync(filePath)) {
     text = fs.readFileSync(filePath, "utf8");
   } else {
     const editor = vscode.window.activeTextEditor;

@@ -1,6 +1,6 @@
 import fs from "fs";
 import path from "path";
-import { LangContextInternal, EntryTree } from "@/types";
+import { LangContextInternal, EntryTree, FileExtraInfo } from "@/types";
 import {
   getFileLocationFromId,
   getContentAtLocation,
@@ -21,9 +21,8 @@ export class RewriteHandler {
         const filePosSet = new Set<string>();
         for (const [key, value] of Object.entries(entryInfo)) {
           this.updateEntryValue(key, value, lang);
-          const structure = this.ctx.fileStructure?.children?.[lang];
-          if (!structure) continue;
-          const filePos = getFileLocationFromId(this.ctx.langDictionary[key].fullPath, structure);
+          if (!this.ctx.fileStructure) continue;
+          const filePos = getFileLocationFromId(this.ctx.langDictionary[key].fullPath, this.ctx.fileStructure);
           if (Array.isArray(filePos) && filePos.length > 0) filePosSet.add(filePos.join("."));
         }
         const filePosList = Array.from(filePosSet);
@@ -62,10 +61,6 @@ export class RewriteHandler {
 
   private async rewriteTranslationFile(lang: string, filePos: string): Promise<void> {
     const filePath = this.getLangFilePath(lang, filePos);
-    const isFileExists = await checkPathExists(filePath);
-    if (!isFileExists) {
-      throw new Error(t("command.rewrite.fileNotFound", filePath));
-    }
     let langObj: EntryTree = {};
     const translation = this.ctx.langCountryMap[lang];
     const iterate = (tree: string[] | EntryTree, result: string[] | EntryTree = {}) => {
@@ -92,7 +87,23 @@ export class RewriteHandler {
       }
       iterate(entryTree, langObj);
     }
-    const extraInfo = this.ctx.langFileExtraInfo[filePos ? `${lang}.${filePos}` : lang];
+    let extraInfo: FileExtraInfo = {
+      prefix: "",
+      suffix: "",
+      innerVar: "",
+      indentSize: 2,
+      nestedLevel: 1,
+      keyQuotes: "double",
+      valueQuotes: "double"
+    };
+    const extraInfoSourceLangs = [lang, this.ctx.referredLang, ...Object.keys(this.ctx.langCountryMap)];
+    for (const l of extraInfoSourceLangs) {
+      const info = this.ctx.langFileExtraInfo[filePos ? `${l}.${filePos}` : l];
+      if (info !== undefined) {
+        extraInfo = info;
+        break;
+      }
+    }
     if (this.ctx.quoteStyleForKey !== "auto") {
       extraInfo.keyQuotes = this.ctx.quoteStyleForKey;
     }
@@ -101,6 +112,10 @@ export class RewriteHandler {
     }
     if (this.ctx.languageFileIndent !== null) {
       extraInfo.indentSize = this.ctx.languageFileIndent;
+    }
+    const isFileExists = await checkPathExists(filePath);
+    if (!isFileExists) {
+      await fs.promises.mkdir(path.dirname(filePath), { recursive: true });
     }
     const fileContent = formatObjectToString(langObj, filePath, extraInfo);
     await fs.promises.writeFile(filePath, fileContent);

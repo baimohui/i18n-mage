@@ -31,8 +31,8 @@ export function registerGoToDefinitionCommand() {
       const fullKey = dictionary[key].fullPath;
       const publicCtx = mage.getPublicContext();
       let filePathSegs: string[] = [];
-      if (publicCtx.fileStructure?.children) {
-        filePathSegs = getFileLocationFromId(fullKey, publicCtx.fileStructure.children[lang]) ?? [];
+      if (publicCtx.fileStructure) {
+        filePathSegs = getFileLocationFromId(fullKey, publicCtx.fileStructure) ?? [];
       }
       const realKey = filePathSegs.length > 0 ? fullKey.replace(`${filePathSegs.join(".")}.`, "") : fullKey;
       const resourceUri = vscode.Uri.file(path.join(publicCtx.langPath, lang, ...filePathSegs) + `.${publicCtx.langFileType}`);
