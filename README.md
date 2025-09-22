@@ -282,7 +282,7 @@ Set the DeepL Translation API key.
 
 Set the DeepSeek Translation API key.
 
-#### `i18n-mage.translationServices.baiduApiId`
+#### `i18n-mage.translationServices.baiduAppId`
 
 Set the Baidu Translate Open Platform developer app ID.
 

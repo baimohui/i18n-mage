@@ -304,7 +304,7 @@ const errorInfo = i18n.t("保存失败");
 
 #### `i18n-mage.i18nFeatures.interpolationBrackets`
 
-设置变量插值使用的花括号风格，默认跟随所选国际化框架（如 `vue-i18n` 用{}，`react-i18next` 用 `{{}}` ）
+设置变量插值使用的花括号风格，默认跟随所选国际化框架（如 `vue-i18n` 用 `{}`，`react-i18next` 用 `{{}}` ）
 
 #### `i18n-mage.i18nFeatures.namespaceSeparator`
 
@@ -332,7 +332,7 @@ const errorInfo = i18n.t("保存失败");
 
 设置 DeepSeek 翻译 API 密钥。
 
-#### `i18n-mage.translationServices.baiduApiId`
+#### `i18n-mage.translationServices.baiduAppId`
 
 设置百度翻译开放平台开发者 APP ID。
 
