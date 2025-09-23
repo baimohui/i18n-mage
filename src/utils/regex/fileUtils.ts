@@ -58,29 +58,31 @@ export function getLangFileInfo(filePath: string): LangFileInfo | null {
       let jsonObj = content;
       const { key: keyQuotes, value: valueQuotes } = detectQuoteStyle(jsonObj);
       const indentSize = detectIndentSize(jsonObj);
+      let tree = jsonParse(jsonObj);
       let innerVar = "";
-      const varMatch = jsonObj.match(/^{\s*([^"']*,[^]*?)\r?\n/);
-      if (varMatch) {
-        innerVar = varMatch[1];
-        jsonObj = jsonObj.replace(innerVar, "");
+      if (tree === null) {
+        const varMatch = jsonObj.match(/^{\s*([^"']*,[^]*?)\r?\n/);
+        if (varMatch) {
+          innerVar = varMatch[1];
+          jsonObj = jsonObj.replace(innerVar, "");
+          tree = jsonParse(jsonObj);
+        }
       }
-      const tree = jsonParse(jsonObj);
-      if (tree !== null) {
-        const extraInfo = {
-          indentSize,
-          nestedLevel: 1,
-          prefix,
-          suffix,
-          innerVar,
-          keyQuotes,
-          valueQuotes
-        } as FileExtraInfo;
-        NotificationManager.logToOutput(t("command.parseLangFile.success", JSON.stringify(extraInfo)), "info");
-        return {
-          data: tree,
-          extraInfo
-        };
-      }
+      if (tree === null) return null;
+      const extraInfo = {
+        indentSize,
+        nestedLevel: 1,
+        prefix,
+        suffix,
+        innerVar,
+        keyQuotes,
+        valueQuotes
+      } as FileExtraInfo;
+      NotificationManager.logToOutput(t("command.parseLangFile.success", JSON.stringify(extraInfo)), "info");
+      return {
+        data: tree,
+        extraInfo
+      };
     }
     return null;
   } catch (e) {

@@ -2,7 +2,6 @@ import {
   EntryTree,
   LangDictionary,
   LangCountryMap,
-  EntryClassInfo,
   TEntry,
   FixedTEntry,
   LackInfo,
@@ -65,7 +64,6 @@ export interface LangContextInternal extends LangContextPublic {
   extraInfo: Record<string, string[]>;
   nullInfo: NullInfo;
   entryClassTree: EntryClassTree;
-  entryClassInfo: EntryClassInfo;
   undefinedEntryList: TEntry[];
   undefinedEntryMap: Record<string, Record<string, Set<string>>>;
   usedEntryMap: Record<string, Record<string, Set<string>>>;

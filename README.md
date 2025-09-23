@@ -124,8 +124,8 @@ See [Full Config Reference](#-full-config-reference) for all options.
 
 | Command ID                         | Description                     | Shortcut   |
 | ---------------------------------- | ------------------------------- | ---------- |
-| `i18nMage.check`                   | Check key information                 | Ctrl+Alt+C |
-| `i18nMage.fix`                     | Fix undefined entries           | Ctrl+Alt+F |
+| `i18nMage.check`                   | Check key information           | Ctrl+Alt+C |
+| `i18nMage.fix`                     | Fix                             | Ctrl+Alt+F |
 | `i18nMage.toggleInlineTranslation` | Toggle inline translation hints | Ctrl+Alt+D |
 | `i18nMage.export`                  | Export entries to Excel         | -          |
 | `i18nMage.import`                  | Import entries from Excel       | -          |
@@ -280,7 +280,7 @@ Set the DeepL Translation API key.
 
 #### `i18n-mage.translationServices.deepseekApiKey`
 
-Set the DeepSeek Translation API key.
+Set the DeepSeek API key.
 
 #### `i18n-mage.translationServices.baiduAppId`
 

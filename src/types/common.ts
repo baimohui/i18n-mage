@@ -75,17 +75,6 @@ export interface PEntry {
 
 // export type CaseType = "upper" | "lower" | "title" | "sentence" | "camel" | "pascal" | "snake" | "kebab" | "screaming-snake" | "screaming-kebab";
 
-export type EntryClassInfo = {
-  filePos: string;
-  data: Record<
-    string,
-    {
-      num: number;
-      layer: number[];
-    }
-  >;
-}[];
-
 export type EntryClassTreeItem = {
   [key: EntryKeySeg]: null | EntryClassTreeItem;
 };

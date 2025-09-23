@@ -40,7 +40,6 @@ export const createLangContext = (): LangContextInternal => ({
   extraInfo: {},
   nullInfo: {},
   entryClassTree: [],
-  entryClassInfo: [],
   undefinedEntryList: [],
   undefinedEntryMap: {},
   usedEntryMap: {},

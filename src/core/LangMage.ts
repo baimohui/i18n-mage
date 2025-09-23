@@ -234,7 +234,6 @@ class LangMage {
     this.ctx.extraInfo = {};
     this.ctx.nullInfo = {};
     this.ctx.entryClassTree = [];
-    this.ctx.entryClassInfo = [];
     this.ctx.styleScore = 0;
     this.ctx.undefinedEntryList = [];
     this.ctx.undefinedEntryMap = {};

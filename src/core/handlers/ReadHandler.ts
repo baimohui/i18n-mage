@@ -49,10 +49,14 @@ export class ReadHandler {
     const { structure, lookup } = this.buildEntryTreeAndDictionary(langTree, keyPathMap);
     this.ctx.entryTree = structure;
     this.ctx.langDictionary = lookup;
-    const entryNameList = Object.keys(lookup);
-    this.ctx.nameSeparator = this.detectCommonSeparator(entryNameList);
-    if (this.ctx.nameSeparator) {
-      entryNameList.forEach(name => this.genEntryClassTree(name));
+    if (this.ctx.nestedLocale > 0) {
+      this.ctx.nameSeparator = ".";
+    } else {
+      const entryNameList = Object.keys(lookup);
+      this.ctx.nameSeparator = this.detectCommonSeparator(entryNameList);
+      if (this.ctx.nameSeparator) {
+        entryNameList.forEach(name => this.genEntryClassTree(name));
+      }
     }
   }
 
@@ -188,11 +192,6 @@ export class ReadHandler {
 
   private genEntryClassTree(name: string = ""): void {
     const filePos = this.ctx.langDictionary[name].fileScope;
-    let entryClassInfo = this.ctx.entryClassInfo.find(item => item.filePos === filePos);
-    if (entryClassInfo === undefined) {
-      entryClassInfo = { filePos, data: {} };
-      this.ctx.entryClassInfo.push(entryClassInfo);
-    }
     let entryClassTree = this.ctx.entryClassTree.find(item => item.filePos === filePos);
     if (entryClassTree === undefined) {
       entryClassTree = { filePos, data: {} };
@@ -200,19 +199,6 @@ export class ReadHandler {
     }
     const structure = name.split(this.ctx.nameSeparator);
     const structureLayer = structure.length;
-    const primaryClass = structure[0];
-    if (Object.hasOwn(entryClassInfo.data, primaryClass)) {
-      const classInfo = entryClassInfo.data[primaryClass];
-      classInfo.num++;
-      if (!classInfo.layer.includes(structureLayer)) {
-        classInfo.layer.push(structureLayer);
-      }
-    } else {
-      entryClassInfo.data[primaryClass] = {
-        num: 1,
-        layer: [structureLayer]
-      };
-    }
     let treeData = entryClassTree.data;
     structure.forEach((key, index) => {
       if (treeData[key] === undefined || treeData[key] === null) {
