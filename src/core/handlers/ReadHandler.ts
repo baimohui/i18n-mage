@@ -51,6 +51,7 @@ export class ReadHandler {
     this.ctx.langDictionary = lookup;
     if (this.ctx.nestedLocale > 0) {
       this.ctx.nameSeparator = ".";
+      this.buildEntryClassTree(langData.langTree, fileNestedLevelOffset);
     } else {
       const entryNameList = Object.keys(lookup);
       this.ctx.nameSeparator = this.detectCommonSeparator(entryNameList);
@@ -142,10 +143,7 @@ export class ReadHandler {
     return pathList;
   }
 
-  private buildEntryTreeAndDictionary(
-    langTree: LangTree,
-    keyPathMap: Record<string, { fullPath: string; fileScope: string }> | null
-  ): { structure: EntryTree; lookup: LangDictionary } {
+  private buildEntryTreeAndDictionary(langTree: LangTree, keyPathMap: Record<string, { fullPath: string; fileScope: string }> | null) {
     const structure: EntryTree = {};
     const lookup: LangDictionary = {};
     const ignoredLangs = this.ctx.ignoredLangs;
@@ -162,18 +160,16 @@ export class ReadHandler {
     }
     function traverse(node: string | string[] | EntryTree, path: string[], idTree: EntryTree, lang: string, isFromArray: boolean): void {
       if (typeof node === "string") {
-        if (!ignoredLangs.includes(lang)) {
-          const id = path.map(key => escapeString(key)).join(".");
-          setAtPath(idTree, path, id, isFromArray);
-          if (!(id in lookup)) {
-            lookup[id] = {
-              fullPath: keyPathMap?.[id] ? keyPathMap[id].fullPath : id,
-              fileScope: keyPathMap?.[id] ? keyPathMap[id].fileScope : "",
-              value: {}
-            };
-          }
-          lookup[id].value[lang] = node;
+        const id = path.map(key => escapeString(key)).join(".");
+        setAtPath(idTree, path, id, isFromArray);
+        if (!(id in lookup)) {
+          lookup[id] = {
+            fullPath: keyPathMap?.[id] ? keyPathMap[id].fullPath : id,
+            fileScope: keyPathMap?.[id] ? keyPathMap[id].fileScope : "",
+            value: {}
+          };
         }
+        lookup[id].value[lang] = node;
       } else if (Array.isArray(node)) {
         node.forEach((item, index) => {
           traverse(item, path.concat(index.toString()), idTree, lang, true);
@@ -185,9 +181,48 @@ export class ReadHandler {
       }
     }
     Object.entries(langTree).forEach(([lang, tree]) => {
-      traverse(tree, [], structure, lang, false);
+      if (!ignoredLangs.includes(lang)) {
+        traverse(tree, [], structure, lang, false);
+      }
     });
     return { structure, lookup };
+  }
+
+  private buildEntryClassTree(langTree: LangTree, fileNestedLevelOffset: number) {
+    const ignoredLangs = this.ctx.ignoredLangs;
+    const setAtPath = (path: string[], isEmpty = false): void => {
+      const filePos = path.slice(0, fileNestedLevelOffset).join(".");
+      if (this.ctx.entryClassTree.find(item => item.filePos === filePos) === undefined) {
+        this.ctx.entryClassTree.push({ filePos, data: {} });
+      }
+      let entryClassTreeItem = this.ctx.entryClassTree.find(item => item.filePos === filePos)!.data;
+      const entryClassTreePath = path.slice(fileNestedLevelOffset);
+      for (let i = 0; i < entryClassTreePath.length - 1; i++) {
+        const key = entryClassTreePath[i];
+        if (!Object.hasOwn(entryClassTreeItem, key) || typeof entryClassTreeItem[key] !== "object") {
+          entryClassTreeItem[key] = {};
+        }
+        entryClassTreeItem = entryClassTreeItem[key] as EntryClassTreeItem;
+      }
+      entryClassTreeItem[path[path.length - 1]] = isEmpty ? {} : null;
+    };
+    const traverse = (node: string | string[] | EntryTree, path: string[]): void => {
+      if (Object.prototype.toString.call(node) === "[object Object]") {
+        if (Object.keys(node).length === 0) {
+          setAtPath(path, true);
+        }
+        for (const key in node as EntryTree) {
+          traverse(node[key] as EntryTree, path.concat(key));
+        }
+      } else {
+        setAtPath(path);
+      }
+    };
+    Object.entries(langTree).forEach(([lang, tree]) => {
+      if (!ignoredLangs.includes(lang)) {
+        traverse(tree, []);
+      }
+    });
   }
 
   private genEntryClassTree(name: string = ""): void {
@@ -240,7 +275,6 @@ export class ReadHandler {
     const treeData: LangTree = {};
     const keyMap: Record<string, { fullPath: string; fileScope: string }> = {};
 
-    // const processFileData = this.processFileData.bind(this);
     const traverseStructure = (node: EntryNode, currentPath = "", data: EntryTree, langData: EntryTree) => {
       if (node.type === "file") {
         // 处理文件
