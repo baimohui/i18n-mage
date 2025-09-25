@@ -53,7 +53,7 @@ export function getLangFileInfo(filePath: string): LangFileInfo | null {
   try {
     NotificationManager.logToOutput(t("command.parseLangFile.title", filePath), "info");
     const fileContent = fs.readFileSync(filePath, "utf-8");
-    const [prefix, content, suffix] = extractContentByLevel(fileContent, 1);
+    const [prefix, content, suffix] = extractContent(fileContent);
     if (content) {
       let jsonObj = content;
       const { key: keyQuotes, value: valueQuotes } = detectQuoteStyle(jsonObj);
@@ -128,36 +128,133 @@ export function safeEvalParse(content: string) {
   }
 }
 
-export function extractContentByLevel(content: string, level: number): [string, string, string] {
-  if (level < 1) {
-    throw new Error("层级数必须大于等于1");
+export function extractContent(content: string): [string, string, string] {
+  const N = content.length;
+
+  function findMatchingBrace(start: number): number {
+    let inSingle = false,
+      inDouble = false,
+      inTemplate = false;
+    let inLineComment = false,
+      inBlockComment = false;
+    let templateExprDepth = 0,
+      depth = 0;
+
+    for (let i = start; i < N; i++) {
+      const ch = content[i];
+      const next = content[i + 1];
+
+      // 处理注释和字符串状态
+      if (inLineComment) {
+        if (ch === "\n") inLineComment = false;
+        continue;
+      }
+      if (inBlockComment) {
+        if (ch === "*" && next === "/") {
+          inBlockComment = false;
+          i++;
+        }
+        continue;
+      }
+      if (inSingle) {
+        if (ch === "\\") {
+          i++;
+          continue;
+        }
+        if (ch === "'") inSingle = false;
+        continue;
+      }
+      if (inDouble) {
+        if (ch === "\\") {
+          i++;
+          continue;
+        }
+        if (ch === '"') inDouble = false;
+        continue;
+      }
+      if (inTemplate) {
+        if (ch === "\\") {
+          i++;
+          continue;
+        }
+        if (ch === "$" && next === "{") {
+          templateExprDepth++;
+          i++;
+          continue;
+        }
+        if (ch === "`" && templateExprDepth === 0) {
+          inTemplate = false;
+          continue;
+        }
+        if (ch === "}" && templateExprDepth > 0) {
+          templateExprDepth--;
+          continue;
+        }
+        continue;
+      }
+
+      // 进入新状态
+      if (ch === "/" && next === "/") {
+        inLineComment = true;
+        i++;
+        continue;
+      }
+      if (ch === "/" && next === "*") {
+        inBlockComment = true;
+        i++;
+        continue;
+      }
+      if (ch === "'") {
+        inSingle = true;
+        continue;
+      }
+      if (ch === '"') {
+        inDouble = true;
+        continue;
+      }
+      if (ch === "`") {
+        inTemplate = true;
+        continue;
+      }
+
+      // 花括号计数（只在有效代码区域）
+      const braceActive = !inSingle && !inDouble && !inLineComment && !inBlockComment && (!inTemplate || templateExprDepth > 0);
+
+      if (braceActive) {
+        if (ch === "{") depth++;
+        else if (ch === "}") {
+          depth--;
+          if (depth === 0) return i;
+        }
+      }
+    }
+    return -1;
   }
-  const openBraces: number[] = []; // 存储所有 { 的位置
-  const closeBraces: number[] = []; // 存储所有 } 的位置
-  // 遍历内容，记录所有 { 和 } 的位置
-  for (let i = 0; i < content.length; i++) {
-    if (content[i] === "{") {
-      openBraces.push(i);
-    } else if (content[i] === "}") {
-      closeBraces.push(i);
+
+  function isLikelyTargetStart(start: number): boolean {
+    const leftAll = content.slice(0, start);
+    if (leftAll.trim() === "") return true; // JSON文件
+
+    const lineStart = Math.max(0, leftAll.lastIndexOf("\n"));
+    const linePrefix = leftAll.slice(lineStart, start).trim();
+
+    // 简化匹配规则
+    return /[=:]$/.test(linePrefix) || /\b(export|module\.exports|const|let|var|default)\b/.test(linePrefix) || linePrefix.includes("=");
+  }
+
+  // 主扫描逻辑
+  for (let i = 0; i < N; i++) {
+    const ch = content[i];
+
+    if (ch === "{") {
+      const end = findMatchingBrace(i);
+      if (end !== -1 && isLikelyTargetStart(i)) {
+        return [content.substring(0, i), content.substring(i, end + 1), content.substring(end + 1)];
+      }
     }
   }
-  // 检查是否有足够的 { 和 }
-  if (openBraces.length < level || closeBraces.length < level) {
-    throw new Error(`内容中没有足够的层级 ${level} 的 { }`);
-  }
-  // 计算开始和结束位置
-  const startIndex = openBraces[level - 1]; // 第 level 个 {
-  const endIndex = closeBraces[closeBraces.length - level]; // 倒数第 level 个 }
-  // 检查顺序是否正确
-  if (startIndex >= endIndex) {
-    throw new Error(`层级 ${level} 的 { 出现在 } 之后`);
-  }
-  // 分割内容
-  const before = content.substring(0, startIndex);
-  const matched = content.substring(startIndex, endIndex + 1);
-  const after = content.substring(endIndex + 1);
-  return [before, matched, after];
+
+  throw new Error("未能提取到对象内容");
 }
 
 export function getNestedValues(obj: EntryTree | string[]): string[] {
