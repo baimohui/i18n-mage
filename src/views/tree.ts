@@ -404,17 +404,19 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
         if (element.type !== "lack") {
           contextValueList.push("GO_TO_DEFINITION");
         }
-        const definedInfo = this.dictionary[item[0]].value;
         const tooltip = new vscode.MarkdownString();
-        Object.entries(definedInfo).forEach(([lang, value]) => {
-          const args = encodeURIComponent(JSON.stringify({ description: value }));
-          if (value) {
-            tooltip.appendMarkdown(`- **${escapeMarkdown(lang)}:** ${escapeMarkdown(value)} [📋](command:i18nMage.copyValue?${args})\n`);
-          } else {
-            tooltip.appendMarkdown(`- **${escapeMarkdown(lang)}:** ${t("tree.syncInfo.null")}\n`);
-          }
-        });
-        tooltip.isTrusted = true; // 允许点击链接
+        if (element.type !== "common") {
+          const definedInfo = this.dictionary[item[0]].value;
+          Object.entries(definedInfo).forEach(([lang, value]) => {
+            const args = encodeURIComponent(JSON.stringify({ description: value }));
+            if (value) {
+              tooltip.appendMarkdown(`- **${escapeMarkdown(lang)}:** ${escapeMarkdown(value)} [📋](command:i18nMage.copyValue?${args})\n`);
+            } else {
+              tooltip.appendMarkdown(`- **${escapeMarkdown(lang)}:** ${t("tree.syncInfo.null")}\n`);
+            }
+          });
+          tooltip.isTrusted = true; // 允许点击链接
+        }
         const name = unescapeString(item[0]);
         return {
           label: internalToDisplayName(name),
