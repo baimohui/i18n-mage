@@ -4,6 +4,19 @@ All notable changes to the i18n Mage VS Code extension will be documented in thi
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.7] - 2025-09-28
+
+### Added
+- **Status Bar Language Info**: Added current display language and translation source language information to the status bar, with click-to-select functionality for quick language switching.
+
+### Changed
+- **Unified Language File Structure**: Integrated file structures across languages, allowing selection of non-existent file locations for undefined entries (missing files will be created automatically during write operations).
+- **Enhanced Language File Parsing**: Optimized data extraction logic with complete syntax analysis, precise target identification, and improved error handling mechanisms.
+- **Streamlined Tooltip Display**: Removed full-language translation tooltips for "Normal" and "Redundant" entry categories in the synchronization panel, now only showing them for "Missing" and "Empty Value" categories for cleaner visualization.
+
+### Fixed
+- **Empty Object Selection**: Resolved an issue where nested empty objects in language files couldn't be selected as target locations for undefined entries during manual selection.
+
 ## [1.0.6] - 2025-09-19
 
 ### Fixed
