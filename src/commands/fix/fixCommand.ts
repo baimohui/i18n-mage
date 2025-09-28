@@ -71,31 +71,26 @@ export function registerFixCommand(context: vscode.ExtensionContext) {
               })
               .filter(Boolean);
           }
-          let missingEntryPath: string | undefined = undefined;
+          let missingEntryPath: string | undefined = "";
           if (commonKeys.length > 0) {
             NotificationManager.showProgress({ message: t("command.fix.waitForFileSelection"), increment: 0 });
-            let sortedKeys: string[] = commonKeys;
             const lastPicked = context.globalState.get<string>("lastPickedKey");
             if (lastPicked !== undefined && commonKeys.includes(lastPicked)) {
-              sortedKeys = [lastPicked, ...commonKeys.filter(f => f !== lastPicked)];
+              commonKeys = [lastPicked, ...commonKeys.filter(f => f !== lastPicked)];
             }
-            missingEntryPath = await vscode.window.showQuickPick([...sortedKeys, t("command.fix.customKey")], {
-              placeHolder: t("command.fix.selectKeyToWrite")
+          }
+          missingEntryPath = await vscode.window.showQuickPick([...commonKeys, t("command.fix.customKey")], {
+            placeHolder: t("command.fix.selectKeyToWrite")
+          });
+          if (missingEntryPath === t("command.fix.customKey")) {
+            missingEntryPath = await vscode.window.showInputBox({
+              placeHolder: t("command.fix.customKeyInput")
             });
           }
-          if (typeof missingEntryPath === "string" && missingEntryPath.trim()) {
-            if (missingEntryPath === t("command.fix.customKey")) {
-              missingEntryPath = await vscode.window.showInputBox({
-                placeHolder: t("command.fix.customKeyInput")
-              });
-            } else {
-              await context.globalState.update("lastPickedKey", missingEntryPath);
-            }
-            mage.setOptions({ missingEntryPath });
-          } else {
-            mage.setOptions({ missingEntryPath: "" });
-            return;
-          }
+          if (missingEntryPath === undefined) return;
+          missingEntryPath = missingEntryPath.trim();
+          await context.globalState.update("lastPickedKey", missingEntryPath);
+          mage.setOptions({ missingEntryPath });
         }
       }
       treeInstance.isSyncing = true;
