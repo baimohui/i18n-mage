@@ -189,23 +189,23 @@ export function getEntryNameInfoByForm(nameForm: { type: TEntryPartType; value: 
     }
   });
   if (!isValid || entryReg.replaceAll(".*", "") === "") return null;
-  let entryClass = "";
-  let entryName = "";
+  let entryPrefix = "";
+  let entryKey = "";
   let remainingText = entryText;
   const nameRes = entryText.match(/^%(\S*?)%([^]*)/);
   if (enableKeyTagRule && nameRes) {
-    entryName = nameRes[1];
+    entryKey = nameRes[1];
     remainingText = nameRes[2];
   }
   const classRes = entryText.match(/^#(\S*?)#([^]*)/);
   if (enablePrefixTagRule && classRes) {
-    entryClass = classRes[1];
+    entryPrefix = classRes[1];
     remainingText = classRes[2];
   }
-  if (enableKeyTagRule && !entryName) {
+  if (enableKeyTagRule && !entryKey) {
     const nameResAgain = remainingText.match(/^%(\S*?)%([^]*)/);
     if (nameResAgain) {
-      entryName = nameResAgain[1];
+      entryKey = nameResAgain[1];
       remainingText = nameResAgain[2];
     }
   }
@@ -230,8 +230,8 @@ export function getEntryNameInfoByForm(nameForm: { type: TEntryPartType; value: 
     regex: new RegExp(`^${entryReg}$`),
     vars: varList,
     name: displayToInternalName(entryText),
-    boundName: entryName,
-    boundClass: entryClass
+    boundKey: entryKey,
+    boundPrefix: entryPrefix
   };
 }
 

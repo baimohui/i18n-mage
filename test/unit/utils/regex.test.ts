@@ -142,10 +142,10 @@ describe("regex.js 正则方法", () => {
         assert.strictEqual(entry.nameInfo.text, expected.text, `第 ${i} 个 text`);
         assert.deepStrictEqual(entry.vars, expected.vars, `第 ${i} 个 var`);
         if (expected.class !== undefined) {
-          assert.strictEqual(entry.nameInfo.boundClass, expected.class, `第 ${i} 个 class`);
+          assert.strictEqual(entry.nameInfo.boundPrefix, expected.class, `第 ${i} 个 class`);
         }
         if (expected.name !== undefined) {
-          assert.strictEqual(entry.nameInfo.boundName, expected.name, `第 ${i} 个 name`);
+          assert.strictEqual(entry.nameInfo.boundKey, expected.name, `第 ${i} 个 name`);
         }
       });
     });
@@ -157,13 +157,13 @@ describe("regex.js 正则方法", () => {
 
     it("应解析 name 元信息", () => {
       const entries = catchTEntries('const msg = t("%submit%确认提交");');
-      assert.strictEqual(entries[0].nameInfo.boundName, "submit");
+      assert.strictEqual(entries[0].nameInfo.boundKey, "submit");
       assert.strictEqual(entries[0].nameInfo.text, "确认提交");
     });
 
     it("应解析 class 元信息", () => {
       const entries = catchTEntries('const msg = t("#btn#确认提交");');
-      assert.strictEqual(entries[0].nameInfo.boundClass, "btn");
+      assert.strictEqual(entries[0].nameInfo.boundPrefix, "btn");
       assert.strictEqual(entries[0].nameInfo.text, "确认提交");
     });
 

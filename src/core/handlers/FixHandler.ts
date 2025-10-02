@@ -84,17 +84,16 @@ export class FixHandler {
           continue;
         }
       }
-      if (this.ctx.matchExistingKey && valueKeyMap[entryId] && !entry.nameInfo.boundName) {
+      if (this.ctx.matchExistingKey && valueKeyMap[entryId] && !entry.nameInfo.boundKey) {
         this.needFix = true;
-        let entryName = valueKeyMap[entryId];
+        let entryKey = valueKeyMap[entryId];
         if (this.ctx.i18nFramework === I18N_FRAMEWORK.vueI18n) {
           const quoteMatch = entry.raw.match(/["'`]{1}/);
           const quote = quoteMatch ? `\\${quoteMatch[0]}` : "'";
-          entryName = convertKeyToVueI18nPath(entryName, quote);
+          entryKey = convertKeyToVueI18nPath(entryKey, quote);
         }
-        entryName = unescapeString(entryName);
-        entry.nameInfo.boundName = entryName;
-        patchedEntryIdList.push({ ...entry, fixedRaw: this.getFixedRaw(entry, entryName) });
+        entry.nameInfo.boundKey = entryKey;
+        patchedEntryIdList.push({ ...entry, fixedRaw: this.getFixedRaw(entry, entryKey) });
       } else if (undefinedEntryIdSet.has(entryId)) {
         patchedEntryIdList.push({ ...entry, fixedRaw: "" });
       } else if (
@@ -148,44 +147,44 @@ export class FixHandler {
       const genKeyInfo = { keyStyle: this.ctx.generatedKeyStyle, stopWords: this.ctx.stopWords };
       const id = getIdByStr(enNameList[index], genKeyInfo);
       const nameInfo = entry.nameInfo;
-      if (!nameInfo.boundName) {
-        let baseName = nameInfo.boundClass || namePrefix;
+      if (!nameInfo.boundKey) {
+        let baseName = nameInfo.boundPrefix || namePrefix;
         if (baseName && !baseName.endsWith(this.ctx.nameSeparator) && !baseName.endsWith(".")) {
           baseName += this.ctx.nameSeparator;
         }
         const maxLen = this.ctx.maxGeneratedKeyLength;
-        let entryName = baseName + id;
-        const needsAnotherName = entryName.length > maxLen || id.length === 0 || checkExisted(entryName);
+        let entryKey = baseName + id;
+        const needsAnotherName = id.length > maxLen || id.length === 0 || checkExisted(entryKey);
         if (needsAnotherName) {
-          let nameParts = [entryName];
-          if (!checkExisted(entryName)) {
+          let nameParts = [entryKey];
+          if (!checkExisted(entryKey)) {
             const fileName = entry.path!.match(/([a-zA-Z0-9_-]+)\./)?.[1] ?? "unknown";
             const fileNameSplit = splitFileName(fileName).filter(item => !this.ctx.stopWords.includes(item));
             nameParts = [...fileNameSplit, "text"];
           }
           let index = 1;
           const keyLen = maxLen - baseName.length;
-          entryName = baseName + generateKey([...nameParts, String(index).padStart(2, "0")], genKeyInfo.keyStyle).slice(-keyLen);
-          while (checkExisted(entryName)) {
+          entryKey = baseName + generateKey([...nameParts, String(index).padStart(2, "0")], genKeyInfo.keyStyle).slice(-keyLen);
+          while (checkExisted(entryKey)) {
             index++;
-            entryName = baseName + generateKey([...nameParts, String(index).padStart(2, "0")], genKeyInfo.keyStyle).slice(-keyLen);
+            entryKey = baseName + generateKey([...nameParts, String(index).padStart(2, "0")], genKeyInfo.keyStyle).slice(-keyLen);
           }
         }
-        nameInfo.boundName = entryName;
-        newIdSet.add(entryName);
+        nameInfo.boundKey = entryKey;
+        newIdSet.add(entryKey);
       }
-      patchedEntryIdList.push({ ...entry, fixedRaw: this.getFixedRaw(entry, unescapeString(nameInfo.boundName)) });
+      patchedEntryIdList.push({ ...entry, fixedRaw: this.getFixedRaw(entry, nameInfo.boundKey) });
       this.needFix = true;
-      referredLangMap[nameInfo.boundName] = nameInfo.text;
-      let fullPath = nameInfo.boundName;
+      referredLangMap[nameInfo.boundKey] = nameInfo.text;
+      let fullPath = nameInfo.boundKey;
       if (this.ctx.missingEntryFile) {
         if (this.ctx.namespaceStrategy === NAMESPACE_STRATEGY.none) {
-          fullPath = `${this.ctx.missingEntryFile}.${nameInfo.boundName}`;
+          fullPath = `${this.ctx.missingEntryFile}.${nameInfo.boundKey}`;
         } else if (this.ctx.namespaceStrategy === NAMESPACE_STRATEGY.file) {
-          fullPath = `${this.ctx.missingEntryFile}.${nameInfo.boundName.replace(/^.*?\./, "")}`;
+          fullPath = `${this.ctx.missingEntryFile}.${nameInfo.boundKey.replace(/^.*?\./, "")}`;
         }
       }
-      this.ctx.langDictionary[nameInfo.boundName] ??= {
+      this.ctx.langDictionary[nameInfo.boundKey] ??= {
         fullPath,
         fileScope: this.ctx.missingEntryFile,
         value: {
@@ -194,10 +193,10 @@ export class FixHandler {
       };
       this.detectedLangList.forEach(lang => {
         if ([this.ctx.referredLang, enLang].includes(lang)) {
-          setUpdatedEntryValueInfo(this.ctx, nameInfo.boundName, lang === this.ctx.referredLang ? nameInfo.text : enNameList[index], lang);
+          setUpdatedEntryValueInfo(this.ctx, nameInfo.boundKey, lang === this.ctx.referredLang ? nameInfo.text : enNameList[index], lang);
         } else {
           this.lackInfoFromUndefined[lang] ??= [];
-          this.lackInfoFromUndefined[lang].push(nameInfo.boundName);
+          this.lackInfoFromUndefined[lang].push(nameInfo.boundKey);
         }
       });
     });
@@ -207,8 +206,8 @@ export class FixHandler {
         const fixedEntryId =
           patchedEntryIdList.find(
             item => this.getIdByText(item.nameInfo.text) === this.getIdByText(entry.nameInfo.text) && item.fixedRaw.length > 0
-          )?.nameInfo.boundName ?? entry.nameInfo.text;
-        entry.nameInfo.boundName = fixedEntryId;
+          )?.nameInfo.boundKey ?? entry.nameInfo.text;
+        entry.nameInfo.boundKey = fixedEntryId;
         entry.fixedRaw = this.getFixedRaw(entry, fixedEntryId);
       }
       this.ctx.patchedEntryIdInfo[entry.path as string] ??= [];
@@ -336,8 +335,8 @@ export class FixHandler {
     }
   }
 
-  private getFixedRaw(entry: TEntry, name: string): string {
-    const displayName = internalToDisplayName(name);
+  private getFixedRaw(entry: TEntry, key: string): string {
+    const displayName = internalToDisplayName(unescapeString(key));
     let varStr = "";
     if (entry.vars.length > 0) {
       varStr = ", " + entry.vars.join(", ");
