@@ -32,7 +32,10 @@ export const createLangContext = (): LangContextInternal => ({
   scanStringLiterals: true,
   missingEntryFile: "",
   missingEntryPath: "",
-  fileToProcess: "",
+  fixQuery: {
+    entriesToGen: true,
+    entriesToFill: true
+  },
 
   langDictionary: {},
   langCountryMap: {},

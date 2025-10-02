@@ -53,7 +53,12 @@ export interface LangContextPublic {
   scanStringLiterals: boolean;
   missingEntryFile: string;
   missingEntryPath: string;
-  fileToProcess: string;
+  fixQuery: {
+    entriesToGen: string[] | boolean;
+    genScope?: string[];
+    entriesToFill: string[] | boolean;
+    fillScope?: string[];
+  };
 }
 
 // 内部模块才能访问的完整上下文

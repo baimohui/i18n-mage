@@ -26,6 +26,7 @@ interface ExtendedTreeItem extends vscode.TreeItem {
   name?: string;
   key?: string;
   data?: any;
+  info?: any;
   stack?: string[];
 }
 
@@ -293,6 +294,23 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
       if (this.definedEntriesInCurrentFile.length > 0) {
         definedContextValueList.push("COPY_KEY_VALUE_LIST");
       }
+      let undefinedTooltip = "";
+      let undefinedDescription = String(this.undefinedEntriesInCurrentFile.length);
+      const undefinedContextValueList = ["undefinedEntriesInCurFile"];
+      if (this.undefinedEntriesInCurrentFile.length > 0) {
+        undefinedContextValueList.push("IGNORE_UNDEFINED");
+        let fixableNum = this.undefinedEntriesInCurrentFile.length;
+        if (this.publicCtx.validateLanguageBeforeTranslate) {
+          fixableNum = this.undefinedEntriesInCurrentFile.filter(item =>
+            validateLang(item.nameInfo.text, this.publicCtx.referredLang)
+          ).length;
+        }
+        undefinedDescription = `${this.undefinedEntriesInCurrentFile.length}(${fixableNum})`;
+        undefinedTooltip = t(`tree.undefinedInfo.tooltip`, this.undefinedEntriesInCurrentFile.length, fixableNum);
+        if (fixableNum > 0) {
+          undefinedContextValueList.push("GEN_KEY");
+        }
+      }
       return [
         {
           label: t("tree.currentFile.defined"),
@@ -307,9 +325,11 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
         },
         {
           label: t("tree.currentFile.undefined"),
-          contextValue: "IGNORE_UNDEFINED",
+          contextValue: undefinedContextValueList.join(","),
           data: this.undefinedEntriesInCurrentFile.map(item => item.nameInfo.name),
-          description: String(this.undefinedEntriesInCurrentFile.length),
+          info: { path: vscode.window.activeTextEditor?.document.uri.fsPath },
+          tooltip: undefinedTooltip,
+          description: undefinedDescription,
           collapsibleState: vscode.TreeItemCollapsibleState[this.undefinedEntriesInCurrentFile.length === 0 ? "None" : "Collapsed"],
           level: 1,
           type: "undefined",
@@ -321,18 +341,28 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
       return this[element.type === "defined" ? "definedEntriesInCurrentFile" : "undefinedEntriesInCurrentFile"].map(entry => {
         const entryInfo = this.dictionary[getValueByAmbiguousEntryName(this.tree, entry.nameInfo.name) as string]?.value ?? {};
         const contextValueList = ["COPY_NAME"];
+        let description = "";
         if (element.type === "defined") {
           contextValueList.push("definedEntryInCurFile");
+          description = entryInfo[this.displayLang] ?? "";
         } else {
           contextValueList.push("undefinedEntryInCurFile", "IGNORE_UNDEFINED");
+          if (this.publicCtx.autoTranslateMissingKey) {
+            if (this.publicCtx.validateLanguageBeforeTranslate && !validateLang(entry.nameInfo.text, this.publicCtx.referredLang)) {
+              description = t("tree.usedInfo.undefinedValidLang");
+            } else {
+              contextValueList.push("GEN_KEY");
+            }
+          }
         }
         return {
           name: entry.nameInfo.name,
           label: internalToDisplayName(entry.nameInfo.text),
-          description: entryInfo[this.displayLang],
+          description,
           collapsibleState: vscode.TreeItemCollapsibleState[element.type === "defined" ? "Collapsed" : "None"],
           level: 2,
           data: [entry.nameInfo.name],
+          info: { path: vscode.window.activeTextEditor?.document.uri.fsPath },
           contextValue: contextValueList.join(","),
           usedInfo: this[element.type === "defined" ? "usedEntryMap" : "undefinedEntryMap"][entry.nameInfo.name],
           id: this.genId(element, entry.nameInfo.name || ""),
@@ -405,7 +435,7 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
           contextValueList.push("GO_TO_DEFINITION");
         }
         const tooltip = new vscode.MarkdownString();
-        if (element.type !== "common") {
+        if (element.type === "lack" || element.type === "null") {
           const definedInfo = this.dictionary[item[0]].value;
           Object.entries(definedInfo).forEach(([lang, value]) => {
             const args = encodeURIComponent(JSON.stringify({ description: value }));
@@ -443,36 +473,37 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
         { type: "undefined", label: t("tree.usedInfo.undefined"), num: undefinedEntries.length }
       ].map(item => {
         let data: string[] = [];
-        let descriptions: string[] = [String(item.num)];
+        let description = String(item.num);
         let tooltip = "";
+        const contextValueList = [item.num === 0 ? `${item.type}GroupHeader-None` : `${item.type}GroupHeader`];
         if (item.type === "used") {
           data = Array.from(this.usedKeySet);
         } else if (item.type === "unused") {
           data = Array.from(this.unusedKeySet);
         } else {
           data = undefinedEntries;
-          if (this.publicCtx.autoTranslateMissingKey) {
-            tooltip = t("tree.usedInfo.undefinedAutoTranslateEnabled");
-            if (item.num > 0) {
-              if (this.publicCtx.validateLanguageBeforeTranslate) {
-                descriptions = [`${item.num}-${undefinedEntries.filter(key => validateLang(key, this.publicCtx.referredLang)).length}`];
-              } else {
-                descriptions = [`${item.num}-${item.num}`];
-              }
+          if (item.num > 0) {
+            contextValueList.push("IGNORE_UNDEFINED");
+            let fixableNum = item.num;
+            if (this.publicCtx.validateLanguageBeforeTranslate) {
+              fixableNum = undefinedEntries.filter(key => validateLang(key, this.publicCtx.referredLang)).length;
             }
-          } else {
-            tooltip = t("tree.usedInfo.undefinedAutoTranslateDisabled");
+            description = `${item.num}(${fixableNum})`;
+            tooltip = t(`tree.undefinedInfo.tooltip`, item.num, fixableNum);
+            if (fixableNum > 0) {
+              contextValueList.push("GEN_KEY");
+            }
           }
         }
         return {
           ...item,
           level: 1,
           root: element.root,
-          description: descriptions.join(" "),
+          description,
           id: this.genId(element, item.type),
           data,
           tooltip,
-          contextValue: item.num === 0 ? `${item.type}GroupHeader-None` : `${item.type}GroupHeader`,
+          contextValue: contextValueList.join(","),
           collapsibleState: vscode.TreeItemCollapsibleState[item.num === 0 ? "None" : "Collapsed"]
         };
       });
@@ -484,12 +515,12 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
           .map(item => {
             const undefinedNum = Object.values(this.undefinedEntryMap[item]).reduce((acc, cur) => acc + cur.size, 0);
             const descriptions = [`<${undefinedNum}>`];
-            if (
-              this.publicCtx.autoTranslateMissingKey &&
-              this.publicCtx.validateLanguageBeforeTranslate &&
-              !validateLang(item, this.publicCtx.referredLang)
-            ) {
-              descriptions.push(t("tree.usedInfo.undefinedValidLang"));
+            if (this.publicCtx.autoTranslateMissingKey) {
+              if (this.publicCtx.validateLanguageBeforeTranslate && !validateLang(item, this.publicCtx.referredLang)) {
+                descriptions.push(t("tree.usedInfo.undefinedValidLang"));
+              } else {
+                contextValueList.push("GEN_KEY");
+              }
             }
             return {
               key: item,

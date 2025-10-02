@@ -36,7 +36,12 @@ export interface LangMageOptions {
   scanStringLiterals?: boolean;
   missingEntryFile?: string;
   missingEntryPath?: string;
-  fileToProcess?: string;
+  fixQuery?: {
+    entriesToGen: string[] | boolean;
+    genScope?: string[];
+    entriesToFill: string[] | boolean;
+    fillScope?: string[];
+  };
 }
 
 export const EXECUTION_RESULT_CODE = {

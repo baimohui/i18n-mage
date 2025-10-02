@@ -8,7 +8,9 @@ import { t } from "@/utils/i18n";
 import { NotificationManager } from "@/utils/notification";
 import { getConfig } from "@/utils/config";
 import { getCommonFilePaths, getParentKeys } from "@/utils/regex";
-import { NAMESPACE_STRATEGY } from "@/types";
+import { LangContextPublic, NAMESPACE_STRATEGY } from "@/types";
+
+type FixQuery = LangContextPublic["fixQuery"];
 
 export function registerFixCommand(context: vscode.ExtensionContext) {
   const mage = LangMage.getInstance();
@@ -24,12 +26,12 @@ export function registerFixCommand(context: vscode.ExtensionContext) {
     }, 1000);
   };
 
-  const fix = async (fixAll: boolean = true) => {
+  const fix = async (fixQuery: FixQuery) => {
     const publicCtx = mage.getPublicContext();
     await wrapWithProgress({ title: t("command.fix.progress"), cancellable: true, timeout: 1000 * 60 * 10 }, async (_, token) => {
       await mage.execute({ task: "check" });
       const { multiFileMode, nameSeparator, undefined: undefinedMap, classTree } = mage.langDetail;
-      if (publicCtx.autoTranslateMissingKey && Object.keys(undefinedMap).length > 0) {
+      if (fixQuery.entriesToGen !== false && Object.keys(undefinedMap).length > 0) {
         let missingEntryFile: string | undefined = undefined;
         if (multiFileMode && publicCtx.fileStructure) {
           const commonFiles = getCommonFilePaths(publicCtx.fileStructure);
@@ -96,15 +98,7 @@ export function registerFixCommand(context: vscode.ExtensionContext) {
       treeInstance.isSyncing = true;
       treeInstance.refresh();
       const previewChanges = getConfig<boolean>("general.previewChanges", true);
-      const task = { task: "fix", fileToProcess: "" };
-      if (!fixAll) {
-        const currentFile = vscode.window.activeTextEditor?.document.uri.fsPath;
-        if (currentFile === undefined) {
-          NotificationManager.showWarning(t("common.noActiveEditorWarn"));
-          return;
-        }
-        task.fileToProcess = currentFile;
-      }
+      const task = { task: "fix", fixQuery };
       const res = await mage.execute(task);
       if (token.isCancellationRequested) {
         treeInstance.isSyncing = false;
@@ -136,9 +130,47 @@ export function registerFixCommand(context: vscode.ExtensionContext) {
     });
   };
 
-  const fixDisposable = vscode.commands.registerCommand("i18nMage.fix", fix);
-  const fixSingleFileDisposable = vscode.commands.registerCommand("i18nMage.fixSingleFile", () => fix(false));
+  const fixDisposable = vscode.commands.registerCommand("i18nMage.fix", async () => {
+    const publicCtx = mage.getPublicContext();
+    await fix({
+      entriesToGen: publicCtx.autoTranslateMissingKey,
+      entriesToFill: true
+    });
+  });
+  const fixUndefinedEntriesDisposable = vscode.commands.registerCommand(
+    "i18nMage.fixUndefinedEntries",
+    async (query?: { data: string[]; info?: { path?: string } } | vscode.Uri) => {
+      const fixQuery = { entriesToGen: true, entriesToFill: false } as FixQuery;
+      if (query === undefined) {
+        const options: vscode.OpenDialogOptions = {
+          canSelectMany: false,
+          openLabel: t("command.selectSingleFile.dialogTitle"),
+          filters: {
+            [t("command.selectSingleFile.dialogTitle")]: ["js", "ts", "jsx", "tsx", "vue", "html"]
+          }
+        };
+        const fileUri = await vscode.window.showOpenDialog(options);
+        if (Array.isArray(fileUri) && fileUri.length > 0) {
+          const fsPath = fileUri[0].fsPath;
+          fixQuery.entriesToGen = true;
+          fixQuery.genScope = [fsPath];
+        } else {
+          return;
+        }
+      } else if (query instanceof vscode.Uri) {
+        const fsPath = query.fsPath;
+        fixQuery.entriesToGen = true;
+        fixQuery.genScope = [fsPath];
+      } else if (Array.isArray(query.data)) {
+        fixQuery.entriesToGen = query.data;
+        if (query.info && typeof query.info.path === "string" && query.info.path.trim()) {
+          fixQuery.genScope = [query.info.path];
+        }
+      }
+      await fix(fixQuery);
+    }
+  );
 
   registerDisposable(fixDisposable);
-  registerDisposable(fixSingleFileDisposable);
+  registerDisposable(fixUndefinedEntriesDisposable);
 }

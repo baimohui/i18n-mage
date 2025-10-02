@@ -154,7 +154,7 @@ class LangMage {
       validateLanguageBeforeTranslate: this.ctx.validateLanguageBeforeTranslate,
       missingEntryFile: this.ctx.missingEntryFile,
       missingEntryPath: this.ctx.missingEntryPath,
-      fileToProcess: this.ctx.fileToProcess
+      fixQuery: this.ctx.fixQuery
     };
   }
 

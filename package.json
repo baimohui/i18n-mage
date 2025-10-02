@@ -686,9 +686,13 @@
         }
       },
       {
-        "command": "i18nMage.fixSingleFile",
+        "command": "i18nMage.fixUndefinedEntries",
         "category": "%extension.name%",
-        "title": "%command.fixSingleFile.title%"
+        "title": "%command.fixUndefinedEntries.title%",
+        "icon": {
+          "light": "./images/genKey-light.svg",
+          "dark": "./images/genKey-dark.svg"
+        }
       },
       {
         "command": "i18nMage.sort",
@@ -722,8 +726,8 @@
         "category": "%extension.name%",
         "title": "%command.ignoreFile.title%",
         "icon": {
-          "light": "./images/remove-light.svg",
-          "dark": "./images/remove-dark.svg"
+          "light": "./images/ignore-light.svg",
+          "dark": "./images/ignore-dark.svg"
         }
       },
       {
@@ -842,8 +846,8 @@
         "category": "%extension.name%",
         "title": "%command.ignoreUndefined.title%",
         "icon": {
-          "light": "./images/remove-light.svg",
-          "dark": "./images/remove-dark.svg"
+          "light": "./images/ignore-light.svg",
+          "dark": "./images/ignore-dark.svg"
         }
       },
       {
@@ -1000,6 +1004,11 @@
           "command": "i18nMage.ignoreUndefined",
           "when": "viewItem == undefinedGroupHeader || viewItem =~ /IGNORE_UNDEFINED/",
           "group": "inline@3"
+        },
+        {
+          "command": "i18nMage.fixUndefinedEntries",
+          "when": "viewItem =~ /GEN_KEY/",
+          "group": "inline@5"
         }
       ],
       "editor/context": [
@@ -1009,7 +1018,7 @@
           "group": "2_i18n@1"
         },
         {
-          "command": "i18nMage.fixSingleFile",
+          "command": "i18nMage.fixUndefinedEntries",
           "when": "hasUndefinedEntriesInFile",
           "group": "2_i18n@3"
         }

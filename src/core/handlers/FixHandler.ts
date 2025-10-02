@@ -40,7 +40,7 @@ export class FixHandler {
           code: EXECUTION_RESULT_CODE.NoReferredLang
         };
       }
-      if (this.ctx.undefinedEntryList.length > 0) {
+      if (this.ctx.undefinedEntryList.length > 0 && this.ctx.fixQuery.entriesToGen !== false) {
         const res = await this.processUndefinedEntries();
         if (!res.success) return res;
       }
@@ -71,11 +71,19 @@ export class FixHandler {
     const needTranslateList: TEntry[] = [];
     const patchedEntryIdList: (TEntry & { fixedRaw: string })[] = [];
     const undefinedEntryIdSet = new Set<string>();
+    const entriesToGen = this.ctx.fixQuery.entriesToGen;
+    const genScope = this.ctx.fixQuery.genScope;
     for (const entry of this.ctx.undefinedEntryList) {
       const nameInfo = entry.nameInfo;
       const entryId = this.getIdByText(nameInfo.text);
       if (this.ctx.i18nFramework === I18N_FRAMEWORK.none && nameInfo.vars.length > 0) continue;
-      if (this.ctx.fileToProcess && entry.path !== this.ctx.fileToProcess) continue;
+      if (entriesToGen !== true && typeof entriesToGen === "object") {
+        if (entry.path === undefined || (genScope !== undefined && !genScope.includes(entry.path))) {
+          continue;
+        } else if (Array.isArray(entriesToGen) && entriesToGen.every(e => e !== entry.nameInfo.text)) {
+          continue;
+        }
+      }
       if (this.ctx.matchExistingKey && valueKeyMap[entryId] && !entry.nameInfo.boundName) {
         this.needFix = true;
         let entryName = valueKeyMap[entryId];
@@ -229,7 +237,7 @@ export class FixHandler {
 
   private async fillMissingTranslations(): Promise<ExecutionResult> {
     const lackInfo = { ...this.lackInfoFromUndefined };
-    if (!this.ctx.fileToProcess) {
+    if (this.ctx.fixQuery.entriesToFill !== false) {
       Object.keys(this.ctx.lackInfo).forEach(lang => {
         if (Object.hasOwn(lackInfo, lang)) {
           lackInfo[lang] = [...new Set([...lackInfo[lang], ...this.ctx.lackInfo[lang]])];
@@ -304,7 +312,6 @@ export class FixHandler {
     }
     return new Promise<ExecutionResult>(resolve => {
       setTimeout(() => {
-        // this.restoreLackInfo();
         resolve({ success, message, code });
       }, 1500);
     });

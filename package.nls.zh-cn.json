@@ -125,6 +125,6 @@
   "command.openDocs.title": "打开文档",
   "command.openSettings.title": "打开设置",
   "command.feedback.title": "反馈",
-  "command.fixSingleFile.title": "修复未定义词条",
+  "command.fixUndefinedEntries.title": "提取未定义文案",
   "view.welcome.title": "未检测到翻译文件目录\n[选择翻译文件目录](command:i18nMage.selectLangPath)"
 }
