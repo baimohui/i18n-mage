@@ -69,6 +69,7 @@
   "config.ignoredDirectories.desc": "忽略的目录",
   "config.ignoredLanguages.desc": "忽略的语言",
   "config.validateLanguageBeforeTranslate.desc": "翻译前校验文本是否属于翻译源语言，用于过滤变量或非语言内容",
+  "config.ignorePossibleVariables.desc": "当字符串疑似为变量时，忽略其提取，不生成新词条，以避免误翻译",
   "config.enableKeyTagRule.desc": "启用 %key% 命名规则",
   "config.enablePrefixTagRule.desc": "启用 #prefix# 前缀规则",
   "config.analysis.title": "检查规则",

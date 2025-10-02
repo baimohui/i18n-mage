@@ -20,6 +20,7 @@ export const createLangContext = (): LangContextInternal => ({
   autoTranslateMissingKey: false,
   autoTranslateEmptyKey: true,
   validateLanguageBeforeTranslate: true,
+  ignorePossibleVariables: true,
   generatedKeyStyle: KEY_STYLE.camelCase,
   stopWords: [],
   maxGeneratedKeyLength: 40,

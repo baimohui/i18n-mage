@@ -59,6 +59,7 @@ class LangMage {
           "translationServices.validateLanguageBeforeTranslate",
           this.ctx.validateLanguageBeforeTranslate
         ),
+        ignorePossibleVariables: getConfig<boolean>("translationServices.ignorePossibleVariables", this.ctx.ignorePossibleVariables),
         ...options
       };
       for (const [key, value] of Object.entries(combinedOptions)) {
@@ -152,6 +153,7 @@ class LangMage {
       quoteStyleForValue: this.ctx.quoteStyleForValue,
       scanStringLiterals: this.ctx.scanStringLiterals,
       validateLanguageBeforeTranslate: this.ctx.validateLanguageBeforeTranslate,
+      ignorePossibleVariables: this.ctx.ignorePossibleVariables,
       missingEntryFile: this.ctx.missingEntryFile,
       missingEntryPath: this.ctx.missingEntryPath,
       fixQuery: this.ctx.fixQuery

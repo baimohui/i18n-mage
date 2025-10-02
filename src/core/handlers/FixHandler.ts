@@ -9,8 +9,8 @@ import {
   generateKey,
   unescapeString,
   convertKeyToVueI18nPath,
-  // getFileLocationFromId,
-  splitFileName
+  splitFileName,
+  isEnglishVariable
 } from "@/utils/regex";
 import { getDetectedLangList, setUpdatedEntryValueInfo } from "@/core/tools/contextTools";
 import translateTo from "@/translator/index";
@@ -98,7 +98,8 @@ export class FixHandler {
         patchedEntryIdList.push({ ...entry, fixedRaw: "" });
       } else if (
         this.ctx.autoTranslateMissingKey &&
-        (!this.ctx.validateLanguageBeforeTranslate || validateLang(nameInfo.text, this.ctx.referredLang))
+        (!this.ctx.validateLanguageBeforeTranslate || validateLang(nameInfo.text, this.ctx.referredLang)) &&
+        (!this.ctx.ignorePossibleVariables || !isEnglishVariable(nameInfo.text))
       ) {
         undefinedEntryIdSet.add(entryId);
         needTranslateList.push(entry);

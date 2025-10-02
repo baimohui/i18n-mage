@@ -171,5 +171,7 @@
   "tree.usedInfo.undefinedAutoTranslateEnabled": "Automatic translation undefined entries function has been enabled",
   "tree.usedInfo.undefinedValidLang": "Unsupported language for auto-gen-key",
   "tree.usedInfo.unused": "Unused",
-  "tree.usedInfo.used": "Used"
+  "tree.usedInfo.used": "Used",
+  "tree.usedInfo.undefinedNoSourceLang": "Non-source text for auto-gen-key",
+  "tree.usedInfo.undefinedPossibleVariable": "Suspected variable for auto-gen-key"
 }

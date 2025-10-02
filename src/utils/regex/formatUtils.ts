@@ -77,7 +77,7 @@ export function validateLang(str: string, lang: string): boolean {
       res = /[\u4E00-\u9FFF\uF900-\uFAFF]+/.test(str);
       break;
     case "en":
-      res = /^[a-zA-Z0-9!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?`~\s]*$/.test(str) && !isEnglishVariable(str);
+      res = /^[a-zA-Z0-9!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?`~\s]*$/.test(str);
       break;
     case "ru": // 俄语
       res = /[а-яА-ЯЁё]/.test(str);

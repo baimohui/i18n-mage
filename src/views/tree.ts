@@ -7,7 +7,8 @@ import {
   detectI18nFramework,
   internalToDisplayName,
   escapeMarkdown,
-  validateLang
+  validateLang,
+  isEnglishVariable
 } from "@/utils/regex";
 import { detectI18nProject, getPossibleLangPaths, toAbsolutePath, toRelativePath } from "@/utils/fs";
 import { getLangCode, getLangText } from "@/utils/langKey";
@@ -299,12 +300,13 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
       const undefinedContextValueList = ["undefinedEntriesInCurFile"];
       if (this.undefinedEntriesInCurrentFile.length > 0) {
         undefinedContextValueList.push("IGNORE_UNDEFINED");
-        let fixableNum = this.undefinedEntriesInCurrentFile.length;
-        if (this.publicCtx.validateLanguageBeforeTranslate) {
-          fixableNum = this.undefinedEntriesInCurrentFile.filter(item =>
-            validateLang(item.nameInfo.text, this.publicCtx.referredLang)
-          ).length;
-        }
+        const fixableNum = this.undefinedEntriesInCurrentFile.filter(item => {
+          if (this.publicCtx.validateLanguageBeforeTranslate && !validateLang(item.nameInfo.text, this.publicCtx.referredLang)) {
+            return false;
+          }
+          if (this.publicCtx.ignorePossibleVariables && isEnglishVariable(item.nameInfo.text)) return false;
+          return true;
+        }).length;
         undefinedDescription = `${this.undefinedEntriesInCurrentFile.length}(${fixableNum})`;
         undefinedTooltip = t(`tree.undefinedInfo.tooltip`, this.undefinedEntriesInCurrentFile.length, fixableNum);
         if (fixableNum > 0) {
@@ -349,7 +351,9 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
           contextValueList.push("undefinedEntryInCurFile", "IGNORE_UNDEFINED");
           if (this.publicCtx.autoTranslateMissingKey) {
             if (this.publicCtx.validateLanguageBeforeTranslate && !validateLang(entry.nameInfo.text, this.publicCtx.referredLang)) {
-              description = t("tree.usedInfo.undefinedValidLang");
+              description = t("tree.usedInfo.undefinedNoSourceLang");
+            } else if (this.publicCtx.ignorePossibleVariables && isEnglishVariable(entry.nameInfo.text)) {
+              description = t("tree.usedInfo.undefinedPossibleVariable");
             } else {
               contextValueList.push("GEN_KEY");
             }
@@ -484,10 +488,11 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
           data = undefinedEntries;
           if (item.num > 0) {
             contextValueList.push("IGNORE_UNDEFINED");
-            let fixableNum = item.num;
-            if (this.publicCtx.validateLanguageBeforeTranslate) {
-              fixableNum = undefinedEntries.filter(key => validateLang(key, this.publicCtx.referredLang)).length;
-            }
+            const fixableNum = undefinedEntries.filter(key => {
+              if (this.publicCtx.validateLanguageBeforeTranslate && !validateLang(key, this.publicCtx.referredLang)) return false;
+              if (this.publicCtx.ignorePossibleVariables && isEnglishVariable(key)) return false;
+              return true;
+            }).length;
             description = `${item.num}(${fixableNum})`;
             tooltip = t(`tree.undefinedInfo.tooltip`, item.num, fixableNum);
             if (fixableNum > 0) {
@@ -517,7 +522,9 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
             const descriptions = [`<${undefinedNum}>`];
             if (this.publicCtx.autoTranslateMissingKey) {
               if (this.publicCtx.validateLanguageBeforeTranslate && !validateLang(item, this.publicCtx.referredLang)) {
-                descriptions.push(t("tree.usedInfo.undefinedValidLang"));
+                descriptions.push(t("tree.usedInfo.undefinedNoSourceLang"));
+              } else if (this.publicCtx.ignorePossibleVariables && isEnglishVariable(item)) {
+                descriptions.push(t("tree.usedInfo.undefinedPossibleVariable"));
               } else {
                 contextValueList.push("GEN_KEY");
               }

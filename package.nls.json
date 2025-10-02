@@ -69,6 +69,7 @@
   "config.ignoredDirectories.desc": "Ignored Directories",
   "config.ignoredLanguages.desc": "Ignored Languages",
   "config.validateLanguageBeforeTranslate.desc": "Validate text belongs to reference language before auto-translation. Helps filter variables or non-linguistic content",
+  "config.ignorePossibleVariables.desc": "Ignore extraction of strings that appear to be variables, to avoid erroneous translations",
   "config.enableKeyTagRule.desc": "Enable %key% naming rule",
   "config.enablePrefixTagRule.desc": "Enable #prefix# rule",
   "config.analysis.title": "Analysis Rules",

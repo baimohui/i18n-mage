@@ -145,6 +145,8 @@
   "translator.unknownService": "未知的翻译服务！",
   "translator.useApi": "将由 {0} 继续翻译该语言",
   "translator.useOtherApi": "使用 {0} 翻译 {1} 失败（{2}），切换到 {3}",
+  "tree.usedInfo.undefinedNoSourceLang": "文本不属于源语言，无法生成键",
+  "tree.usedInfo.undefinedPossibleVariable": "文本疑似变量，无法生成键",
   "tree.currentFile.defined": "已定义",
   "tree.currentFile.title": "当前文件",
   "tree.currentFile.undefined": "未定义",
