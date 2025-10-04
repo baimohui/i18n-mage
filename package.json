@@ -9,8 +9,17 @@
   "publisher": "jensen-wen",
   "keywords": [
     "i18n",
-    "translate",
-    "language"
+    "translation",
+    "localization",
+    "internationalization",
+    "multilingual",
+    "vue",
+    "vue-i18n",
+    "react",
+    "react-i18next",
+    "nextjs",
+    "翻译",
+    "国际化"
   ],
   "version": "1.0.7",
   "engines": {
@@ -18,7 +27,8 @@
   },
   "icon": "images/icon.png",
   "categories": [
-    "Other"
+    "Other",
+    "Programming Languages"
   ],
   "extensionKind": [
     "ui"
