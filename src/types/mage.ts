@@ -1,4 +1,4 @@
-import { I18nFramework, KeyStyle, NamespaceStrategy, QuoteStyle, SortMode } from "@/types";
+import { FixQuery, I18nFramework, KeyStyle, NamespaceStrategy, QuoteStyle, SortMode } from "@/types";
 
 export interface LangMageOptions {
   task?: string;
@@ -37,12 +37,7 @@ export interface LangMageOptions {
   scanStringLiterals?: boolean;
   missingEntryFile?: string;
   missingEntryPath?: string;
-  fixQuery?: {
-    entriesToGen: string[] | boolean;
-    genScope?: string[];
-    entriesToFill: string[] | boolean;
-    fillScope?: string[];
-  };
+  fixQuery?: FixQuery;
 }
 
 export const EXECUTION_RESULT_CODE = {
@@ -76,4 +71,17 @@ export interface ExecutionResult {
   code: ExecutionResultCode;
   defaultSuccessMessage?: string;
   defaultErrorMessage?: string;
+}
+
+export interface FixExecutionResult extends ExecutionResult {
+  data: {
+    success: number;
+    failed: number;
+    // skipped: number;
+    // translated: number;
+    // filled: number;
+    patched: number;
+    generated: number;
+    total: number;
+  };
 }

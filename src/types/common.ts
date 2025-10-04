@@ -108,3 +108,11 @@ export type DirNode = {
 export type EntryNode = FileNode | DirNode;
 
 export type QuoteStyle = "single" | "double" | "none";
+
+export interface FixQuery {
+  entriesToGen: string[] | boolean;
+  genScope?: string[];
+  entriesToFill: string[] | boolean;
+  fillScope?: string[];
+  fillWithOriginal?: boolean;
+}

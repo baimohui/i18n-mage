@@ -202,14 +202,34 @@
             "default": true,
             "description": "%config.validateLanguageBeforeTranslate.desc%"
           },
-          "i18n-mage.translationServices.ignorePossibleVariables": {
+          "i18n-mage.translationServices.unmatchedLanguageAction": {
             "order": 7,
+            "type": "string",
+            "enum": [
+              "ignore",
+              "force",
+              "fill",
+              "switch",
+              "query"
+            ],
+            "default": "query",
+            "description": "%config.unmatchedLanguageAction.desc%",
+            "enumDescriptions": [
+              "%config.unmatchedLanguageAction.ignore%",
+              "%config.unmatchedLanguageAction.force%",
+              "%config.unmatchedLanguageAction.fill%",
+              "%config.unmatchedLanguageAction.switch%",
+              "%config.unmatchedLanguageAction.query%"
+            ]
+          },
+          "i18n-mage.translationServices.ignorePossibleVariables": {
+            "order": 8,
             "type": "boolean",
             "default": true,
             "description": "%config.ignorePossibleVariables.desc%"
           },
           "i18n-mage.translationServices.autoTranslateEmptyKey": {
-            "order": 8,
+            "order": 9,
             "type": "boolean",
             "default": true,
             "description": "%config.autoTranslateEmptyKey.desc%"

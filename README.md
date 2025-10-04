@@ -325,6 +325,10 @@ Enable automatic translation of undefined terms: When undefined translation text
 
 Enable language validation before translation: Before translating undefined terms, a language validation method will be used to determine whether the string belongs to the reference language. Automatic translation will only be performed if the validation passes. This is useful for filtering non-source language content to prevent mistranslations.
 
+#### `i18n-mage.translationServices.unmatchedLanguageAction`
+
+Set the action to take when the language validation fails.
+
 #### `i18n-mage.translationServices.ignorePossibleVariables`
 
 Enable ignoring possible variables: When enabled, the plugin will ignore terms that may be variable names or encoded values, preventing mistranslations.

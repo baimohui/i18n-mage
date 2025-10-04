@@ -1,13 +1,7 @@
 import fs from "fs";
 import path from "path";
 import { LangContextInternal, EntryTree, FileExtraInfo } from "@/types";
-import {
-  getFileLocationFromId,
-  getContentAtLocation,
-  setValueByEscapedEntryName,
-  formatObjectToString,
-  getPathSegsFromId
-} from "@/utils/regex";
+import { getFileLocationFromId, getContentAtLocation, formatObjectToString, getPathSegsFromId } from "@/utils/regex";
 import { t } from "@/utils/i18n";
 import { ExecutionResult, EXECUTION_RESULT_CODE } from "@/types";
 import { checkPathExists } from "@/utils/fs";
@@ -19,8 +13,7 @@ export class RewriteHandler {
     try {
       for (const [lang, entryInfo] of Object.entries(this.ctx.updatedEntryValueInfo)) {
         const filePosSet = new Set<string>();
-        for (const [key, value] of Object.entries(entryInfo)) {
-          this.updateEntryValue(key, value, lang);
+        for (const key of Object.keys(entryInfo)) {
           if (!this.ctx.fileStructure) continue;
           const filePos = getFileLocationFromId(this.ctx.langDictionary[key].fullPath, this.ctx.fileStructure);
           if (Array.isArray(filePos) && filePos.length > 0) filePosSet.add(filePos.join("."));
@@ -40,22 +33,6 @@ export class RewriteHandler {
     } catch (e: unknown) {
       const errorMessage = t("common.progress.error", e instanceof Error ? e.message : (e as string));
       return { success: false, message: errorMessage, code: EXECUTION_RESULT_CODE.UnknownRewriteError };
-    }
-  }
-
-  private updateEntryValue(key: string, value: string | undefined, lang: string): void {
-    if (typeof value === "string") {
-      if (Object.hasOwn(this.ctx.langDictionary, key)) {
-        this.ctx.langDictionary[key].value[lang] = value;
-      } else {
-        this.ctx.langDictionary[key] = { fullPath: "", fileScope: "", value: { [lang]: value } };
-      }
-      this.ctx.langCountryMap[lang][key] = value;
-      setValueByEscapedEntryName(this.ctx.entryTree, key, key);
-    } else {
-      delete this.ctx.langDictionary[key][lang];
-      delete this.ctx.langCountryMap[lang][key];
-      setValueByEscapedEntryName(this.ctx.entryTree, key, undefined);
     }
   }
 

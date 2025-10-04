@@ -13,7 +13,8 @@ import {
   I18nFramework,
   NamespaceStrategy,
   EntryClassTree,
-  DirNode
+  DirNode,
+  FixQuery
 } from "@/types";
 
 // 外部模块可访问的公共上下文
@@ -54,12 +55,7 @@ export interface LangContextPublic {
   scanStringLiterals: boolean;
   missingEntryFile: string;
   missingEntryPath: string;
-  fixQuery: {
-    entriesToGen: string[] | boolean;
-    genScope?: string[];
-    entriesToFill: string[] | boolean;
-    fillScope?: string[];
-  };
+  fixQuery: FixQuery;
 }
 
 // 内部模块才能访问的完整上下文

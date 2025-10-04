@@ -53,3 +53,13 @@ export const KEY_STYLE = {
 } as const;
 
 export type KeyStyle = (typeof KEY_STYLE)[keyof typeof KEY_STYLE];
+
+export const UNMATCHED_LANGUAGE_ACTION = {
+  ignore: "ignore",
+  force: "force",
+  fill: "fill",
+  switch: "switch",
+  query: "query"
+} as const;
+
+export type UnmatchedLanguageAction = (typeof UNMATCHED_LANGUAGE_ACTION)[keyof typeof UNMATCHED_LANGUAGE_ACTION];

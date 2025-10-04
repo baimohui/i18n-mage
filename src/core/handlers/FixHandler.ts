@@ -1,8 +1,7 @@
-import { LangContextInternal, LackInfo, NAMESPACE_STRATEGY, EntryClassTreeItem } from "@/types";
+import { LangContextInternal, LackInfo, NAMESPACE_STRATEGY, EntryClassTreeItem, FixExecutionResult } from "@/types";
 import { getLangCode } from "@/utils/langKey";
 import { TEntry, I18N_FRAMEWORK } from "@/types";
 import {
-  validateLang,
   getIdByStr,
   getValueByAmbiguousEntryName,
   internalToDisplayName,
@@ -22,6 +21,7 @@ import { NotificationManager } from "@/utils/notification";
 export class FixHandler {
   private lackInfoFromUndefined: LackInfo;
   private needFix: boolean = false;
+  private patchedNum: number = 0;
   constructor(private ctx: LangContextInternal) {
     this.lackInfoFromUndefined = {};
   }
@@ -33,6 +33,7 @@ export class FixHandler {
   public async run(): Promise<ExecutionResult> {
     try {
       this.needFix = false;
+      this.patchedNum = 0;
       if (!this.ctx.referredLang) {
         return {
           success: false,
@@ -44,12 +45,14 @@ export class FixHandler {
         const res = await this.processUndefinedEntries();
         if (!res.success) return res;
       }
-      const res = await this.fillMissingTranslations();
-      if (ExecutionContext.token.isCancellationRequested) {
-        this.restoreLackInfo();
-        return { success: false, message: "", code: EXECUTION_RESULT_CODE.Cancelled };
+      if (this.ctx.fixQuery.entriesToFill !== false) {
+        return await this.fillMissingTranslations();
       }
-      return res;
+      return {
+        success: true,
+        message: t("command.fix.nullWarn"),
+        code: this.needFix ? EXECUTION_RESULT_CODE.Success : EXECUTION_RESULT_CODE.NoLackEntries
+      };
     } catch (e: unknown) {
       const errorMessage = t("common.progress.error", e instanceof Error ? e.message : (e as string));
       return { success: false, message: errorMessage, code: EXECUTION_RESULT_CODE.UnknownFixError };
@@ -77,7 +80,7 @@ export class FixHandler {
       const nameInfo = entry.nameInfo;
       const entryId = this.getIdByText(nameInfo.text);
       if (this.ctx.i18nFramework === I18N_FRAMEWORK.none && nameInfo.vars.length > 0) continue;
-      if (entriesToGen !== true && typeof entriesToGen === "object") {
+      if (entriesToGen !== true) {
         if (entry.path === undefined || (genScope !== undefined && !genScope.includes(entry.path))) {
           continue;
         } else if (Array.isArray(entriesToGen) && entriesToGen.every(e => e !== entry.nameInfo.text)) {
@@ -96,11 +99,7 @@ export class FixHandler {
         patchedEntryIdList.push({ ...entry, fixedRaw: this.getFixedRaw(entry, entryKey) });
       } else if (undefinedEntryIdSet.has(entryId)) {
         patchedEntryIdList.push({ ...entry, fixedRaw: "" });
-      } else if (
-        this.ctx.autoTranslateMissingKey &&
-        (!this.ctx.validateLanguageBeforeTranslate || validateLang(nameInfo.text, this.ctx.referredLang)) &&
-        (!this.ctx.ignorePossibleVariables || !isEnglishVariable(nameInfo.text))
-      ) {
+      } else if (this.ctx.autoTranslateMissingKey && (!this.ctx.ignorePossibleVariables || !isEnglishVariable(nameInfo.text))) {
         undefinedEntryIdSet.add(entryId);
         needTranslateList.push(entry);
       }
@@ -108,7 +107,7 @@ export class FixHandler {
     let enNameList: string[] = needTranslateList.map(entry => entry.nameInfo.text);
     const enLang = this.detectedLangList.find(item => getLangCode(item) === "en")!;
     if (enNameList.length > 0) {
-      if (referredLangCode !== "en") {
+      if (referredLangCode !== "en" && this.ctx.fixQuery.fillWithOriginal !== true) {
         const res = await translateTo({
           source: this.ctx.referredLang,
           target: "en",
@@ -192,6 +191,11 @@ export class FixHandler {
           [this.ctx.referredLang]: nameInfo.text
         }
       };
+      if (this.ctx.fixQuery.entriesToFill === false) {
+        this.ctx.fixQuery.entriesToFill = [nameInfo.boundKey];
+      } else if (Array.isArray(this.ctx.fixQuery.entriesToFill) && !this.ctx.fixQuery.entriesToFill.includes(nameInfo.boundKey)) {
+        this.ctx.fixQuery.entriesToFill.push(nameInfo.boundKey);
+      }
       this.detectedLangList.forEach(lang => {
         if ([this.ctx.referredLang, enLang].includes(lang)) {
           setUpdatedEntryValueInfo(this.ctx, nameInfo.boundKey, lang === this.ctx.referredLang ? nameInfo.text : enNameList[index], lang);
@@ -201,7 +205,6 @@ export class FixHandler {
         }
       });
     });
-    this.ctx.patchedEntryIdInfo = {};
     patchedEntryIdList.forEach(entry => {
       if (entry.fixedRaw === "") {
         const fixedEntryId =
@@ -219,6 +222,7 @@ export class FixHandler {
       });
     });
     if (patchedEntryIdList.length > 0) {
+      this.patchedNum = patchedEntryIdList.length;
       NotificationManager.showProgress({
         message: t(
           "command.fix.undefinedEntriesPatched",
@@ -235,25 +239,23 @@ export class FixHandler {
     };
   }
 
-  private async fillMissingTranslations(): Promise<ExecutionResult> {
+  private async fillMissingTranslations(): Promise<FixExecutionResult> {
     const lackInfo = { ...this.lackInfoFromUndefined };
-    if (this.ctx.fixQuery.entriesToFill !== false) {
-      Object.keys(this.ctx.lackInfo).forEach(lang => {
+    Object.keys(this.ctx.lackInfo).forEach(lang => {
+      if (Object.hasOwn(lackInfo, lang)) {
+        lackInfo[lang] = [...new Set([...lackInfo[lang], ...this.ctx.lackInfo[lang]])];
+      } else {
+        lackInfo[lang] = this.ctx.lackInfo[lang];
+      }
+    });
+    if (this.ctx.autoTranslateEmptyKey) {
+      Object.keys(this.ctx.nullInfo).forEach(lang => {
         if (Object.hasOwn(lackInfo, lang)) {
-          lackInfo[lang] = [...new Set([...lackInfo[lang], ...this.ctx.lackInfo[lang]])];
+          lackInfo[lang] = [...new Set([...lackInfo[lang], ...this.ctx.nullInfo[lang]])];
         } else {
-          lackInfo[lang] = this.ctx.lackInfo[lang];
+          lackInfo[lang] = this.ctx.nullInfo[lang];
         }
       });
-      if (this.ctx.autoTranslateEmptyKey) {
-        Object.keys(this.ctx.nullInfo).forEach(lang => {
-          if (Object.hasOwn(lackInfo, lang)) {
-            lackInfo[lang] = [...new Set([...lackInfo[lang], ...this.ctx.nullInfo[lang]])];
-          } else {
-            lackInfo[lang] = this.ctx.nullInfo[lang];
-          }
-        });
-      }
     }
     let successCount = 0;
     let failCount = 0;
@@ -261,33 +263,57 @@ export class FixHandler {
     const referredLangMap = this.ctx.langCountryMap[this.ctx.referredLang];
     const steps = Object.values(lackInfo).filter(keys => keys.some(key => referredLangMap[key])).length;
     for (const lang in lackInfo) {
+      if (Array.isArray(this.ctx.fixQuery.fillScope) && !this.ctx.fixQuery.fillScope.includes(lang)) continue;
       if (ExecutionContext.token.isCancellationRequested) {
         this.restoreLackInfo();
-        return { success: false, message: "", code: EXECUTION_RESULT_CODE.Cancelled };
+        return {
+          success: false,
+          message: "",
+          code: EXECUTION_RESULT_CODE.Cancelled,
+          data: {
+            patched: this.patchedNum,
+            success: successCount,
+            failed: failCount,
+            generated: addedCount,
+            total: successCount + failCount
+          }
+        };
       }
-      const lackEntries = lackInfo[lang].filter(key => referredLangMap[key]);
+      const lackEntries = lackInfo[lang].filter(
+        key =>
+          (!Array.isArray(this.ctx.fixQuery.entriesToFill) || this.ctx.fixQuery.entriesToFill.includes(key)) &&
+          !!referredLangMap[key] &&
+          lang !== this.ctx.referredLang
+      );
       if (lackEntries.length > 0) {
         this.needFix = true;
         const referredEntriesText = lackEntries.map(key => referredLangMap[key]);
-        const res = await translateTo({
-          source: this.ctx.referredLang,
-          target: lang,
-          sourceTextList: referredEntriesText
-        });
-        if (res.success && res.data) {
-          successCount++;
+        if (this.ctx.fixQuery.fillWithOriginal === true) {
           lackEntries.forEach((entryName, index) => {
             addedCount++;
-            setUpdatedEntryValueInfo(this.ctx, entryName, res.data?.[index], lang);
+            setUpdatedEntryValueInfo(this.ctx, entryName, referredEntriesText[index], lang);
           });
         } else {
-          failCount++;
+          const res = await translateTo({
+            source: this.ctx.referredLang,
+            target: lang,
+            sourceTextList: referredEntriesText
+          });
+          if (res.success && res.data) {
+            successCount++;
+            lackEntries.forEach((entryName, index) => {
+              addedCount++;
+              setUpdatedEntryValueInfo(this.ctx, entryName, res.data?.[index], lang);
+            });
+          } else {
+            failCount++;
+          }
+          NotificationManager.showProgress({
+            message: res.message,
+            type: res.success ? "success" : "error",
+            increment: (1 / steps) * 100
+          });
         }
-        NotificationManager.showProgress({
-          message: res.message,
-          type: res.success ? "success" : "error",
-          increment: (1 / steps) * 100
-        });
       }
     }
     let success = true;
@@ -310,9 +336,20 @@ export class FixHandler {
       message = t("command.fix.translatorFailed", successCount + failCount);
       code = EXECUTION_RESULT_CODE.TranslatorFailed;
     }
-    return new Promise<ExecutionResult>(resolve => {
+    return new Promise<FixExecutionResult>(resolve => {
       setTimeout(() => {
-        resolve({ success, message, code });
+        resolve({
+          success,
+          message,
+          code,
+          data: {
+            success: successCount,
+            failed: failCount,
+            generated: addedCount,
+            total: successCount + failCount,
+            patched: this.patchedNum
+          }
+        });
       }, 1500);
     });
   }
