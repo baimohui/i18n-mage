@@ -43,7 +43,6 @@ export interface LangContextPublic {
   matchExistingKey: boolean;
   autoTranslateMissingKey: boolean;
   autoTranslateEmptyKey: boolean;
-  validateLanguageBeforeTranslate: boolean;
   ignorePossibleVariables: boolean;
   generatedKeyStyle: KeyStyle;
   stopWords: string[];

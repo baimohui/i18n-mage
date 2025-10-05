@@ -32,7 +32,11 @@ export function registerOnConfigChange() {
     ) {
       clearConfigCache();
       vscode.commands.executeCommand("i18nMage.checkUsage");
-    } else if (event.affectsConfiguration("i18n-mage.general.displayLanguage")) {
+    } else if (
+      event.affectsConfiguration("i18n-mage.general.displayLanguage") ||
+      event.affectsConfiguration("i18n-mage.translationServices.validateLanguageBeforeTranslate") ||
+      event.affectsConfiguration("i18n-mage.translationServices.unmatchedLanguageAction")
+    ) {
       treeInstance.refresh();
     } else if (
       event.affectsConfiguration("i18n-mage.translationHints.light") ||

@@ -19,7 +19,6 @@ export const createLangContext = (): LangContextInternal => ({
   matchExistingKey: true,
   autoTranslateMissingKey: false,
   autoTranslateEmptyKey: true,
-  validateLanguageBeforeTranslate: true,
   ignorePossibleVariables: true,
   generatedKeyStyle: KEY_STYLE.camelCase,
   stopWords: [],

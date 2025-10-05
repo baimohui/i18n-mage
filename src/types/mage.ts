@@ -25,7 +25,6 @@ export interface LangMageOptions {
   matchExistingKey?: boolean;
   autoTranslateMissingKey?: boolean;
   autoTranslateEmptyKey?: boolean;
-  validateLanguageBeforeTranslate?: boolean;
   ignorePossibleVariables?: boolean;
   generatedKeyStyle?: KeyStyle;
   stopWords?: string[];
@@ -74,7 +73,7 @@ export interface ExecutionResult {
 }
 
 export interface FixExecutionResult extends ExecutionResult {
-  data: {
+  data?: {
     success: number;
     failed: number;
     // skipped: number;

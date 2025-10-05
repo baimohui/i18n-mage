@@ -55,10 +55,6 @@ class LangMage {
         quoteStyleForKey: getConfig<"auto" | QuoteStyle>("writeRules.quoteStyleForKey", this.ctx.quoteStyleForKey),
         quoteStyleForValue: getConfig<"auto" | QuoteStyle>("writeRules.quoteStyleForValue", this.ctx.quoteStyleForValue),
         scanStringLiterals: getConfig<boolean>("analysis.scanStringLiterals", this.ctx.scanStringLiterals),
-        validateLanguageBeforeTranslate: getConfig<boolean>(
-          "translationServices.validateLanguageBeforeTranslate",
-          this.ctx.validateLanguageBeforeTranslate
-        ),
         ignorePossibleVariables: getConfig<boolean>("translationServices.ignorePossibleVariables", this.ctx.ignorePossibleVariables),
         ...options
       };
@@ -152,7 +148,6 @@ class LangMage {
       quoteStyleForKey: this.ctx.quoteStyleForKey,
       quoteStyleForValue: this.ctx.quoteStyleForValue,
       scanStringLiterals: this.ctx.scanStringLiterals,
-      validateLanguageBeforeTranslate: this.ctx.validateLanguageBeforeTranslate,
       ignorePossibleVariables: this.ctx.ignorePossibleVariables,
       missingEntryFile: this.ctx.missingEntryFile,
       missingEntryPath: this.ctx.missingEntryPath,

@@ -42,9 +42,10 @@ export function registerFixCommand(context: vscode.ExtensionContext) {
         : fixQuery.entriesToGen
           ? Object.keys(undefinedMap)
           : [];
-      const tasks: LangMageOptions[] = [{ task: "fix", fixQuery }];
+      let tasks: LangMageOptions[] = [{ task: "fix", fixQuery }];
+      const validateLanguageBeforeTranslate = getConfig<boolean>("translationServices.validateLanguageBeforeTranslate", true);
       if (undefinedKeys.length > 0) {
-        if (publicCtx.validateLanguageBeforeTranslate) {
+        if (validateLanguageBeforeTranslate) {
           const unmatchedLanguageAction = getConfig<UnmatchedLanguageAction>("translationServices.unmatchedLanguageAction");
           fixQuery.entriesToGen = undefinedKeys;
           let currentNonSourceKeys = undefinedKeys.filter(key => !validateLang(key, publicCtx.referredLang));
@@ -177,7 +178,7 @@ export function registerFixCommand(context: vscode.ExtensionContext) {
           mage.setOptions({ missingEntryPath });
         }
       }
-      if (publicCtx.validateLanguageBeforeTranslate) {
+      if (validateLanguageBeforeTranslate) {
         let lackKeys = Object.values(mage.langDetail.lack).flat();
         if (publicCtx.autoTranslateEmptyKey) {
           lackKeys.push(...Object.values(mage.langDetail.null).flat());
@@ -278,6 +279,15 @@ export function registerFixCommand(context: vscode.ExtensionContext) {
       treeInstance.refresh();
       const previewChanges = getConfig<boolean>("general.previewChanges", true);
       const resList: FixExecutionResult[] = [];
+      tasks = tasks.filter(task => {
+        const q = task.fixQuery;
+        return (
+          (Array.isArray(q?.entriesToGen) && q.entriesToGen.length > 0) ||
+          q?.entriesToGen === true ||
+          (Array.isArray(q?.entriesToFill) && q.entriesToFill.length > 0) ||
+          q?.entriesToFill === true
+        );
+      });
       for (const task of tasks) {
         resList.push((await mage.execute(task)) as FixExecutionResult);
       }
@@ -288,6 +298,8 @@ export function registerFixCommand(context: vscode.ExtensionContext) {
       }
       const res: FixExecutionResult = resList.reduce(
         (prev, curr) => {
+          prev.data ??= { success: 0, failed: 0, generated: 0, total: 0, patched: 0 };
+          curr.data ??= { success: 0, failed: 0, generated: 0, total: 0, patched: 0 };
           return {
             ...prev,
             success: prev.success && curr.success,
@@ -302,12 +314,11 @@ export function registerFixCommand(context: vscode.ExtensionContext) {
         },
         {
           success: true,
-          data: { success: 0, failed: 0, generated: 0, total: 0, patched: 0 },
           message: "",
           code: EXECUTION_RESULT_CODE.Success
         } as FixExecutionResult
       );
-      if (res.data.total === 0 && res.data.patched === 0) {
+      if (res.data === undefined || (res.data.total === 0 && res.data.patched === 0)) {
         res.message = t("command.fix.nullWarn");
         res.code = EXECUTION_RESULT_CODE.NoLackEntries;
       } else if (res.data.total === 0 && res.data.patched > 0) {
@@ -358,7 +369,7 @@ export function registerFixCommand(context: vscode.ExtensionContext) {
   });
   const fixUndefinedEntriesDisposable = vscode.commands.registerCommand(
     "i18nMage.fixUndefinedEntries",
-    async (query?: { data: string[]; info?: { path?: string } } | vscode.Uri) => {
+    async (query?: { data: string[]; meta?: { path?: string } } | vscode.Uri) => {
       const fixQuery = { entriesToGen: true, entriesToFill: false } as FixQuery;
       if (query === undefined) {
         const options: vscode.OpenDialogOptions = {
@@ -382,8 +393,8 @@ export function registerFixCommand(context: vscode.ExtensionContext) {
         fixQuery.genScope = [fsPath];
       } else if (Array.isArray(query.data)) {
         fixQuery.entriesToGen = query.data;
-        if (query.info && typeof query.info.path === "string" && query.info.path.trim()) {
-          fixQuery.genScope = [query.info.path];
+        if (query.meta && typeof query.meta.path === "string" && query.meta.path.trim()) {
+          fixQuery.genScope = [query.meta.path];
         }
       }
       await fix(fixQuery);

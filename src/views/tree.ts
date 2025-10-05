@@ -12,7 +12,15 @@ import {
 } from "@/utils/regex";
 import { detectI18nProject, getPossibleLangPaths, toAbsolutePath, toRelativePath } from "@/utils/fs";
 import { getLangCode, getLangText } from "@/utils/langKey";
-import { LangContextPublic, TEntry, LangTree, SORT_MODE, I18N_FRAMEWORK } from "@/types";
+import {
+  LangContextPublic,
+  TEntry,
+  LangTree,
+  SORT_MODE,
+  I18N_FRAMEWORK,
+  UNMATCHED_LANGUAGE_ACTION,
+  UnmatchedLanguageAction
+} from "@/types";
 import { t } from "@/utils/i18n";
 import { NotificationManager } from "@/utils/notification";
 import { getCacheConfig, getConfig, setConfig } from "@/utils/config";
@@ -27,7 +35,7 @@ interface ExtendedTreeItem extends vscode.TreeItem {
   name?: string;
   key?: string;
   data?: any;
-  info?: any;
+  meta?: any;
   stack?: string[];
 }
 
@@ -51,6 +59,8 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
   isInitialized = false;
   isSyncing = false;
   displayLang = "";
+  validateLanguageBeforeTranslate = true;
+  unmatchedLanguageAction: UnmatchedLanguageAction = UNMATCHED_LANGUAGE_ACTION.ignore;
   usedEntries: TEntry[] = [];
   definedEntriesInCurrentFile: TEntry[] = [];
   undefinedEntriesInCurrentFile: TEntry[] = [];
@@ -96,6 +106,10 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
 
   refresh(): void {
     this.publicCtx = this.#mage.getPublicContext();
+    this.validateLanguageBeforeTranslate = getConfig<boolean>("translationServices.validateLanguageBeforeTranslate", true);
+    if (this.validateLanguageBeforeTranslate) {
+      this.unmatchedLanguageAction = getConfig<UnmatchedLanguageAction>("translationServices.unmatchedLanguageAction");
+    }
     const resolveLang = (target: string) => {
       const targetCode = getLangCode(target);
       const defaultCode = getLangCode(this.publicCtx.defaultLang);
@@ -301,7 +315,11 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
       if (this.undefinedEntriesInCurrentFile.length > 0) {
         undefinedContextValueList.push("IGNORE_UNDEFINED");
         const fixableNum = this.undefinedEntriesInCurrentFile.filter(item => {
-          if (this.publicCtx.validateLanguageBeforeTranslate && !validateLang(item.nameInfo.text, this.publicCtx.referredLang)) {
+          if (
+            this.validateLanguageBeforeTranslate &&
+            !validateLang(item.nameInfo.text, this.publicCtx.referredLang) &&
+            this.unmatchedLanguageAction === UNMATCHED_LANGUAGE_ACTION.ignore
+          ) {
             return false;
           }
           if (this.publicCtx.ignorePossibleVariables && isEnglishVariable(item.nameInfo.text)) return false;
@@ -329,7 +347,7 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
           label: t("tree.currentFile.undefined"),
           contextValue: undefinedContextValueList.join(","),
           data: this.undefinedEntriesInCurrentFile.map(item => item.nameInfo.name),
-          info: { path: vscode.window.activeTextEditor?.document.uri.fsPath },
+          meta: { path: vscode.window.activeTextEditor?.document.uri.fsPath },
           tooltip: undefinedTooltip,
           description: undefinedDescription,
           collapsibleState: vscode.TreeItemCollapsibleState[this.undefinedEntriesInCurrentFile.length === 0 ? "None" : "Collapsed"],
@@ -350,10 +368,13 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
         } else {
           contextValueList.push("undefinedEntryInCurFile", "IGNORE_UNDEFINED");
           if (this.publicCtx.autoTranslateMissingKey) {
-            if (this.publicCtx.validateLanguageBeforeTranslate && !validateLang(entry.nameInfo.text, this.publicCtx.referredLang)) {
-              description = t("tree.usedInfo.undefinedNoSourceLang");
-            } else if (this.publicCtx.ignorePossibleVariables && isEnglishVariable(entry.nameInfo.text)) {
+            if (this.publicCtx.ignorePossibleVariables && isEnglishVariable(entry.nameInfo.text)) {
               description = t("tree.usedInfo.undefinedPossibleVariable");
+            } else if (this.validateLanguageBeforeTranslate && !validateLang(entry.nameInfo.text, this.publicCtx.referredLang)) {
+              description = t("tree.usedInfo.undefinedNoSourceLang");
+              if (this.unmatchedLanguageAction !== UNMATCHED_LANGUAGE_ACTION.ignore) {
+                contextValueList.push("GEN_KEY");
+              }
             } else {
               contextValueList.push("GEN_KEY");
             }
@@ -366,7 +387,7 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
           collapsibleState: vscode.TreeItemCollapsibleState[element.type === "defined" ? "Collapsed" : "None"],
           level: 2,
           data: [entry.nameInfo.name],
-          info: { path: vscode.window.activeTextEditor?.document.uri.fsPath },
+          meta: { path: vscode.window.activeTextEditor?.document.uri.fsPath },
           contextValue: contextValueList.join(","),
           usedInfo: this[element.type === "defined" ? "usedEntryMap" : "undefinedEntryMap"][entry.nameInfo.name],
           id: this.genId(element, entry.nameInfo.name || ""),
@@ -489,7 +510,12 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
           if (item.num > 0) {
             contextValueList.push("IGNORE_UNDEFINED");
             const fixableNum = undefinedEntries.filter(key => {
-              if (this.publicCtx.validateLanguageBeforeTranslate && !validateLang(key, this.publicCtx.referredLang)) return false;
+              if (
+                this.validateLanguageBeforeTranslate &&
+                !validateLang(key, this.publicCtx.referredLang) &&
+                this.unmatchedLanguageAction === UNMATCHED_LANGUAGE_ACTION.ignore
+              )
+                return false;
               if (this.publicCtx.ignorePossibleVariables && isEnglishVariable(key)) return false;
               return true;
             }).length;
@@ -514,17 +540,20 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
       });
     } else if (element.level === 1) {
       if (element.type === "undefined") {
-        const contextValueList = ["undefinedEntry", "IGNORE_UNDEFINED"];
         return Object.keys(this.undefinedEntryMap)
           .sort()
           .map(item => {
+            const contextValueList = ["undefinedEntry", "IGNORE_UNDEFINED"];
             const undefinedNum = Object.values(this.undefinedEntryMap[item]).reduce((acc, cur) => acc + cur.size, 0);
             const descriptions = [`<${undefinedNum}>`];
             if (this.publicCtx.autoTranslateMissingKey) {
-              if (this.publicCtx.validateLanguageBeforeTranslate && !validateLang(item, this.publicCtx.referredLang)) {
-                descriptions.push(t("tree.usedInfo.undefinedNoSourceLang"));
-              } else if (this.publicCtx.ignorePossibleVariables && isEnglishVariable(item)) {
+              if (this.publicCtx.ignorePossibleVariables && isEnglishVariable(item)) {
                 descriptions.push(t("tree.usedInfo.undefinedPossibleVariable"));
+              } else if (this.validateLanguageBeforeTranslate && !validateLang(item, this.publicCtx.referredLang)) {
+                descriptions.push(t("tree.usedInfo.undefinedNoSourceLang"));
+                if (this.unmatchedLanguageAction !== UNMATCHED_LANGUAGE_ACTION.ignore) {
+                  contextValueList.push("GEN_KEY");
+                }
               } else {
                 contextValueList.push("GEN_KEY");
               }

@@ -177,8 +177,8 @@
   "tree.usedInfo.undefined": "未定义",
   "tree.usedInfo.undefinedAutoTranslateDisabled": "未开启自动翻译未定义词条功能",
   "tree.usedInfo.undefinedAutoTranslateEnabled": "已开启自动翻译未定义词条功能",
-  "tree.usedInfo.undefinedNoSourceLang": "文本不属于源语言，无法生成键",
-  "tree.usedInfo.undefinedPossibleVariable": "文本疑似变量，无法生成键",
+  "tree.usedInfo.undefinedNoSourceLang": "文本不属于源语言",
+  "tree.usedInfo.undefinedPossibleVariable": "文本疑似变量",
   "tree.usedInfo.undefinedValidLang": "文本不符合要求，无法生成键",
   "tree.usedInfo.unused": "未使用",
   "tree.usedInfo.used": "已使用"

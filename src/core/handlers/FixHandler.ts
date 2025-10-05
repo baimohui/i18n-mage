@@ -1,4 +1,4 @@
-import { LangContextInternal, LackInfo, NAMESPACE_STRATEGY, EntryClassTreeItem, FixExecutionResult } from "@/types";
+import { LangContextInternal, LackInfo, NAMESPACE_STRATEGY, EntryClassTreeItem, FixExecutionResult, EXECUTION_RESULT_CODE } from "@/types";
 import { getLangCode } from "@/utils/langKey";
 import { TEntry, I18N_FRAMEWORK } from "@/types";
 import {
@@ -15,7 +15,6 @@ import { getDetectedLangList, setUpdatedEntryValueInfo } from "@/core/tools/cont
 import translateTo from "@/translator/index";
 import { t } from "@/utils/i18n";
 import { ExecutionContext } from "@/utils/context";
-import { ExecutionResult, EXECUTION_RESULT_CODE } from "@/types";
 import { NotificationManager } from "@/utils/notification";
 
 export class FixHandler {
@@ -30,7 +29,7 @@ export class FixHandler {
     return getDetectedLangList(this.ctx);
   }
 
-  public async run(): Promise<ExecutionResult> {
+  public async run(): Promise<FixExecutionResult> {
     try {
       this.needFix = false;
       this.patchedNum = 0;
@@ -63,7 +62,7 @@ export class FixHandler {
     return text.toLowerCase().replace(/[\s\\]/g, "");
   }
 
-  private async processUndefinedEntries(): Promise<ExecutionResult> {
+  private async processUndefinedEntries(): Promise<FixExecutionResult> {
     this.lackInfoFromUndefined = {};
     const referredLangCode = getLangCode(this.ctx.referredLang);
     const referredLangMap = this.ctx.langCountryMap[this.ctx.referredLang];
@@ -235,7 +234,14 @@ export class FixHandler {
     return {
       success: true,
       message: "",
-      code: EXECUTION_RESULT_CODE.Success
+      code: EXECUTION_RESULT_CODE.Success,
+      data: {
+        success: 0,
+        failed: 0,
+        generated: 0,
+        total: 0,
+        patched: this.patchedNum
+      }
     };
   }
 
@@ -269,14 +275,7 @@ export class FixHandler {
         return {
           success: false,
           message: "",
-          code: EXECUTION_RESULT_CODE.Cancelled,
-          data: {
-            patched: this.patchedNum,
-            success: successCount,
-            failed: failCount,
-            generated: addedCount,
-            total: successCount + failCount
-          }
+          code: EXECUTION_RESULT_CODE.Cancelled
         };
       }
       const lackEntries = lackInfo[lang].filter(
