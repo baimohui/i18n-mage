@@ -8,6 +8,7 @@ import { bindDisposablesToContext } from "@/utils/dispose";
 import { NotificationManager } from "@/utils/notification";
 import { getConfig } from "@/utils/config";
 import { HoverProvider } from "./features/HoverProvider";
+import { I18nCompletionProvider } from "./features/I18nCompletionProvider";
 import { registerDisposable } from "@/utils/dispose";
 import { StatusBarItemManager } from "./features/StatusBarItemManager";
 
@@ -55,6 +56,20 @@ class ExtensionState {
     registerAllCommands(this._context);
     registerAllListeners();
     registerDisposable(vscode.languages.registerHoverProvider("*", new HoverProvider()));
+    registerDisposable(
+      vscode.languages.registerCompletionItemProvider(
+        [
+          { language: "javascript", scheme: "file" },
+          { language: "typescript", scheme: "file" },
+          { language: "vue", scheme: "file" },
+          { language: "javascriptreact", scheme: "file" },
+          { language: "typescriptreact", scheme: "file" }
+        ],
+        new I18nCompletionProvider(),
+        '"',
+        "'"
+      )
+    );
     const statusBarItemManager = StatusBarItemManager.getInstance();
     statusBarItemManager.createStatusBarItem();
     registerDisposable(statusBarItemManager);
