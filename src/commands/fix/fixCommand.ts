@@ -369,32 +369,29 @@ export function registerFixCommand(context: vscode.ExtensionContext) {
   });
   const fixUndefinedEntriesDisposable = vscode.commands.registerCommand(
     "i18nMage.fixUndefinedEntries",
-    async (query?: { data: string[]; meta?: { path?: string } } | vscode.Uri) => {
+    async (query?: { data: string[]; meta?: { scope?: string } } | vscode.Uri) => {
       const fixQuery = { entriesToGen: true, entriesToFill: false } as FixQuery;
-      if (query === undefined) {
-        const options: vscode.OpenDialogOptions = {
-          canSelectMany: false,
-          openLabel: t("command.selectSingleFile.dialogTitle"),
-          filters: {
-            [t("command.selectSingleFile.dialogTitle")]: ["js", "ts", "jsx", "tsx", "vue", "html"]
-          }
-        };
-        const fileUri = await vscode.window.showOpenDialog(options);
-        if (Array.isArray(fileUri) && fileUri.length > 0) {
-          const fsPath = fileUri[0].fsPath;
-          fixQuery.entriesToGen = true;
-          fixQuery.genScope = [fsPath];
-        } else {
-          return;
-        }
-      } else if (query instanceof vscode.Uri) {
+      if (query instanceof vscode.Uri) {
         const fsPath = query.fsPath;
         fixQuery.entriesToGen = true;
         fixQuery.genScope = [fsPath];
-      } else if (Array.isArray(query.data)) {
+      } else if (query && Array.isArray(query.data)) {
         fixQuery.entriesToGen = query.data;
-        if (query.meta && typeof query.meta.path === "string" && query.meta.path.trim()) {
-          fixQuery.genScope = [query.meta.path];
+        if (query.meta && typeof query.meta.scope === "string" && query.meta.scope.trim()) {
+          fixQuery.genScope = [query.meta.scope];
+        }
+      }
+      await fix(fixQuery);
+    }
+  );
+  const fillMissingTranslationsDisposable = vscode.commands.registerCommand(
+    "i18nMage.fillMissingTranslations",
+    async (query?: { data: string[]; meta?: { scope?: string } }) => {
+      const fixQuery = { entriesToGen: false, entriesToFill: true } as FixQuery;
+      if (query && Array.isArray(query.data)) {
+        fixQuery.entriesToFill = query.data;
+        if (query.meta && typeof query.meta.scope === "string" && query.meta.scope.trim()) {
+          fixQuery.fillScope = [query.meta.scope];
         }
       }
       await fix(fixQuery);
@@ -403,4 +400,5 @@ export function registerFixCommand(context: vscode.ExtensionContext) {
 
   registerDisposable(fixDisposable);
   registerDisposable(fixUndefinedEntriesDisposable);
+  registerDisposable(fillMissingTranslationsDisposable);
 }

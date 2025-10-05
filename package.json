@@ -731,6 +731,15 @@
         }
       },
       {
+        "command": "i18nMage.fillMissingTranslations",
+        "category": "%extension.name%",
+        "title": "%command.fillMissingTranslations.title%",
+        "icon": {
+          "light": "./images/translate-light.svg",
+          "dark": "./images/translate-dark.svg"
+        }
+      },
+      {
         "command": "i18nMage.sort",
         "category": "%extension.name%",
         "title": "%command.sort.title%",
@@ -1044,6 +1053,11 @@
         {
           "command": "i18nMage.fixUndefinedEntries",
           "when": "viewItem =~ /GEN_KEY/",
+          "group": "inline@5"
+        },
+        {
+          "command": "i18nMage.fillMissingTranslations",
+          "when": "viewItem =~ /FILL_VALUE/",
           "group": "inline@5"
         }
       ],

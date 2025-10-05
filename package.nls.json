@@ -133,5 +133,6 @@
   "command.openSettings.title": "Open Settings",
   "command.feedback.title": "Feedback",
   "command.fixUndefinedEntries.title": "Extract Undefined Text",
+  "command.fillMissingTranslations.title": "Fill Missing Translations",
   "view.welcome.title": "No translation directory detected\n[Select translation directory](command:i18nMage.selectLangPath)"
 }

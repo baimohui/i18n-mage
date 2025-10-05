@@ -34,8 +34,8 @@ interface ExtendedTreeItem extends vscode.TreeItem {
   type?: string;
   name?: string;
   key?: string;
-  data?: any;
-  meta?: any;
+  data?: string[];
+  meta?: { scope: string };
   stack?: string[];
 }
 
@@ -336,7 +336,6 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
           label: t("tree.currentFile.defined"),
           description: String(this.definedEntriesInCurrentFile.length),
           collapsibleState: vscode.TreeItemCollapsibleState[this.definedEntriesInCurrentFile.length === 0 ? "None" : "Collapsed"],
-          data: vscode.window.activeTextEditor?.document.uri,
           contextValue: definedContextValueList.join(","),
           level: 1,
           type: "defined",
@@ -347,7 +346,7 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
           label: t("tree.currentFile.undefined"),
           contextValue: undefinedContextValueList.join(","),
           data: this.undefinedEntriesInCurrentFile.map(item => item.nameInfo.name),
-          meta: { path: vscode.window.activeTextEditor?.document.uri.fsPath },
+          meta: { scope: vscode.window.activeTextEditor?.document.uri.fsPath ?? "" },
           tooltip: undefinedTooltip,
           description: undefinedDescription,
           collapsibleState: vscode.TreeItemCollapsibleState[this.undefinedEntriesInCurrentFile.length === 0 ? "None" : "Collapsed"],
@@ -387,7 +386,7 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
           collapsibleState: vscode.TreeItemCollapsibleState[element.type === "defined" ? "Collapsed" : "None"],
           level: 2,
           data: [entry.nameInfo.name],
-          meta: { path: vscode.window.activeTextEditor?.document.uri.fsPath },
+          meta: { scope: vscode.window.activeTextEditor?.document.uri.fsPath ?? "" },
           contextValue: contextValueList.join(","),
           usedInfo: this[element.type === "defined" ? "usedEntryMap" : "undefinedEntryMap"][entry.nameInfo.name],
           id: this.genId(element, entry.nameInfo.name || ""),
@@ -416,7 +415,9 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
             description: entryInfo[lang] ?? false,
             collapsibleState: vscode.TreeItemCollapsibleState.None,
             level: 3,
-            data: { name: element.name, key: entryKey, value: entryInfo[lang] ?? "", lang },
+            key: entryKey,
+            data: [entryKey],
+            meta: { scope: lang },
             contextValue: contextValueList.join(","),
             id: this.genId(element, lang),
             tooltip: getLangText(lang) || t("common.unknownLang")
@@ -429,13 +430,15 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
   private getSyncInfoChildren(element: ExtendedTreeItem): ExtendedTreeItem[] {
     if (element.level === 0) {
       return this.langInfo.langList.map(lang => {
-        const { desc, icon, context, tooltip } = this.checkLangSyncInfo(lang);
+        const { desc, icon, context, tooltip, data } = this.checkLangSyncInfo(lang);
         return {
           level: 1,
           key: lang,
           label: lang,
           root: element.root,
           tooltip,
+          data,
+          meta: { scope: lang },
           id: this.genId(element, lang),
           contextValue: context,
           description: desc,
@@ -449,22 +452,26 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
         level: 2,
         key: element.key,
         root: element.root,
+        meta: element.meta,
         id: this.genId(element, item.type),
         description: String(item.num),
         collapsibleState: vscode.TreeItemCollapsibleState[item.num === 0 ? "None" : item.type === "common" ? "Collapsed" : "Expanded"]
       }));
     } else if (element.level === 2) {
-      return (element.data as [string, string][]).map(item => {
+      return (element.data as string[]).map(key => {
         const contextValueList = ["syncInfoItem", "EDIT_VALUE"];
         if (element.type !== "lack") {
           contextValueList.push("GO_TO_DEFINITION");
         }
         const tooltip = new vscode.MarkdownString();
         if (element.type === "lack" || element.type === "null") {
-          const definedInfo = this.dictionary[item[0]].value;
+          const definedInfo = this.dictionary[key].value;
           Object.entries(definedInfo).forEach(([lang, value]) => {
             const args = encodeURIComponent(JSON.stringify({ description: value }));
             if (value) {
+              if (lang === this.publicCtx.referredLang) {
+                contextValueList.push("FILL_VALUE");
+              }
               tooltip.appendMarkdown(`- **${escapeMarkdown(lang)}:** ${escapeMarkdown(value)} [📋](command:i18nMage.copyValue?${args})\n`);
             } else {
               tooltip.appendMarkdown(`- **${escapeMarkdown(lang)}:** ${t("tree.syncInfo.null")}\n`);
@@ -472,16 +479,18 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
           });
           tooltip.isTrusted = true; // 允许点击链接
         }
-        const name = unescapeString(item[0]);
+        const name = unescapeString(key);
         return {
           label: internalToDisplayName(name),
-          description: item[1],
+          description: this.countryMap[this.publicCtx.referredLang][key],
           tooltip,
           level: 3,
-          key: element.key,
-          id: this.genId(element, item[0]),
+          name,
+          key,
+          data: [key],
+          meta: element.meta,
+          id: this.genId(element, key),
           contextValue: contextValueList.join(","),
-          data: { name, key: item[0], value: element.type === "common" || element.type === "extra" ? item[1] : "", lang: element.key },
           collapsibleState: vscode.TreeItemCollapsibleState.None
         };
       });
@@ -637,7 +646,9 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
         tooltip: getLangText(item[0]) || t("common.unknownLang"),
         id: this.genId(element, item[0]),
         contextValue: contextValueList.join(","),
-        data: { key: res, value: item[1], lang: item[0] },
+        key: res,
+        value: item[1],
+        meta: { scope: item[0] },
         collapsibleState: vscode.TreeItemCollapsibleState.None
       }));
     } else {
@@ -709,12 +720,19 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
     }
     const list: string[] = [];
     let icon = "pass";
+    let data: string[] = [];
     if (this.#mage.detectedLangList.includes(lang)) {
       list.push(getLangText(lang) || t("common.unknownLang"));
       const lackNum = this.langInfo.lack[lang]?.length ?? 0;
       const extraNum = this.langInfo.extra[lang]?.length ?? 0;
       const nullNum = this.langInfo.null[lang]?.length ?? 0;
       if (lackNum > 0 || nullNum > 0) {
+        data = [...(this.langInfo.lack[lang] ?? []), ...(this.langInfo.null[lang] ?? [])].filter(
+          key => !!this.countryMap[this.publicCtx.referredLang][key]
+        );
+        if (data.length > 0) {
+          contextValueList.push("FILL_VALUE");
+        }
         icon = this.isSyncing ? "sync~spin" : "sync";
         list.push(`-${lackNum + nullNum}`);
       }
@@ -740,32 +758,40 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
       contextValueList.push("IGNORED_LANG");
       list.push("👻");
     }
-    return { desc: list.join(" "), icon, tooltip, context: contextValueList.join(",") };
+    return { desc: list.join(" "), icon, tooltip, context: contextValueList.join(","), data };
   }
 
   private getSyncInfo(lang: string) {
-    const totalEntries = Object.entries(this.langInfo.countryMap?.[lang] ?? {});
-    totalEntries.sort((a, b) => (a[0] > b[0] ? 1 : -1));
-    const commonEntries: [string, string][] = [];
-    const extraEntries: [string, string][] = [];
-    const extraEntryNameList = this.langInfo.extra?.[lang] ?? [];
-    const nullEntryNameList = this.langInfo.null?.[lang] ?? [];
-    totalEntries.forEach(item => {
-      if (extraEntryNameList.includes(item[0])) {
-        extraEntries.push(item);
-      } else if (!nullEntryNameList.includes(item[0])) {
-        commonEntries.push(item);
+    const totalKeys = Object.keys(this.countryMap?.[lang] ?? {});
+    totalKeys.sort((a, b) => (a > b ? 1 : -1));
+    const commonEntryKeyList: string[] = [];
+    const extraEntryKeyList = this.langInfo.extra?.[lang] ?? [];
+    const nullEntryKeyList = this.langInfo.null?.[lang] ?? [];
+    const lackEntryKeyList = this.langInfo.lack?.[lang] ?? [];
+    totalKeys.forEach(key => {
+      if (!extraEntryKeyList.includes(key) && !nullEntryKeyList.includes(key)) {
+        commonEntryKeyList.push(key);
       }
     });
-    const lackEntries = (this.langInfo.lack?.[lang] ?? []).map(item => [item, this.dictionary[item].value[this.publicCtx.referredLang]]);
-    const nullEntries = nullEntryNameList.map(item => [item, this.dictionary[item].value[this.publicCtx.referredLang]]);
     const res = [
-      { label: t("tree.syncInfo.normal"), num: commonEntries.length, data: commonEntries, type: "common" },
-      { label: t("tree.syncInfo.null"), num: nullEntries.length, data: nullEntries, type: "null" },
-      { label: t("tree.syncInfo.lack"), num: lackEntries.length, data: lackEntries, type: "lack" }
+      { label: t("tree.syncInfo.normal"), num: commonEntryKeyList.length, data: commonEntryKeyList, type: "common" },
+      {
+        label: t("tree.syncInfo.null"),
+        num: nullEntryKeyList.length,
+        data: nullEntryKeyList,
+        type: "null",
+        contextValue: nullEntryKeyList.some(key => !!this.countryMap[this.publicCtx.referredLang][key]) ? "FILL_VALUE" : ""
+      },
+      {
+        label: t("tree.syncInfo.lack"),
+        num: lackEntryKeyList.length,
+        data: lackEntryKeyList,
+        type: "lack",
+        contextValue: lackEntryKeyList.some(key => !!this.countryMap[this.publicCtx.referredLang][key]) ? "FILL_VALUE" : ""
+      }
     ];
     if (this.publicCtx.syncBasedOnReferredEntries) {
-      res.push({ label: t("tree.syncInfo.extra"), num: extraEntries.length, data: extraEntries, type: "extra" });
+      res.push({ label: t("tree.syncInfo.extra"), num: extraEntryKeyList.length, data: extraEntryKeyList, type: "extra" });
     }
     return res;
   }

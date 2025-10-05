@@ -10,10 +10,10 @@ export function registerEditValueCommand() {
   const mage = LangMage.getInstance();
   const disposable = vscode.commands.registerCommand(
     "i18nMage.editValue",
-    async (e: (vscode.TreeItem & { data: { name: string; key: string; value: string; lang: string } }) | undefined) => {
+    async (e?: { name: string; key: string; description: string; meta: { scope: string } }) => {
       let target: { name: string; key: string; value: string; lang: string } | undefined = undefined;
-      if (e === undefined || typeof e.data !== "object" || Object.keys(e.data).length === 0) {
-        const dictionary = mage.langDetail.dictionary;
+      const dictionary = mage.langDetail.dictionary;
+      if (e === undefined) {
         const key = await vscode.window.showQuickPick(Object.keys(dictionary), {
           canPickMany: false,
           placeHolder: t("command.editValue.selectEntry")
@@ -27,7 +27,12 @@ export function registerEditValueCommand() {
         const value = dictionary?.[key]?.value?.[lang] ?? "";
         target = { name: unescapeString(key), key, value, lang };
       } else {
-        target = e.data;
+        target = {
+          name: e.name,
+          key: e.key,
+          value: dictionary?.[e.key]?.value?.[e.meta.scope] ?? "",
+          lang: e.meta.scope
+        };
       }
       if (target === undefined) return;
       NotificationManager.showTitle(t("command.modify.title"));
