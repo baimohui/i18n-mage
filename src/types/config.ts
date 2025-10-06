@@ -63,3 +63,18 @@ export const UNMATCHED_LANGUAGE_ACTION = {
 } as const;
 
 export type UnmatchedLanguageAction = (typeof UNMATCHED_LANGUAGE_ACTION)[keyof typeof UNMATCHED_LANGUAGE_ACTION];
+
+export const COMPLETION_DISPLAY_LANGUAGE_SOURCE = {
+  source: "source",
+  display: "display"
+};
+
+export type CompletionDisplayLanguageSource = (typeof COMPLETION_DISPLAY_LANGUAGE_SOURCE)[keyof typeof COMPLETION_DISPLAY_LANGUAGE_SOURCE];
+
+export const COMPLETION_MATCH_SCOPE = {
+  both: "both",
+  key: "key",
+  value: "value"
+};
+
+export type CompletionMatchScope = (typeof COMPLETION_MATCH_SCOPE)[keyof typeof COMPLETION_MATCH_SCOPE];

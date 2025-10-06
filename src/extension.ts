@@ -67,7 +67,8 @@ class ExtensionState {
         ],
         new I18nCompletionProvider(),
         '"',
-        "'"
+        "'",
+        "`"
       )
     );
     const statusBarItemManager = StatusBarItemManager.getInstance();

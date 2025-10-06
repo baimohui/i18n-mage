@@ -614,6 +614,48 @@
       },
       {
         "type": "object",
+        "title": "%config.completion.title%",
+        "properties": {
+          "i18n-mage.completion.enable": {
+            "order": 0,
+            "type": "boolean",
+            "default": true,
+            "description": "%config.completionEnabled.desc%"
+          },
+          "i18n-mage.completion.displayLanguageSource": {
+            "order": 5,
+            "type": "string",
+            "enum": [
+              "source",
+              "display"
+            ],
+            "default": "source",
+            "enumDescriptions": [
+              "%config.displayLanguageSource.source%",
+              "%config.displayLanguageSource.display%"
+            ],
+            "description": "%config.completionValueLanguage.desc%"
+          },
+          "i18n-mage.completion.matchScope": {
+            "order": 10,
+            "type": "string",
+            "default": "both",
+            "enum": [
+              "key",
+              "value",
+              "both"
+            ],
+            "enumDescriptions": [
+              "%config.completionMatchScope.key%",
+              "%config.completionMatchScope.value%",
+              "%config.completionMatchScope.both%"
+            ],
+            "description": "%config.completionMatchScope.desc%"
+          }
+        }
+      },
+      {
+        "type": "object",
         "title": "%config.workspace.title%",
         "properties": {
           "i18n-mage.workspace.projectPath": {
