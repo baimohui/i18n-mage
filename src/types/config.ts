@@ -78,3 +78,12 @@ export const COMPLETION_MATCH_SCOPE = {
 };
 
 export type CompletionMatchScope = (typeof COMPLETION_MATCH_SCOPE)[keyof typeof COMPLETION_MATCH_SCOPE];
+
+export const COMPLETION_PINYIN_SEARCH = {
+  off: "off",
+  full: "full",
+  abbr: "abbr",
+  both: "both"
+};
+
+export type CompletionPinyinSearch = (typeof COMPLETION_PINYIN_SEARCH)[keyof typeof COMPLETION_PINYIN_SEARCH];

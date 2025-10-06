@@ -651,6 +651,24 @@
               "%config.completionMatchScope.both%"
             ],
             "description": "%config.completionMatchScope.desc%"
+          },
+          "i18n-mage.completion.pinyinSearch": {
+            "order": 15,
+            "type": "string",
+            "default": "off",
+            "enum": [
+              "off",
+              "full",
+              "abbr",
+              "both"
+            ],
+            "enumDescriptions": [
+              "Disable pinyin search.\n关闭拼音搜索。",
+              "Enable full pinyin search (e.g., 'queding').\n启用完整拼音搜索（如 'queding'）。",
+              "Enable initials pinyin search (e.g., 'qd').\n启用拼音首字母搜索（如 'qd'）。",
+              "Enable both full and initials pinyin search.\n同时启用完整和首字母拼音搜索。"
+            ],
+            "description": "%config.completionPinyinScope.desc%"
           }
         }
       },
@@ -1210,6 +1228,7 @@
     "json5": "^2.2.3",
     "node-xlsx": "^0.24.0",
     "tencentcloud-sdk-nodejs-tmt": "^4.0.791",
+    "tiny-pinyin": "^1.3.2",
     "tunnel": "^0.0.6"
   },
   "devDependencies": {
