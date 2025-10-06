@@ -865,6 +865,11 @@
         "title": "%command.feedback.title%"
       },
       {
+        "command": "i18nMage.star",
+        "category": "%extension.name%",
+        "title": "Star"
+      },
+      {
         "command": "i18nMage.ignoreDirectory",
         "category": "%extension.name%",
         "title": "%command.ignoreDirectory.title%"
@@ -1043,6 +1048,11 @@
           "command": "i18nMage.feedback",
           "when": "view == treeProvider",
           "group": "view@3"
+        },
+        {
+          "command": "i18nMage.star",
+          "when": "view == treeProvider",
+          "group": "view@4"
         }
       ],
       "view/item/context": [

@@ -28,6 +28,7 @@ import { registerIgnoreUndefinedCommand } from "./ignore/ignoreUndefinedCommand"
 import { registerFeedbackCommand } from "./guide/feedbackCommand";
 import { registerOpenSettingsCommand } from "./guide/openSettingsCommand";
 import { registerOpenDocsCommand } from "./guide/openDocsCommand";
+import { registerStarCommand } from "./guide/starCommand";
 
 export function registerAllCommands(context: vscode.ExtensionContext) {
   registerCheckUsageCommand();
@@ -59,4 +60,5 @@ export function registerAllCommands(context: vscode.ExtensionContext) {
   registerFeedbackCommand();
   registerOpenDocsCommand();
   registerOpenSettingsCommand();
+  registerStarCommand();
 }
