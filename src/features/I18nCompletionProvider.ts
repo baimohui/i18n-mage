@@ -11,6 +11,7 @@ import {
   CompletionPinyinSearch // 新增类型
 } from "@/types";
 import * as pinyin from "tiny-pinyin";
+import { getLangCode } from "@/utils/langKey";
 
 export class I18nCompletionProvider implements vscode.CompletionItemProvider {
   private cachedTReg: RegExp | null = null;
@@ -42,9 +43,10 @@ export class I18nCompletionProvider implements vscode.CompletionItemProvider {
 
     const displayLang = this.getDisplayLanguage(config.displayLanguageSource, publicCtx.referredLang);
     const referredTranslation = countryMap[displayLang] ?? {};
+    const isChinese = getLangCode(displayLang)?.includes("zh") ?? false;
 
     // 创建补全项
-    return this.createCompletionItems(referredTranslation, config.matchScope, config.pinyinMode);
+    return this.createCompletionItems(referredTranslation, config.matchScope, isChinese ? config.pinyinMode : COMPLETION_PINYIN_SEARCH.off);
   }
 
   private isTranslationFunctionCall(linePrefix: string, tFuncNames: string[]): boolean {
@@ -78,8 +80,7 @@ export class I18nCompletionProvider implements vscode.CompletionItemProvider {
     }));
 
     return entries.map(entry => {
-      const pinyinData = this.calculatePinyin(entry.value, pinyinMode);
-      return this.createCompletionItem(entry, matchScope, pinyinData);
+      return this.createCompletionItem(entry, matchScope, pinyinMode);
     });
   }
 
@@ -110,28 +111,47 @@ export class I18nCompletionProvider implements vscode.CompletionItemProvider {
     return result;
   }
 
+  private addChineseDash(text: string) {
+    if (typeof text !== "string") return text;
+
+    let result = "";
+    let lastType = ""; // 上一个字符的类型：'chinese' 或 'non-chinese'
+
+    for (let i = 0; i < text.length; i++) {
+      const char = text[i];
+      const isChinese = /[\u4e00-\u9fa5]/.test(char);
+      const currentType = isChinese ? "chinese" : "non-chinese";
+
+      if (lastType && (lastType !== currentType || lastType === "chinese")) {
+        // 当字符类型发生变化时，添加连接符
+        result += "-";
+      }
+
+      result += char;
+      lastType = currentType;
+    }
+
+    return result;
+  }
+
   private createCompletionItem(
     entry: { name: string; value: string },
     matchScope: CompletionMatchScope,
-    pinyinData: { full: string; abbr: string }
+    pinyinMode: CompletionPinyinSearch
   ): vscode.CompletionItem {
     const item = new vscode.CompletionItem(entry.value, vscode.CompletionItemKind.Value);
 
-    switch (matchScope) {
-      case COMPLETION_MATCH_SCOPE.value:
-        item.label = entry.value;
-        item.detail = entry.name;
-        item.filterText = `${pinyinData.abbr} ${pinyinData.full} ${entry.value}`.trim();
-        break;
-
-      case COMPLETION_MATCH_SCOPE.key:
-        item.label = { label: entry.name, description: entry.value };
-        item.filterText = entry.name;
-        break;
-
-      default:
-        item.label = { label: entry.name, description: entry.value };
-        item.filterText = `${pinyinData.abbr} ${pinyinData.full} ${entry.name} ${entry.value}`.trim();
+    item.label = { label: entry.name, description: entry.value };
+    if (matchScope === COMPLETION_MATCH_SCOPE.key) {
+      item.label = { label: entry.name, description: entry.value };
+      item.filterText = entry.name;
+    } else if (pinyinMode !== COMPLETION_PINYIN_SEARCH.off) {
+      const textWithDash = this.addChineseDash(entry.value);
+      const pinyinData = this.calculatePinyin(textWithDash, pinyinMode);
+      item.filterText =
+        `${pinyinData.abbr} ${matchScope === COMPLETION_MATCH_SCOPE.value ? "" : entry.name} ${pinyinData.full} ${textWithDash}`.trim();
+    } else {
+      item.filterText = `${matchScope === COMPLETION_MATCH_SCOPE.value ? "" : entry.name} ${entry.value}`.trim();
     }
 
     item.insertText = entry.name;

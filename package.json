@@ -663,10 +663,10 @@
               "both"
             ],
             "enumDescriptions": [
-              "Disable pinyin search.\n关闭拼音搜索。",
-              "Enable full pinyin search (e.g., 'queding').\n启用完整拼音搜索（如 'queding'）。",
-              "Enable initials pinyin search (e.g., 'qd').\n启用拼音首字母搜索（如 'qd'）。",
-              "Enable both full and initials pinyin search.\n同时启用完整和首字母拼音搜索。"
+              "%config.completionPinyinScope.off%",
+              "%config.completionPinyinScope.full%",
+              "%config.completionPinyinScope.abbr%",
+              "%config.completionPinyinScope.both%"
             ],
             "description": "%config.completionPinyinScope.desc%"
           }
