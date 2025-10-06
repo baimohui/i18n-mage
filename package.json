@@ -207,13 +207,13 @@
             "description": "%config.matchExistingKey.desc%"
           },
           "i18n-mage.translationServices.validateLanguageBeforeTranslate": {
-            "order": 6,
+            "order": 5,
             "type": "boolean",
             "default": true,
             "description": "%config.validateLanguageBeforeTranslate.desc%"
           },
           "i18n-mage.translationServices.unmatchedLanguageAction": {
-            "order": 7,
+            "order": 6,
             "type": "string",
             "enum": [
               "ignore",
@@ -230,6 +230,20 @@
               "%config.unmatchedLanguageAction.fill%",
               "%config.unmatchedLanguageAction.switch%",
               "%config.unmatchedLanguageAction.query%"
+            ]
+          },
+          "i18n-mage.translationServices.keyGenerationFillScope": {
+            "order": 7,
+            "type": "string",
+            "enum": [
+              "minimal",
+              "all"
+            ],
+            "default": "all",
+            "description": "%config.keyGenerationFillScope.desc%",
+            "enumDescriptions": [
+              "%config.keyGenerationFillScope.minimal%",
+              "%config.keyGenerationFillScope.all%"
             ]
           },
           "i18n-mage.translationServices.ignorePossibleVariables": {

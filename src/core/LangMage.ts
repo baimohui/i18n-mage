@@ -1,4 +1,12 @@
-import type { I18nFramework, LangContextInternal, LangContextPublic, NamespaceStrategy, QuoteStyle, SortMode } from "@/types";
+import type {
+  I18nFramework,
+  KeyGenerationFillScope,
+  LangContextInternal,
+  LangContextPublic,
+  NamespaceStrategy,
+  QuoteStyle,
+  SortMode
+} from "@/types";
 import { createLangContext } from "@/core/context";
 import { CheckHandler } from "./handlers/CheckHandler";
 import { FixHandler } from "./handlers/FixHandler";
@@ -56,6 +64,10 @@ class LangMage {
         quoteStyleForValue: getConfig<"auto" | QuoteStyle>("writeRules.quoteStyleForValue", this.ctx.quoteStyleForValue),
         scanStringLiterals: getConfig<boolean>("analysis.scanStringLiterals", this.ctx.scanStringLiterals),
         ignorePossibleVariables: getConfig<boolean>("translationServices.ignorePossibleVariables", this.ctx.ignorePossibleVariables),
+        keyGenerationFillScope: getConfig<KeyGenerationFillScope>(
+          "translationServices.keyGenerationFillScope",
+          this.ctx.keyGenerationFillScope
+        ),
         ...options
       };
       for (const [key, value] of Object.entries(combinedOptions)) {
@@ -149,6 +161,7 @@ class LangMage {
       quoteStyleForValue: this.ctx.quoteStyleForValue,
       scanStringLiterals: this.ctx.scanStringLiterals,
       ignorePossibleVariables: this.ctx.ignorePossibleVariables,
+      keyGenerationFillScope: this.ctx.keyGenerationFillScope,
       missingEntryFile: this.ctx.missingEntryFile,
       missingEntryPath: this.ctx.missingEntryPath,
       fixQuery: this.ctx.fixQuery

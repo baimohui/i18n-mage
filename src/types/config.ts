@@ -87,3 +87,10 @@ export const COMPLETION_PINYIN_SEARCH = {
 };
 
 export type CompletionPinyinSearch = (typeof COMPLETION_PINYIN_SEARCH)[keyof typeof COMPLETION_PINYIN_SEARCH];
+
+export const KEY_GENERATION_FILL_SCOPE = {
+  minimal: "minimal",
+  all: "all"
+};
+
+export type KeyGenerationFillScope = (typeof KEY_GENERATION_FILL_SCOPE)[keyof typeof KEY_GENERATION_FILL_SCOPE];

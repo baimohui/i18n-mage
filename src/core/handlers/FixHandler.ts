@@ -1,4 +1,12 @@
-import { LangContextInternal, LackInfo, NAMESPACE_STRATEGY, EntryClassTreeItem, FixExecutionResult, EXECUTION_RESULT_CODE } from "@/types";
+import {
+  LangContextInternal,
+  LackInfo,
+  NAMESPACE_STRATEGY,
+  EntryClassTreeItem,
+  FixExecutionResult,
+  EXECUTION_RESULT_CODE,
+  KEY_GENERATION_FILL_SCOPE
+} from "@/types";
 import { getLangCode } from "@/utils/langKey";
 import { TEntry, I18N_FRAMEWORK } from "@/types";
 import {
@@ -192,6 +200,9 @@ export class FixHandler {
       };
       if (this.ctx.fixQuery.entriesToFill === false) {
         this.ctx.fixQuery.entriesToFill = [nameInfo.boundKey];
+        if (this.ctx.keyGenerationFillScope === KEY_GENERATION_FILL_SCOPE.minimal) {
+          this.ctx.fixQuery.fillScope = [this.ctx.referredLang, enLang];
+        }
       } else if (Array.isArray(this.ctx.fixQuery.entriesToFill) && !this.ctx.fixQuery.entriesToFill.includes(nameInfo.boundKey)) {
         this.ctx.fixQuery.entriesToFill.push(nameInfo.boundKey);
       }

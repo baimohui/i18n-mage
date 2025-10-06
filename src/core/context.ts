@@ -1,4 +1,4 @@
-import { KEY_STYLE } from "@/types";
+import { KEY_GENERATION_FILL_SCOPE, KEY_STYLE } from "@/types";
 import { LangContextInternal } from "@/types/context";
 
 export const createLangContext = (): LangContextInternal => ({
@@ -20,6 +20,7 @@ export const createLangContext = (): LangContextInternal => ({
   autoTranslateMissingKey: false,
   autoTranslateEmptyKey: true,
   ignorePossibleVariables: true,
+  keyGenerationFillScope: KEY_GENERATION_FILL_SCOPE.all,
   generatedKeyStyle: KEY_STYLE.camelCase,
   stopWords: [],
   maxGeneratedKeyLength: 40,

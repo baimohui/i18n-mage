@@ -14,7 +14,8 @@ import {
   NamespaceStrategy,
   EntryClassTree,
   DirNode,
-  FixQuery
+  FixQuery,
+  KeyGenerationFillScope
 } from "@/types";
 
 // 外部模块可访问的公共上下文
@@ -44,6 +45,7 @@ export interface LangContextPublic {
   autoTranslateMissingKey: boolean;
   autoTranslateEmptyKey: boolean;
   ignorePossibleVariables: boolean;
+  keyGenerationFillScope: KeyGenerationFillScope;
   generatedKeyStyle: KeyStyle;
   stopWords: string[];
   maxGeneratedKeyLength: number;
