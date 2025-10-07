@@ -1,4 +1,4 @@
-import { FixQuery, I18nFramework, KeyGenerationFillScope, KeyStyle, NamespaceStrategy, QuoteStyle, SortMode } from "@/types";
+import { FixQuery, I18nFramework, KeyGenerationFillScope, KeyStrategy, KeyStyle, NamespaceStrategy, QuoteStyle, SortMode } from "@/types";
 
 export interface LangMageOptions {
   task?: string;
@@ -28,6 +28,7 @@ export interface LangMageOptions {
   ignorePossibleVariables?: boolean;
   keyGenerationFillScope?: KeyGenerationFillScope;
   generatedKeyStyle?: KeyStyle;
+  generatedKeyStrategy?: KeyStrategy;
   stopWords?: string[];
   maxGeneratedKeyLength?: number;
   keyPrefix?: string;

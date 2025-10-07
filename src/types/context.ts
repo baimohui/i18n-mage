@@ -15,7 +15,8 @@ import {
   EntryClassTree,
   DirNode,
   FixQuery,
-  KeyGenerationFillScope
+  KeyGenerationFillScope,
+  KeyStrategy
 } from "@/types";
 
 // 外部模块可访问的公共上下文
@@ -47,6 +48,7 @@ export interface LangContextPublic {
   ignorePossibleVariables: boolean;
   keyGenerationFillScope: KeyGenerationFillScope;
   generatedKeyStyle: KeyStyle;
+  generatedKeyStrategy: KeyStrategy;
   stopWords: string[];
   maxGeneratedKeyLength: number;
   keyPrefix: string;

@@ -54,6 +54,13 @@ export const KEY_STYLE = {
 
 export type KeyStyle = (typeof KEY_STYLE)[keyof typeof KEY_STYLE];
 
+export const KEY_STRATEGY = {
+  english: "english",
+  pinyin: "pinyin"
+};
+
+export type KeyStrategy = (typeof KEY_STRATEGY)[keyof typeof KEY_STRATEGY];
+
 export const UNMATCHED_LANGUAGE_ACTION = {
   ignore: "ignore",
   force: "force",

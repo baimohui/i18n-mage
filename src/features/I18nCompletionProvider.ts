@@ -93,7 +93,7 @@ export class I18nCompletionProvider implements vscode.CompletionItemProvider {
 
     try {
       if (pinyinMode === COMPLETION_PINYIN_SEARCH.full || pinyinMode === COMPLETION_PINYIN_SEARCH.both) {
-        result.full = pinyin.convertToPinyin(text, "", true).toLowerCase();
+        result.full = pinyin.convertToPinyin(text, "", true);
       }
 
       if (pinyinMode === COMPLETION_PINYIN_SEARCH.abbr || pinyinMode === COMPLETION_PINYIN_SEARCH.both) {
@@ -101,8 +101,7 @@ export class I18nCompletionProvider implements vscode.CompletionItemProvider {
           .convertToPinyin(text, " ", true)
           .split(" ")
           .map(word => word[0] || "")
-          .join("")
-          .toLowerCase();
+          .join("");
       }
     } catch (error) {
       console.warn("Pinyin conversion failed:", error);

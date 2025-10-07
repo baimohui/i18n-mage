@@ -469,6 +469,20 @@
               "%config.keyPrefix.auto-popular%"
             ]
           },
+          "i18n-mage.writeRules.generatedKeyStrategy": {
+            "order": 19,
+            "type": "string",
+            "default": "english",
+            "enum": [
+              "english",
+              "pinyin"
+            ],
+            "enumDescriptions": [
+              "%config.generatedKeyStrategy.english%",
+              "%config.generatedKeyStrategy.pinyin%"
+            ],
+            "description": "%config.generatedKeyStrategy.desc%"
+          },
           "i18n-mage.writeRules.generatedKeyStyle": {
             "order": 20,
             "type": "string",

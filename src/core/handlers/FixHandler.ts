@@ -5,7 +5,8 @@ import {
   EntryClassTreeItem,
   FixExecutionResult,
   EXECUTION_RESULT_CODE,
-  KEY_GENERATION_FILL_SCOPE
+  KEY_GENERATION_FILL_SCOPE,
+  KEY_STRATEGY
 } from "@/types";
 import { getLangCode } from "@/utils/langKey";
 import { TEntry, I18N_FRAMEWORK } from "@/types";
@@ -24,6 +25,7 @@ import translateTo from "@/translator/index";
 import { t } from "@/utils/i18n";
 import { ExecutionContext } from "@/utils/context";
 import { NotificationManager } from "@/utils/notification";
+import * as pinyin from "tiny-pinyin";
 
 export class FixHandler {
   private lackInfoFromUndefined: LackInfo;
@@ -111,24 +113,27 @@ export class FixHandler {
         needTranslateList.push(entry);
       }
     }
-    let enNameList: string[] = needTranslateList.map(entry => entry.nameInfo.text);
-    const enLang = this.detectedLangList.find(item => getLangCode(item) === "en")!;
-    if (enNameList.length > 0) {
-      if (referredLangCode !== "en" && this.ctx.fixQuery.fillWithOriginal !== true) {
-        const res = await translateTo({
-          source: this.ctx.referredLang,
-          target: "en",
-          sourceTextList: enNameList
-        });
-        if (res.success && res.data) {
-          enNameList = res.data;
-        } else {
-          return {
-            success: false,
-            message: res.message ?? t("translator.noAvailableApi"),
-            code: EXECUTION_RESULT_CODE.TranslatorFailed
-          };
+    let genNameList: string[] = needTranslateList.map(entry => entry.nameInfo.text);
+    if (genNameList.length > 0) {
+      if (this.ctx.generatedKeyStrategy === KEY_STRATEGY.english) {
+        if (referredLangCode !== "en" && this.ctx.fixQuery.fillWithOriginal !== true) {
+          const res = await translateTo({
+            source: this.ctx.referredLang,
+            target: "en",
+            sourceTextList: genNameList
+          });
+          if (res.success && res.data) {
+            genNameList = res.data;
+          } else {
+            return {
+              success: false,
+              message: res.message ?? t("translator.noAvailableApi"),
+              code: EXECUTION_RESULT_CODE.TranslatorFailed
+            };
+          }
         }
+      } else if (this.ctx.generatedKeyStrategy === KEY_STRATEGY.pinyin) {
+        genNameList = genNameList.map(name => pinyin.convertToPinyin(name));
       }
     }
     let namePrefix = "";
@@ -150,9 +155,9 @@ export class FixHandler {
     const newIdSet = new Set<string>();
     const checkExisted = (key: string) => Boolean(getValueByAmbiguousEntryName(this.ctx.entryTree, key)) || newIdSet.has(key);
     needTranslateList.forEach((entry, index) => {
-      if (enNameList[index] === "") return;
+      if (genNameList[index] === "") return;
       const genKeyInfo = { keyStyle: this.ctx.generatedKeyStyle, stopWords: this.ctx.stopWords };
-      const id = getIdByStr(enNameList[index], genKeyInfo);
+      const id = getIdByStr(genNameList[index], genKeyInfo);
       const nameInfo = entry.nameInfo;
       if (!nameInfo.boundKey) {
         let baseName = nameInfo.boundPrefix || namePrefix;
@@ -198,17 +203,22 @@ export class FixHandler {
           [this.ctx.referredLang]: nameInfo.text
         }
       };
+      const filledScope = [this.ctx.referredLang];
+      if (this.ctx.generatedKeyStrategy === KEY_STRATEGY.english) {
+        const enLang = this.detectedLangList.find(item => getLangCode(item) === "en")!;
+        filledScope.push(enLang);
+      }
       if (this.ctx.fixQuery.entriesToFill === false) {
         this.ctx.fixQuery.entriesToFill = [nameInfo.boundKey];
         if (this.ctx.keyGenerationFillScope === KEY_GENERATION_FILL_SCOPE.minimal) {
-          this.ctx.fixQuery.fillScope = [this.ctx.referredLang, enLang];
+          this.ctx.fixQuery.fillScope = filledScope;
         }
       } else if (Array.isArray(this.ctx.fixQuery.entriesToFill) && !this.ctx.fixQuery.entriesToFill.includes(nameInfo.boundKey)) {
         this.ctx.fixQuery.entriesToFill.push(nameInfo.boundKey);
       }
       this.detectedLangList.forEach(lang => {
-        if ([this.ctx.referredLang, enLang].includes(lang)) {
-          setUpdatedEntryValueInfo(this.ctx, nameInfo.boundKey, lang === this.ctx.referredLang ? nameInfo.text : enNameList[index], lang);
+        if (filledScope.includes(lang)) {
+          setUpdatedEntryValueInfo(this.ctx, nameInfo.boundKey, lang === this.ctx.referredLang ? nameInfo.text : genNameList[index], lang);
         } else {
           this.lackInfoFromUndefined[lang] ??= [];
           this.lackInfoFromUndefined[lang].push(nameInfo.boundKey);

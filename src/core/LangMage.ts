@@ -17,7 +17,7 @@ import { SortHandler } from "./handlers/SortHandler";
 import { TrimHandler } from "./handlers/TrimHandler";
 import { ModifyHandler } from "./handlers/ModifyHandler";
 import { ReadHandler } from "./handlers/ReadHandler";
-import { LangMageOptions, ExecutionResult, EXECUTION_RESULT_CODE, KeyStyle, NAMESPACE_STRATEGY } from "@/types";
+import { LangMageOptions, ExecutionResult, EXECUTION_RESULT_CODE, KeyStyle, NAMESPACE_STRATEGY, KeyStrategy } from "@/types";
 import { getDetectedLangList } from "@/core/tools/contextTools";
 import { getLangCode } from "@/utils/langKey";
 import { t } from "@/utils/i18n";
@@ -56,6 +56,7 @@ class LangMage {
         autoTranslateMissingKey: getConfig<boolean>("translationServices.autoTranslateMissingKey", this.ctx.autoTranslateMissingKey),
         autoTranslateEmptyKey: getConfig<boolean>("translationServices.autoTranslateEmptyKey", this.ctx.autoTranslateEmptyKey),
         generatedKeyStyle: getConfig<KeyStyle>("writeRules.generatedKeyStyle", this.ctx.generatedKeyStyle),
+        generatedKeyStrategy: getConfig<KeyStrategy>("writeRules.generatedKeyStrategy", this.ctx.generatedKeyStrategy),
         stopWords: getConfig<string[]>("writeRules.stopWords", this.ctx.stopWords),
         maxGeneratedKeyLength: getConfig<number>("writeRules.maxGeneratedKeyLength", this.ctx.maxGeneratedKeyLength),
         keyPrefix: getConfig<string>("writeRules.keyPrefix", this.ctx.keyPrefix),
@@ -153,6 +154,7 @@ class LangMage {
       autoTranslateMissingKey: this.ctx.autoTranslateMissingKey,
       autoTranslateEmptyKey: this.ctx.autoTranslateEmptyKey,
       generatedKeyStyle: this.ctx.generatedKeyStyle,
+      generatedKeyStrategy: this.ctx.generatedKeyStrategy,
       stopWords: this.ctx.stopWords,
       maxGeneratedKeyLength: this.ctx.maxGeneratedKeyLength,
       keyPrefix: this.ctx.keyPrefix,
