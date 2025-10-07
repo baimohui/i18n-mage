@@ -1,6 +1,6 @@
 import * as vscode from "vscode";
 import LangMage from "@/core/LangMage";
-import { unescapeString } from "@/utils/regex";
+import { internalToDisplayName, unescapeString } from "@/utils/regex";
 import { getCacheConfig, getConfig } from "@/utils/config";
 import {
   COMPLETION_DISPLAY_LANGUAGE_SOURCE,
@@ -75,7 +75,7 @@ export class I18nCompletionProvider implements vscode.CompletionItemProvider {
     pinyinMode: CompletionPinyinSearch
   ): vscode.CompletionItem[] {
     const entries = Object.entries(translation).map(([key, value]) => ({
-      name: unescapeString(key),
+      name: internalToDisplayName(unescapeString(key)),
       value
     }));
 

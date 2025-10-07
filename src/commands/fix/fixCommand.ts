@@ -275,7 +275,7 @@ export function registerFixCommand(context: vscode.ExtensionContext) {
           }
         }
       }
-      treeInstance.isSyncing = true;
+      treeInstance.isSyncing = tasks[0].fixQuery?.fillScope || true;
       treeInstance.refresh();
       const previewChanges = getConfig<boolean>("general.previewChanges", true);
       const resList: FixExecutionResult[] = [];

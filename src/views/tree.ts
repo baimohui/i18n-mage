@@ -57,7 +57,7 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
   #mage: LangMage;
   publicCtx: LangContextPublic;
   isInitialized = false;
-  isSyncing = false;
+  isSyncing: boolean | string[] = false;
   displayLang = "";
   validateLanguageBeforeTranslate = true;
   unmatchedLanguageAction: UnmatchedLanguageAction = UNMATCHED_LANGUAGE_ACTION.ignore;
@@ -277,7 +277,7 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
         id: "SYNC_INFO",
         root: "SYNC_INFO",
         tooltip: toRelativePath(this.publicCtx.langPath),
-        iconPath: new vscode.ThemeIcon(this.isSyncing ? "sync~spin" : "sync"),
+        iconPath: new vscode.ThemeIcon(this.isSyncing !== false ? "sync~spin" : "sync"),
         collapsibleState: vscode.TreeItemCollapsibleState.Expanded,
         description: this.getSyncPercent()
       },
@@ -733,7 +733,11 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
         if (data.length > 0) {
           contextValueList.push("FILL_VALUE");
         }
-        icon = this.isSyncing ? "sync~spin" : "sync";
+        if (this.isSyncing === true || (Array.isArray(this.isSyncing) && this.isSyncing.includes(lang))) {
+          icon = "sync~spin";
+        } else {
+          icon = "sync";
+        }
         list.push(`-${lackNum + nullNum}`);
       }
       if (extraNum > 0) {
