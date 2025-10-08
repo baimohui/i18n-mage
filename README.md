@@ -1,6 +1,6 @@
 # 🪄 i18n Mage - Frontend Internationalization Assistant
 
-🌍 [English](./README.md) | [简体中文](./README.zh-CN.md)
+🌍 [English](./README.md) | [简体中文](https://baimohui.github.io/i18n-mage-docs/zh/guide/introduction.html)
 
 `i18n Mage` is a VS Code extension designed to significantly enhance the internationalization experience for frontend developers. It supports popular i18n frameworks like Vue I18n and React I18next, offering features such as auto-completion, inline translation hints, key management, Excel import/export, and more to streamline and improve your i18n workflow.
 
@@ -25,7 +25,7 @@
 * Tree-structured view of translation entries.
 * Functional buttons: Export, Import, Sort, Fix.
 
-![Tree Provider](https://raw.githubusercontent.com/baimohui/i18n-mage/refs/heads/main/doc-assets/panelView_en.png)
+![Tree Provider](https://raw.githubusercontent.com/baimohui/i18n-mage/refs/heads/main/doc-assets/panelView.png)
 
 ### 🧠 Inline Translation Hints
 
@@ -33,14 +33,14 @@
 * Supports custom styles (color, max length, etc.).
 * Toggleable via shortcuts.
 
-![Inline Hints](https://raw.githubusercontent.com/baimohui/i18n-mage/refs/heads/main/doc-assets/inlineHints_en.gif)
+![Inline Hints](https://raw.githubusercontent.com/baimohui/i18n-mage/refs/heads/main/doc-assets/inlineHints.gif)
 
 ### 🚧 Auto-Fill Missing Translations
 
 * Integrates DeepL, Google, DeepSeek, Baidu, Tencent translation services.
 * Preview and confirm missing translations before applying.
 
-![Auto-Fill Missing Translations](https://raw.githubusercontent.com/baimohui/i18n-mage/refs/heads/main/doc-assets/fixMissingTranslation_en.gif)
+![Auto-Fill Missing Translations](https://raw.githubusercontent.com/baimohui/i18n-mage/refs/heads/main/doc-assets/fixMissingTranslation.gif)
 
 ### 🧹 Auto-Fix Undefined Entries
 
@@ -48,7 +48,7 @@
 * Replaces with existing key if value matches.
 * Otherwise, generates a new key with customizable naming.
 
-![Auto-Fix Undefined Entries](https://raw.githubusercontent.com/baimohui/i18n-mage/refs/heads/main/doc-assets/fixUndefinedTranslation_en.gif)
+![Auto-Fix Undefined Entries](https://raw.githubusercontent.com/baimohui/i18n-mage/refs/heads/main/doc-assets/fixUndefinedTranslation.gif)
 
 ### 🕵️ Detect Unused Keys
 
@@ -56,7 +56,7 @@
 * Pattern matching for dynamic keys.
 * Delete or mark as used manually.
 
-![Detect Unused Keys](https://raw.githubusercontent.com/baimohui/i18n-mage/refs/heads/main/doc-assets/checkUsage_en.gif)
+![Detect Unused Keys](https://raw.githubusercontent.com/baimohui/i18n-mage/refs/heads/main/doc-assets/checkUsage.gif)
 
 ### 📊 Excel Import/Export
 
@@ -69,7 +69,7 @@
 
 * One-click copy of all keys/values on the current page.
 
-![Copy Translation Data](https://raw.githubusercontent.com/baimohui/i18n-mage/refs/heads/main/doc-assets/copyCurrentPage_en.gif)
+![Copy Translation Data](https://raw.githubusercontent.com/baimohui/i18n-mage/refs/heads/main/doc-assets/copyCurrentPage.gif)
 
 ## ⚡ Quick Start
 
