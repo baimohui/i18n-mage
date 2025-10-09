@@ -4,6 +4,25 @@ All notable changes to the i18n Mage VS Code extension will be documented in thi
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.0] - 2025-10-09
+
+### Added
+- **Precision Repair Operations**: Enhanced repair capabilities with granular control - now supports generating new keys for individual undefined entries, supplementing translations for specific missing languages, and completing translations for single missing items.
+- **Intelligent Code Completion**: Implemented smart autocompletion for translation functions, displaying candidate entries when typing `t(` with support for key name, value, Chinese Pinyin, and initial letter matching.
+- **Flexible Key Generation**: Introduced key name generation based on Pinyin or English translation, providing more naming flexibility.
+- **Configurable Translation Scope**: Added options to control translation completion range when generating new keys, supporting either minimal language set or full language coverage.
+- **Smart Variable Detection**: Added configuration to automatically identify and exclude variable texts from undefined entry extraction.
+
+### Improved
+- **Enhanced Language Validation**: Expanded `validateLanguageBeforeTranslate` to cover both new key generation and missing translation completion. Enhanced validation failure handling with options to skip, keep original value, force translation, or switch translation sources.
+- **Key Length Calculation Logic**: Optimized `maxGeneratedKeyLength` to apply only to individual key names rather than full paths (e.g., only `test` is counted in `common.test`).
+- **Documentation System Upgrade**: Migrated Chinese documentation to a new VitePress site, offering comprehensive guides and API documentation (new URL: https://baimohui.github.io/i18n-mage-docs/).
+
+### Fixed
+- **Status Bar Display Issue**: Resolved incorrect language information display in status bar for non-internationalization projects.
+- **Special Character Handling**: Fixed unexpected escaping of period symbols in key names when generating new entries in flat file structures.
+- **Sorting Function Failure**: Solved the issue where sorting rules weren't properly applied after certain repair operations.
+
 ## [1.0.7] - 2025-09-28
 
 ### Added
