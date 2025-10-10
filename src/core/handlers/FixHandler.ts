@@ -288,9 +288,10 @@ export class FixHandler {
     let failCount = 0;
     let addedCount = 0;
     const referredLangMap = this.ctx.langCountryMap[this.ctx.referredLang];
-    const steps = Object.values(lackInfo).filter(keys => keys.some(key => referredLangMap[key])).length;
+    const fillScope = this.ctx.fixQuery.fillScope ?? Object.keys(lackInfo);
+    const steps = fillScope.filter(lang => Object.hasOwn(lackInfo, lang) && lackInfo[lang].some(key => referredLangMap[key])).length;
     for (const lang in lackInfo) {
-      if (Array.isArray(this.ctx.fixQuery.fillScope) && !this.ctx.fixQuery.fillScope.includes(lang)) continue;
+      if (!fillScope.includes(lang)) continue;
       if (ExecutionContext.token.isCancellationRequested) {
         this.restoreLackInfo();
         return {

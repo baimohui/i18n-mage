@@ -402,6 +402,8 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
           const contextValueList = ["entryTranslationInCurFile", "EDIT_VALUE"];
           if (entryInfo[lang]) {
             contextValueList.push("COPY_VALUE");
+          } else if (entryInfo[this.publicCtx.referredLang]) {
+            contextValueList.push("FILL_VALUE");
           }
           if (entryInfo[lang] !== undefined) {
             contextValueList.push("GO_TO_DEFINITION");
@@ -639,18 +641,23 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
   private getDictionaryChildren(element: ExtendedTreeItem): ExtendedTreeItem[] {
     const res = (element.stack || []).reduce((acc, item) => acc[item] as LangTree, this.tree) as string | LangTree;
     if (typeof res === "string") {
-      const contextValueList = ["dictionaryItem", "COPY_VALUE", "GO_TO_DEFINITION", "EDIT_VALUE"];
-      return Object.entries(this.dictionary[res].value).map(item => ({
-        label: internalToDisplayName(item[0]),
-        description: item[1],
-        tooltip: getLangText(item[0]) || t("common.unknownLang"),
-        id: this.genId(element, item[0]),
-        contextValue: contextValueList.join(","),
-        key: res,
-        value: item[1],
-        meta: { scope: item[0] },
-        collapsibleState: vscode.TreeItemCollapsibleState.None
-      }));
+      return Object.entries(this.dictionary[res].value).map(item => {
+        const contextValueList = ["dictionaryItem", "GO_TO_DEFINITION", "EDIT_VALUE"];
+        if (item[1]) {
+          contextValueList.push("COPY_VALUE");
+        }
+        return {
+          label: internalToDisplayName(item[0]),
+          description: item[1],
+          tooltip: getLangText(item[0]) || t("common.unknownLang"),
+          id: this.genId(element, item[0]),
+          contextValue: contextValueList.join(","),
+          key: res,
+          value: item[1],
+          meta: { scope: item[0] },
+          collapsibleState: vscode.TreeItemCollapsibleState.None
+        };
+      });
     } else {
       return Object.entries(res)
         .sort((a, b) => {

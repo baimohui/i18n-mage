@@ -347,9 +347,19 @@ export function registerFixCommand(context: vscode.ExtensionContext) {
         if (previewChanges) {
           treeInstance.isSyncing = false;
           treeInstance.refresh();
-          previewFixContent(updatedValues, patchedIds, countryMap, publicCtx.referredLang, async () => {
-            await wrapWithProgress({ title: t("command.rewrite.progress") }, rewrite);
-          });
+          previewFixContent(
+            updatedValues,
+            patchedIds,
+            countryMap,
+            publicCtx.referredLang,
+            async () => {
+              await wrapWithProgress({ title: t("command.rewrite.progress") }, rewrite);
+            },
+            async () => {
+              await mage.execute({ task: "check" });
+              treeInstance.refresh();
+            }
+          );
         } else {
           await rewrite();
         }

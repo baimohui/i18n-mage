@@ -41,7 +41,7 @@
   "command.fix.switch": "切换源语言",
   "command.fix.translatorFailed": "共调用翻译服务 {0} 次，全部失败",
   "command.fix.translatorPartialSuccess": "共调用翻译服务 {0} 次，其中 {1} 次成功（新增 {2} 条翻译），{3} 次失败",
-  "command.fix.translatorSuccess": "共调用翻译服务 {0} 次，全部成功（新增 {2} 条翻译）",
+  "command.fix.translatorSuccess": "共调用翻译服务 {0} 次，全部成功（新增 {1} 条翻译）",
   "command.fix.undefinedEntriesPatched": "正在处理 {0} 个可修正的未定义词条：{1}",
   "command.fix.viewDetails": "查看详情",
   "command.fix.waitForFileSelection": "等待用户选择写入位置",

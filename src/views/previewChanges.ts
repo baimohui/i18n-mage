@@ -13,7 +13,8 @@ export default function launchFixWebview(
   idPatches: EntryIdPatches,
   localeMap: LocaleMap,
   baseLocale: string,
-  onComplete: () => Promise<void>
+  onComplete: () => Promise<void>,
+  onCancel: () => Promise<void>
 ) {
   const panel = vscode.window.createWebviewPanel("fixProblems", t("preview.title"), vscode.ViewColumn.One, { enableScripts: true });
   panel.webview.html = buildHtml(valueUpdates, idPatches, localeMap, baseLocale);
@@ -25,6 +26,7 @@ export default function launchFixWebview(
       panel.dispose();
       await onComplete();
     } else {
+      await onCancel();
       panel.dispose();
     }
   });
