@@ -21,7 +21,7 @@ export class HoverProvider implements vscode.HoverProvider {
         markdown.isTrusted = true;
         markdown.appendMarkdown(`\`${entryName}\`\n\n`);
         for (const [lang, value] of Object.entries(dictionary[entryKey]?.value ?? {})) {
-          const args = encodeURIComponent(JSON.stringify({ data: { key: entryKey, name: entryName, value, lang } }));
+          const args = encodeURIComponent(JSON.stringify({ key: entryKey, meta: { scope: lang } }));
           markdown.appendMarkdown(
             `- **${escapeMarkdown(lang)}:** ${escapeMarkdown(formatEscapeChar(value))} [✏️](command:i18nMage.editValue?${args})\n`
           );
