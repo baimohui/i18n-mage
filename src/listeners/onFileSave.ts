@@ -23,7 +23,7 @@ export function registerOnFileSave() {
       return;
     await wrapWithProgress({ title: "" }, async () => {
       await mage.execute({ task: "check" });
-      treeInstance.checkUsedInfo();
+      treeInstance.refresh();
     });
   }, 2000);
   const disposable = vscode.workspace.onDidSaveTextDocument(debouncedHandler);

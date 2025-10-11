@@ -126,6 +126,7 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
       );
     };
     this.displayLang = resolveLang(getConfig<string>("general.displayLanguage"));
+    this.checkUsedInfo();
     const decorator = DecoratorController.getInstance();
     decorator.update(vscode.window.activeTextEditor);
     const diagnostics = Diagnostics.getInstance();
@@ -719,7 +720,6 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
       });
       vscode.commands.executeCommand("setContext", "hasDefinedEntriesInFile", this.definedEntriesInCurrentFile.length > 0);
       vscode.commands.executeCommand("setContext", "hasUndefinedEntriesInFile", this.undefinedEntriesInCurrentFile.length > 0);
-      this.refresh();
     }
   }
 

@@ -9,7 +9,7 @@ export function registerOnActiveEditorChange() {
   const debouncedHandler = debounce((editor: vscode.TextEditor | undefined) => {
     decorator.update(editor);
     if (treeInstance.isInitialized) {
-      treeInstance.checkUsedInfo();
+      treeInstance.refresh();
     }
   }, 300);
   const disposable = vscode.window.onDidChangeActiveTextEditor(debouncedHandler);
