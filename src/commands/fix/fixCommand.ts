@@ -7,7 +7,7 @@ import { registerDisposable } from "@/utils/dispose";
 import { t } from "@/utils/i18n";
 import { NotificationManager } from "@/utils/notification";
 import { getConfig } from "@/utils/config";
-import { getCommonFilePaths, getParentKeys, validateLang } from "@/utils/regex";
+import { getCommonFilePaths, getParentKeys, isEnglishVariable, validateLang } from "@/utils/regex";
 import {
   EXECUTION_RESULT_CODE,
   FixExecutionResult,
@@ -37,11 +37,16 @@ export function registerFixCommand(context: vscode.ExtensionContext) {
       await mage.execute({ task: "check" });
       const publicCtx = mage.getPublicContext();
       const { multiFileMode, nameSeparator, undefined: undefinedMap, classTree } = mage.langDetail;
-      const undefinedKeys = Array.isArray(fixQuery.entriesToGen)
+      let undefinedKeys = Array.isArray(fixQuery.entriesToGen)
         ? fixQuery.entriesToGen
         : fixQuery.entriesToGen
           ? Object.keys(undefinedMap)
           : [];
+      const ignorePossibleVariables = getConfig<boolean>("translationServices.ignorePossibleVariables", true);
+      if (ignorePossibleVariables) {
+        undefinedKeys = undefinedKeys.filter(key => !isEnglishVariable(key));
+        fixQuery.entriesToGen = undefinedKeys;
+      }
       let tasks: LangMageOptions[] = [{ task: "fix", fixQuery }];
       const validateLanguageBeforeTranslate = getConfig<boolean>("translationServices.validateLanguageBeforeTranslate", true);
       if (undefinedKeys.length > 0) {
@@ -371,9 +376,9 @@ export function registerFixCommand(context: vscode.ExtensionContext) {
   };
 
   const fixDisposable = vscode.commands.registerCommand("i18nMage.fix", async () => {
-    const publicCtx = mage.getPublicContext();
+    const autoTranslateMissingKey = getConfig<boolean>("translationServices.autoTranslateMissingKey", false);
     await fix({
-      entriesToGen: publicCtx.autoTranslateMissingKey,
+      entriesToGen: autoTranslateMissingKey,
       entriesToFill: true
     });
   });

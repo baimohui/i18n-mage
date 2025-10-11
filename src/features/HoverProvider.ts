@@ -24,7 +24,9 @@ export class HoverProvider implements vscode.HoverProvider {
         const entryInfo = dictionary[entryKey]?.value ?? {};
         for (const lang of mage.detectedLangList) {
           const value = entryInfo[lang] ?? "";
-          const args = encodeURIComponent(JSON.stringify({ key: entryKey, data: [entryKey], meta: { scope: lang }, description: value }));
+          const args = encodeURIComponent(
+            JSON.stringify({ name: entryName, key: entryKey, data: [entryKey], meta: { scope: lang }, description: value })
+          );
           if (value) {
             markdown.appendMarkdown(
               `[📍](command:i18nMage.goToDefinition?${args}) **${escapeMarkdown(lang)}:** ${escapeMarkdown(formatEscapeChar(value))} [📋](command:i18nMage.copyValue?${args}) [✏️](command:i18nMage.editValue?${args})  \n`

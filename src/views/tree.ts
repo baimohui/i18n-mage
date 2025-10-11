@@ -60,6 +60,8 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
   isSyncing: boolean | string[] = false;
   displayLang = "";
   validateLanguageBeforeTranslate = true;
+  autoTranslateMissingKey = false;
+  ignorePossibleVariables = true;
   unmatchedLanguageAction: UnmatchedLanguageAction = UNMATCHED_LANGUAGE_ACTION.ignore;
   usedEntries: TEntry[] = [];
   definedEntriesInCurrentFile: TEntry[] = [];
@@ -107,6 +109,8 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
   refresh(): void {
     this.publicCtx = this.#mage.getPublicContext();
     this.validateLanguageBeforeTranslate = getConfig<boolean>("translationServices.validateLanguageBeforeTranslate", true);
+    this.autoTranslateMissingKey = getConfig<boolean>("translationServices.autoTranslateMissingKey", false);
+    this.ignorePossibleVariables = getConfig<boolean>("translationServices.ignorePossibleVariables", true);
     if (this.validateLanguageBeforeTranslate) {
       this.unmatchedLanguageAction = getConfig<UnmatchedLanguageAction>("translationServices.unmatchedLanguageAction");
     }
@@ -322,7 +326,7 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
           ) {
             return false;
           }
-          if (this.publicCtx.ignorePossibleVariables && isEnglishVariable(item.nameInfo.text)) return false;
+          if (this.ignorePossibleVariables && isEnglishVariable(item.nameInfo.text)) return false;
           return true;
         }).length;
         undefinedDescription = `${this.undefinedEntriesInCurrentFile.length}(${fixableNum})`;
@@ -366,8 +370,8 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
           description = entryInfo[this.displayLang] ?? "";
         } else {
           contextValueList.push("undefinedEntryInCurFile", "IGNORE_UNDEFINED");
-          if (this.publicCtx.autoTranslateMissingKey) {
-            if (this.publicCtx.ignorePossibleVariables && isEnglishVariable(entry.nameInfo.text)) {
+          if (this.autoTranslateMissingKey) {
+            if (this.ignorePossibleVariables && isEnglishVariable(entry.nameInfo.text)) {
               description = t("tree.usedInfo.undefinedPossibleVariable");
             } else if (this.validateLanguageBeforeTranslate && !validateLang(entry.nameInfo.text, this.publicCtx.referredLang)) {
               description = t("tree.usedInfo.undefinedNoSourceLang");
@@ -527,7 +531,7 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
                 this.unmatchedLanguageAction === UNMATCHED_LANGUAGE_ACTION.ignore
               )
                 return false;
-              if (this.publicCtx.ignorePossibleVariables && isEnglishVariable(key)) return false;
+              if (this.ignorePossibleVariables && isEnglishVariable(key)) return false;
               return true;
             }).length;
             description = `${item.num}(${fixableNum})`;
@@ -557,8 +561,8 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
             const contextValueList = ["undefinedEntry", "IGNORE_UNDEFINED"];
             const undefinedNum = Object.values(this.undefinedEntryMap[item]).reduce((acc, cur) => acc + cur.size, 0);
             const descriptions = [`<${undefinedNum}>`];
-            if (this.publicCtx.autoTranslateMissingKey) {
-              if (this.publicCtx.ignorePossibleVariables && isEnglishVariable(item)) {
+            if (this.autoTranslateMissingKey) {
+              if (this.ignorePossibleVariables && isEnglishVariable(item)) {
                 descriptions.push(t("tree.usedInfo.undefinedPossibleVariable"));
               } else if (this.validateLanguageBeforeTranslate && !validateLang(item, this.publicCtx.referredLang)) {
                 descriptions.push(t("tree.usedInfo.undefinedNoSourceLang"));

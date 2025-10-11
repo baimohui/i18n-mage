@@ -53,7 +53,6 @@ class LangMage {
         sortingWriteMode: getConfig<SortMode>("writeRules.sortRule", this.ctx.sortingWriteMode),
         sortingExportMode: getConfig<SortMode>("general.sortOnExport", this.ctx.sortingExportMode),
         matchExistingKey: getConfig<boolean>("translationServices.matchExistingKey", this.ctx.matchExistingKey),
-        autoTranslateMissingKey: getConfig<boolean>("translationServices.autoTranslateMissingKey", this.ctx.autoTranslateMissingKey),
         autoTranslateEmptyKey: getConfig<boolean>("translationServices.autoTranslateEmptyKey", this.ctx.autoTranslateEmptyKey),
         generatedKeyStyle: getConfig<KeyStyle>("writeRules.generatedKeyStyle", this.ctx.generatedKeyStyle),
         generatedKeyStrategy: getConfig<KeyStrategy>("writeRules.generatedKeyStrategy", this.ctx.generatedKeyStrategy),
@@ -64,7 +63,6 @@ class LangMage {
         quoteStyleForKey: getConfig<"auto" | QuoteStyle>("writeRules.quoteStyleForKey", this.ctx.quoteStyleForKey),
         quoteStyleForValue: getConfig<"auto" | QuoteStyle>("writeRules.quoteStyleForValue", this.ctx.quoteStyleForValue),
         scanStringLiterals: getConfig<boolean>("analysis.scanStringLiterals", this.ctx.scanStringLiterals),
-        ignorePossibleVariables: getConfig<boolean>("translationServices.ignorePossibleVariables", this.ctx.ignorePossibleVariables),
         keyGenerationFillScope: getConfig<KeyGenerationFillScope>(
           "translationServices.keyGenerationFillScope",
           this.ctx.keyGenerationFillScope
@@ -151,7 +149,6 @@ class LangMage {
       i18nFramework: this.ctx.i18nFramework,
       namespaceStrategy: this.ctx.namespaceStrategy,
       matchExistingKey: this.ctx.matchExistingKey,
-      autoTranslateMissingKey: this.ctx.autoTranslateMissingKey,
       autoTranslateEmptyKey: this.ctx.autoTranslateEmptyKey,
       generatedKeyStyle: this.ctx.generatedKeyStyle,
       generatedKeyStrategy: this.ctx.generatedKeyStrategy,
@@ -162,7 +159,6 @@ class LangMage {
       quoteStyleForKey: this.ctx.quoteStyleForKey,
       quoteStyleForValue: this.ctx.quoteStyleForValue,
       scanStringLiterals: this.ctx.scanStringLiterals,
-      ignorePossibleVariables: this.ctx.ignorePossibleVariables,
       keyGenerationFillScope: this.ctx.keyGenerationFillScope,
       missingEntryFile: this.ctx.missingEntryFile,
       missingEntryPath: this.ctx.missingEntryPath,

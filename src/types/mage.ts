@@ -23,9 +23,7 @@ export interface LangMageOptions {
   manuallyMarkedUsedEntries?: string[];
   ignoredUndefinedEntries?: string[];
   matchExistingKey?: boolean;
-  autoTranslateMissingKey?: boolean;
   autoTranslateEmptyKey?: boolean;
-  ignorePossibleVariables?: boolean;
   keyGenerationFillScope?: KeyGenerationFillScope;
   generatedKeyStyle?: KeyStyle;
   generatedKeyStrategy?: KeyStrategy;

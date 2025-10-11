@@ -43,9 +43,7 @@ export interface LangContextPublic {
   ignoredUndefinedEntries: string[];
   modifyList: Array<{ key: string; name: string; value: string; lang: string }>;
   matchExistingKey: boolean;
-  autoTranslateMissingKey: boolean;
   autoTranslateEmptyKey: boolean;
-  ignorePossibleVariables: boolean;
   keyGenerationFillScope: KeyGenerationFillScope;
   generatedKeyStyle: KeyStyle;
   generatedKeyStrategy: KeyStrategy;

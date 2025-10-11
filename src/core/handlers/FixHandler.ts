@@ -17,8 +17,7 @@ import {
   generateKey,
   unescapeString,
   convertKeyToVueI18nPath,
-  splitFileName,
-  isEnglishVariable
+  splitFileName
 } from "@/utils/regex";
 import { getDetectedLangList, setUpdatedEntryValueInfo } from "@/core/tools/contextTools";
 import translateTo from "@/translator/index";
@@ -108,7 +107,7 @@ export class FixHandler {
         patchedEntryIdList.push({ ...entry, fixedRaw: this.getFixedRaw(entry, entryKey) });
       } else if (undefinedEntryIdSet.has(entryId)) {
         patchedEntryIdList.push({ ...entry, fixedRaw: "" });
-      } else if (this.ctx.autoTranslateMissingKey && (!this.ctx.ignorePossibleVariables || !isEnglishVariable(nameInfo.text))) {
+      } else {
         undefinedEntryIdSet.add(entryId);
         needTranslateList.push(entry);
       }
