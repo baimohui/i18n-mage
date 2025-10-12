@@ -35,6 +35,14 @@
 
 ![Inline Hints](https://raw.githubusercontent.com/baimohui/i18n-mage/refs/heads/main/doc-assets/inlineHints.gif)
 
+### ⚡ Intelligent Code Completion
+
+* Automatically suggests existing translation entries when typing internationalization functions (e.g., `t("...")`)
+* Supports candidate filtering by key, value, or bidirectional matching
+* Auto-fills translation keys to boost multilingual development efficiency
+
+![Code Completion](https://raw.githubusercontent.com/baimohui/i18n-mage/refs/heads/main/doc-assets/completion.gif)
+
 ### 🚧 Auto-Fill Missing Translations
 
 * Integrates DeepL, Google, DeepSeek, Baidu, Tencent translation services.
