@@ -52,7 +52,7 @@ export class I18nCompletionProvider implements vscode.CompletionItemProvider {
   private isTranslationFunctionCall(linePrefix: string, tFuncNames: string[]): boolean {
     if (!this.cachedTReg || !this.arraysEqual(this.cachedFuncNames, tFuncNames)) {
       const funcNamePattern = tFuncNames.map(fn => `\\b${fn}\\b`).join("|");
-      this.cachedTReg = new RegExp(`(?:(?<=[$\\s.[({:="'\`])|^)(${funcNamePattern})\\s*\\(\\s*(\\S)`, "g");
+      this.cachedTReg = new RegExp(`(?:(?<=[$\\s.[({:="'\`])|^)(${funcNamePattern})\\s*\\(\\s*(\\S)`);
       this.cachedFuncNames = [...tFuncNames];
     }
     return this.cachedTReg.test(linePrefix);
