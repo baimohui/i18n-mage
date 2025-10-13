@@ -41,9 +41,19 @@ export function registerImportCommand() {
           const { updatedValues, patchedIds, countryMap } = mage.langDetail;
           if ([updatedValues, patchedIds].some(item => Object.keys(item).length > 0)) {
             if (previewChanges) {
-              previewFixContent(updatedValues, patchedIds, countryMap, publicCtx.referredLang, async () => {
-                await wrapWithProgress({ title: t("command.rewrite.progress") }, importData);
-              });
+              previewFixContent(
+                updatedValues,
+                patchedIds,
+                countryMap,
+                publicCtx.referredLang,
+                async () => {
+                  await wrapWithProgress({ title: t("command.rewrite.progress") }, importData);
+                },
+                async () => {
+                  await mage.execute({ task: "check" });
+                  treeInstance.refresh();
+                }
+              );
             } else {
               await importData();
             }
