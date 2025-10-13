@@ -4,6 +4,19 @@ All notable changes to the i18n Mage VS Code extension will be documented in thi
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.1] - 2025-10-13
+
+### Improved
+- **Enhanced Hover Tooltip Interaction**: Upgraded entry hover tooltips with quick navigation to definition locations, one-click text copying, and instant translation for missing texts.
+
+### Fixed
+- **Hover Edit Functionality**: Fixed an issue where the edit button in entry hover information panels was unresponsive.
+- **Repair Result Synchronization**: Resolved a data sync issue where plugin interfaces continued to display repair results instead of original states after canceling repair applications.
+- **Variable Entry Filtering Logic**: Corrected a bug where suspected variable entries still appeared in selection lists during global repairs when "Ignore Suspected Variables" was enabled.
+- **Panel Data Real-time Updates**: Fixed delayed updates in the "Current File" module of the plugin panel under certain conditions.
+- **Auto-completion Trigger**: Solved incorrect triggering behavior of key auto-completion in specific scenarios.
+- **Refined Repair Feedback**: Improved success notification messages and progress bar display for clearer operation feedback.
+
 ## [1.1.0] - 2025-10-09
 
 ### Added
