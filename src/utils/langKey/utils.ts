@@ -105,7 +105,8 @@ export function getLangCode(str: string, platform: ApiPlatform = "google"): stri
     tencent: "tcCode",
     baidu: "bdCode",
     deepseek: "ggCode",
-    deepl: "dlCode"
+    deepl: "dlCode",
+    chatgpt: "ggCode"
   };
   return intro?.[map[platform]] || null;
 }

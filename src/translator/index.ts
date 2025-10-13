@@ -4,6 +4,7 @@ import bdTranslateTo from "./baidu";
 import ggTranslateTo from "./google";
 import dsTranslateTo from "./deepseek";
 import dlTranslateTo from "./deepl";
+import cgTranslateTo from "./chatgpt";
 import { TranslateParams, TranslateResult, ApiPlatform } from "@/types";
 import { t } from "@/utils/i18n";
 import { NotificationManager } from "@/utils/notification";
@@ -35,6 +36,7 @@ export default async function translateTo(data: TranslateData, startIndex = 0): 
   const tencentSecretId = getConfig<string>("translationServices.tencentSecretId", "");
   const tencentSecretKey = getConfig<string>("translationServices.tencentSecretKey", "");
   const deepseekApiKey = getConfig<string>("translationServices.deepseekApiKey", "");
+  const chatgptApiKey = getConfig<string>("translationServices.chatgptApiKey", "");
   const translateApiPriority = getConfig<string[]>("translationServices.translateApiPriority", []);
 
   const apiMap: ApiMap = {
@@ -42,6 +44,7 @@ export default async function translateTo(data: TranslateData, startIndex = 0): 
     baidu: [baiduAppId, baiduSecretKey],
     tencent: [tencentSecretId, tencentSecretKey],
     deepseek: ["none", deepseekApiKey],
+    chatgpt: ["none", chatgptApiKey],
     deepl: ["none", deeplApiKey]
   };
 
@@ -140,6 +143,8 @@ async function doTranslate(api: ApiPlatform, params: TranslateParams): Promise<T
       return dsTranslateTo(params);
     case "deepl":
       return dlTranslateTo(params);
+    case "chatgpt":
+      return cgTranslateTo(params);
     default:
       return { success: false, message: t("translator.unknownService") };
   }

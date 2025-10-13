@@ -14,6 +14,7 @@
   "config.langPath.desc": "Translation File Directory",
   "config.ignoredFiles.desc": "Ignored Files",
   "config.translateServices.title": "Translation Services",
+  "config.chatgptApiKey.desc": "ChatGPT API Key",
   "config.deepseekApiKey.desc": "DeepSeek API Key",
   "config.baiduAppId.desc": "Baidu Translate APP ID",
   "config.baiduSecretKey.desc": "Baidu Translate Secret Key",

@@ -14,6 +14,7 @@
   "config.langPath.desc": "翻译文件目录",
   "config.ignoredFiles.desc": "忽略的文件",
   "config.translateServices.title": "翻译服务",
+  "config.chatgptApiKey.desc": "ChatGPT API Key",
   "config.deepseekApiKey.desc": "DeepSeek 开放平台 API Key",
   "config.baiduAppId.desc": "百度翻译开放平台开发者 APP ID",
   "config.baiduSecretKey.desc": "百度翻译开放平台开发者密钥",

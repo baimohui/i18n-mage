@@ -286,6 +286,10 @@ Set the DeepL API version.
 
 Set the DeepL Translation API key.
 
+#### `i18n-mage.translationServices.chatgptApiKey`
+
+Set the ChatGPT API key.
+
 #### `i18n-mage.translationServices.deepseekApiKey`
 
 Set the DeepSeek API key.
