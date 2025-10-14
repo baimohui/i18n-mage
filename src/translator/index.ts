@@ -2,6 +2,7 @@ import { getLangCode } from "@/utils/langKey";
 import tcTranslateTo from "./tencent";
 import bdTranslateTo from "./baidu";
 import ggTranslateTo from "./google";
+import gfTranslateTo from "./googleFree";
 import dsTranslateTo from "./deepseek";
 import dlTranslateTo from "./deepl";
 import cgTranslateTo from "./chatgpt";
@@ -37,10 +38,11 @@ export default async function translateTo(data: TranslateData, startIndex = 0): 
   const tencentSecretKey = getConfig<string>("translationServices.tencentSecretKey", "");
   const deepseekApiKey = getConfig<string>("translationServices.deepseekApiKey", "");
   const chatgptApiKey = getConfig<string>("translationServices.chatgptApiKey", "");
+  const googleApiKey = getConfig<string>("translationServices.googleApiKey", "");
   const translateApiPriority = getConfig<string[]>("translationServices.translateApiPriority", []);
 
   const apiMap: ApiMap = {
-    google: [],
+    google: googleApiKey ? ["none", googleApiKey] : [],
     baidu: [baiduAppId, baiduSecretKey],
     tencent: [tencentSecretId, tencentSecretKey],
     deepseek: ["none", deepseekApiKey],
@@ -138,7 +140,7 @@ async function doTranslate(api: ApiPlatform, params: TranslateParams): Promise<T
     case "baidu":
       return bdTranslateTo(params);
     case "google":
-      return ggTranslateTo(params);
+      return params.apiKey ? ggTranslateTo(params) : gfTranslateTo(params);
     case "deepseek":
       return dsTranslateTo(params);
     case "deepl":

@@ -1,39 +1,62 @@
-import { translate } from "@vitalets/google-translate-api";
-import { t } from "@/utils/i18n";
-import { getProxyAgent } from "@/utils/proxy";
+import axios from "axios";
+import { TranslateParams, TranslateResult } from "../types";
 import { batchTranslate } from "./utils/batchTranslate";
-import { TranslateParams, TranslateResult } from "@/types";
+import { t } from "@/utils/i18n";
 
-export default async function translateTo({ source, target, sourceTextList }: TranslateParams): Promise<TranslateResult> {
-  return batchTranslate(source, target, sourceTextList, { maxLen: 5000, batchSize: 1, interval: 2000 }, send);
+const baseUrl = "https://translation.googleapis.com/language/translate/v2";
+
+let googleApiKey = "";
+
+export default async function translateTo({ source, target, sourceTextList, apiKey }: TranslateParams): Promise<TranslateResult> {
+  googleApiKey = apiKey;
+  return batchTranslate(source, target, sourceTextList, { maxLen: 3000, batchSize: 40, interval: 700 }, send);
+}
+
+interface GoogleTranslateResponse {
+  data: {
+    translations: {
+      translatedText: string;
+    }[];
+  };
 }
 
 async function send(source: string, target: string, sourceTextList: string[]): Promise<TranslateResult> {
-  const sourceText = sourceTextList.join("\n");
-  const agent = getProxyAgent();
   try {
-    const res = (await translate(sourceText, {
-      from: source,
-      to: target,
-      fetchOptions: { agent }
-    })) as { text: string; message?: string };
-
-    if (res.text) {
-      const transformed: string[] = [];
-      const resList = res.text.split("\n");
-      let curResIndex = 0;
-
-      for (const text of sourceTextList) {
-        const newlineCount = (text.match(/\n/g) || []).length + 1;
-        transformed.push(resList.slice(curResIndex, curResIndex + newlineCount).join("\n"));
-        curResIndex += newlineCount;
+    const response = await axios.post<GoogleTranslateResponse>(
+      `${baseUrl}?key=${googleApiKey}`,
+      {
+        q: sourceTextList,
+        source,
+        target,
+        format: "text"
+      },
+      {
+        headers: {
+          "Content-Type": "application/json"
+        }
       }
+    );
 
-      return { success: true, data: transformed };
-    } else {
-      return { success: false, message: res.message ?? t("common.unknownError") };
+    const result = response.data.data.translations.map(t => t.translatedText.trim());
+
+    if (result.length !== sourceTextList.length) {
+      return {
+        success: false,
+        message: t("translator.deepseek.lineCountMismatch", result.join(" | "))
+      };
     }
+
+    const transformedList: string[] = [];
+    result.forEach((line, index) => {
+      transformedList.push(line === "" ? sourceTextList[index] : line);
+    });
+
+    return { success: true, data: transformedList };
   } catch (e: unknown) {
-    return { success: false, message: e instanceof Error ? e.message : (e as string) };
+    if (e instanceof Error) {
+      return { success: false, message: e.message };
+    } else {
+      return { success: false, message: e as string };
+    }
   }
 }

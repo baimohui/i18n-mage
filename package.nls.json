@@ -98,6 +98,7 @@
   "config.fileExtensions.desc": "File extensions to scan",
   "config.deeplVersion.desc": "Choose DeepL version: Free (free) or Pro (pro)",
   "config.deeplApiKey.desc": "DeepL API Key (enter the key corresponding to the chosen version)",
+  "config.googleApiKey.desc": "Google API Key",
   "config.namespaceStrategy.desc": "Namespace Generation Strategy",
   "config.namespaceStrategy.auto": "Auto-detect",
   "config.namespaceStrategy.full": "Use full path",

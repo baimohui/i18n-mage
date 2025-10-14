@@ -98,6 +98,7 @@
   "config.fileExtensions.desc": "需要扫描的文件扩展名",
   "config.deeplVersion.desc": "选择 DeepL 版本：免费版（free）或专业版（pro）",
   "config.deeplApiKey.desc": "DeepL API Key（根据所选版本填写对应的 Key）",
+  "config.googleApiKey.desc": "谷歌翻译 API Key",
   "config.namespaceStrategy.desc": "命名空间生成策略",
   "config.namespaceStrategy.auto": "自动推断",
   "config.namespaceStrategy.full": "使用完整路径",

@@ -317,8 +317,14 @@
             "default": "",
             "description": "%config.deeplApiKey.desc%"
           },
+          "i18n-mage.translationServices.googleApiKey": {
+            "order": 20,
+            "type": "string",
+            "default": "",
+            "description": "%config.googleApiKey.desc%"
+          },
           "i18n-mage.translationServices.chatgptApiKey": {
-            "order": 25,
+            "order": 22,
             "type": "string",
             "default": "",
             "description": "%config.chatgptApiKey.desc%"
