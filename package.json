@@ -296,7 +296,8 @@
                 "deepseek",
                 "google",
                 "baidu",
-                "tencent"
+                "tencent",
+                "youdao"
               ]
             },
             "uniqueItems": true
@@ -358,6 +359,18 @@
             "type": "string",
             "default": "",
             "description": "%config.tencentSecretKey.desc%"
+          },
+          "i18n-mage.translationServices.youdaoAppId": {
+            "order": 33,
+            "type": "string",
+            "default": "",
+            "description": "%config.youdaoAppId.desc%"
+          },
+          "i18n-mage.translationServices.youdaoAppKey": {
+            "order": 34,
+            "type": "string",
+            "default": "",
+            "description": "%config.youdaoAppKey.desc%"
           },
           "i18n-mage.translationServices.proxy.enable": {
             "order": 35,

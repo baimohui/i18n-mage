@@ -7,6 +7,7 @@ export interface LangKeyIntro {
   tcCode: string;
   bdCode: string;
   dlCode: string;
+  ydCode: string;
 }
 
 export type LangKey = keyof typeof LANG_CODE_MAPPINGS;

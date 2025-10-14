@@ -127,6 +127,7 @@
   "preview.termIdPatch": "Entry ID Correction",
   "preview.termValueUpdate": "Entry Value Update",
   "preview.title": "Repair Confirmation",
+  "translator.youdao.error": "Failed to call Youdao API, error code: {0}",
   "translator.baiduErrorInfo.closedService": "Service is currently disabled, please enable it via the management console",
   "translator.baiduErrorInfo.failedCertification": "Authentication failed or not yet effective, please check the authentication progress",
   "translator.baiduErrorInfo.insufficientBalance": "Insufficient account balance, please recharge your account via the management console",

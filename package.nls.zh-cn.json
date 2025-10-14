@@ -20,6 +20,8 @@
   "config.baiduSecretKey.desc": "百度翻译开放平台开发者密钥",
   "config.tencentSecretId.desc": "腾讯云平台账号 SecretId",
   "config.tencentSecretKey.desc": "腾讯云平台账号 SecretKey",
+  "config.youdaoAppId.desc": "有道翻译开放平台开发者应用 ID",
+  "config.youdaoAppKey.desc": "有道翻译开放平台开发者应用密钥",
   "config.translateApiPriority.desc": "翻译服务调用优先级",
   "config.langAliasCustomMappings.desc": "自定义语言别名映射（格式：{ '语言代码': ['别名 1', '别名 2'] }），其中语言代码采用谷歌翻译的国家/地区码标准",
   "config.translationHints.title": "内联翻译提示",

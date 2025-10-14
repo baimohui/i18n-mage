@@ -6,6 +6,7 @@ import gfTranslateTo from "./googleFree";
 import dsTranslateTo from "./deepseek";
 import dlTranslateTo from "./deepl";
 import cgTranslateTo from "./chatgpt";
+import ydTranslateTo from "./youdao";
 import { TranslateParams, TranslateResult, ApiPlatform } from "@/types";
 import { t } from "@/utils/i18n";
 import { NotificationManager } from "@/utils/notification";
@@ -39,6 +40,8 @@ export default async function translateTo(data: TranslateData, startIndex = 0): 
   const deepseekApiKey = getConfig<string>("translationServices.deepseekApiKey", "");
   const chatgptApiKey = getConfig<string>("translationServices.chatgptApiKey", "");
   const googleApiKey = getConfig<string>("translationServices.googleApiKey", "");
+  const youdaoAppId = getConfig<string>("translationServices.youdaoAppId", "");
+  const youdaoAppKey = getConfig<string>("translationServices.youdaoAppKey", "");
   const translateApiPriority = getConfig<string[]>("translationServices.translateApiPriority", []);
 
   const apiMap: ApiMap = {
@@ -47,7 +50,8 @@ export default async function translateTo(data: TranslateData, startIndex = 0): 
     tencent: [tencentSecretId, tencentSecretKey],
     deepseek: ["none", deepseekApiKey],
     chatgpt: ["none", chatgptApiKey],
-    deepl: ["none", deeplApiKey]
+    deepl: ["none", deeplApiKey],
+    youdao: [youdaoAppId, youdaoAppKey]
   };
 
   const availableApiList = translateApiPriority.filter(
@@ -147,6 +151,8 @@ async function doTranslate(api: ApiPlatform, params: TranslateParams): Promise<T
       return dlTranslateTo(params);
     case "chatgpt":
       return cgTranslateTo(params);
+    case "youdao":
+      return ydTranslateTo(params);
     default:
       return { success: false, message: t("translator.unknownService") };
   }

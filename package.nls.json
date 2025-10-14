@@ -20,6 +20,8 @@
   "config.baiduSecretKey.desc": "Baidu Translate Secret Key",
   "config.tencentSecretId.desc": "Tencent Cloud SecretId",
   "config.tencentSecretKey.desc": "Tencent Cloud SecretKey",
+  "config.youdaoAppId.desc": "Youdao Translate APP ID",
+  "config.youdaoAppKey.desc": "Youdao Translate APP Key",
   "config.translateApiPriority.desc": "Priority order of translation APIs",
   "config.langAliasCustomMappings.desc": "Custom language alias mapping (format: { 'language_code': ['alias1', 'alias2'] }), where language codes follow Google Translate's country/region code standard",
   "config.translationHints.title": "Inline Translation Hints",

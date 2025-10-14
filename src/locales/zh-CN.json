@@ -127,6 +127,7 @@
   "preview.termIdPatch": "词条键名修正",
   "preview.termValueUpdate": "词条键值更新",
   "preview.title": "修复确认",
+  "translator.youdao.error": "调用有道 API 失败，错误码：{0}",
   "translator.baiduErrorInfo.closedService": "服务当前已关闭，请前往管理控制台开启服务",
   "translator.baiduErrorInfo.failedCertification": "认证未通过或未生效，请前往查看认证进度",
   "translator.baiduErrorInfo.insufficientBalance": "账户余额不足，请前往管理控制台为账户充值",
