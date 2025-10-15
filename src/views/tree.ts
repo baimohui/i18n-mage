@@ -489,7 +489,7 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
         const name = unescapeString(key);
         return {
           label: internalToDisplayName(name),
-          description: this.countryMap[this.publicCtx.referredLang][key],
+          description: this.countryMap[element.key as string][key],
           tooltip,
           level: 3,
           name,
