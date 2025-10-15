@@ -1,3 +1,5 @@
+import { IndentType } from "./config";
+
 export type LangName = string;
 export type EntryValue = string;
 export type EntryKeySeg = string;
@@ -5,6 +7,7 @@ export type EntryKey = string;
 export type LangFileType = "js" | "ts" | "json" | "json5" | "mjs" | "cjs";
 
 export interface FileExtraInfo {
+  indentType: IndentType;
   indentSize: number;
   nestedLevel: number;
   prefix: string;

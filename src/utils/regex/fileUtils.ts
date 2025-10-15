@@ -57,7 +57,7 @@ export function getLangFileInfo(filePath: string): LangFileInfo | null {
     if (content) {
       let jsonObj = content;
       const { key: keyQuotes, value: valueQuotes } = detectQuoteStyle(jsonObj);
-      const indentSize = detectIndentSize(jsonObj);
+      const { type, size } = detectIndent(jsonObj);
       let tree = jsonParse(jsonObj);
       let innerVar = "";
       if (tree === null) {
@@ -70,14 +70,15 @@ export function getLangFileInfo(filePath: string): LangFileInfo | null {
       }
       if (tree === null) return null;
       const extraInfo = {
-        indentSize,
+        indentType: type,
+        indentSize: size,
         nestedLevel: 1,
         prefix,
         suffix,
         innerVar,
         keyQuotes,
         valueQuotes
-      } as FileExtraInfo;
+      };
       NotificationManager.logToOutput(t("command.parseLangFile.success", JSON.stringify(extraInfo)), "info");
       return {
         data: tree,
@@ -468,95 +469,103 @@ export function detectQuoteStyle(code: string): {
 }
 
 /**
- * 估算文件的默认缩进空格数（仅识别空格缩进）
- * 方案：
- * 1) 采集所有以空格缩进的行的缩进长度（忽略包含 \t 的行）。
- * 2) 先对“缩进长度集合”求 GCD：扁平文件也能直接得到单位。
- * 3) 若 GCD 不可靠（=1 或 >8 且不可约到常见单位），再用“层级差值”的 GCD 及覆盖率投票兜底。
- * 4) 有样本量与覆盖率阈值，混乱时回退默认值。
+ * 估算文件的默认缩进风格与宽度。
+ * 支持空格与 Tab。
+ * - 若文件混合缩进比例过高，返回默认 { type: 'space', size: 4 }。
  */
-export function detectIndentSize(fileContent: string): number {
-  const DEFAULT = 4;
+export function detectIndent(fileContent: string): { type: "space" | "tab"; size: number } {
+  const DEFAULT = { type: "space" as const, size: 4 };
   const MAX_INDENT = 64;
   const COMMON_MAX = 8;
-  const MIN_SAMPLES = 3; // 放宽以照顾小而扁平的文件
+  const MIN_SAMPLES = 3;
   const RELIABLE_COVER = 0.8;
   const FALLBACK_COVER = 0.6;
+
   const lines = fileContent.split(/\r?\n/);
-  // 收集仅含空格的缩进长度
-  const indents: number[] = [];
+  const spaceIndents: number[] = [];
+  const tabIndents: number[] = [];
+
   for (const raw of lines) {
     if (!raw || !raw.trim()) continue;
     if (/^\s*(\/\/|\/\*|\*)/.test(raw)) continue;
     const m = raw.match(/^(\s+)\S/);
     if (!m) continue;
     const ws = m[1];
-    if (/\t/.test(ws)) continue; // 忽略含 Tab 的行（混缩场景回退）
+    const hasTab = /\t/.test(ws);
+    const hasSpace = / /.test(ws);
+    if (hasTab && hasSpace) continue; // 混缩跳过
     const n = ws.length;
-    if (n > 0 && n <= MAX_INDENT) indents.push(n);
-  }
-  if (indents.length === 0) return DEFAULT;
-  // 如果只有一种缩进且出现次数>=MIN_SAMPLES，且不超过常见上限，直接采用
-  const freq: Record<number, number> = {};
-  indents.forEach(n => (freq[n] = (freq[n] || 0) + 1));
-  const unique = Object.keys(freq)
-    .map(Number)
-    .sort((a, b) => a - b);
-  if (unique.length === 1 && freq[unique[0]] >= MIN_SAMPLES && unique[0] <= COMMON_MAX) {
-    return unique[0];
-  }
-  // gcd 工具
-  const gcd = (a: number, b: number): number => {
-    a = Math.abs(a);
-    b = Math.abs(b);
-    while (b) {
-      const t = a % b;
-      a = b;
-      b = t;
-    }
-    return a;
-  };
-  // 1) 主信号：缩进长度的 GCD（不看频率）
-  let gLen = unique[0];
-  for (let i = 1; i < unique.length; i++) gLen = gcd(gLen, unique[i]);
-  const coverLen = (step: number) => indents.filter(n => n % step === 0).length / indents.length;
-  // 如果 GCD 在常见范围内且覆盖率高，直接返回
-  if (gLen >= 2 && gLen <= COMMON_MAX && coverLen(gLen) >= RELIABLE_COVER) {
-    return gLen;
-  }
-  // 如果 GCD > 8，尝试约到 2..8 中的最小因子（优先更小单位）
-  if (gLen > COMMON_MAX) {
-    for (let d = 2; d <= COMMON_MAX; d++) {
-      if (gLen % d === 0 && coverLen(d) >= RELIABLE_COVER) return d;
+    if (n > 0 && n <= MAX_INDENT) {
+      if (hasTab) tabIndents.push(n);
+      else spaceIndents.push(n);
     }
   }
-  // 2) 备选信号：层级差值（用 unique 的两两差，弱化深层倍数偏置）
-  const diffs: number[] = [];
-  for (let i = 0; i < unique.length; i++) {
-    for (let j = i + 1; j < unique.length; j++) {
-      diffs.push(unique[j] - unique[i]);
-    }
-  }
-  if (diffs.length) {
-    let gDiff = diffs[0];
-    for (let i = 1; i < diffs.length; i++) gDiff = gcd(gDiff, diffs[i]);
 
-    const coverDiff = (step: number) => diffs.filter(d => d % step === 0).length / diffs.length;
+  // 判断主缩进类型
+  const total = tabIndents.length + spaceIndents.length;
+  if (total < MIN_SAMPLES) return DEFAULT;
+  const tabRatio = tabIndents.length / total;
+  const spaceRatio = spaceIndents.length / total;
 
-    if (gDiff >= 2 && gDiff <= COMMON_MAX && coverDiff(gDiff) >= RELIABLE_COVER) {
-      return gDiff;
-    }
+  // 若 Tab 比例高，直接判定为 Tab
+  if (tabRatio >= 0.8) return { type: "tab", size: 1 };
+  if (spaceRatio >= 0.8) {
+    return { type: "space", size: detectSpaceIndentSize(spaceIndents) };
   }
-  // 3) 最终兜底：在 2..8 中选覆盖率最高且过阈值的最小步长
-  let best = DEFAULT;
-  let bestScore = -1;
-  for (let k = 2; k <= COMMON_MAX; k++) {
-    const score = indents.filter(n => n % k === 0).length;
-    if (score > bestScore || (score === bestScore && k < best)) {
-      best = k;
-      bestScore = score;
-    }
-  }
-  if (bestScore / indents.length >= FALLBACK_COVER) return best;
   return DEFAULT;
+
+  /** 用于空格缩进的原逻辑 */
+  function detectSpaceIndentSize(indents: number[]): number {
+    if (indents.length === 0) return DEFAULT.size;
+    const freq: Record<number, number> = {};
+    indents.forEach(n => (freq[n] = (freq[n] || 0) + 1));
+    const unique = Object.keys(freq)
+      .map(Number)
+      .sort((a, b) => a - b);
+
+    if (unique.length === 1 && freq[unique[0]] >= MIN_SAMPLES && unique[0] <= COMMON_MAX) return unique[0];
+
+    const gcd = (a: number, b: number): number => {
+      a = Math.abs(a);
+      b = Math.abs(b);
+      while (b) [a, b] = [b, a % b];
+      return a;
+    };
+
+    let gLen = unique[0];
+    for (let i = 1; i < unique.length; i++) gLen = gcd(gLen, unique[i]);
+    const coverLen = (step: number) => indents.filter(n => n % step === 0).length / indents.length;
+
+    if (gLen >= 2 && gLen <= COMMON_MAX && coverLen(gLen) >= RELIABLE_COVER) return gLen;
+
+    if (gLen > COMMON_MAX) {
+      for (let d = 2; d <= COMMON_MAX; d++) {
+        if (gLen % d === 0 && coverLen(d) >= RELIABLE_COVER) return d;
+      }
+    }
+
+    const diffs: number[] = [];
+    for (let i = 0; i < unique.length; i++) {
+      for (let j = i + 1; j < unique.length; j++) diffs.push(unique[j] - unique[i]);
+    }
+
+    if (diffs.length) {
+      let gDiff = diffs[0];
+      for (let i = 1; i < diffs.length; i++) gDiff = gcd(gDiff, diffs[i]);
+      const coverDiff = (step: number) => diffs.filter(d => d % step === 0).length / diffs.length;
+      if (gDiff >= 2 && gDiff <= COMMON_MAX && coverDiff(gDiff) >= RELIABLE_COVER) return gDiff;
+    }
+
+    let best = DEFAULT.size;
+    let bestScore = -1;
+    for (let k = 2; k <= COMMON_MAX; k++) {
+      const score = indents.filter(n => n % k === 0).length;
+      if (score > bestScore || (score === bestScore && k < best)) {
+        best = k;
+        bestScore = score;
+      }
+    }
+    if (bestScore / indents.length >= FALLBACK_COVER) return best;
+    return DEFAULT.size;
+  }
 }

@@ -483,7 +483,7 @@
           "i18n-mage.writeRules.keyPrefix": {
             "order": 18,
             "type": "string",
-            "default": "none",
+            "default": "manual-selection",
             "description": "%config.keyPrefix.desc%",
             "enum": [
               "none",
@@ -537,8 +537,24 @@
             "minimum": 10,
             "description": "%config.maxGeneratedKeyLength.desc%"
           },
-          "i18n-mage.writeRules.languageFileIndent": {
+          "i18n-mage.writeRules.indentType": {
             "order": 24,
+            "type": "string",
+            "enum": [
+              "auto",
+              "space",
+              "tab"
+            ],
+            "enumDescriptions": [
+              "%config.indentType.auto%",
+              "%config.indentType.space%",
+              "%config.indentType.tab%"
+            ],
+            "default": "auto",
+            "description": "%config.indentType.desc%"
+          },
+          "i18n-mage.writeRules.indentSize": {
+            "order": 25,
             "type": [
               "integer",
               "null"
@@ -546,7 +562,7 @@
             "default": null,
             "minimum": 0,
             "maximum": 8,
-            "description": "%config.languageFileIndent.desc%"
+            "description": "%config.indentSize.desc%"
           },
           "i18n-mage.writeRules.quoteStyleForKey": {
             "order": 26,

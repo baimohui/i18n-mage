@@ -16,7 +16,8 @@ import {
   DirNode,
   FixQuery,
   KeyGenerationFillScope,
-  KeyStrategy
+  KeyStrategy,
+  IndentType
 } from "@/types";
 
 // 外部模块可访问的公共上下文
@@ -50,7 +51,8 @@ export interface LangContextPublic {
   stopWords: string[];
   maxGeneratedKeyLength: number;
   keyPrefix: string;
-  languageFileIndent: number;
+  indentType: IndentType;
+  indentSize: number;
   quoteStyleForKey: "auto" | QuoteStyle;
   quoteStyleForValue: "auto" | QuoteStyle;
   scanStringLiterals: boolean;

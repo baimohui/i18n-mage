@@ -101,3 +101,11 @@ export const KEY_GENERATION_FILL_SCOPE = {
 };
 
 export type KeyGenerationFillScope = (typeof KEY_GENERATION_FILL_SCOPE)[keyof typeof KEY_GENERATION_FILL_SCOPE];
+
+export const INDENT_TYPE = {
+  auto: "auto",
+  space: "space",
+  tab: "tab"
+} as const;
+
+export type IndentType = (typeof INDENT_TYPE)[keyof typeof INDENT_TYPE];

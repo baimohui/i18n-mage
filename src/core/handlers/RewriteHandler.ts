@@ -1,6 +1,6 @@
 import fs from "fs";
 import path from "path";
-import { LangContextInternal, EntryTree, FileExtraInfo } from "@/types";
+import { LangContextInternal, EntryTree, FileExtraInfo, INDENT_TYPE } from "@/types";
 import { getFileLocationFromId, getContentAtLocation, formatObjectToString, getPathSegsFromId } from "@/utils/regex";
 import { t } from "@/utils/i18n";
 import { ExecutionResult, EXECUTION_RESULT_CODE } from "@/types";
@@ -68,6 +68,7 @@ export class RewriteHandler {
       prefix: "",
       suffix: "",
       innerVar: "",
+      indentType: INDENT_TYPE.space,
       indentSize: 2,
       nestedLevel: 1,
       keyQuotes: "double",
@@ -87,8 +88,11 @@ export class RewriteHandler {
     if (this.ctx.quoteStyleForValue !== "auto") {
       extraInfo.valueQuotes = this.ctx.quoteStyleForValue;
     }
-    if (this.ctx.languageFileIndent !== null) {
-      extraInfo.indentSize = this.ctx.languageFileIndent;
+    if (this.ctx.indentSize !== null) {
+      extraInfo.indentSize = this.ctx.indentSize;
+    }
+    if (this.ctx.indentType !== INDENT_TYPE.auto) {
+      extraInfo.indentType = this.ctx.indentType;
     }
     const isFileExists = await checkPathExists(filePath);
     if (!isFileExists) {

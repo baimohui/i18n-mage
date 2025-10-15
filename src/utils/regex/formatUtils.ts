@@ -118,6 +118,7 @@ export function formatObjectToString(tree: EntryTree, filePath: string, extraInf
     prefix = "",
     suffix = "",
     innerVar = "",
+    indentType = "space",
     indentSize = 2,
     nestedLevel = 1,
     keyQuotes = "double",
@@ -130,7 +131,8 @@ export function formatObjectToString(tree: EntryTree, filePath: string, extraInf
     return !validIdentifier.test(key);
   }
   const lineEnding = getLineEnding(filePath);
-  const indents = " ".repeat(indentSize);
+  const indent = indentType === "space" ? " " : "\t";
+  const indents = indent.repeat(indentSize);
   function formatObject(obj: EntryTree, level = 1): string {
     const result: string[] = [];
     const currentIndent = indents.repeat(level);

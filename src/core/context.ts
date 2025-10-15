@@ -1,4 +1,4 @@
-import { KEY_GENERATION_FILL_SCOPE, KEY_STRATEGY, KEY_STYLE } from "@/types";
+import { INDENT_TYPE, KEY_GENERATION_FILL_SCOPE, KEY_STRATEGY, KEY_STYLE } from "@/types";
 import { LangContextInternal } from "@/types/context";
 
 export const createLangContext = (): LangContextInternal => ({
@@ -24,7 +24,8 @@ export const createLangContext = (): LangContextInternal => ({
   stopWords: [],
   maxGeneratedKeyLength: 40,
   keyPrefix: "",
-  languageFileIndent: 0,
+  indentType: INDENT_TYPE.auto,
+  indentSize: 0,
   quoteStyleForKey: "auto",
   quoteStyleForValue: "auto",
   i18nFramework: "none",

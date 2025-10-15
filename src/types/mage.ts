@@ -1,4 +1,14 @@
-import { FixQuery, I18nFramework, KeyGenerationFillScope, KeyStrategy, KeyStyle, NamespaceStrategy, QuoteStyle, SortMode } from "@/types";
+import {
+  FixQuery,
+  I18nFramework,
+  IndentType,
+  KeyGenerationFillScope,
+  KeyStrategy,
+  KeyStyle,
+  NamespaceStrategy,
+  QuoteStyle,
+  SortMode
+} from "@/types";
 
 export interface LangMageOptions {
   task?: string;
@@ -30,7 +40,8 @@ export interface LangMageOptions {
   stopWords?: string[];
   maxGeneratedKeyLength?: number;
   keyPrefix?: string;
-  languageFileIndent?: number;
+  indentType?: IndentType;
+  indentSize?: number;
   quoteStyleForKey?: "auto" | QuoteStyle;
   quoteStyleForValue?: "auto" | QuoteStyle;
   scanStringLiterals?: boolean;
