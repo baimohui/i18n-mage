@@ -471,8 +471,8 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
           contextValueList.push("GO_TO_DEFINITION");
         }
         const tooltip = new vscode.MarkdownString();
+        const definedInfo = this.dictionary[key].value;
         if (element.type === "lack" || element.type === "null") {
-          const definedInfo = this.dictionary[key].value;
           Object.entries(definedInfo).forEach(([lang, value]) => {
             const args = encodeURIComponent(JSON.stringify({ description: value }));
             if (value) {
@@ -489,7 +489,7 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
         const name = unescapeString(key);
         return {
           label: internalToDisplayName(name),
-          description: this.countryMap[element.key as string][key],
+          description: definedInfo[element.key as string] || definedInfo[this.publicCtx.referredLang],
           tooltip,
           level: 3,
           name,
