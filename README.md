@@ -1,20 +1,33 @@
-# 🪄 i18n Mage - Frontend Internationalization Assistant
+<p align="center">
+  <img src="https://raw.githubusercontent.com/baimohui/i18n-mage/main/images/icon.png" width="120" alt="i18n Mage Logo" />
+</p>
 
-🌍 [English](./README.md) | [简体中文](https://baimohui.github.io/i18n-mage-docs/zh/guide/introduction.html)
+<h1 align="center">i18n Mage</h1>
 
-`i18n Mage` is a VS Code extension designed to significantly enhance the internationalization experience for frontend developers. It supports popular i18n frameworks like Vue I18n and React I18next, offering features such as auto-completion, inline translation hints, key management, Excel import/export, and more to streamline and improve your i18n workflow.
+<p align="center">
+  <a href="./README.md">English</a> | <a href="https://baimohui.github.io/i18n-mage-docs/zh/guide/introduction.html">简体中文</a>
+</p>
 
-## 📚 Table of Contents
+<p align="center">
+  🪄 Streamline your frontend i18n workflow with Vue I18n & React i18next support, auto-completion, inline hints, and Excel import/export.
+</p>
 
-* [✨ Features](#-features)
-* [⚡ Quick Start](#-quick-start)
-* [🧰 Configuration](#-configuration)
-* [🎹 Commands & Shortcuts](#-commands--shortcuts)
-* [🚀 Advanced Usage](#-advanced-usage)
-* [❓ FAQ](#-faq)
-* [🔧 Full Config Reference](#-full-config-reference)
-* [🤝 Contributing](#-contributing)
+<p align="center">
+  <a href="https://marketplace.visualstudio.com/items?itemName=jensen-wen.i18n-mage">
+    <img src="https://img.shields.io/visual-studio-marketplace/v/jensen-wen.i18n-mage.svg?label=VS%20Code%20Marketplace" alt="VS Code Marketplace" />
+  </a>
+  <a href="https://github.com/baimohui/i18n-mage/stargazers">
+    <img src="https://img.shields.io/github/stars/baimohui/i18n-mage?style=social" alt="GitHub Stars" />
+  </a>
+  <a href="https://github.com/baimohui/i18n-mage/blob/main/LICENSE">
+    <img src="https://img.shields.io/badge/License-MIT-green.svg" alt="License: MIT" />
+  </a>
+  <a href="https://github.com/baimohui/i18n-mage/issues">
+    <img src="https://img.shields.io/github/issues/baimohui/i18n-mage" alt="Issues" />
+  </a>
+</p>
 
+---
 ## ✨ Features
 
 ### 🌳 Translation Tree Overview
@@ -381,7 +394,7 @@ Sorting rules when writing language files (supports flat structures only). Suppo
 
 Whether to sort language files after repairing.
 
-#### `i18n-mage.writeRules.languageFileIndent`
+#### `i18n-mage.writeRules.indentSize`
 
 The number of spaces to use for indentation when writing language files. If not set, the indentation size is automatically inferred from the existing file content.
 
