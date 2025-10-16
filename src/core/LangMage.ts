@@ -192,7 +192,8 @@ class LangMage {
       classTree: this.ctx.entryClassTree,
       nameSeparator: this.ctx.nameSeparator,
       updatedValues: this.ctx.updatedEntryValueInfo,
-      patchedIds: this.ctx.patchedEntryIdInfo
+      patchedIds: this.ctx.patchedEntryIdInfo,
+      fileExtraInfo: this.ctx.langFileExtraInfo
     };
   }
 

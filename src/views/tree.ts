@@ -19,7 +19,8 @@ import {
   SORT_MODE,
   I18N_FRAMEWORK,
   UNMATCHED_LANGUAGE_ACTION,
-  UnmatchedLanguageAction
+  UnmatchedLanguageAction,
+  INDENT_TYPE
 } from "@/types";
 import { t } from "@/utils/i18n";
 import { NotificationManager } from "@/utils/notification";
@@ -251,6 +252,25 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
               setConfig("i18nFeatures.namespaceStrategy", this.publicCtx.namespaceStrategy).catch(error => {
                 NotificationManager.logToOutput(`Failed to set config for namespaceStrategy: ${error}`, "error");
               });
+            }
+            const fileExtraData = Object.values(this.langInfo.fileExtraInfo);
+            if (getConfig("writeRules.indentType") === INDENT_TYPE.auto) {
+              const initIndentType = fileExtraData[0].indentType;
+              const isUnified = fileExtraData.every(item => item.indentType === initIndentType);
+              if (isUnified) {
+                setConfig("writeRules.indentType", initIndentType).catch(error => {
+                  NotificationManager.logToOutput(`Failed to set config for indentType: ${error}`, "error");
+                });
+              }
+            }
+            if (getConfig("writeRules.indentSize") === null) {
+              const initIndentSize = fileExtraData[0].indentSize;
+              const isUnified = fileExtraData.every(item => item.indentSize === initIndentSize);
+              if (isUnified) {
+                setConfig("writeRules.indentSize", initIndentSize).catch(error => {
+                  NotificationManager.logToOutput(`Failed to set config for indentSize: ${error}`, "error");
+                });
+              }
             }
           }, 10000);
         }
