@@ -171,7 +171,6 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
   async initTree(): Promise<boolean> {
     try {
       const projectPath = toAbsolutePath(getConfig<string>("workspace.projectPath", ""));
-      this.refresh();
       // const workspaceFolders = vscode.workspace.workspaceFolders;
       // if (workspaceFolders !== undefined && workspaceFolders.length > 0) {
       //   projectPath = workspaceFolders[0].uri.fsPath;
@@ -216,7 +215,6 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
             }
           });
         } else {
-          this.checkUsedInfo();
           vscode.commands.executeCommand("setContext", "hasValidLangPath", true);
           success = true;
           const sortMode = getConfig<string>("writeRules.sortRule");
@@ -276,6 +274,7 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
         }
       }
       this.isInitialized = true;
+      this.refresh();
       vscode.commands.executeCommand("setContext", "initialized", true);
       return success;
     } catch (e: unknown) {
