@@ -15,6 +15,13 @@ export class ModifyHandler {
         const entryKey = key || getValueByAmbiguousEntryName(this.ctx.entryTree, name);
         if (typeof entryKey === "string" && entryKey.trim() !== "") {
           setUpdatedEntryValueInfo(this.ctx, entryKey, value, lang);
+          this.ctx.updatePayloads.push({
+            type: "edit",
+            key: entryKey,
+            changes: {
+              [lang]: { before: this.ctx.langCountryMap[lang][entryKey], after: value }
+            }
+          });
         } else {
           return { success: false, message: t("command.modify.error"), code: EXECUTION_RESULT_CODE.InvalidEntryName };
         }

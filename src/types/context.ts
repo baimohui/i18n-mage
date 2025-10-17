@@ -17,7 +17,8 @@ import {
   FixQuery,
   KeyGenerationFillScope,
   KeyStrategy,
-  IndentType
+  IndentType,
+  I18nUpdatePayload
 } from "@/types";
 
 // 外部模块可访问的公共上下文
@@ -80,6 +81,7 @@ export interface LangContextInternal extends LangContextPublic {
   isVacant: boolean;
   entryTree: EntryTree;
   updatedEntryValueInfo: Record<string, Record<string, string | undefined>>;
+  updatePayloads: I18nUpdatePayload[];
   patchedEntryIdInfo: Record<string, FixedTEntry[]>;
   importExcelFrom: string;
   importSheetData: string;

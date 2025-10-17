@@ -218,6 +218,13 @@ export class FixHandler {
       this.detectedLangList.forEach(lang => {
         if (filledScope.includes(lang)) {
           setUpdatedEntryValueInfo(this.ctx, nameInfo.boundKey, lang === this.ctx.referredLang ? nameInfo.text : genNameList[index], lang);
+          this.ctx.updatePayloads.push({
+            type: "add",
+            key: nameInfo.boundKey,
+            changes: {
+              [lang]: { after: lang === this.ctx.referredLang ? nameInfo.text : genNameList[index] }
+            }
+          });
         } else {
           this.lackInfoFromUndefined[lang] ??= [];
           this.lackInfoFromUndefined[lang].push(nameInfo.boundKey);
@@ -309,9 +316,16 @@ export class FixHandler {
         this.needFix = true;
         const referredEntriesText = lackEntries.map(key => referredLangMap[key]);
         if (this.ctx.fixQuery.fillWithOriginal === true) {
-          lackEntries.forEach((entryName, index) => {
+          lackEntries.forEach((key, index) => {
             addedCount++;
-            setUpdatedEntryValueInfo(this.ctx, entryName, referredEntriesText[index], lang);
+            setUpdatedEntryValueInfo(this.ctx, key, referredEntriesText[index], lang);
+            this.ctx.updatePayloads.push({
+              type: "fill",
+              key,
+              changes: {
+                [lang]: { after: referredEntriesText[index] }
+              }
+            });
           });
         } else {
           const res = await translateTo({
@@ -321,9 +335,16 @@ export class FixHandler {
           });
           if (res.success && res.data) {
             successCount++;
-            lackEntries.forEach((entryName, index) => {
+            lackEntries.forEach((key, index) => {
               addedCount++;
-              setUpdatedEntryValueInfo(this.ctx, entryName, res.data?.[index], lang);
+              setUpdatedEntryValueInfo(this.ctx, key, res.data?.[index], lang);
+              this.ctx.updatePayloads.push({
+                type: "fill",
+                key,
+                changes: {
+                  [lang]: { after: res.data?.[index] }
+                }
+              });
             });
           } else {
             failCount++;

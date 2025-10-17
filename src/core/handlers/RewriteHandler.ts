@@ -1,7 +1,13 @@
 import fs from "fs";
 import path from "path";
 import { LangContextInternal, EntryTree, FileExtraInfo, INDENT_TYPE } from "@/types";
-import { getFileLocationFromId, getContentAtLocation, formatObjectToString, getPathSegsFromId } from "@/utils/regex";
+import {
+  getFileLocationFromId,
+  getContentAtLocation,
+  formatObjectToString,
+  getPathSegsFromId,
+  setValueByEscapedEntryName
+} from "@/utils/regex";
 import { t } from "@/utils/i18n";
 import { ExecutionResult, EXECUTION_RESULT_CODE } from "@/types";
 import { checkPathExists } from "@/utils/fs";
@@ -11,23 +17,47 @@ export class RewriteHandler {
 
   public async run(): Promise<ExecutionResult> {
     try {
-      for (const [lang, entryInfo] of Object.entries(this.ctx.updatedEntryValueInfo)) {
-        const filePosSet = new Set<string>();
-        for (const key of Object.keys(entryInfo)) {
+      const updateInfo: Record<string, Set<string>> = {};
+      for (const payload of this.ctx.updatePayloads) {
+        for (const lang in payload.changes) {
+          updateInfo[lang] ??= new Set<string>();
+          const key = payload.key;
+          const value = payload.changes[lang].after ?? "";
+          switch (payload.type) {
+            case "add":
+            case "fill":
+            case "edit":
+              if (value) {
+                if (Object.hasOwn(this.ctx.langDictionary, key)) {
+                  this.ctx.langDictionary[key].value[lang] = value;
+                } else {
+                  this.ctx.langDictionary[key] = { fullPath: "", fileScope: "", value: { [lang]: value } };
+                }
+                this.ctx.langCountryMap[lang][key] = value;
+                setValueByEscapedEntryName(this.ctx.entryTree, key, key);
+              }
+              break;
+            case "delete":
+              delete this.ctx.langDictionary[payload.key][lang];
+              delete this.ctx.langCountryMap[lang][payload.key];
+              setValueByEscapedEntryName(this.ctx.entryTree, payload.key, undefined);
+              break;
+          }
           if (!this.ctx.fileStructure) continue;
-          const filePos = getFileLocationFromId(this.ctx.langDictionary[key].fullPath, this.ctx.fileStructure);
-          if (Array.isArray(filePos) && filePos.length > 0) filePosSet.add(filePos.join("."));
+          const filePos = getFileLocationFromId(this.ctx.langDictionary[payload.key].fullPath, this.ctx.fileStructure);
+          if (Array.isArray(filePos) && filePos.length > 0) updateInfo[lang].add(filePos.join("."));
         }
-        const filePosList = Array.from(filePosSet);
-        if (filePosList.length === 0) {
+      }
+      for (const [lang, filePosSet] of Object.entries(updateInfo)) {
+        if (filePosSet.size === 0) {
           await this.rewriteTranslationFile(lang, "");
         } else {
-          for (const filePos of filePosList) {
+          for (const filePos of filePosSet) {
             await this.rewriteTranslationFile(lang, filePos);
           }
         }
       }
-      this.ctx.updatedEntryValueInfo = {};
+      this.ctx.updatePayloads = [];
       await this.applyGlobalFixes();
       return { success: true, message: "", code: EXECUTION_RESULT_CODE.Success };
     } catch (e: unknown) {

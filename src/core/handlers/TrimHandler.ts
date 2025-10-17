@@ -10,8 +10,18 @@ export class TrimHandler {
   public async run(): Promise<ExecutionResult> {
     try {
       if (this.ctx.trimKeyList.length > 0) {
-        this.ctx.trimKeyList.forEach(name => {
-          setUpdatedEntryValueInfo(this.ctx, name, undefined);
+        this.ctx.trimKeyList.forEach(key => {
+          setUpdatedEntryValueInfo(this.ctx, key, undefined);
+          this.ctx.updatePayloads.push({
+            type: "delete",
+            key,
+            changes: Object.entries(this.ctx.langDictionary[key].value).reduce((acc, [lang, val]) => {
+              if (val) {
+                acc[lang] = { before: val };
+              }
+              return acc;
+            }, {})
+          });
         });
         return await new RewriteHandler(this.ctx).run();
       } else {

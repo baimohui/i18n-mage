@@ -57,22 +57,29 @@ export class ImportHandler {
           };
         }
         sheetData.forEach(item => {
-          let entryName = item[keyIndex] ?? "";
-          entryName = entryName.toString().trim();
-          if (entryName in this.ctx.langDictionary) {
+          let key = item[keyIndex] ?? "";
+          key = key.toString().trim();
+          if (key in this.ctx.langDictionary) {
             this.detectedLangList.forEach(lang => {
               const langIntro = getLangIntro(lang) || {};
               const langAlias = Object.values(langIntro);
               if (!langAlias.includes(lang)) {
                 langAlias.push(lang);
               }
-              const oldLangText = this.ctx.langDictionary[entryName].value[lang];
+              const oldLangText = this.ctx.langDictionary[key].value[lang];
               const newLangText =
                 item[
                   headInfo.findIndex(item => langAlias.some(alias => String(alias).toLowerCase() === String(item).toLowerCase()))
                 ]?.toString() ?? "";
               if (newLangText.trim() && oldLangText !== newLangText) {
-                setUpdatedEntryValueInfo(this.ctx, entryName, newLangText, lang);
+                setUpdatedEntryValueInfo(this.ctx, key, newLangText, lang);
+                this.ctx.updatePayloads.push({
+                  type: "edit",
+                  key,
+                  changes: {
+                    [lang]: { before: oldLangText, after: newLangText }
+                  }
+                });
               }
             });
           }

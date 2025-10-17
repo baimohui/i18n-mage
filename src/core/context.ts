@@ -55,6 +55,7 @@ export const createLangContext = (): LangContextInternal => ({
   isVacant: true,
   entryTree: {},
   updatedEntryValueInfo: {},
+  updatePayloads: [],
   patchedEntryIdInfo: {},
   referredLang: "",
   defaultLang: "en",
