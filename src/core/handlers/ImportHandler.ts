@@ -3,7 +3,7 @@ import xlsx from "node-xlsx";
 import { ExcelData } from "@/types";
 import { LangContextInternal } from "@/types";
 import { getLangIntro, getLangText } from "@/utils/langKey";
-import { getDetectedLangList, setUpdatedEntryValueInfo } from "@/core/tools/contextTools";
+import { getDetectedLangList } from "@/core/tools/contextTools";
 import { t } from "@/utils/i18n";
 import { ExecutionResult, EXECUTION_RESULT_CODE } from "@/types";
 import { NotificationManager } from "@/utils/notification";
@@ -72,7 +72,6 @@ export class ImportHandler {
                   headInfo.findIndex(item => langAlias.some(alias => String(alias).toLowerCase() === String(item).toLowerCase()))
                 ]?.toString() ?? "";
               if (newLangText.trim() && oldLangText !== newLangText) {
-                setUpdatedEntryValueInfo(this.ctx, key, newLangText, lang);
                 this.ctx.updatePayloads.push({
                   type: "edit",
                   key,

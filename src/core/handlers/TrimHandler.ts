@@ -1,5 +1,4 @@
 import { LangContextInternal } from "@/types";
-import { setUpdatedEntryValueInfo } from "@/core/tools/contextTools";
 import { RewriteHandler } from "./RewriteHandler";
 import { t } from "@/utils/i18n";
 import { ExecutionResult, EXECUTION_RESULT_CODE } from "@/types";
@@ -11,7 +10,6 @@ export class TrimHandler {
     try {
       if (this.ctx.trimKeyList.length > 0) {
         this.ctx.trimKeyList.forEach(key => {
-          setUpdatedEntryValueInfo(this.ctx, key, undefined);
           this.ctx.updatePayloads.push({
             type: "delete",
             key,

@@ -16,6 +16,9 @@
   <a href="https://marketplace.visualstudio.com/items?itemName=jensen-wen.i18n-mage">
     <img src="https://img.shields.io/visual-studio-marketplace/v/jensen-wen.i18n-mage.svg?label=VS%20Code%20Marketplace" alt="VS Code Marketplace" />
   </a>
+  <a href="https://open-vsx.org/extension/jensen-wen/i18n-mage">
+    <img src="https://img.shields.io/open-vsx/v/jensen-wen/i18n-mage?label=Open%20VSX" alt="Open VSX Version" />
+  </a>
   <a href="https://github.com/baimohui/i18n-mage/stargazers">
     <img src="https://img.shields.io/github/stars/baimohui/i18n-mage?style=social" alt="GitHub Stars" />
   </a>

@@ -19,7 +19,7 @@ import {
   convertKeyToVueI18nPath,
   splitFileName
 } from "@/utils/regex";
-import { getDetectedLangList, setUpdatedEntryValueInfo } from "@/core/tools/contextTools";
+import { getDetectedLangList } from "@/core/tools/contextTools";
 import translateTo from "@/translator/index";
 import { t } from "@/utils/i18n";
 import { ExecutionContext } from "@/utils/context";
@@ -217,7 +217,6 @@ export class FixHandler {
       }
       this.detectedLangList.forEach(lang => {
         if (filledScope.includes(lang)) {
-          setUpdatedEntryValueInfo(this.ctx, nameInfo.boundKey, lang === this.ctx.referredLang ? nameInfo.text : genNameList[index], lang);
           this.ctx.updatePayloads.push({
             type: "add",
             key: nameInfo.boundKey,
@@ -318,7 +317,6 @@ export class FixHandler {
         if (this.ctx.fixQuery.fillWithOriginal === true) {
           lackEntries.forEach((key, index) => {
             addedCount++;
-            setUpdatedEntryValueInfo(this.ctx, key, referredEntriesText[index], lang);
             this.ctx.updatePayloads.push({
               type: "fill",
               key,
@@ -337,7 +335,6 @@ export class FixHandler {
             successCount++;
             lackEntries.forEach((key, index) => {
               addedCount++;
-              setUpdatedEntryValueInfo(this.ctx, key, res.data?.[index], lang);
               this.ctx.updatePayloads.push({
                 type: "fill",
                 key,

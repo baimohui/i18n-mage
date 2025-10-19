@@ -1,6 +1,5 @@
 import { LangContextInternal } from "@/types";
 import { getValueByAmbiguousEntryName } from "@/utils/regex";
-import { setUpdatedEntryValueInfo } from "@/core/tools/contextTools";
 import { RewriteHandler } from "./RewriteHandler";
 import { t } from "@/utils/i18n";
 import { ExecutionResult, EXECUTION_RESULT_CODE } from "@/types";
@@ -14,7 +13,6 @@ export class ModifyHandler {
         const { key, name, value, lang } = item;
         const entryKey = key || getValueByAmbiguousEntryName(this.ctx.entryTree, name);
         if (typeof entryKey === "string" && entryKey.trim() !== "") {
-          setUpdatedEntryValueInfo(this.ctx, entryKey, value, lang);
           this.ctx.updatePayloads.push({
             type: "edit",
             key: entryKey,

@@ -1281,7 +1281,9 @@
     "check": "npm run lint && npm run type-check",
     "test:unit": "mocha --require ts-node/register --require tsconfig-paths/register ./test/setup.ts \"test/**/*.ts\"",
     "test:integration": "vscode-test --extensionDevelopmentPath=. --extensionTestsPath=test/integration/index.ts",
-    "build": "node esbuild.config.js",
+    "build:webviews": "vite build --mode production",
+    "build:webviews:watch": "vite build --mode development --watch",
+    "build": "npm run build:webviews && node esbuild.config.js",
     "package": "npm run build && vsce package",
     "format": "prettier --write \"*.{ts,tsx,js,jsx,md}\""
   },
@@ -1316,10 +1318,11 @@
     "@babel/core": "^7.27.1",
     "@babel/eslint-parser": "^7.27.1",
     "@babel/preset-env": "^7.24.8",
+    "@preact/preset-vite": "^2.10.2",
     "@types/chai": "^5.2.2",
     "@types/mocha": "^10.0.10",
     "@types/mock-require": "^3.0.0",
-    "@types/node": "^18.19.97",
+    "@types/node": "^20.19.21",
     "@types/sinon": "^17.0.4",
     "@types/vscode": "^1.89.0",
     "@typescript-eslint/eslint-plugin": "^8.32.0",
@@ -1335,10 +1338,12 @@
     "lint-staged": "^16.1.0",
     "mocha": "^11.5.0",
     "mock-require": "^3.0.3",
+    "preact": "^10.27.2",
     "prettier": "^3.5.3",
     "sinon": "^20.0.0",
     "ts-node": "^10.9.2",
     "tsconfig-paths": "^4.2.0",
-    "typescript": "^5.8.3"
+    "typescript": "^5.8.3",
+    "vite": "^7.1.10"
   }
 }

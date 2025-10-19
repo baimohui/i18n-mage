@@ -1,7 +1,7 @@
 import * as vscode from "vscode";
 import LangMage from "@/core/LangMage";
 import { treeInstance } from "@/views/tree";
-import previewFixContent from "@/views/previewChanges";
+import previewFixContent from "@/views/fixWebview";
 import { wrapWithProgress } from "@/utils/wrapWithProgress";
 import { registerDisposable } from "@/utils/dispose";
 import { t } from "@/utils/i18n";
@@ -347,13 +347,14 @@ export function registerFixCommand(context: vscode.ExtensionContext) {
           }
         });
       }, 1000);
-      const { updatedValues, patchedIds, countryMap } = mage.langDetail;
-      if (res.success && [updatedValues, patchedIds].some(o => Object.keys(o).length > 0)) {
+      const { updatePayloads, patchedIds, countryMap } = mage.langDetail;
+      if (res.success && (updatePayloads.length > 0 || Object.keys(patchedIds).length > 0)) {
         if (previewChanges) {
           treeInstance.isSyncing = false;
           treeInstance.refresh();
           previewFixContent(
-            updatedValues,
+            context,
+            updatePayloads,
             patchedIds,
             countryMap,
             publicCtx.referredLang,

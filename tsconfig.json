@@ -13,6 +13,8 @@
     "esModuleInterop": true,
     "moduleResolution": "node",
     "resolveJsonModule": true,
+    "jsx": "react-jsx",
+    "jsxImportSource": "preact",
     "types": [
       "node",
       "mocha"
@@ -27,6 +29,7 @@
   },
   "include": [
     "src",
-    "test"
+    "test",
+    "vite.config.ts"
   ],
 }

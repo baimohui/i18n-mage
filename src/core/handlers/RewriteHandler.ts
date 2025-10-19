@@ -57,7 +57,6 @@ export class RewriteHandler {
           }
         }
       }
-      this.ctx.updatePayloads = [];
       await this.applyGlobalFixes();
       return { success: true, message: "", code: EXECUTION_RESULT_CODE.Success };
     } catch (e: unknown) {
