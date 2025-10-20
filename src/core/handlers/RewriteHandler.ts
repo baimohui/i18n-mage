@@ -11,11 +11,16 @@ import {
 import { t } from "@/utils/i18n";
 import { ExecutionResult, EXECUTION_RESULT_CODE } from "@/types";
 import { checkPathExists } from "@/utils/fs";
+import { getDetectedLangList } from "../tools/contextTools";
 
 export class RewriteHandler {
   constructor(private ctx: LangContextInternal) {}
 
-  public async run(): Promise<ExecutionResult> {
+  get detectedLangList() {
+    return getDetectedLangList(this.ctx);
+  }
+
+  public async run(rewriteAll = false): Promise<ExecutionResult> {
     try {
       const updateInfo: Record<string, Set<string>> = {};
       for (const payload of this.ctx.updatePayloads) {
@@ -46,6 +51,12 @@ export class RewriteHandler {
           if (!this.ctx.fileStructure) continue;
           const filePos = getFileLocationFromId(this.ctx.langDictionary[payload.key].fullPath, this.ctx.fileStructure);
           if (Array.isArray(filePos) && filePos.length > 0) updateInfo[lang].add(filePos.join("."));
+        }
+      }
+      if (rewriteAll && this.ctx.multiFileMode === 0 && this.ctx.nestedLocale === 0) {
+        for (const lang of this.detectedLangList) {
+          updateInfo[lang] ??= new Set<string>();
+          updateInfo[lang].add("");
         }
       }
       for (const [lang, filePosSet] of Object.entries(updateInfo)) {

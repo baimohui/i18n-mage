@@ -5,7 +5,7 @@ export class SortHandler {
   constructor(private ctx: LangContextInternal) {}
 
   public async run() {
-    if (this.ctx.multiFileMode === 0 && this.ctx.nestedLocale === 0) {
+    if (this.ctx.sortingWriteMode !== SORT_MODE.None && this.ctx.multiFileMode === 0 && this.ctx.nestedLocale === 0) {
       Object.keys(this.ctx.langCountryMap).forEach(lang => {
         if (this.ctx.ignoredLangs.includes(lang)) return;
         const sortedTree = {};
@@ -23,8 +23,8 @@ export class SortHandler {
         });
         this.ctx.langCountryMap[lang] = sortedTree;
       });
+      return await new RewriteHandler(this.ctx).run(true);
     }
-    return await new RewriteHandler(this.ctx).run();
   }
 
   public getSortedKeys(type: SortMode, lang: string = "") {
