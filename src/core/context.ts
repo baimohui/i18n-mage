@@ -54,7 +54,6 @@ export const createLangContext = (): LangContextInternal => ({
   langFileExtraInfo: {},
   isVacant: true,
   entryTree: {},
-  updatedEntryValueInfo: {},
   updatePayloads: [],
   patchedEntryIdInfo: {},
   referredLang: "",

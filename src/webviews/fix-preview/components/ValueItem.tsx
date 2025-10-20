@@ -41,7 +41,7 @@ export function ValueItem({ itemKey, value, locale, localeMap, baseLocale, isSel
   );
 
   useEffect(() => {
-    ctx.setValueUpdates({
+    ctx.setValueUpdate({
       key: itemKey,
       value: isSelected ? inputValue : undefined,
       locale

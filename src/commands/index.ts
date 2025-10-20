@@ -46,7 +46,7 @@ export function registerAllCommands(context: vscode.ExtensionContext) {
   registerFixCommand(context);
   registerSortCommand();
   registerExportCommand();
-  registerImportCommand();
+  registerImportCommand(context);
   registerGoToDefinitionCommand();
   registerGoToReferenceCommand();
   registerIgnoreFileCommand();

@@ -80,7 +80,6 @@ export interface LangContextInternal extends LangContextPublic {
   langFileExtraInfo: Record<string, FileExtraInfo>;
   isVacant: boolean;
   entryTree: EntryTree;
-  updatedEntryValueInfo: Record<string, Record<string, string | undefined>>;
   updatePayloads: I18nUpdatePayload[];
   patchedEntryIdInfo: Record<string, FixedTEntry[]>;
   importExcelFrom: string;

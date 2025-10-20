@@ -6,7 +6,8 @@ import {
   FixExecutionResult,
   EXECUTION_RESULT_CODE,
   KEY_GENERATION_FILL_SCOPE,
-  KEY_STRATEGY
+  KEY_STRATEGY,
+  I18nUpdatePayload
 } from "@/types";
 import { getLangCode } from "@/utils/langKey";
 import { TEntry, I18N_FRAMEWORK } from "@/types";
@@ -215,20 +216,20 @@ export class FixHandler {
       } else if (Array.isArray(this.ctx.fixQuery.entriesToFill) && !this.ctx.fixQuery.entriesToFill.includes(nameInfo.boundKey)) {
         this.ctx.fixQuery.entriesToFill.push(nameInfo.boundKey);
       }
+      const updatePayload: I18nUpdatePayload = {
+        type: "add",
+        key: nameInfo.boundKey,
+        changes: {}
+      };
       this.detectedLangList.forEach(lang => {
         if (filledScope.includes(lang)) {
-          this.ctx.updatePayloads.push({
-            type: "add",
-            key: nameInfo.boundKey,
-            changes: {
-              [lang]: { after: lang === this.ctx.referredLang ? nameInfo.text : genNameList[index] }
-            }
-          });
+          updatePayload.changes![lang] = { after: lang === this.ctx.referredLang ? nameInfo.text : genNameList[index] };
         } else {
           this.lackInfoFromUndefined[lang] ??= [];
           this.lackInfoFromUndefined[lang].push(nameInfo.boundKey);
         }
       });
+      this.ctx.updatePayloads.push(updatePayload);
     });
     patchedEntryIdList.forEach(entry => {
       if (entry.fixedRaw === "") {

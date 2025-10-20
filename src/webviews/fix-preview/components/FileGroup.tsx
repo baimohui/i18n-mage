@@ -46,7 +46,7 @@ export function FileGroup({ file, fileIndex, changes }: Props) {
   return (
     <details open={isOpen} data-index={fileIndex}>
       <summary className="group-head" onClick={() => setIsOpen(!isOpen)}>
-        <input type="checkbox" checked={allSelected} onChange={handleToggleAll} />
+        <input type="checkbox" checked={allSelected} onChange={handleToggleAll} onClick={e => e.stopPropagation()} />
         <strong>{file}</strong>
       </summary>
 

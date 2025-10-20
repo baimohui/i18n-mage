@@ -108,7 +108,7 @@ body {
   background: var(--bg);
   display: flex;
   flex-direction: column;
-  max-height: 100vh;
+  overflow: hidden;
   box-sizing: border-box;
   margin: 0;
 }

@@ -1,5 +1,5 @@
 // src/App.tsx
-import { useCallback, useMemo, useContext } from "preact/hooks";
+import { useCallback, useMemo, useContext, useEffect } from "preact/hooks";
 import { ValueUpdatesSection } from "./components/ValueUpdatesSection";
 import { IdPatchesSection } from "./components/IdPatchesSection";
 import { FixPreviewData } from "./types";
@@ -19,7 +19,7 @@ function AppInner({ data }: Props) {
 
   const handleApply = useCallback(() => {
     console.log("🚀 ~ AppInner ~ ctx:", ctx);
-    console.log("🚀 ~ AppInner ~ updatePayloads:", JSON.stringify(ctx.updatePayloads));
+    console.log("🚀 ~ AppInner ~ idPatches:", idPatches);
     // if (selectedCount === 0) return;
 
     // 将 Set 转为数组
@@ -41,7 +41,6 @@ function AppInner({ data }: Props) {
       for (const locale in changes) {
         if (changes[locale].after !== undefined) {
           count++;
-          break;
         }
       }
     });
@@ -55,6 +54,22 @@ function AppInner({ data }: Props) {
   const handleCancel = useCallback(() => {
     vscode?.postMessage({ type: "cancel" });
   }, [vscode]);
+
+  const handleKeyDown = useCallback(
+    (e: KeyboardEvent) => {
+      if (e.key === "Enter" && (e.target as HTMLElement).tagName !== "TEXTAREA") {
+        handleApply();
+      }
+    },
+    [handleApply]
+  );
+
+  useEffect(() => {
+    window.addEventListener("keydown", handleKeyDown);
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [handleKeyDown]);
 
   return (
     <div className="app">

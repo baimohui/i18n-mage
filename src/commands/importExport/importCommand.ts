@@ -1,14 +1,14 @@
 import * as vscode from "vscode";
 import LangMage from "@/core/LangMage";
 import { treeInstance } from "@/views/tree";
-import previewFixContent from "@/views/previewChanges";
+import previewFixContent from "@/views/fixWebview";
 import { wrapWithProgress } from "@/utils/wrapWithProgress";
 import { registerDisposable } from "@/utils/dispose";
 import { t } from "@/utils/i18n";
 import { NotificationManager } from "@/utils/notification";
 import { getConfig } from "@/utils/config";
 
-export function registerImportCommand() {
+export function registerImportCommand(context: vscode.ExtensionContext) {
   const mage = LangMage.getInstance();
   const importData = async () => {
     mage.setOptions({ task: "rewrite" });
@@ -38,11 +38,12 @@ export function registerImportCommand() {
         const res = await mage.execute({ task: "import", importExcelFrom: filePath });
         if (res.success) {
           const publicCtx = mage.getPublicContext();
-          const { updatedValues, patchedIds, countryMap } = mage.langDetail;
-          if ([updatedValues, patchedIds].some(item => Object.keys(item).length > 0)) {
+          const { updatePayloads, patchedIds, countryMap } = mage.langDetail;
+          if (updatePayloads.length > 0) {
             if (previewChanges) {
               previewFixContent(
-                updatedValues,
+                context,
+                updatePayloads,
                 patchedIds,
                 countryMap,
                 publicCtx.referredLang,

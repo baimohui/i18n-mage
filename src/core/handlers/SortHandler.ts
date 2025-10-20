@@ -8,7 +8,6 @@ export class SortHandler {
     if (this.ctx.multiFileMode === 0 && this.ctx.nestedLocale === 0) {
       Object.keys(this.ctx.langCountryMap).forEach(lang => {
         if (this.ctx.ignoredLangs.includes(lang)) return;
-        this.ctx.updatedEntryValueInfo[lang] ??= {};
         const sortedTree = {};
         const entryTree = this.ctx.langCountryMap[lang];
         let keys = Object.keys(this.ctx.langCountryMap[lang]);

@@ -47,7 +47,7 @@ export function LocaleGroup({ locale, entries, localeMap, baseLocale }: Props) {
   return (
     <details open={isOpen} className="locale-group" data-locale={locale}>
       <summary className="group-head" onClick={() => setIsOpen(!isOpen)}>
-        <input type="checkbox" checked={allSelected} onChange={handleToggleAll} />
+        <input type="checkbox" checked={allSelected} onChange={handleToggleAll} onClick={e => e.stopPropagation()} />
         <strong> {locale} </strong>
       </summary>
 
