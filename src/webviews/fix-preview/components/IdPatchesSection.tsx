@@ -1,5 +1,6 @@
 import { FixedTEntry } from "@/types";
 import { FileGroup } from "./FileGroup";
+import { useTranslation } from "@/webviews/shared/hooks";
 
 interface Props {
   data: {
@@ -9,12 +10,13 @@ interface Props {
 
 export function IdPatchesSection({ data }: Props) {
   const { idPatches } = data;
+  const { t } = useTranslation();
 
   if (!Object.keys(idPatches).length) return null;
 
   return (
     <div className="section id-patches">
-      <h2>术语 ID 修复</h2>
+      <h2>{t("preview.termIdPatch")}</h2>
       {Object.entries(idPatches).map(([file, changes], fileIndex) => (
         <FileGroup key={file} file={file} fileIndex={fileIndex} changes={changes} />
       ))}

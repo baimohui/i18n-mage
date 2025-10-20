@@ -81,7 +81,10 @@ function buildWebviewHtml(
   <div id="root"></div>
   <script nonce="${nonce}">
     // 将数据传递给 Preact 应用
-    window.webviewData = ${JSON.stringify(data)};
+    window.webviewData = ${JSON.stringify({
+      ...data,
+      language: vscode.env.language
+    })};
   </script>
   <script nonce="${nonce}" src="${scriptSrc}"></script>
 </body>

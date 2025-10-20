@@ -53,6 +53,7 @@ export interface LangMageOptions {
 export const EXECUTION_RESULT_CODE = {
   NoLackEntries: 104,
   NoTrimEntries: 105,
+  NoSortingApplied: 106,
   Success: 200,
   Processing: 301,
   Cancelled: 302,

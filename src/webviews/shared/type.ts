@@ -10,7 +10,7 @@ declare global {
   }
 }
 
-export interface WebviewMessage {
-  type: string;
-  data: any;
+export interface WindowApi {
+  acquireVsCodeApi(): VSCodeAPI;
+  webviewData: { language: string };
 }

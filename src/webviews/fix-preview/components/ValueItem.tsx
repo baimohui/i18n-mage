@@ -1,5 +1,6 @@
 import { useState, useCallback, useEffect, useContext } from "preact/hooks";
 import { FixPreviewContext } from "../contexts/FixPreviewContext";
+import { useTranslation } from "@/webviews/shared/hooks";
 // import { unescapeString, internalToDisplayName } from "@/utils/regex";
 
 interface Props {
@@ -15,6 +16,7 @@ interface Props {
 export function ValueItem({ itemKey, value, locale, localeMap, baseLocale, isSelected, onToggle }: Props) {
   const ctx = useContext(FixPreviewContext);
   if (!ctx) return null;
+  const { t } = useTranslation();
   const [inputValue, setInputValue] = useState(value ?? "");
 
   const handleCheckboxChange = useCallback(
@@ -58,7 +60,7 @@ export function ValueItem({ itemKey, value, locale, localeMap, baseLocale, isSel
     <div className="item">
       <input type="checkbox" checked={isSelected} onChange={handleCheckboxChange} disabled={!inputValue.trim()} />
       <label> {displayName} </label>
-      <textarea rows={1} value={inputValue} onInput={handleInputChange} placeholder="输入新的值..." />
+      <textarea rows={1} value={inputValue} onInput={handleInputChange} placeholder={t("preview.enterNewValue")} />
       {oldValue && oldValue !== inputValue ? <span className="old">{oldValue}</span> : baseValue ? <span>{baseValue}</span> : null}
     </div>
   );

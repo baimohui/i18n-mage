@@ -1,5 +1,6 @@
-import { EntryTree, LangContextInternal, SORT_MODE, SortMode } from "@/types";
+import { EntryTree, EXECUTION_RESULT_CODE, LangContextInternal, SORT_MODE, SortMode } from "@/types";
 import { RewriteHandler } from "./RewriteHandler";
+import { t } from "@/utils/i18n";
 
 export class SortHandler {
   constructor(private ctx: LangContextInternal) {}
@@ -25,6 +26,7 @@ export class SortHandler {
       });
       return await new RewriteHandler(this.ctx).run(true);
     }
+    return { code: EXECUTION_RESULT_CODE.NoSortingApplied, success: false, message: t("command.sort.sortNotPerformed") };
   }
 
   public getSortedKeys(type: SortMode, lang: string = "") {

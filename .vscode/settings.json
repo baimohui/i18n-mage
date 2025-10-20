@@ -25,6 +25,7 @@
   ],
   "i18n-mage.general.fileExtensions": [
     ".ts",
+    ".tsx"
   ],
   "i18n-mage.translationHints.enable": true
 }
