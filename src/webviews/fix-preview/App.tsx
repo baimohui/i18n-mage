@@ -1,4 +1,3 @@
-// src/App.tsx
 import { useCallback, useMemo, useContext, useEffect } from "preact/hooks";
 import { ValueUpdatesSection } from "./components/ValueUpdatesSection";
 import { IdPatchesSection } from "./components/IdPatchesSection";

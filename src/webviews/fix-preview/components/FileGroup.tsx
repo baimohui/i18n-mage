@@ -41,8 +41,6 @@ export function FileGroup({ file, fileIndex, changes }: Props) {
   //   onIdPatchesChange(fileIndex, selectedItems);
   // }, [selectedItems.size, fileIndex, onSelectionChange, onIdPatchesChange]);
 
-  // TODO
-  // <strong>{toRelativePath(file)}</strong>
   return (
     <details open={isOpen} data-index={fileIndex}>
       <summary className="group-head" onClick={() => setIsOpen(!isOpen)}>

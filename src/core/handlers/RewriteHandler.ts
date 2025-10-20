@@ -10,7 +10,7 @@ import {
 } from "@/utils/regex";
 import { t } from "@/utils/i18n";
 import { ExecutionResult, EXECUTION_RESULT_CODE } from "@/types";
-import { checkPathExists } from "@/utils/fs";
+import { checkPathExists, toAbsolutePath } from "@/utils/fs";
 import { getDetectedLangList } from "../tools/contextTools";
 
 export class RewriteHandler {
@@ -157,14 +157,15 @@ export class RewriteHandler {
 
   private async applyGlobalFixes() {
     for (const fixPath in this.ctx.patchedEntryIdInfo) {
-      let fileContent = fs.readFileSync(fixPath, "utf8");
       const fixList = this.ctx.patchedEntryIdInfo[fixPath];
+      const absolutePath = toAbsolutePath(fixPath);
+      let fileContent = fs.readFileSync(absolutePath, "utf8");
       fixList.forEach(item => {
         if (item.fixedRaw) {
           fileContent = fileContent.replaceAll(item.raw, item.fixedRaw);
         }
       });
-      await fs.promises.writeFile(fixPath, fileContent);
+      await fs.promises.writeFile(absolutePath, fileContent);
     }
     this.ctx.patchedEntryIdInfo = {};
   }

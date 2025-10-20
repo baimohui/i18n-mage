@@ -26,6 +26,7 @@ import { t } from "@/utils/i18n";
 import { ExecutionContext } from "@/utils/context";
 import { NotificationManager } from "@/utils/notification";
 import * as pinyin from "tiny-pinyin";
+import { toRelativePath } from "@/utils/fs";
 
 export class FixHandler {
   private lackInfoFromUndefined: LackInfo;
@@ -240,8 +241,9 @@ export class FixHandler {
         entry.nameInfo.boundKey = fixedEntryId;
         entry.fixedRaw = this.getFixedRaw(entry, fixedEntryId);
       }
-      this.ctx.patchedEntryIdInfo[entry.path as string] ??= [];
-      this.ctx.patchedEntryIdInfo[entry.path as string].push({
+      const relativePath = toRelativePath(entry.path as string);
+      this.ctx.patchedEntryIdInfo[relativePath] ??= [];
+      this.ctx.patchedEntryIdInfo[relativePath].push({
         id: this.getIdByText(entry.nameInfo.text),
         raw: entry.raw,
         fixedRaw: entry.fixedRaw

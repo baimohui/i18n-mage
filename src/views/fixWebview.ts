@@ -3,6 +3,7 @@ import * as path from "path";
 import { t } from "@/utils/i18n";
 import { EntryIdPatches, LocaleMap } from "@/webviews/fix-preview/types";
 import { I18nUpdatePayload } from "@/types";
+import { internalToDisplayName, unescapeString } from "@/utils/regex";
 
 type WebviewMessage = {
   type: "apply" | "cancel";
@@ -25,6 +26,10 @@ export default function launchFixWebview(
     enableScripts: true,
     retainContextWhenHidden: true,
     localResourceRoots: [vscode.Uri.file(path.join(context.extensionPath, "dist", "webviews"))]
+  });
+
+  updatePayloads.forEach(payload => {
+    payload.name = internalToDisplayName(unescapeString(payload.key));
   });
 
   const webviewHtml = buildWebviewHtml(context, panel.webview, {

@@ -3,6 +3,7 @@ import { ValueItem } from "./ValueItem";
 
 interface Props {
   locale: string;
+  keyNameMap: Record<string, string>;
   entries: Record<string, string | undefined>;
   localeMap: Record<string, Record<string, string>>;
   baseLocale: string;
@@ -10,7 +11,7 @@ interface Props {
   // onValueUpdatesChange: (locale: string, selectedKeys: Set<string>) => void;
 }
 
-export function LocaleGroup({ locale, entries, localeMap, baseLocale }: Props) {
+export function LocaleGroup({ locale, keyNameMap, entries, localeMap, baseLocale }: Props) {
   const [isOpen, setIsOpen] = useState(true);
   const [selectedItems, setSelectedItems] = useState<Set<string>>(new Set(Object.keys(entries)));
 
@@ -56,6 +57,7 @@ export function LocaleGroup({ locale, entries, localeMap, baseLocale }: Props) {
           <ValueItem
             key={key}
             itemKey={key}
+            name={keyNameMap[key]}
             value={value}
             locale={locale}
             localeMap={localeMap}

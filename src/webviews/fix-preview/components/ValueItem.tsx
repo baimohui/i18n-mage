@@ -1,10 +1,10 @@
 import { useState, useCallback, useEffect, useContext } from "preact/hooks";
 import { FixPreviewContext } from "../contexts/FixPreviewContext";
 import { useTranslation } from "@/webviews/shared/hooks";
-// import { unescapeString, internalToDisplayName } from "@/utils/regex";
 
 interface Props {
   itemKey: string;
+  name: string;
   value: string | undefined;
   locale: string;
   localeMap: Record<string, Record<string, string>>;
@@ -13,7 +13,7 @@ interface Props {
   onToggle: (key: string, checked: boolean) => void;
 }
 
-export function ValueItem({ itemKey, value, locale, localeMap, baseLocale, isSelected, onToggle }: Props) {
+export function ValueItem({ itemKey, value, name, locale, localeMap, baseLocale, isSelected, onToggle }: Props) {
   const ctx = useContext(FixPreviewContext);
   if (!ctx) return null;
   const { t } = useTranslation();
@@ -50,16 +50,13 @@ export function ValueItem({ itemKey, value, locale, localeMap, baseLocale, isSel
     });
   }, [inputValue, isSelected]);
 
-  // TODO
-  // const displayName = internalToDisplayName(unescapeString(itemKey));
-  const displayName = itemKey;
   const oldValue = localeMap[locale]?.[itemKey];
   const baseValue = localeMap[baseLocale]?.[itemKey];
 
   return (
     <div className="item">
       <input type="checkbox" checked={isSelected} onChange={handleCheckboxChange} disabled={!inputValue.trim()} />
-      <label> {displayName} </label>
+      <label> {name} </label>
       <textarea rows={1} value={inputValue} onInput={handleInputChange} placeholder={t("preview.enterNewValue")} />
       {oldValue && oldValue !== inputValue ? <span className="old">{oldValue}</span> : baseValue ? <span>{baseValue}</span> : null}
     </div>

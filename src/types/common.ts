@@ -123,6 +123,7 @@ export interface FixQuery {
 export interface I18nUpdatePayload {
   type: "add" | "edit" | "fill" | "delete" | "rename";
   key: string; // 原始 key（rename 时是旧 key）
+  name?: string;
   newKey?: string; // rename 新 key
   changes?: Record<string, TranslationChange>; // 各语言的变化
   meta?: {
