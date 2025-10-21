@@ -2,10 +2,34 @@
   "version": "2.0.0",
   "tasks": [
     {
-      "label": "esbuild:watch",
+      "label": "watch-all",
       "type": "shell",
-      "command": "npx esbuild src/extension.ts --bundle --outfile=dist/extension.js --platform=node --target=node18 --external:vscode --sourcemap --watch",
+      "command": "npm run build:webviews:watch & npx esbuild src/extension.ts --bundle --outfile=dist/extension.js --platform=node --target=node18 --external:vscode --sourcemap --watch",
       "isBackground": true,
+      "problemMatcher": {
+        "owner": "custom",
+        "pattern": [
+          {
+            "regexp": ".*",
+            "file": 1,
+            "location": 2,
+            "message": 3
+          }
+        ],
+        "background": {
+          "activeOnStart": true,
+          "beginsPattern": ".",
+          "endsPattern": "waiting for changes|watching for changes"
+        }
+      },
+      "presentation": {
+        "reveal": "never"
+      }
+    },
+    {
+      "label": "terminate-watchers",
+      "type": "process",
+      "command": "${command:workbench.action.tasks.terminate}",
       "problemMatcher": []
     }
   ]

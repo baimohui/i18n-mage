@@ -9,11 +9,19 @@
       "name": "Run Extension",
       "type": "extensionHost",
       "request": "launch",
-      "preLaunchTask": "esbuild:watch", // 参考下方 tasks.json
-      "outFiles": ["dist/**/*.js"],
+      "preLaunchTask": "watch-all",
+      "postDebugTask": "terminate-watchers",
+      "outFiles": [
+        "dist/**/*.js"
+      ],
       "sourceMaps": true,
-      "resolveSourceMapLocations": ["!**/node_modules/**"],
-      "args": ["--disable-extensions", "--extensionDevelopmentPath=${workspaceFolder}"]
+      "resolveSourceMapLocations": [
+        "!**/node_modules/**"
+      ],
+      "args": [
+        "--disable-extensions",
+        "--extensionDevelopmentPath=${workspaceFolder}"
+      ]
     }
   ]
 }
