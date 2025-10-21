@@ -4,6 +4,22 @@ All notable changes to the i18n Mage VS Code extension will be documented in thi
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.2] - 2025-10-21
+
+### Added
+- **Expanded Translation Services**: Added ChatGPT and Youdao Translate as new translation service providers.
+- **Enhanced Google Translate Integration**: Added support for configuring official Google Translate API Key, enabling direct API calls when configured while maintaining free service as fallback.
+- **Flexible Indentation Support**: Introduced tab indentation support for language file writing, accommodating diverse team formatting preferences.
+
+### Improved
+- **Default Key Prefix Strategy**: Changed the default value for newly generated key prefixes from `none` to `manual-selection` for better key naming experience.
+- **Configuration Description Refinement**: Corrected the background alpha configuration description from "transparency" to "opacity" to prevent user confusion.
+
+### Fixed
+- **Multi-language Text Display**: Resolved an issue where the "Sync Info" panel incorrectly displayed reference language texts instead of corresponding language texts across all language sections.
+- **Plugin Initialization Refresh**: Fixed delayed display of inline translation decorations and current language settings due to missing refresh after plugin initialization.
+- **Preview Data Consistency**: Solved a synchronization issue where modified data in preview interfaces wasn't properly applied, with previous data being used instead.
+
 ## [1.1.1] - 2025-10-13
 
 ### Improved

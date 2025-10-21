@@ -61,7 +61,7 @@
 
 ### 🚧 Auto-Fill Missing Translations
 
-* Integrates DeepL, Google, DeepSeek, Baidu, Tencent translation services.
+* Integrates DeepL, Google, ChatGPT, DeepSeek, Baidu, Tencent, Youdao translation services.
 * Preview and confirm missing translations before applying.
 
 ![Auto-Fill Missing Translations](https://raw.githubusercontent.com/baimohui/i18n-mage/refs/heads/main/doc-assets/fixMissingTranslation.gif)
@@ -229,6 +229,10 @@ Enable plugin features.
 
 Enables previewing translation changes. When enabled, when fixing or importing translations, the plugin will display the pending changes, allowing you to confirm or adjust the changes before applying them.
 
+#### `i18n-mage.general.enableDiagnostics`
+
+Enable diagnostics to underline undefined keys in code.
+
 #### `i18n-mage.general.displayLanguage`
 
 Specifies the default language source for inline translation tooltips and the information panel.
@@ -301,6 +305,10 @@ Set the DeepL API version.
 #### `i18n-mage.translationServices.deeplApiKey`
 
 Set the DeepL Translation API key.
+
+#### `i18n-mage.translationServices.googleApiKey`
+
+Set the Google Translate API key.
 
 #### `i18n-mage.translationServices.chatgptApiKey`
 
@@ -397,9 +405,13 @@ Sorting rules when writing language files (supports flat structures only). Suppo
 
 Whether to sort language files after repairing.
 
+#### `i18n-mage.writeRules.indentType`
+
+The type of indentation to use when writing language files. Supports tabs and spaces.
+
 #### `i18n-mage.writeRules.indentSize`
 
-The number of spaces to use for indentation when writing language files. If not set, the indentation size is automatically inferred from the existing file content.
+Indentation size, auto-detected if not set (for 'space', it's number of spaces; for 'tab', usually 1).
 
 #### `i18n-mage.writeRules.quoteStyleForKey`
 

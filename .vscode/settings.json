@@ -27,5 +27,7 @@
     ".ts",
     ".tsx"
   ],
-  "i18n-mage.translationHints.enable": true
+  "i18n-mage.translationHints.enable": true,
+  "i18n-mage.writeRules.indentType": "space",
+  "i18n-mage.writeRules.indentSize": 2
 }
