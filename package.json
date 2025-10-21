@@ -1345,6 +1345,6 @@
     "ts-node": "^10.9.2",
     "tsconfig-paths": "^4.2.0",
     "typescript": "^5.8.3",
-    "vite": "^7.1.10"
+    "vite": "^7.1.11"
   }
 }
