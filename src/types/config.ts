@@ -109,3 +109,10 @@ export const INDENT_TYPE = {
 } as const;
 
 export type IndentType = (typeof INDENT_TYPE)[keyof typeof INDENT_TYPE];
+
+export const INLINE_HINTS_DISPLAY_MODE = {
+  overlay: "overlay",
+  inline: "inline"
+} as const;
+
+export type InlineHintsDisplayMode = (typeof INLINE_HINTS_DISPLAY_MODE)[keyof typeof INLINE_HINTS_DISPLAY_MODE];

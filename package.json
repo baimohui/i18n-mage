@@ -634,6 +634,20 @@
             "default": true,
             "description": "%config.translateHintsEnabled.desc%"
           },
+          "i18n-mage.translationHints.displayMode": {
+            "order": 1,
+            "type": "string",
+            "enum": [
+              "overlay",
+              "inline"
+            ],
+            "default": "overlay",
+            "enumDescriptions": [
+              "%config.translationHintsDisplayMode.overlay%",
+              "%config.translationHintsDisplayMode.inline%"
+            ],
+            "description": "%config.translationHintsDisplayMode.desc%"
+          },
           "i18n-mage.translationHints.enableLooseKeyMatch": {
             "order": 3,
             "type": "boolean",
@@ -645,6 +659,12 @@
             "type": "integer",
             "default": 40,
             "description": "%config.translateHintsMaxLength.desc%"
+          },
+          "i18n-mage.translationHints.italic": {
+            "order": 8,
+            "type": "boolean",
+            "default": false,
+            "description": "%config.translateHintsItalic.desc%"
           },
           "i18n-mage.translationHints.light.fontColor": {
             "order": 9,

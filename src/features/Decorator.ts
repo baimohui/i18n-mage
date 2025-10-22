@@ -10,7 +10,7 @@ import {
   formatEscapeChar
 } from "@/utils/regex";
 import { getConfig } from "@/utils/config";
-import { TEntry } from "@/types";
+import { INLINE_HINTS_DISPLAY_MODE, InlineHintsDisplayMode, TEntry } from "@/types";
 
 export class DecoratorController implements vscode.Disposable {
   private static instance: DecoratorController;
@@ -24,8 +24,9 @@ export class DecoratorController implements vscode.Disposable {
   private currentDecorations = new Map<
     string,
     {
-      translationDec: vscode.DecorationOptions;
-      hiddenKeyDec: vscode.DecorationOptions;
+      startPos: vscode.Position;
+      endPos: vscode.Position;
+      value: string;
       isLooseMatch: boolean;
     }
   >();
@@ -99,18 +100,20 @@ export class DecoratorController implements vscode.Disposable {
           const matchedEntryKey = getValueByAmbiguousEntryName(tree, matchedEntryName);
           if (matchedEntryKey === undefined) return;
           isLooseMatch = true;
-          entryValue = `"${translations[matchedEntryKey]}"`;
+          entryValue = translations[matchedEntryKey];
           startPos--;
           endPos++;
         }
         const globalStartPos = editor.document.positionAt(this.offsetBase + startPos);
         const globalEndPos = editor.document.positionAt(this.offsetBase + endPos);
-        const range = new vscode.Range(globalStartPos, globalEndPos);
         const uniqueId = `${this.offsetBase + startPos}:${entry.nameInfo.name}`;
         const formattedEntryValue = this.formatEntryValue(entryValue, maxLen);
-        const translationDec: vscode.DecorationOptions = { range, renderOptions: { before: { contentText: formattedEntryValue } } };
-        const hiddenKeyDec: vscode.DecorationOptions = { range };
-        this.currentDecorations.set(uniqueId, { translationDec, hiddenKeyDec, isLooseMatch });
+        this.currentDecorations.set(uniqueId, {
+          startPos: globalStartPos,
+          endPos: globalEndPos,
+          value: formattedEntryValue,
+          isLooseMatch
+        });
       });
     }
     this.applyDecorations(editor);
@@ -178,19 +181,16 @@ export class DecoratorController implements vscode.Disposable {
     const translationDecorations: vscode.DecorationOptions[] = [];
     const looseTranslationDecorations: vscode.DecorationOptions[] = [];
     const hiddenKeyDecorations: vscode.DecorationOptions[] = [];
-    this.currentDecorations.forEach(({ translationDec, hiddenKeyDec, isLooseMatch }) => {
-      const isOnCursorLine = translationDec.range.start.line <= cursorLine && translationDec.range.end.line >= cursorLine;
-      if (isOnCursorLine) {
-        // 光标所在行：显示追加模式的装饰
-        const range = new vscode.Range(translationDec.range.end, translationDec.range.end);
+    const isInline = getConfig<InlineHintsDisplayMode>("translationHints.displayMode") === INLINE_HINTS_DISPLAY_MODE.inline;
+    const isItalic = getConfig<boolean>("translationHints.italic");
+    this.currentDecorations.forEach(({ startPos, endPos, value, isLooseMatch }) => {
+      const hiddenKeyDec: vscode.DecorationOptions = { range: new vscode.Range(startPos, endPos) };
+      const isOnCursorLine = startPos.line <= cursorLine && endPos.line >= cursorLine;
+      if (isInline || isOnCursorLine) {
+        const range = new vscode.Range(endPos, endPos);
         const appendedDec = {
           range,
-          renderOptions: {
-            before: {
-              contentText: ` → ${translationDec.renderOptions?.before?.contentText}`,
-              fontStyle: "italic"
-            }
-          }
+          renderOptions: { before: { contentText: ` → ${value}`, fontStyle: !isInline || isItalic ? "italic" : "normal" } }
         };
         if (isLooseMatch) {
           looseTranslationDecorations.push(appendedDec);
@@ -198,11 +198,15 @@ export class DecoratorController implements vscode.Disposable {
           translationDecorations.push(appendedDec);
         }
       } else {
-        // 非光标所在行：保持原有的替换模式
+        const range = new vscode.Range(startPos, endPos);
+        const overlayDec: vscode.DecorationOptions = {
+          range,
+          renderOptions: { before: { contentText: isLooseMatch ? `"${value}"` : value, fontStyle: isItalic ? "italic" : "normal" } }
+        };
         if (isLooseMatch) {
-          looseTranslationDecorations.push(translationDec);
+          looseTranslationDecorations.push(overlayDec);
         } else {
-          translationDecorations.push(translationDec);
+          translationDecorations.push(overlayDec);
         }
         hiddenKeyDecorations.push(hiddenKeyDec);
       }
