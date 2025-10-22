@@ -180,7 +180,25 @@ export class DecoratorController implements vscode.Disposable {
     const hiddenKeyDecorations: vscode.DecorationOptions[] = [];
     this.currentDecorations.forEach(({ translationDec, hiddenKeyDec, isLooseMatch }) => {
       const isOnCursorLine = translationDec.range.start.line <= cursorLine && translationDec.range.end.line >= cursorLine;
-      if (!isOnCursorLine) {
+      if (isOnCursorLine) {
+        // 光标所在行：显示追加模式的装饰
+        const range = new vscode.Range(translationDec.range.end, translationDec.range.end);
+        const appendedDec = {
+          range,
+          renderOptions: {
+            before: {
+              contentText: ` → ${translationDec.renderOptions?.before?.contentText}`,
+              fontStyle: "italic"
+            }
+          }
+        };
+        if (isLooseMatch) {
+          looseTranslationDecorations.push(appendedDec);
+        } else {
+          translationDecorations.push(appendedDec);
+        }
+      } else {
+        // 非光标所在行：保持原有的替换模式
         if (isLooseMatch) {
           looseTranslationDecorations.push(translationDec);
         } else {
