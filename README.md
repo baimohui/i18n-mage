@@ -29,7 +29,7 @@
     <img src="https://img.shields.io/github/issues/baimohui/i18n-mage" alt="Issues" />
   </a>
   <a href="https://deepwiki.com/baimohui/i18n-mage">
-    <img src="https://deepwiki.com/badge.svg" alt="Ask DeepWiki">
+    <img src="https://raw.githubusercontent.com/baimohui/i18n-mage-docs/refs/heads/main/docs/public/badge.png" alt="Ask DeepWiki">
   </a>
 </p>
 
