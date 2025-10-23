@@ -135,6 +135,7 @@
   "config.translationHintsDisplayMode.desc": "翻译装饰的呈现方式",
   "config.translationHintsDisplayMode.overlay": "将翻译文本覆盖显示在原始文本上",
   "config.translationHintsDisplayMode.inline": "将翻译文本与原始文本并行显示",
+  "config.applyToStringLiterals.desc": "启用后，插件将对普通字符串也应用内联翻译装饰，而不仅限于国际化函数中的字符串",
   "command.setReferredLang.title": "设为翻译源语言",
   "command.setDisplayLang.title": "设为显示语言",
   "command.markAsKnownLang.title": "标记为已知语言",

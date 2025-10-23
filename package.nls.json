@@ -135,6 +135,7 @@
   "config.translationHintsDisplayMode.desc": "Choose how to display translation hints",
   "config.translationHintsDisplayMode.overlay": "Overlay translation text on top of original text",
   "config.translationHintsDisplayMode.inline": "Inline translation text in the same line",
+  "config.applyToStringLiterals.desc": "When enabled, the plugin will apply inline translation hints to regular strings as well, not just those inside i18n functions",
   "command.setReferredLang.title": "Set as Source Language",
   "command.setDisplayLang.title": "Set as Display Language",
   "command.markAsKnownLang.title": "Mark as Known Language",

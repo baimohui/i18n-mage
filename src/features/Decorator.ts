@@ -7,10 +7,12 @@ import {
   getLineEnding,
   unescapeString,
   isValidI18nCallablePath,
-  formatEscapeChar
+  formatEscapeChar,
+  catchPossibleEntries
 } from "@/utils/regex";
 import { getConfig } from "@/utils/config";
 import { INLINE_HINTS_DISPLAY_MODE, InlineHintsDisplayMode, TEntry } from "@/types";
+import path from "path";
 
 export class DecoratorController implements vscode.Disposable {
   private static instance: DecoratorController;
@@ -24,8 +26,8 @@ export class DecoratorController implements vscode.Disposable {
   private currentDecorations = new Map<
     string,
     {
-      startPos: vscode.Position;
-      endPos: vscode.Position;
+      startPos: number;
+      endPos: number;
       value: string;
       isLooseMatch: boolean;
     }
@@ -62,7 +64,8 @@ export class DecoratorController implements vscode.Disposable {
       editor.setDecorations(this.hiddenKeyDecoration, []);
       return;
     }
-    if (isValidI18nCallablePath(editor.document.uri.fsPath)) {
+    const filePath = editor.document.uri.fsPath;
+    if (isValidI18nCallablePath(filePath)) {
       const mage = LangMage.getInstance();
       this.currentEditor = editor;
       const { tree, countryMap } = mage.langDetail;
@@ -83,6 +86,24 @@ export class DecoratorController implements vscode.Disposable {
       const visibleText = visibleLines.join(lineEnding);
       this.offsetBase = editor.document.offsetAt(new vscode.Position(visibleStart, 0));
       const entries = catchTEntries(visibleText);
+      const applyToStringLiterals = getConfig<boolean>("translationHints.applyToStringLiterals", false);
+      if (applyToStringLiterals) {
+        catchPossibleEntries(visibleText, mage.langDetail.tree, path.basename(filePath)).forEach(entry => {
+          entries.push({
+            raw: entry.value,
+            pos: entry.pos,
+            vars: [],
+            nameInfo: {
+              text: entry.name,
+              regex: new RegExp(entry.name),
+              name: entry.name,
+              boundKey: "",
+              boundPrefix: "",
+              vars: []
+            }
+          });
+        });
+      }
       this.entries = entries;
       const maxLen = getConfig<number>("translationHints.maxLength");
       const enableLooseKeyMatch = getConfig<boolean>("translationHints.enableLooseKeyMatch", true);
@@ -101,16 +122,12 @@ export class DecoratorController implements vscode.Disposable {
           if (matchedEntryKey === undefined) return;
           isLooseMatch = true;
           entryValue = translations[matchedEntryKey];
-          startPos--;
-          endPos++;
         }
-        const globalStartPos = editor.document.positionAt(this.offsetBase + startPos);
-        const globalEndPos = editor.document.positionAt(this.offsetBase + endPos);
         const uniqueId = `${this.offsetBase + startPos}:${entry.nameInfo.name}`;
         const formattedEntryValue = this.formatEntryValue(entryValue, maxLen);
         this.currentDecorations.set(uniqueId, {
-          startPos: globalStartPos,
-          endPos: globalEndPos,
+          startPos,
+          endPos,
           value: formattedEntryValue,
           isLooseMatch
         });
@@ -184,13 +201,21 @@ export class DecoratorController implements vscode.Disposable {
     const isInline = getConfig<InlineHintsDisplayMode>("translationHints.displayMode") === INLINE_HINTS_DISPLAY_MODE.inline;
     const isItalic = getConfig<boolean>("translationHints.italic");
     this.currentDecorations.forEach(({ startPos, endPos, value, isLooseMatch }) => {
-      const hiddenKeyDec: vscode.DecorationOptions = { range: new vscode.Range(startPos, endPos) };
-      const isOnCursorLine = startPos.line <= cursorLine && endPos.line >= cursorLine;
+      if (isLooseMatch) {
+        startPos--;
+        endPos++;
+      }
+      const globalStartPos = editor.document.positionAt(this.offsetBase + startPos);
+      let globalEndPos = editor.document.positionAt(this.offsetBase + endPos);
+      const isOnCursorLine = globalStartPos.line <= cursorLine && globalEndPos.line >= cursorLine;
       if (isInline || isOnCursorLine) {
-        const range = new vscode.Range(endPos, endPos);
+        if (isLooseMatch) {
+          globalEndPos = editor.document.positionAt(this.offsetBase + endPos - 1);
+        }
+        const range = new vscode.Range(globalEndPos, globalEndPos);
         const appendedDec = {
           range,
-          renderOptions: { before: { contentText: ` → ${value}`, fontStyle: !isInline || isItalic ? "italic" : "normal" } }
+          renderOptions: { before: { contentText: ` → ${value}`, fontStyle: isItalic ? "italic" : "normal" } }
         };
         if (isLooseMatch) {
           looseTranslationDecorations.push(appendedDec);
@@ -198,7 +223,7 @@ export class DecoratorController implements vscode.Disposable {
           translationDecorations.push(appendedDec);
         }
       } else {
-        const range = new vscode.Range(startPos, endPos);
+        const range = new vscode.Range(globalStartPos, globalEndPos);
         const overlayDec: vscode.DecorationOptions = {
           range,
           renderOptions: { before: { contentText: isLooseMatch ? `"${value}"` : value, fontStyle: isItalic ? "italic" : "normal" } }
@@ -208,6 +233,7 @@ export class DecoratorController implements vscode.Disposable {
         } else {
           translationDecorations.push(overlayDec);
         }
+        const hiddenKeyDec: vscode.DecorationOptions = { range: new vscode.Range(globalStartPos, globalEndPos) };
         hiddenKeyDecorations.push(hiddenKeyDec);
       }
     });
