@@ -47,10 +47,10 @@ export interface LangContextPublic {
   matchExistingKey: boolean;
   autoTranslateEmptyKey: boolean;
   keyGenerationFillScope: KeyGenerationFillScope;
-  generatedKeyStyle: KeyStyle;
-  generatedKeyStrategy: KeyStrategy;
+  keyStyle: KeyStyle;
+  keyStrategy: KeyStrategy;
   stopWords: string[];
-  maxGeneratedKeyLength: number;
+  maxKeyLength: number;
   keyPrefix: string;
   indentType: IndentType;
   indentSize: number;

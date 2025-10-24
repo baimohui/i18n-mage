@@ -44,7 +44,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ### Improved
 - **Enhanced Language Validation**: Expanded `validateLanguageBeforeTranslate` to cover both new key generation and missing translation completion. Enhanced validation failure handling with options to skip, keep original value, force translation, or switch translation sources.
-- **Key Length Calculation Logic**: Optimized `maxGeneratedKeyLength` to apply only to individual key names rather than full paths (e.g., only `test` is counted in `common.test`).
+- **Key Length Calculation Logic**: Optimized `maxKeyLength` to apply only to individual key names rather than full paths (e.g., only `test` is counted in `common.test`).
 - **Documentation System Upgrade**: Migrated Chinese documentation to a new VitePress site, offering comprehensive guides and API documentation (new URL: https://baimohui.github.io/i18n-mage-docs/).
 
 ### Fixed

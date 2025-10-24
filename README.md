@@ -424,11 +424,11 @@ Set the quote style for key characters when writing.
 
 Sets the quote style for the value when writing.
 
-#### `i18n-mage.writeRules.generatedKeyStyle`
+#### `i18n-mage.writeRules.keyStyle`
 
 Sets the style for generated translation keys. CamelCase, underscores, hyphens, and original names are supported.
 
-#### `i18n-mage.writeRules.maxGeneratedKeyLength`
+#### `i18n-mage.writeRules.maxKeyLength`
 
 The maximum length of the generated key. If the limit is exceeded, the key will be generated using the format of "filename + text + sequence number". If the limit is still exceeded, the file name will be truncated to meet the length requirement.
 

@@ -116,7 +116,7 @@ export class FixHandler {
     }
     let genNameList: string[] = needTranslateList.map(entry => entry.nameInfo.text);
     if (genNameList.length > 0) {
-      if (this.ctx.generatedKeyStrategy === KEY_STRATEGY.english) {
+      if (this.ctx.keyStrategy === KEY_STRATEGY.english) {
         if (referredLangCode !== "en" && this.ctx.fixQuery.fillWithOriginal !== true) {
           const res = await translateTo({
             source: this.ctx.referredLang,
@@ -133,7 +133,7 @@ export class FixHandler {
             };
           }
         }
-      } else if (this.ctx.generatedKeyStrategy === KEY_STRATEGY.pinyin) {
+      } else if (this.ctx.keyStrategy === KEY_STRATEGY.pinyin) {
         genNameList = genNameList.map(name => pinyin.convertToPinyin(name));
       }
     }
@@ -157,7 +157,7 @@ export class FixHandler {
     const checkExisted = (key: string) => Boolean(getValueByAmbiguousEntryName(this.ctx.entryTree, key)) || newIdSet.has(key);
     needTranslateList.forEach((entry, index) => {
       if (genNameList[index] === "") return;
-      const genKeyInfo = { keyStyle: this.ctx.generatedKeyStyle, stopWords: this.ctx.stopWords };
+      const genKeyInfo = { keyStyle: this.ctx.keyStyle, stopWords: this.ctx.stopWords };
       const id = getIdByStr(genNameList[index], genKeyInfo);
       const nameInfo = entry.nameInfo;
       if (!nameInfo.boundKey) {
@@ -165,7 +165,7 @@ export class FixHandler {
         if (baseName && !baseName.endsWith(this.ctx.nameSeparator) && !baseName.endsWith(".")) {
           baseName += this.ctx.nameSeparator;
         }
-        const maxLen = this.ctx.maxGeneratedKeyLength;
+        const maxLen = this.ctx.maxKeyLength;
         let entryKey = baseName + id;
         const needsAnotherName = id.length > maxLen || id.length === 0 || checkExisted(entryKey);
         if (needsAnotherName) {
@@ -205,7 +205,7 @@ export class FixHandler {
         }
       };
       const filledScope = [this.ctx.referredLang];
-      if (this.ctx.generatedKeyStrategy === KEY_STRATEGY.english) {
+      if (this.ctx.keyStrategy === KEY_STRATEGY.english) {
         const enLang = this.detectedLangList.find(item => getLangCode(item) === "en")!;
         filledScope.push(enLang);
       }
