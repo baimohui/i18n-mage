@@ -1,6 +1,7 @@
 import type {
   I18nFramework,
   IndentType,
+  InvalidKeyStrategy,
   KeyGenerationFillScope,
   LangContextInternal,
   LangContextPublic,
@@ -69,6 +70,7 @@ class LangMage {
           "translationServices.keyGenerationFillScope",
           this.ctx.keyGenerationFillScope
         ),
+        invalidKeyStrategy: getConfig<InvalidKeyStrategy>("writeRules.invalidKeyStrategy", this.ctx.invalidKeyStrategy),
         ...options
       };
       for (const [key, value] of Object.entries(combinedOptions)) {
@@ -165,7 +167,8 @@ class LangMage {
       keyGenerationFillScope: this.ctx.keyGenerationFillScope,
       missingEntryFile: this.ctx.missingEntryFile,
       missingEntryPath: this.ctx.missingEntryPath,
-      fixQuery: this.ctx.fixQuery
+      fixQuery: this.ctx.fixQuery,
+      invalidKeyStrategy: this.ctx.invalidKeyStrategy
     };
   }
 

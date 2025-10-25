@@ -538,6 +538,20 @@
             "minimum": 10,
             "description": "%config.maxKeyLength.desc%"
           },
+          "i18n-mage.writeRules.invalidKeyStrategy": {
+            "order": 23,
+            "type": "string",
+            "enum": [
+              "fallback",
+              "ai"
+            ],
+            "enumDescriptions": [
+              "%config.invalidKeyStrategy.fallback%",
+              "%config.invalidKeyStrategy.ai%"
+            ],
+            "default": "ai",
+            "description": "%config.invalidKeyStrategy.desc%"
+          },
           "i18n-mage.writeRules.indentType": {
             "order": 24,
             "type": "string",

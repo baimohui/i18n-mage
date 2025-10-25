@@ -18,7 +18,8 @@ import {
   KeyGenerationFillScope,
   KeyStrategy,
   IndentType,
-  I18nUpdatePayload
+  I18nUpdatePayload,
+  InvalidKeyStrategy
 } from "@/types";
 
 // 外部模块可访问的公共上下文
@@ -60,6 +61,7 @@ export interface LangContextPublic {
   missingEntryFile: string;
   missingEntryPath: string;
   fixQuery: FixQuery;
+  invalidKeyStrategy: InvalidKeyStrategy;
 }
 
 // 内部模块才能访问的完整上下文

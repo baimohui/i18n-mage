@@ -1,4 +1,4 @@
-import { INDENT_TYPE, KEY_GENERATION_FILL_SCOPE, KEY_STRATEGY, KEY_STYLE } from "@/types";
+import { INDENT_TYPE, INVALID_KEY_STRATEGY, KEY_GENERATION_FILL_SCOPE, KEY_STRATEGY, KEY_STYLE } from "@/types";
 import { LangContextInternal } from "@/types/context";
 
 export const createLangContext = (): LangContextInternal => ({
@@ -37,6 +37,7 @@ export const createLangContext = (): LangContextInternal => ({
     entriesToGen: true,
     entriesToFill: true
   },
+  invalidKeyStrategy: INVALID_KEY_STRATEGY.ai,
 
   langDictionary: {},
   langCountryMap: {},

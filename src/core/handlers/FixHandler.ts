@@ -7,7 +7,8 @@ import {
   EXECUTION_RESULT_CODE,
   KEY_GENERATION_FILL_SCOPE,
   KEY_STRATEGY,
-  I18nUpdatePayload
+  I18nUpdatePayload,
+  INVALID_KEY_STRATEGY
 } from "@/types";
 import { getLangCode } from "@/utils/langKey";
 import { TEntry, I18N_FRAMEWORK } from "@/types";
@@ -27,6 +28,7 @@ import { ExecutionContext } from "@/utils/context";
 import { NotificationManager } from "@/utils/notification";
 import * as pinyin from "tiny-pinyin";
 import { toRelativePath } from "@/utils/fs";
+import generateKeyFrom from "@/keyAiGenerator";
 
 export class FixHandler {
   private lackInfoFromUndefined: LackInfo;
@@ -115,6 +117,8 @@ export class FixHandler {
       }
     }
     let genNameList: string[] = needTranslateList.map(entry => entry.nameInfo.text);
+    let enTextList: string[] = [];
+    const genKeyInfo = { keyStyle: this.ctx.keyStyle, stopWords: this.ctx.stopWords };
     if (genNameList.length > 0) {
       if (this.ctx.keyStrategy === KEY_STRATEGY.english) {
         if (referredLangCode !== "en" && this.ctx.fixQuery.fillWithOriginal !== true) {
@@ -125,6 +129,7 @@ export class FixHandler {
           });
           if (res.success && res.data) {
             genNameList = res.data;
+            enTextList = res.data;
           } else {
             return {
               success: false,
@@ -135,6 +140,23 @@ export class FixHandler {
         }
       } else if (this.ctx.keyStrategy === KEY_STRATEGY.pinyin) {
         genNameList = genNameList.map(name => pinyin.convertToPinyin(name));
+      }
+      genNameList = genNameList.map(name => getIdByStr(name, genKeyInfo));
+      if (this.ctx.invalidKeyStrategy === INVALID_KEY_STRATEGY.ai) {
+        const maxLen = this.ctx.maxKeyLength;
+        const invalidNameIndexList = genNameList
+          .map((name, index) => (name.length === 0 || name.length > maxLen ? index : -1))
+          .filter(index => index !== -1);
+        const res = await generateKeyFrom({
+          sourceTextList: invalidNameIndexList.map(index => needTranslateList[index].nameInfo.text),
+          style: genKeyInfo.keyStyle,
+          maxLen: maxLen
+        });
+        if (res.success && res.data) {
+          invalidNameIndexList.forEach((index, i) => {
+            genNameList[index] = res.data?.[i] ?? "";
+          });
+        }
       }
     }
     let namePrefix = "";
@@ -157,16 +179,15 @@ export class FixHandler {
     const checkExisted = (key: string) => Boolean(getValueByAmbiguousEntryName(this.ctx.entryTree, key)) || newIdSet.has(key);
     needTranslateList.forEach((entry, index) => {
       if (genNameList[index] === "") return;
-      const genKeyInfo = { keyStyle: this.ctx.keyStyle, stopWords: this.ctx.stopWords };
-      const id = getIdByStr(genNameList[index], genKeyInfo);
+      const id = genNameList[index];
       const nameInfo = entry.nameInfo;
       if (!nameInfo.boundKey) {
-        let baseName = nameInfo.boundPrefix || namePrefix;
-        if (baseName && !baseName.endsWith(this.ctx.nameSeparator) && !baseName.endsWith(".")) {
-          baseName += this.ctx.nameSeparator;
+        let prefix = nameInfo.boundPrefix || namePrefix;
+        if (prefix && !prefix.endsWith(this.ctx.nameSeparator) && !prefix.endsWith(".")) {
+          prefix += this.ctx.nameSeparator;
         }
         const maxLen = this.ctx.maxKeyLength;
-        let entryKey = baseName + id;
+        let entryKey = prefix + id;
         const needsAnotherName = id.length > maxLen || id.length === 0 || checkExisted(entryKey);
         if (needsAnotherName) {
           let nameParts = [entryKey];
@@ -176,11 +197,11 @@ export class FixHandler {
             nameParts = [...fileNameSplit, "text"];
           }
           let index = 1;
-          const keyLen = maxLen - baseName.length;
-          entryKey = baseName + generateKey([...nameParts, String(index).padStart(2, "0")], genKeyInfo.keyStyle).slice(-keyLen);
+          const keyLen = maxLen - prefix.length;
+          entryKey = prefix + generateKey([...nameParts, String(index).padStart(2, "0")], genKeyInfo.keyStyle).slice(-keyLen);
           while (checkExisted(entryKey)) {
             index++;
-            entryKey = baseName + generateKey([...nameParts, String(index).padStart(2, "0")], genKeyInfo.keyStyle).slice(-keyLen);
+            entryKey = prefix + generateKey([...nameParts, String(index).padStart(2, "0")], genKeyInfo.keyStyle).slice(-keyLen);
           }
         }
         nameInfo.boundKey = entryKey;
@@ -224,7 +245,7 @@ export class FixHandler {
       };
       this.detectedLangList.forEach(lang => {
         if (filledScope.includes(lang)) {
-          updatePayload.changes![lang] = { after: lang === this.ctx.referredLang ? nameInfo.text : genNameList[index] };
+          updatePayload.changes![lang] = { after: lang === this.ctx.referredLang ? nameInfo.text : enTextList[index] };
         } else {
           this.lackInfoFromUndefined[lang] ??= [];
           this.lackInfoFromUndefined[lang].push(nameInfo.boundKey);

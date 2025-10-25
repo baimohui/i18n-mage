@@ -116,3 +116,10 @@ export const INLINE_HINTS_DISPLAY_MODE = {
 } as const;
 
 export type InlineHintsDisplayMode = (typeof INLINE_HINTS_DISPLAY_MODE)[keyof typeof INLINE_HINTS_DISPLAY_MODE];
+
+export const INVALID_KEY_STRATEGY = {
+  fallback: "fallback",
+  ai: "ai"
+} as const;
+
+export type InvalidKeyStrategy = (typeof INVALID_KEY_STRATEGY)[keyof typeof INVALID_KEY_STRATEGY];

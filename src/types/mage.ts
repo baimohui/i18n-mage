@@ -2,6 +2,7 @@ import {
   FixQuery,
   I18nFramework,
   IndentType,
+  InvalidKeyStrategy,
   KeyGenerationFillScope,
   KeyStrategy,
   KeyStyle,
@@ -48,6 +49,7 @@ export interface LangMageOptions {
   missingEntryFile?: string;
   missingEntryPath?: string;
   fixQuery?: FixQuery;
+  invalidKeyStrategy?: InvalidKeyStrategy;
 }
 
 export const EXECUTION_RESULT_CODE = {
