@@ -181,6 +181,15 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
         // NotificationManager.showWarning(t("common.noWorkspaceWarn"));
         return false;
       } else {
+        const { framework } = getCacheConfig();
+        if (framework === I18N_FRAMEWORK.none) {
+          const i18nFramework = detectI18nFramework(projectPath);
+          if (i18nFramework) {
+            setConfig("i18nFeatures.framework", i18nFramework).catch(error => {
+              NotificationManager.logToOutput(`Failed to set config for i18nFramework: ${error}`, "error");
+            });
+          }
+        }
         const vscodeLang = vscode.env.language;
         this.#mage.setOptions({ projectPath, defaultLang: vscodeLang });
         const configLangPath = getConfig<string>("workspace.languagePath", "");
@@ -226,15 +235,6 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
               setConfig("workspace.languagePath", langPath).catch(error => {
                 NotificationManager.logToOutput(`Failed to set config for langPath: ${error}`, "error");
               });
-            }
-            const { framework } = getCacheConfig();
-            if (framework === I18N_FRAMEWORK.none) {
-              const i18nFramework = detectI18nFramework(projectPath);
-              if (i18nFramework) {
-                setConfig("i18nFeatures.framework", i18nFramework).catch(error => {
-                  NotificationManager.logToOutput(`Failed to set config for i18nFramework: ${error}`, "error");
-                });
-              }
             }
             if (getConfig("general.displayLanguage", "") === "") {
               setConfig("general.displayLanguage", vscodeLang, "global").catch(error => {
