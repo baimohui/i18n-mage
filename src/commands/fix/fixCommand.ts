@@ -150,13 +150,17 @@ export function registerFixCommand(context: vscode.ExtensionContext) {
         }
         const keyPrefix = getConfig<string>("writeRules.keyPrefix", "");
         if (nameSeparator && keyPrefix === "manual-selection") {
+          const defaultNamespace = getConfig<string>("i18nFeatures.defaultNamespace", "");
           const classTreeItem = classTree.find(item => item.filePos === (missingEntryFile ?? ""));
           let commonKeys = classTreeItem ? getParentKeys(classTreeItem.data, nameSeparator) : [];
+          let offset = publicCtx.namespaceStrategy === NAMESPACE_STRATEGY.file ? 1 : multiFileMode;
+          if (offset === 1 && defaultNamespace && defaultNamespace === missingEntryFile) {
+            offset = 0;
+          }
           if (publicCtx.namespaceStrategy !== NAMESPACE_STRATEGY.none) {
             commonKeys = commonKeys
               .map(key => {
                 const keyParts = key.split(".");
-                const offset = publicCtx.namespaceStrategy === NAMESPACE_STRATEGY.file ? 1 : multiFileMode;
                 if (missingEntryFile !== undefined && !missingEntryFile.endsWith(keyParts.slice(0, offset).join("."))) {
                   return "";
                 }
