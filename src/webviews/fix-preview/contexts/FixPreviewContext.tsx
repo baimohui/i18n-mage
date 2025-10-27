@@ -24,14 +24,10 @@ export function FixPreviewProvider({ initialData, children }: { initialData: Fix
   const setValueUpdate = (update: { key: string; value?: string; locale: string }) => {
     setUpdatePayloads(prevPayloads => {
       const payloads = [...prevPayloads];
-      const payload = payloads.find(p => p.key === update.key);
-      // if (!payload) {
-      //   payload = { key: update.key, changes: {} };
-      //   payloads.push(payload);
-      // }
-      if (payload && payload.changes) {
-        payload.changes[update.locale] ??= {};
-        payload.changes[update.locale].after = update.value;
+      for (const payload of payloads) {
+        if (payload.key === update.key && payload.changes && Object.hasOwn(payload.changes, update.locale)) {
+          payload.changes[update.locale].after = update.value;
+        }
       }
       return payloads;
     });
