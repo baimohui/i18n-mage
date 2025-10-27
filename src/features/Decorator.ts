@@ -10,7 +10,7 @@ import {
   formatEscapeChar,
   catchPossibleEntries
 } from "@/utils/regex";
-import { getConfig } from "@/utils/config";
+import { getCacheConfig } from "@/utils/config";
 import { INLINE_HINTS_DISPLAY_MODE, InlineHintsDisplayMode, TEntry } from "@/types";
 import path from "path";
 
@@ -58,7 +58,7 @@ export class DecoratorController implements vscode.Disposable {
     this.entries = [];
     this.currentDecorations.clear();
     if (this.disposed || !editor) return;
-    if (!getConfig<boolean>("translationHints.enable", true)) {
+    if (!getCacheConfig<boolean>("translationHints.enable")) {
       editor.setDecorations(this.translationDecoration, []);
       editor.setDecorations(this.looseTranslationDecoration, []);
       editor.setDecorations(this.hiddenKeyDecoration, []);
@@ -86,7 +86,7 @@ export class DecoratorController implements vscode.Disposable {
       const visibleText = visibleLines.join(lineEnding);
       this.offsetBase = editor.document.offsetAt(new vscode.Position(visibleStart, 0));
       const entries = catchTEntries(visibleText);
-      const applyToStringLiterals = getConfig<boolean>("translationHints.applyToStringLiterals", false);
+      const applyToStringLiterals = getCacheConfig<boolean>("translationHints.applyToStringLiterals");
       if (applyToStringLiterals) {
         catchPossibleEntries(visibleText, mage.langDetail.tree, path.basename(filePath)).forEach(entry => {
           entries.push({
@@ -105,8 +105,8 @@ export class DecoratorController implements vscode.Disposable {
         });
       }
       this.entries = entries;
-      const maxLen = getConfig<number>("translationHints.maxLength");
-      const enableLooseKeyMatch = getConfig<boolean>("translationHints.enableLooseKeyMatch", true);
+      const maxLen = getCacheConfig<number>("translationHints.maxLength");
+      const enableLooseKeyMatch = getCacheConfig<boolean>("translationHints.enableLooseKeyMatch");
       const totalEntryList = Object.keys(mage.langDetail.dictionary).map(key => unescapeString(key));
       entries.forEach(entry => {
         let [startPos, endPos] = entry.pos.split(",").map(Number);
@@ -198,8 +198,8 @@ export class DecoratorController implements vscode.Disposable {
     const translationDecorations: vscode.DecorationOptions[] = [];
     const looseTranslationDecorations: vscode.DecorationOptions[] = [];
     const hiddenKeyDecorations: vscode.DecorationOptions[] = [];
-    const isInline = getConfig<InlineHintsDisplayMode>("translationHints.displayMode") === INLINE_HINTS_DISPLAY_MODE.inline;
-    const isItalic = getConfig<boolean>("translationHints.italic");
+    const isInline = getCacheConfig<InlineHintsDisplayMode>("translationHints.displayMode") === INLINE_HINTS_DISPLAY_MODE.inline;
+    const isItalic = getCacheConfig<boolean>("translationHints.italic");
     this.currentDecorations.forEach(({ startPos, endPos, value, isLooseMatch }) => {
       if (isLooseMatch) {
         startPos--;
@@ -258,9 +258,9 @@ export class DecoratorController implements vscode.Disposable {
   }
 
   private getDecoration(theme: "light" | "dark"): { color: string; backgroundColor: string } {
-    let hex = getConfig<string>(`translationHints.${theme}.backgroundColor`);
-    const alpha = getConfig<number>(`translationHints.${theme}.backgroundAlpha`);
-    let color = getConfig<string>(`translationHints.${theme}.fontColor`);
+    let hex = getCacheConfig<string>(`translationHints.${theme}.backgroundColor`);
+    const alpha = getCacheConfig<number>(`translationHints.${theme}.backgroundAlpha`);
+    let color = getCacheConfig<string>(`translationHints.${theme}.fontColor`);
     const isValidHexColor = (value: string): boolean => {
       return /^#([0-9a-fA-F]{6})$/.test(value.trim());
     };

@@ -21,7 +21,10 @@ import { NotificationManager } from "../notification";
 import { t } from "../i18n";
 
 export function isValidI18nCallablePath(inputPath: string): boolean {
-  const { ignoredFiles, ignoredDirectories, languagePath, fileExtensions } = getCacheConfig();
+  const ignoredFiles = getCacheConfig<string[]>("workspace.ignoredFiles");
+  const ignoredDirectories = getCacheConfig<string[]>("workspace.ignoredDirectories");
+  const languagePath = getCacheConfig<string>("workspace.languagePath");
+  const fileExtensions = getCacheConfig<string[]>("general.fileExtensions");
   const normalizedPath = path.normalize(inputPath);
   // 判断是否是文件或目录
   let isDirectory = false;
@@ -93,7 +96,7 @@ export function getLangFileInfo(filePath: string): LangFileInfo | null {
 }
 
 export function jsonParse(content: string) {
-  const { languageFileParser } = getCacheConfig();
+  const languageFileParser = getCacheConfig<"auto" | "json5" | "eval">("analysis.languageFileParser");
   if (languageFileParser === "json5") {
     return json5Parse(content);
   } else if (languageFileParser === "eval") {

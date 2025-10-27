@@ -1,4 +1,4 @@
-import { TEntry, EntryTree, PEntry, TEntryPartType, I18N_FRAMEWORK, I18N_FRAMEWORK_DEFAULT_CONFIG } from "@/types";
+import { TEntry, EntryTree, PEntry, TEntryPartType, I18N_FRAMEWORK, I18N_FRAMEWORK_DEFAULT_CONFIG, I18nFramework } from "@/types";
 import { escapeRegExp } from "./stringUtils";
 import { getValueByAmbiguousEntryName } from "./treeUtils";
 import { getCacheConfig } from "../config";
@@ -10,7 +10,7 @@ export function catchPossibleEntries(fileContent: string, entryTree: EntryTree, 
   while ((res = regex.exec(fileContent)) !== null) {
     let entryName = displayToInternalName(res[0].slice(1, -1));
     let entryValue = "";
-    const { framework } = getCacheConfig();
+    const framework = getCacheConfig<I18nFramework>("i18nFeatures.framework");
     if (framework === I18N_FRAMEWORK.vscodeL10n && fileName === "package.json") {
       const match = entryName.match(/%(.*?)%(.*)/);
       if (match) {
@@ -33,7 +33,8 @@ export function catchPossibleEntries(fileContent: string, entryTree: EntryTree, 
 }
 
 export function catchTEntries(fileContent: string): TEntry[] {
-  const { tFuncNames, framework } = getCacheConfig();
+  const tFuncNames = getCacheConfig<string[]>("i18nFeatures.translationFunctionNames");
+  const framework = getCacheConfig<I18nFramework>("i18nFeatures.framework");
   if (!tFuncNames.length) tFuncNames.push("t");
   if (framework === I18N_FRAMEWORK.vueI18n) {
     ["t", "tc"].forEach(name => {
@@ -139,8 +140,12 @@ export function getEntryNameInfoByForm(nameForm: { type: TEntryPartType; value: 
   // const tempList: string[] = [];
   let varPrefix = "{";
   let varSuffix = "}";
-  const { interpolationBrackets, framework, defaultNamespace, namespaceSeparator, enableKeyTagRule, enablePrefixTagRule } =
-    getCacheConfig();
+  const interpolationBrackets = getCacheConfig<"single" | "double" | "auto">("i18nFeatures.interpolationBrackets");
+  const framework = getCacheConfig<I18nFramework>("i18nFeatures.framework");
+  const defaultNamespace = getCacheConfig<string>("i18nFeatures.defaultNamespace");
+  const namespaceSeparator = getCacheConfig<"." | "auto" | ":">("i18nFeatures.namespaceSeparator");
+  const enableKeyTagRule = getCacheConfig<boolean>("writeRules.enableKeyTagRule");
+  const enablePrefixTagRule = getCacheConfig<boolean>("writeRules.enablePrefixTagRule");
   const useDoubleBrackets =
     interpolationBrackets === "double" ||
     (interpolationBrackets === "auto" &&
@@ -346,7 +351,7 @@ export function matchBrackets(str: string, startPos = 0, open = "{", close = "}"
 }
 
 export function isPositionInComment(code: string, index: number): boolean {
-  const { ignoreCommentedCode } = getCacheConfig();
+  const ignoreCommentedCode = getCacheConfig<boolean>("analysis.ignoreCommentedCode");
   const commentRanges: [number, number][] = [];
   if (ignoreCommentedCode) {
     // 匹配多行注释
@@ -382,7 +387,9 @@ export function isPositionInComment(code: string, index: number): boolean {
 }
 
 export function displayToInternalName(name: string) {
-  const { framework, defaultNamespace, namespaceSeparator } = getCacheConfig();
+  const framework = getCacheConfig<I18nFramework>("i18nFeatures.framework");
+  const defaultNamespace = getCacheConfig<string>("i18nFeatures.defaultNamespace");
+  const namespaceSeparator = getCacheConfig<"." | "auto" | ":">("i18nFeatures.namespaceSeparator");
   if (framework === I18N_FRAMEWORK.i18nNext || framework === I18N_FRAMEWORK.reactI18next) {
     if (namespaceSeparator === ".") {
       return name.startsWith(`${defaultNamespace}.`) ? name : `${defaultNamespace}.${name}`;
@@ -400,8 +407,9 @@ export function displayToInternalName(name: string) {
 }
 
 export function internalToDisplayName(name: string) {
-  const { framework, defaultNamespace } = getCacheConfig();
-  let { namespaceSeparator } = getCacheConfig();
+  const framework = getCacheConfig<I18nFramework>("i18nFeatures.framework");
+  const defaultNamespace = getCacheConfig<string>("i18nFeatures.defaultNamespace");
+  let namespaceSeparator = getCacheConfig<"." | "auto" | ":">("i18nFeatures.namespaceSeparator");
   if (framework === I18N_FRAMEWORK.i18nNext || framework === I18N_FRAMEWORK.reactI18next) {
     if (namespaceSeparator !== ".") {
       namespaceSeparator = ":";

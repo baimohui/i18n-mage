@@ -1,27 +1,28 @@
-import { I18N_FRAMEWORK, I18nFramework } from "@/types";
 import * as vscode from "vscode";
 
 const NAMESPACE = "i18n-mage";
 
 type Scope = "global" | "workspace" | "workspaceFolder";
 
-let cachedConfig: {
-  fileExtensions: string[];
-  languagePath: string;
-  ignoredFiles: string[];
-  ignoredDirectories: string[];
-  framework: I18nFramework;
-  defaultNamespace: string;
-  tFuncNames: string[];
-  interpolationBrackets: "single" | "double" | "auto";
-  namespaceSeparator: "." | "auto" | ":";
-  enableKeyTagRule: boolean;
-  enablePrefixTagRule: boolean;
-  analysisOnSave: boolean;
-  fileSizeSkipThresholdKB: number;
-  ignoreCommentedCode: boolean;
-  languageFileParser: "auto" | "json5" | "eval";
-} | null = null;
+const cachedConfig: Record<string, any> = {};
+
+// let cachedConfig: {
+//   fileExtensions: string[];
+//   languagePath: string;
+//   ignoredFiles: string[];
+//   ignoredDirectories: string[];
+//   framework: I18nFramework;
+//   defaultNamespace: string;
+//   tFuncNames: string[];
+//   interpolationBrackets: "single" | "double" | "auto";
+//   namespaceSeparator: "." | "auto" | ":";
+//   enableKeyTagRule: boolean;
+//   enablePrefixTagRule: boolean;
+//   analysisOnSave: boolean;
+//   fileSizeSkipThresholdKB: number;
+//   ignoreCommentedCode: boolean;
+//   languageFileParser: "auto" | "json5" | "eval";
+// } | null = null;
 
 export function getConfig<T = any>(key: string, defaultValue?: T, scope?: vscode.ConfigurationScope): T {
   return vscode.workspace.getConfiguration(NAMESPACE, scope).get<T>(key, defaultValue as T);
@@ -44,29 +45,13 @@ export async function setConfig<T = any>(
   await config.update(key, value, configTarget);
 }
 
-export function getCacheConfig() {
-  if (!cachedConfig) {
-    cachedConfig = {
-      fileExtensions: getConfig<string[]>("general.fileExtensions", []),
-      languagePath: getConfig<string>("workspace.languagePath", ""),
-      ignoredFiles: getConfig<string[]>("workspace.ignoredFiles", []),
-      ignoredDirectories: getConfig<string[]>("workspace.ignoredDirectories", []),
-      enableKeyTagRule: getConfig<boolean>("writeRules.enableKeyTagRule", false),
-      enablePrefixTagRule: getConfig<boolean>("writeRules.enablePrefixTagRule", false),
-      analysisOnSave: getConfig<boolean>("analysis.onSave", true),
-      framework: getConfig<I18nFramework>("i18nFeatures.framework", I18N_FRAMEWORK.none),
-      defaultNamespace: getConfig<string>("i18nFeatures.defaultNamespace", "translation"),
-      tFuncNames: getConfig<string[]>("i18nFeatures.translationFunctionNames", []),
-      interpolationBrackets: getConfig<"single" | "double" | "auto">("i18nFeatures.interpolationBrackets", "auto"),
-      namespaceSeparator: getConfig<"." | "auto" | ":">("i18nFeatures.namespaceSeparator", "auto"),
-      fileSizeSkipThresholdKB: getConfig<number>("analysis.fileSizeSkipThresholdKB", 100),
-      ignoreCommentedCode: getConfig<boolean>("analysis.ignoreCommentedCode", true),
-      languageFileParser: getConfig<"auto" | "json5" | "eval">("analysis.languageFileParser", "auto")
-    };
+export function getCacheConfig<T = any>(key: string, defaultValue?: T) {
+  if (!Object.hasOwn(cachedConfig, key)) {
+    cachedConfig[key] = getConfig<T>(key, defaultValue as T);
   }
-  return cachedConfig;
+  return cachedConfig[key] as T;
 }
 
-export function clearConfigCache() {
-  cachedConfig = null;
+export function clearConfigCache(key: string) {
+  delete cachedConfig[key];
 }

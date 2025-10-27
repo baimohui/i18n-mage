@@ -1,5 +1,5 @@
 import LangMage from "@/core/LangMage";
-import { getConfig } from "@/utils/config";
+import { getCacheConfig } from "@/utils/config";
 import { t } from "@/utils/i18n";
 import * as vscode from "vscode";
 
@@ -27,7 +27,7 @@ export class StatusBarItemManager {
   }
 
   public update() {
-    const displayLanguage = getConfig<string>("general.displayLanguage", "");
+    const displayLanguage = getCacheConfig<string>("general.displayLanguage");
     const mage = LangMage.getInstance();
     if (mage.detectedLangList.length > 0 && this.displayLanguageItem && displayLanguage) {
       this.displayLanguageItem.text = `$(eye) ${displayLanguage}`;
@@ -38,7 +38,7 @@ export class StatusBarItemManager {
       this.hideDisplayLanguageItem();
     }
 
-    const referenceLanguage = getConfig<string>("translationServices.referenceLanguage", "");
+    const referenceLanguage = getCacheConfig<string>("translationServices.referenceLanguage");
     if (mage.detectedLangList.length > 0 && this.referenceLanguageItem && referenceLanguage) {
       this.referenceLanguageItem.text = `$(globe) ${referenceLanguage}`;
       this.referenceLanguageItem.tooltip = t("command.pick.selectReferredLang");

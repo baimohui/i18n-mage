@@ -1,7 +1,7 @@
 import * as vscode from "vscode";
 import LangMage from "@/core/LangMage";
 import { internalToDisplayName, unescapeString } from "@/utils/regex";
-import { getCacheConfig, getConfig } from "@/utils/config";
+import { getCacheConfig } from "@/utils/config";
 import {
   COMPLETION_DISPLAY_LANGUAGE_SOURCE,
   COMPLETION_MATCH_SCOPE,
@@ -19,11 +19,11 @@ export class I18nCompletionProvider implements vscode.CompletionItemProvider {
 
   provideCompletionItems(document: vscode.TextDocument, position: vscode.Position): vscode.CompletionItem[] | undefined {
     // 提前返回检查
-    const enableCompletion = getConfig<boolean>("completion.enable");
+    const enableCompletion = getCacheConfig<boolean>("completion.enable");
     if (!enableCompletion) return;
 
     const linePrefix = document.lineAt(position).text.substring(0, position.character);
-    const { tFuncNames } = getCacheConfig();
+    const tFuncNames = getCacheConfig<string[]>("i18nFeatures.translationFunctionNames");
     if (!tFuncNames.length) tFuncNames.push("t");
 
     // 检查是否匹配翻译函数调用
@@ -31,9 +31,9 @@ export class I18nCompletionProvider implements vscode.CompletionItemProvider {
 
     // 获取配置
     const config = {
-      displayLanguageSource: getConfig<CompletionDisplayLanguageSource>("completion.displayLanguageSource"),
-      matchScope: getConfig<CompletionMatchScope>("completion.matchScope"),
-      pinyinMode: getConfig<CompletionPinyinSearch>("completion.pinyinSearch")
+      displayLanguageSource: getCacheConfig<CompletionDisplayLanguageSource>("completion.displayLanguageSource"),
+      matchScope: getCacheConfig<CompletionMatchScope>("completion.matchScope"),
+      pinyinMode: getCacheConfig<CompletionPinyinSearch>("completion.pinyinSearch")
     };
 
     // 获取翻译数据
@@ -64,7 +64,7 @@ export class I18nCompletionProvider implements vscode.CompletionItemProvider {
 
   private getDisplayLanguage(source: CompletionDisplayLanguageSource, referredLang: string): string {
     if (source === COMPLETION_DISPLAY_LANGUAGE_SOURCE.display) {
-      return getConfig<string>("general.displayLanguage");
+      return getCacheConfig<string>("general.displayLanguage");
     }
     return referredLang;
   }

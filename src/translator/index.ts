@@ -10,7 +10,7 @@ import ydTranslateTo from "./youdao";
 import { TranslateParams, TranslateResult, ApiPlatform } from "@/types";
 import { t } from "@/utils/i18n";
 import { NotificationManager } from "@/utils/notification";
-import { getConfig } from "@/utils/config";
+import { getCacheConfig } from "@/utils/config";
 
 export interface Credentials {
   baiduAppId?: string;
@@ -32,17 +32,17 @@ type ApiMap = Record<ApiPlatform, (string | undefined)[]>;
 export default async function translateTo(data: TranslateData, startIndex = 0): Promise<TranslateResult> {
   const { source = "", target = "", sourceTextList = [] } = data;
 
-  const deeplApiKey = getConfig<string>("translationServices.deeplApiKey", "");
-  const baiduAppId = getConfig<string>("translationServices.baiduAppId", "");
-  const baiduSecretKey = getConfig<string>("translationServices.baiduSecretKey", "");
-  const tencentSecretId = getConfig<string>("translationServices.tencentSecretId", "");
-  const tencentSecretKey = getConfig<string>("translationServices.tencentSecretKey", "");
-  const deepseekApiKey = getConfig<string>("translationServices.deepseekApiKey", "");
-  const chatgptApiKey = getConfig<string>("translationServices.chatgptApiKey", "");
-  const googleApiKey = getConfig<string>("translationServices.googleApiKey", "");
-  const youdaoAppId = getConfig<string>("translationServices.youdaoAppId", "");
-  const youdaoAppKey = getConfig<string>("translationServices.youdaoAppKey", "");
-  const translateApiPriority = getConfig<string[]>("translationServices.translateApiPriority", []);
+  const deeplApiKey = getCacheConfig<string>("translationServices.deeplApiKey");
+  const baiduAppId = getCacheConfig<string>("translationServices.baiduAppId");
+  const baiduSecretKey = getCacheConfig<string>("translationServices.baiduSecretKey");
+  const tencentSecretId = getCacheConfig<string>("translationServices.tencentSecretId");
+  const tencentSecretKey = getCacheConfig<string>("translationServices.tencentSecretKey");
+  const deepseekApiKey = getCacheConfig<string>("translationServices.deepseekApiKey");
+  const chatgptApiKey = getCacheConfig<string>("translationServices.chatgptApiKey");
+  const googleApiKey = getCacheConfig<string>("translationServices.googleApiKey");
+  const youdaoAppId = getCacheConfig<string>("translationServices.youdaoAppId");
+  const youdaoAppKey = getCacheConfig<string>("translationServices.youdaoAppKey");
+  const translateApiPriority = getCacheConfig<string[]>("translationServices.translateApiPriority");
 
   const apiMap: ApiMap = {
     google: googleApiKey ? ["none", googleApiKey] : [],

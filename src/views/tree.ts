@@ -20,11 +20,12 @@ import {
   I18N_FRAMEWORK,
   UNMATCHED_LANGUAGE_ACTION,
   UnmatchedLanguageAction,
-  INDENT_TYPE
+  INDENT_TYPE,
+  I18nFramework
 } from "@/types";
 import { t } from "@/utils/i18n";
 import { NotificationManager } from "@/utils/notification";
-import { getCacheConfig, getConfig, setConfig } from "@/utils/config";
+import { getCacheConfig, setConfig } from "@/utils/config";
 import { DecoratorController } from "@/features/Decorator";
 import { Diagnostics } from "@/features/Diagnostics";
 import { StatusBarItemManager } from "@/features/StatusBarItemManager";
@@ -109,11 +110,11 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
 
   refresh(): void {
     this.publicCtx = this.#mage.getPublicContext();
-    this.validateLanguageBeforeTranslate = getConfig<boolean>("translationServices.validateLanguageBeforeTranslate", true);
-    this.autoTranslateMissingKey = getConfig<boolean>("translationServices.autoTranslateMissingKey", false);
-    this.ignorePossibleVariables = getConfig<boolean>("translationServices.ignorePossibleVariables", true);
+    this.validateLanguageBeforeTranslate = getCacheConfig<boolean>("translationServices.validateLanguageBeforeTranslate", true);
+    this.autoTranslateMissingKey = getCacheConfig<boolean>("translationServices.autoTranslateMissingKey", false);
+    this.ignorePossibleVariables = getCacheConfig<boolean>("translationServices.ignorePossibleVariables", true);
     if (this.validateLanguageBeforeTranslate) {
-      this.unmatchedLanguageAction = getConfig<UnmatchedLanguageAction>("translationServices.unmatchedLanguageAction");
+      this.unmatchedLanguageAction = getCacheConfig<UnmatchedLanguageAction>("translationServices.unmatchedLanguageAction");
     }
     const resolveLang = (target: string) => {
       const targetCode = getLangCode(target);
@@ -126,7 +127,7 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
         this.#mage.detectedLangList[0]
       );
     };
-    this.displayLang = resolveLang(getConfig<string>("general.displayLanguage"));
+    this.displayLang = resolveLang(getCacheConfig<string>("general.displayLanguage"));
     this.checkUsedInfo();
     const decorator = DecoratorController.getInstance();
     decorator.update(vscode.window.activeTextEditor);
@@ -170,7 +171,7 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
 
   async initTree(): Promise<boolean> {
     try {
-      const projectPath = toAbsolutePath(getConfig<string>("workspace.projectPath", ""));
+      const projectPath = toAbsolutePath(getCacheConfig<string>("workspace.projectPath", ""));
       // const workspaceFolders = vscode.workspace.workspaceFolders;
       // if (workspaceFolders !== undefined && workspaceFolders.length > 0) {
       //   projectPath = workspaceFolders[0].uri.fsPath;
@@ -181,7 +182,7 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
         // NotificationManager.showWarning(t("common.noWorkspaceWarn"));
         return false;
       } else {
-        const { framework } = getCacheConfig();
+        const framework = getCacheConfig<I18nFramework>("i18nFeatures.framework");
         if (framework === I18N_FRAMEWORK.none) {
           const i18nFramework = detectI18nFramework(projectPath);
           if (i18nFramework) {
@@ -192,7 +193,7 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
         }
         const vscodeLang = vscode.env.language;
         this.#mage.setOptions({ projectPath, defaultLang: vscodeLang });
-        const configLangPath = getConfig<string>("workspace.languagePath", "");
+        const configLangPath = getCacheConfig<string>("workspace.languagePath", "");
         if (configLangPath) {
           this.#mage.setOptions({ langPath: toAbsolutePath(configLangPath), task: "check" });
           await this.#mage.execute();
@@ -226,33 +227,33 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
         } else {
           vscode.commands.executeCommand("setContext", "hasValidLangPath", true);
           success = true;
-          const sortMode = getConfig<string>("writeRules.sortRule");
+          const sortMode = getCacheConfig<string>("writeRules.sortRule");
           vscode.commands.executeCommand("setContext", "allowSort", this.langInfo.isFlat && sortMode !== SORT_MODE.None);
           this.publicCtx = this.#mage.getPublicContext();
           const langPath = toRelativePath(this.publicCtx.langPath);
           setTimeout(() => {
-            if (getConfig("workspace.languagePath", "") !== langPath) {
+            if (getCacheConfig("workspace.languagePath", "") !== langPath) {
               setConfig("workspace.languagePath", langPath).catch(error => {
                 NotificationManager.logToOutput(`Failed to set config for langPath: ${error}`, "error");
               });
             }
-            if (getConfig("general.displayLanguage", "") === "") {
+            if (getCacheConfig("general.displayLanguage", "") === "") {
               setConfig("general.displayLanguage", vscodeLang, "global").catch(error => {
                 NotificationManager.logToOutput(`Failed to set config for displayLanguage: ${error}`, "error");
               });
             }
-            if (getConfig("translationServices.referenceLanguage", "") === "") {
+            if (getCacheConfig("translationServices.referenceLanguage", "") === "") {
               setConfig("translationServices.referenceLanguage", vscodeLang, "global").catch(error => {
                 NotificationManager.logToOutput(`Failed to set config for referenceLanguage: ${error}`, "error");
               });
             }
-            if (getConfig("i18nFeatures.namespaceStrategy") !== this.publicCtx.namespaceStrategy && this.langInfo.multiFileMode > 0) {
+            if (getCacheConfig("i18nFeatures.namespaceStrategy") !== this.publicCtx.namespaceStrategy && this.langInfo.multiFileMode > 0) {
               setConfig("i18nFeatures.namespaceStrategy", this.publicCtx.namespaceStrategy).catch(error => {
                 NotificationManager.logToOutput(`Failed to set config for namespaceStrategy: ${error}`, "error");
               });
             }
             const fileExtraData = Object.values(this.langInfo.fileExtraInfo);
-            if (getConfig("writeRules.indentType") === INDENT_TYPE.auto) {
+            if (getCacheConfig("writeRules.indentType") === INDENT_TYPE.auto) {
               const initIndentType = fileExtraData[0].indentType;
               const isUnified = fileExtraData.every(item => item.indentType === initIndentType);
               if (isUnified) {
@@ -261,7 +262,7 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
                 });
               }
             }
-            if (getConfig("writeRules.indentSize") === null) {
+            if (getCacheConfig("writeRules.indentSize") === null) {
               const initIndentSize = fileExtraData[0].indentSize;
               const isUnified = fileExtraData.every(item => item.indentSize === initIndentSize);
               if (isUnified) {

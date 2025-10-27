@@ -3,7 +3,7 @@ import cgGenKey from "./chatgpt";
 import { GenKeyParams, GenKeyResult, AiPlatform, KeyStyle } from "@/types";
 import { t } from "@/utils/i18n";
 // import { NotificationManager } from "@/utils/notification";
-import { getConfig } from "@/utils/config";
+import { getCacheConfig } from "@/utils/config";
 
 export interface Credentials {
   deepseekApiKey?: string;
@@ -21,9 +21,9 @@ type ApiMap = Record<AiPlatform, (string | undefined)[]>;
 export default async function generateKeyFrom(data: TranslateData, startIndex = 0): Promise<GenKeyResult> {
   const { style, maxLen, sourceTextList = [] } = data;
 
-  const deepseekApiKey = getConfig<string>("translationServices.deepseekApiKey", "");
-  const chatgptApiKey = getConfig<string>("translationServices.chatgptApiKey", "");
-  const translateApiPriority = getConfig<string[]>("translationServices.translateApiPriority", []);
+  const deepseekApiKey = getCacheConfig<string>("translationServices.deepseekApiKey");
+  const chatgptApiKey = getCacheConfig<string>("translationServices.chatgptApiKey");
+  const translateApiPriority = getCacheConfig<string[]>("translationServices.translateApiPriority");
 
   const apiMap: ApiMap = {
     deepseek: ["none", deepseekApiKey],

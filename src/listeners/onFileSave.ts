@@ -14,7 +14,7 @@ export function registerOnFileSave() {
     const workspacePath = vscode.workspace.getWorkspaceFolder(doc.uri)?.uri.fsPath;
     const mage = LangMage.getInstance();
     const publicCtx = mage.getPublicContext();
-    const { analysisOnSave } = getCacheConfig();
+    const analysisOnSave = getCacheConfig<boolean>("analysis.onSave");
     if (
       !analysisOnSave ||
       workspacePath === undefined ||

@@ -3,7 +3,7 @@ import { t } from "@/utils/i18n";
 import LangMage from "@/core/LangMage";
 import { treeInstance } from "@/views/tree";
 import { getValueByAmbiguousEntryName, catchTEntries, unescapeString, isValidI18nCallablePath } from "@/utils/regex";
-import { getConfig } from "@/utils/config";
+import { getCacheConfig } from "@/utils/config";
 
 export class Diagnostics {
   private static instance: Diagnostics;
@@ -24,7 +24,7 @@ export class Diagnostics {
   public update(document: vscode.TextDocument) {
     if (this.disposed) return;
     if (!isValidI18nCallablePath(document.uri.fsPath)) return;
-    if (!getConfig<boolean>("general.enableDiagnostics", true)) {
+    if (!getCacheConfig<boolean>("general.enableDiagnostics")) {
       this.clear(document);
       return;
     }

@@ -12,6 +12,7 @@ import {
   EXECUTION_RESULT_CODE,
   FixExecutionResult,
   FixQuery,
+  I18N_FRAMEWORK,
   LangMageOptions,
   NAMESPACE_STRATEGY,
   UNMATCHED_LANGUAGE_ACTION,
@@ -154,7 +155,13 @@ export function registerFixCommand(context: vscode.ExtensionContext) {
           const classTreeItem = classTree.find(item => item.filePos === (missingEntryFile ?? ""));
           let commonKeys = classTreeItem ? getParentKeys(classTreeItem.data, nameSeparator) : [];
           let offset = publicCtx.namespaceStrategy === NAMESPACE_STRATEGY.file ? 1 : multiFileMode;
-          if (offset === 1 && defaultNamespace && defaultNamespace === missingEntryFile) {
+          const framework = publicCtx.i18nFramework;
+          if (
+            (framework === I18N_FRAMEWORK.i18nNext || framework === I18N_FRAMEWORK.reactI18next) &&
+            offset === 1 &&
+            defaultNamespace &&
+            defaultNamespace === missingEntryFile
+          ) {
             offset = 0;
           }
           if (publicCtx.namespaceStrategy !== NAMESPACE_STRATEGY.none) {

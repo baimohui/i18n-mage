@@ -1,7 +1,7 @@
 import axios, { AxiosError } from "axios";
 import { batchTranslate } from "./utils/batchTranslate";
 import { TranslateParams, TranslateResult } from "@/types";
-import { getConfig } from "@/utils/config";
+import { getCacheConfig } from "@/utils/config";
 
 const freeUrl = "https://api-free.deepl.com/v2/translate";
 const proUrl = "https://api.deepl.com/v2/translate";
@@ -11,7 +11,7 @@ let url = "";
 
 export default async function translateTo({ source, target, sourceTextList, apiKey }: TranslateParams): Promise<TranslateResult> {
   deeplApiKey = apiKey;
-  url = getConfig<string>("translationServices.deeplVersion") === "pro" ? proUrl : freeUrl;
+  url = getCacheConfig<string>("translationServices.deeplVersion") === "pro" ? proUrl : freeUrl;
   return batchTranslate(source, target, sourceTextList, { maxLen: 5000, batchSize: 5, interval: 1000 }, send);
 }
 
