@@ -400,11 +400,14 @@ export function displayToInternalName(name: string) {
 }
 
 export function internalToDisplayName(name: string) {
-  const { framework, namespaceSeparator } = getCacheConfig();
+  const { framework, defaultNamespace } = getCacheConfig();
+  let { namespaceSeparator } = getCacheConfig();
   if (framework === I18N_FRAMEWORK.i18nNext || framework === I18N_FRAMEWORK.reactI18next) {
     if (namespaceSeparator !== ".") {
-      return name.replace(".", ":");
+      namespaceSeparator = ":";
+      name = name.replace(".", namespaceSeparator);
     }
+    name = name.replace(new RegExp(`^${defaultNamespace}${escapeRegExp(namespaceSeparator)}`), "");
   }
   return name;
 }
