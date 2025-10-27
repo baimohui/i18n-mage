@@ -6,24 +6,6 @@ type Scope = "global" | "workspace" | "workspaceFolder";
 
 const cachedConfig: Record<string, any> = {};
 
-// let cachedConfig: {
-//   fileExtensions: string[];
-//   languagePath: string;
-//   ignoredFiles: string[];
-//   ignoredDirectories: string[];
-//   framework: I18nFramework;
-//   defaultNamespace: string;
-//   tFuncNames: string[];
-//   interpolationBrackets: "single" | "double" | "auto";
-//   namespaceSeparator: "." | "auto" | ":";
-//   enableKeyTagRule: boolean;
-//   enablePrefixTagRule: boolean;
-//   analysisOnSave: boolean;
-//   fileSizeSkipThresholdKB: number;
-//   ignoreCommentedCode: boolean;
-//   languageFileParser: "auto" | "json5" | "eval";
-// } | null = null;
-
 export function getConfig<T = any>(key: string, defaultValue?: T, scope?: vscode.ConfigurationScope): T {
   return vscode.workspace.getConfiguration(NAMESPACE, scope).get<T>(key, defaultValue as T);
 }

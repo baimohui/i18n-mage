@@ -302,18 +302,7 @@ function getNonce(): string {
 }
 
 function applyValueUpdates(origin: I18nUpdatePayload[], updates: I18nUpdatePayload[]): void {
-  for (const update of updates) {
-    const payload = origin.find(p => p.key === update.key && p.type === update.type);
-    if (payload) {
-      for (const locale in payload.changes) {
-        if (update.changes && Object.hasOwn(update.changes, locale)) {
-          payload.changes[locale].after = update.changes[locale].after;
-        } else {
-          delete payload.changes[locale];
-        }
-      }
-    }
-  }
+  origin.splice(0, origin.length, ...updates);
 }
 
 function applyIdPatches(origin: EntryIdPatches, patches: Record<string, number[]>): void {
