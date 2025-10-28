@@ -4,6 +4,23 @@ All notable changes to the i18n Mage VS Code extension will be documented in thi
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.3] - 2025-10-28
+
+### Added
+- **Flexible Inline Translation Display**: Added configuration for inline translation decoration presentation, supporting parallel display of translated and original texts for enhanced code reading experience.
+- **Italic Decoration Style**: Introduced option to display translation decorations in italic style for better visual distinction.
+- **Plain String Translation Support**: Extended inline translation decoration functionality to support plain string texts.
+- **Smart Key Fallback Strategy**: Added fallback mechanisms for key generation failures during undefined entry extraction, offering both traditional filename numbering and AI-powered intelligent generation options.
+
+### Improved
+- **Intelligent Namespace Handling**: Enhanced namespace import format for react-i18next and i18next frameworks, avoiding unnecessary namespace prefixes for default namespace entries.
+- **Unified Configuration Field Names**: Optimized configuration field names in write rules module by removing redundant prefixes for better consistency (e.g., `generatedKeyStrategy` → `keyStrategy`).
+
+### Fixed
+- **React Project Namespace Detection**: Resolved incorrect namespace strategy determination during plugin initialization for projects using react-i18next or i18next.
+- **Repair Preview Data Sync**: Corrected data synchronization issue where selected count in repair preview interfaces might not match actual selections.
+- **Multi-language File Write Completeness**: Fixed integrity issue where some language files might be missed when applying repair results.
+
 ## [1.1.2] - 2025-10-21
 
 ### Added

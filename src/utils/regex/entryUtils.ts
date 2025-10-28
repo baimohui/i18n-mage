@@ -33,8 +33,8 @@ export function catchPossibleEntries(fileContent: string, entryTree: EntryTree, 
 }
 
 export function catchTEntries(fileContent: string): TEntry[] {
-  const tFuncNames = getCacheConfig<string[]>("i18nFeatures.translationFunctionNames");
-  const framework = getCacheConfig<I18nFramework>("i18nFeatures.framework");
+  const tFuncNames = getCacheConfig<string[]>("i18nFeatures.translationFunctionNames", []);
+  const framework = getCacheConfig<I18nFramework>("i18nFeatures.framework", I18N_FRAMEWORK.none);
   if (!tFuncNames.length) tFuncNames.push("t");
   if (framework === I18N_FRAMEWORK.vueI18n) {
     ["t", "tc"].forEach(name => {

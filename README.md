@@ -160,38 +160,6 @@ See [Full Config Reference](#-full-config-reference) for all options.
 
 > 💡 All commands are accessible via the Command Palette (`Ctrl+Shift+P`).
 
-## 🚀 Advanced Usage
-
-### 🔠 Auto-Translate Strings with Variables
-
-Supports template literals and concatenated strings.
-
-```js
-const name = "value";
-i18n.t(`text with variable ${name}`);
-i18n.t("text with variable " + name);
-```
-
-### ❌ Ignore Code Blocks
-
-Add `i18n-mage-disable` to disable scanning in a section, and `i18n-mage-enable` to re-enable.
-
-```js
-// i18n-mage-disable
-const t = () => {};
-t("text not to scan");
-// i18n-mage-enable
-```
-
-### 🔀 Retag Keys
-
-Use `%key%text` or `#prefix#text` to control generated key names during fix operations.
-
-```html
-<div>{{$t("%customEntry%Sample")}}</div>
-<div>{{$t("#prefix#Sample")}}</div>
-```
-
 ## ❓ FAQ
 
 ### Q: Which translation service should I choose?
@@ -432,6 +400,10 @@ Sets the style for generated translation keys. CamelCase, underscores, hyphens, 
 
 The maximum length of the generated key. If the limit is exceeded, the key will be generated using the format of "filename + text + sequence number". If the limit is still exceeded, the file name will be truncated to meet the length requirement.
 
+#### `i18n-mage.writeRules.invalidKeyStrategy`
+
+When the generated entry key is invalid (empty or exceeds max length), the fallback strategy to use.
+
 #### `i18n-mage.writeRules.keyPrefix`
 
 The prefix used for generated keys. Optional: Use the most common prefix in the project, no prefix, or manually specify a custom prefix.
@@ -468,6 +440,14 @@ For example, in the code above, the plugin might write a new term named `customP
 
 Enables the inline translation hint feature.
 
+#### `i18n-mage.translationHints.displayMode`
+
+Sets the display mode of the inline translation hint. Supports `overlay` and `inline` modes.
+
+#### `i18n-mage.translationHints.applyToStringLiterals`
+
+When enabled, the plugin will apply inline translation hints to regular strings as well, not just those inside i18n functions.
+
 #### `i18n-mage.translationHints.enableLooseKeyMatch`
 
 Enables fuzzy matching for dynamically concatenated terms (e.g., `t("prefix" + key + "suffix")`). When matching multiple translations, only the first matching result is displayed. This is recommended only if this syntax is widely used in your project, as it may result in false positives.
@@ -475,6 +455,10 @@ Enables fuzzy matching for dynamically concatenated terms (e.g., `t("prefix" + k
 #### `i18n-mage.translationHints.maxLength`
 
 Sets the maximum length of inline hints. If the length exceeds, the hint will be truncated.
+
+#### `i18n-mage.translationHints.italic`
+
+Sets whether the inline hint text is displayed in italic.
 
 #### `i18n-mage.translationHints.light.fontColor`
 
