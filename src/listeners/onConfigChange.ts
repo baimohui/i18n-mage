@@ -32,12 +32,8 @@ export function registerOnConfigChange() {
             ) {
               treeInstance.refresh();
             } else if (
-              [
-                "translationHints.light",
-                "translationHints.dark",
-                "translationHints.maxLength",
-                "translationHints.enableLooseKeyMatch"
-              ].includes(key)
+              ["translationHints.maxLength", "translationHints.enableLooseKeyMatch"].includes(key) ||
+              ["translationHints.light", "translationHints.dark"].some(i => key.startsWith(i))
             ) {
               decorator.updateTranslationDecoration();
             } else if (key === "writeRules.sortRule") {

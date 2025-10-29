@@ -35,5 +35,13 @@ export function getCacheConfig<T = any>(key: string, defaultValue?: T) {
 }
 
 export function clearConfigCache(key: string) {
-  delete cachedConfig[key];
+  if (Object.hasOwn(cachedConfig, key)) {
+    delete cachedConfig[key];
+  } else {
+    for (const k in cachedConfig) {
+      if (k.startsWith(key)) {
+        delete cachedConfig[k];
+      }
+    }
+  }
 }
