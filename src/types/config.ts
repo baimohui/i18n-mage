@@ -1,4 +1,5 @@
 export const I18N_FRAMEWORK = {
+  auto: "auto",
   none: "none",
   vueI18n: "vue-i18n",
   reactI18next: "react-i18next",
@@ -21,7 +22,10 @@ export interface I18nFrameworkConfig {
   singleBrackets: boolean;
 }
 
-export const I18N_FRAMEWORK_DEFAULT_CONFIG: Record<Exclude<I18nFramework, typeof I18N_FRAMEWORK.none>, I18nFrameworkConfig> = {
+export const I18N_FRAMEWORK_DEFAULT_CONFIG: Record<
+  Exclude<I18nFramework, typeof I18N_FRAMEWORK.auto | typeof I18N_FRAMEWORK.none>,
+  I18nFrameworkConfig
+> = {
   [I18N_FRAMEWORK.vueI18n]: {
     singleBrackets: true
   },

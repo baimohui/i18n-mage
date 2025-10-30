@@ -183,11 +183,9 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
         return false;
       } else {
         const framework = getCacheConfig<I18nFramework>("i18nFeatures.framework");
-        if (framework === I18N_FRAMEWORK.none) {
+        if (framework === I18N_FRAMEWORK.auto) {
           const i18nFramework = detectI18nFramework(projectPath);
-          if (i18nFramework) {
-            setCacheConfig("i18nFeatures.framework", i18nFramework);
-          }
+          setCacheConfig("i18nFeatures.framework", i18nFramework ?? I18N_FRAMEWORK.none);
         }
         const vscodeLang = vscode.env.language;
         this.#mage.setOptions({ projectPath, defaultLang: vscodeLang });

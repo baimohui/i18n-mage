@@ -1,7 +1,7 @@
 {
   "name": "i18n-mage",
   "displayName": "i18n Mage",
-  "description": "🪄 Wave your i18n wand. Conjure order from the chaos with auto-translation, smart fixes, and Excel sync.",
+  "description": "Wave your i18n wand. Conjure order from the chaos with auto-translation, smart fixes, and Excel sync.",
   "repository": {
     "type": "git",
     "url": "https://github.com/baimohui/i18n-mage.git"
@@ -114,14 +114,23 @@
           "i18n-mage.i18nFeatures.framework": {
             "order": 1,
             "type": "string",
-            "default": "none",
+            "default": "auto",
             "description": "%config.i18nFramework.desc%",
             "enum": [
-              "none",
+              "auto",
               "vue-i18n",
               "react-i18next",
               "i18next",
-              "vscode-l10n"
+              "vscode-l10n",
+              "none"
+            ],
+            "enumDescriptions": [
+              "%config.option.auto%",
+              "%config.i18nFramework.vueI18n%",
+              "%config.i18nFramework.reactI18next%",
+              "%config.i18nFramework.i18next%",
+              "%config.i18nFramework.vscodeL10n%",
+              "%config.i18nFramework.none%"
             ]
           },
           "i18n-mage.i18nFeatures.translationFunctionNames": {
@@ -144,7 +153,7 @@
               "none"
             ],
             "enumDescriptions": [
-              "%config.namespaceStrategy.auto%",
+              "%config.option.auto%",
               "%config.namespaceStrategy.full%",
               "%config.namespaceStrategy.file%",
               "%config.namespaceStrategy.none%"
@@ -561,7 +570,7 @@
               "tab"
             ],
             "enumDescriptions": [
-              "%config.indentType.auto%",
+              "%config.option.auto%",
               "%config.indentType.space%",
               "%config.indentType.tab%"
             ],
