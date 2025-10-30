@@ -25,7 +25,7 @@ import {
 } from "@/types";
 import { t } from "@/utils/i18n";
 import { NotificationManager } from "@/utils/notification";
-import { getCacheConfig, setConfig } from "@/utils/config";
+import { getCacheConfig, getConfig, setCacheConfig, setConfig } from "@/utils/config";
 import { DecoratorController } from "@/features/Decorator";
 import { Diagnostics } from "@/features/Diagnostics";
 import { StatusBarItemManager } from "@/features/StatusBarItemManager";
@@ -186,9 +186,7 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
         if (framework === I18N_FRAMEWORK.none) {
           const i18nFramework = detectI18nFramework(projectPath);
           if (i18nFramework) {
-            setConfig("i18nFeatures.framework", i18nFramework).catch(error => {
-              NotificationManager.logToOutput(`Failed to set config for i18nFramework: ${error}`, "error");
-            });
+            setCacheConfig("i18nFeatures.framework", i18nFramework);
           }
         }
         const vscodeLang = vscode.env.language;
@@ -232,6 +230,13 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
           this.publicCtx = this.#mage.getPublicContext();
           const langPath = toRelativePath(this.publicCtx.langPath);
           setTimeout(() => {
+            const curFramework = getConfig<I18nFramework>("i18nFeatures.framework");
+            const usedFramework = getCacheConfig<I18nFramework>("i18nFeatures.framework");
+            if (curFramework !== usedFramework) {
+              setConfig("i18nFeatures.framework", usedFramework).catch(error => {
+                NotificationManager.logToOutput(`Failed to set config for i18nFramework: ${error}`, "error");
+              });
+            }
             if (getCacheConfig("workspace.languagePath", "") !== langPath) {
               setConfig("workspace.languagePath", langPath).catch(error => {
                 NotificationManager.logToOutput(`Failed to set config for langPath: ${error}`, "error");

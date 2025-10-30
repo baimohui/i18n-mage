@@ -23,7 +23,7 @@ import { LangMageOptions, ExecutionResult, EXECUTION_RESULT_CODE, KeyStyle, NAME
 import { getDetectedLangList } from "@/core/tools/contextTools";
 import { getLangCode } from "@/utils/langKey";
 import { t } from "@/utils/i18n";
-import { getConfig } from "@/utils/config";
+import { getCacheConfig } from "@/utils/config";
 
 class LangMage {
   private static instance: LangMage;
@@ -44,33 +44,33 @@ class LangMage {
   public setOptions(options: LangMageOptions = {}): void {
     if (Object.prototype.toString.call(options) === "[object Object]") {
       const combinedOptions: LangMageOptions = {
-        referredLang: this.resolveLang(getConfig<string>("translationServices.referenceLanguage", this.ctx.referredLang)),
-        i18nFramework: getConfig<I18nFramework>("i18nFeatures.framework", this.ctx.i18nFramework),
-        namespaceStrategy: getConfig<NamespaceStrategy>("i18nFeatures.namespaceStrategy", this.ctx.namespaceStrategy),
-        ignoredLangs: getConfig<string[]>("workspace.ignoredLanguages", this.ctx.ignoredLangs),
-        manuallyMarkedUsedEntries: getConfig<string[]>("workspace.manuallyMarkedUsedEntries", this.ctx.manuallyMarkedUsedEntries),
-        ignoredUndefinedEntries: getConfig<string[]>("workspace.ignoredUndefinedEntries", this.ctx.ignoredUndefinedEntries),
-        syncBasedOnReferredEntries: getConfig<boolean>("analysis.syncBasedOnReferredEntries", this.ctx.syncBasedOnReferredEntries),
-        sortAfterFix: getConfig<boolean>("writeRules.sortAfterFix", this.ctx.sortAfterFix),
-        sortingWriteMode: getConfig<SortMode>("writeRules.sortRule", this.ctx.sortingWriteMode),
-        sortingExportMode: getConfig<SortMode>("general.sortOnExport", this.ctx.sortingExportMode),
-        matchExistingKey: getConfig<boolean>("translationServices.matchExistingKey", this.ctx.matchExistingKey),
-        autoTranslateEmptyKey: getConfig<boolean>("translationServices.autoTranslateEmptyKey", this.ctx.autoTranslateEmptyKey),
-        keyStyle: getConfig<KeyStyle>("writeRules.keyStyle", this.ctx.keyStyle),
-        keyStrategy: getConfig<KeyStrategy>("writeRules.keyStrategy", this.ctx.keyStrategy),
-        stopWords: getConfig<string[]>("writeRules.stopWords", this.ctx.stopWords),
-        maxKeyLength: getConfig<number>("writeRules.maxKeyLength", this.ctx.maxKeyLength),
-        keyPrefix: getConfig<string>("writeRules.keyPrefix", this.ctx.keyPrefix),
-        indentType: getConfig<IndentType>("writeRules.indentType", this.ctx.indentType),
-        indentSize: getConfig<number>("writeRules.indentSize", this.ctx.indentSize),
-        quoteStyleForKey: getConfig<"auto" | QuoteStyle>("writeRules.quoteStyleForKey", this.ctx.quoteStyleForKey),
-        quoteStyleForValue: getConfig<"auto" | QuoteStyle>("writeRules.quoteStyleForValue", this.ctx.quoteStyleForValue),
-        scanStringLiterals: getConfig<boolean>("analysis.scanStringLiterals", this.ctx.scanStringLiterals),
-        keyGenerationFillScope: getConfig<KeyGenerationFillScope>(
+        referredLang: this.resolveLang(getCacheConfig<string>("translationServices.referenceLanguage", this.ctx.referredLang)),
+        i18nFramework: getCacheConfig<I18nFramework>("i18nFeatures.framework", this.ctx.i18nFramework),
+        namespaceStrategy: getCacheConfig<NamespaceStrategy>("i18nFeatures.namespaceStrategy", this.ctx.namespaceStrategy),
+        ignoredLangs: getCacheConfig<string[]>("workspace.ignoredLanguages", this.ctx.ignoredLangs),
+        manuallyMarkedUsedEntries: getCacheConfig<string[]>("workspace.manuallyMarkedUsedEntries", this.ctx.manuallyMarkedUsedEntries),
+        ignoredUndefinedEntries: getCacheConfig<string[]>("workspace.ignoredUndefinedEntries", this.ctx.ignoredUndefinedEntries),
+        syncBasedOnReferredEntries: getCacheConfig<boolean>("analysis.syncBasedOnReferredEntries", this.ctx.syncBasedOnReferredEntries),
+        sortAfterFix: getCacheConfig<boolean>("writeRules.sortAfterFix", this.ctx.sortAfterFix),
+        sortingWriteMode: getCacheConfig<SortMode>("writeRules.sortRule", this.ctx.sortingWriteMode),
+        sortingExportMode: getCacheConfig<SortMode>("general.sortOnExport", this.ctx.sortingExportMode),
+        matchExistingKey: getCacheConfig<boolean>("translationServices.matchExistingKey", this.ctx.matchExistingKey),
+        autoTranslateEmptyKey: getCacheConfig<boolean>("translationServices.autoTranslateEmptyKey", this.ctx.autoTranslateEmptyKey),
+        keyStyle: getCacheConfig<KeyStyle>("writeRules.keyStyle", this.ctx.keyStyle),
+        keyStrategy: getCacheConfig<KeyStrategy>("writeRules.keyStrategy", this.ctx.keyStrategy),
+        stopWords: getCacheConfig<string[]>("writeRules.stopWords", this.ctx.stopWords),
+        maxKeyLength: getCacheConfig<number>("writeRules.maxKeyLength", this.ctx.maxKeyLength),
+        keyPrefix: getCacheConfig<string>("writeRules.keyPrefix", this.ctx.keyPrefix),
+        indentType: getCacheConfig<IndentType>("writeRules.indentType", this.ctx.indentType),
+        indentSize: getCacheConfig<number>("writeRules.indentSize", this.ctx.indentSize),
+        quoteStyleForKey: getCacheConfig<"auto" | QuoteStyle>("writeRules.quoteStyleForKey", this.ctx.quoteStyleForKey),
+        quoteStyleForValue: getCacheConfig<"auto" | QuoteStyle>("writeRules.quoteStyleForValue", this.ctx.quoteStyleForValue),
+        scanStringLiterals: getCacheConfig<boolean>("analysis.scanStringLiterals", this.ctx.scanStringLiterals),
+        keyGenerationFillScope: getCacheConfig<KeyGenerationFillScope>(
           "translationServices.keyGenerationFillScope",
           this.ctx.keyGenerationFillScope
         ),
-        invalidKeyStrategy: getConfig<InvalidKeyStrategy>("writeRules.invalidKeyStrategy", this.ctx.invalidKeyStrategy),
+        invalidKeyStrategy: getCacheConfig<InvalidKeyStrategy>("writeRules.invalidKeyStrategy", this.ctx.invalidKeyStrategy),
         ...options
       };
       for (const [key, value] of Object.entries(combinedOptions)) {
