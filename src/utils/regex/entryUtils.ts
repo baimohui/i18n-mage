@@ -150,6 +150,7 @@ export function getEntryNameInfoByForm(nameForm: { type: TEntryPartType; value: 
     interpolationBrackets === "double" ||
     (interpolationBrackets === "auto" &&
       framework &&
+      framework !== I18N_FRAMEWORK.auto &&
       framework !== I18N_FRAMEWORK.none &&
       !I18N_FRAMEWORK_DEFAULT_CONFIG[framework].singleBrackets);
   if (useDoubleBrackets) {
@@ -229,6 +230,8 @@ export function getEntryNameInfoByForm(nameForm: { type: TEntryPartType; value: 
     } else {
       entryReg = entryReg.includes(":") ? entryReg.replace(":", "\\.") : defaultNamespace ? `${defaultNamespace}\\.${entryReg}` : entryReg;
     }
+  } else if (framework === I18N_FRAMEWORK.vueI18n) {
+    entryReg = entryReg.replace(/\\\[([^\]]+)\\\]/g, ".*");
   }
   return {
     text: entryText,
