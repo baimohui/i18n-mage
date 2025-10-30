@@ -373,7 +373,7 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
         {
           label: t("tree.currentFile.undefined"),
           contextValue: undefinedContextValueList.join(","),
-          data: this.undefinedEntriesInCurrentFile.map(item => item.nameInfo.name),
+          data: this.undefinedEntriesInCurrentFile.map(item => item.nameInfo.text),
           meta: { scope: vscode.window.activeTextEditor?.document.uri.fsPath ?? "" },
           tooltip: undefinedTooltip,
           description: undefinedDescription,
@@ -413,7 +413,7 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
           description,
           collapsibleState: vscode.TreeItemCollapsibleState[element.type === "defined" ? "Collapsed" : "None"],
           level: 2,
-          data: [entry.nameInfo.name],
+          data: [entry.nameInfo.text],
           meta: { scope: vscode.window.activeTextEditor?.document.uri.fsPath ?? "" },
           contextValue: contextValueList.join(","),
           usedInfo: this[element.type === "defined" ? "usedEntryMap" : "undefinedEntryMap"][entry.nameInfo.name],
@@ -720,9 +720,9 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
       const text = editor.document.getText();
       this.usedEntries = catchTEntries(text);
       this.usedEntries.forEach(entry => {
-        const { regex, name } = entry.nameInfo;
-        if (Object.hasOwn(this.undefinedEntryMap, name)) {
-          if (!this.undefinedEntriesInCurrentFile.some(item => item.nameInfo.name === name)) {
+        const { regex, name, text } = entry.nameInfo;
+        if (Object.hasOwn(this.undefinedEntryMap, text)) {
+          if (!this.undefinedEntriesInCurrentFile.some(item => item.nameInfo.text === text)) {
             this.undefinedEntriesInCurrentFile.push(entry);
           }
           return;

@@ -51,7 +51,7 @@ export class ReadHandler {
     this.ctx.langDictionary = lookup;
     if (this.ctx.nestedLocale > 0) {
       this.ctx.nameSeparator = ".";
-      this.buildEntryClassTree(langData.langTree, fileNestedLevelOffset);
+      this.buildEntryClassTree(langData.langTree, fileNestedLevelOffset, this.ctx.multiFileMode);
     } else {
       const entryNameList = Object.keys(lookup);
       this.ctx.nameSeparator = this.detectCommonSeparator(entryNameList);
@@ -188,15 +188,15 @@ export class ReadHandler {
     return { structure, lookup };
   }
 
-  private buildEntryClassTree(langTree: LangTree, fileNestedLevelOffset: number) {
+  private buildEntryClassTree(langTree: LangTree, fileNestedLevelOffset: number, multiFileMode: number) {
     const ignoredLangs = this.ctx.ignoredLangs;
     const setAtPath = (path: string[], isEmpty = false): void => {
-      const filePos = path.slice(0, fileNestedLevelOffset).join(".");
+      const filePos = path.slice(0, multiFileMode).join(".");
       if (this.ctx.entryClassTree.find(item => item.filePos === filePos) === undefined) {
         this.ctx.entryClassTree.push({ filePos, data: {} });
       }
       let entryClassTreeItem = this.ctx.entryClassTree.find(item => item.filePos === filePos)!.data;
-      const entryClassTreePath = path.slice(fileNestedLevelOffset);
+      const entryClassTreePath = path.slice(multiFileMode - fileNestedLevelOffset);
       for (let i = 0; i < entryClassTreePath.length - 1; i++) {
         const key = entryClassTreePath[i];
         if (!Object.hasOwn(entryClassTreeItem, key) || typeof entryClassTreeItem[key] !== "object") {

@@ -12,12 +12,12 @@ import {
   EXECUTION_RESULT_CODE,
   FixExecutionResult,
   FixQuery,
-  I18N_FRAMEWORK,
   LangMageOptions,
   NAMESPACE_STRATEGY,
   UNMATCHED_LANGUAGE_ACTION,
   UnmatchedLanguageAction
 } from "@/types";
+import { isSamePath } from "@/utils/fs";
 
 export function registerFixCommand(context: vscode.ExtensionContext) {
   const mage = LangMage.getInstance();
@@ -41,11 +41,13 @@ export function registerFixCommand(context: vscode.ExtensionContext) {
       await mage.execute({ task: "check" });
       const publicCtx = mage.getPublicContext();
       const { multiFileMode, nameSeparator, undefined: undefinedMap, classTree } = mage.langDetail;
-      let undefinedKeys = Array.isArray(fixQuery.entriesToGen)
-        ? fixQuery.entriesToGen
-        : fixQuery.entriesToGen
-          ? Object.keys(undefinedMap)
-          : [];
+      let undefinedKeys = Object.keys(undefinedMap).filter(key => {
+        const { entriesToGen, genScope } = fixQuery;
+        return (
+          (Array.isArray(entriesToGen) ? entriesToGen.includes(key) : entriesToGen) &&
+          (genScope ? Object.keys(undefinedMap[key]).some(fp => genScope.some(fp2 => isSamePath(fp, fp2))) : true)
+        );
+      });
       const ignorePossibleVariables = getConfig<boolean>("translationServices.ignorePossibleVariables", true);
       if (ignorePossibleVariables) {
         undefinedKeys = undefinedKeys.filter(key => !isEnglishVariable(key));
@@ -151,19 +153,9 @@ export function registerFixCommand(context: vscode.ExtensionContext) {
         }
         const keyPrefix = getConfig<string>("writeRules.keyPrefix", "");
         if (nameSeparator && keyPrefix === "manual-selection") {
-          const defaultNamespace = getConfig<string>("i18nFeatures.defaultNamespace", "");
           const classTreeItem = classTree.find(item => item.filePos === (missingEntryFile ?? ""));
           let commonKeys = classTreeItem ? getParentKeys(classTreeItem.data, nameSeparator) : [];
-          let offset = publicCtx.namespaceStrategy === NAMESPACE_STRATEGY.file ? 1 : multiFileMode;
-          const framework = publicCtx.i18nFramework;
-          if (
-            (framework === I18N_FRAMEWORK.i18nNext || framework === I18N_FRAMEWORK.reactI18next) &&
-            offset === 1 &&
-            defaultNamespace &&
-            defaultNamespace === missingEntryFile
-          ) {
-            offset = 0;
-          }
+          const offset = publicCtx.namespaceStrategy === NAMESPACE_STRATEGY.file ? 1 : multiFileMode;
           if (publicCtx.namespaceStrategy !== NAMESPACE_STRATEGY.none) {
             commonKeys = commonKeys
               .map(key => {
