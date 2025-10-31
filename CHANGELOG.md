@@ -4,6 +4,17 @@ All notable changes to the i18n Mage VS Code extension will be documented in thi
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.4] - 2025-10-31
+
+### Improved
+- **Smart Framework Detection**: Added `auto` option as default for internationalization framework configuration, implementing more accurate automatic detection to simplify project setup.
+- **Vue-I18n Dynamic Syntax Support**: Enhanced recognition of array-based dynamic concatenation usage in Vue-I18n, ensuring proper entry display in complex template syntax.
+
+### Fixed
+- **Inline Translation Color Updates**: Resolved delayed visual feedback when manually changing translation text colors in light/dark themes.
+- **Precise Single File Extraction**: Corrected scope determination issue where global entries were incorrectly included during single-file undefined entry extraction.
+- **Nested Object Structure Parsing**: Fixed data construction errors when generating category trees for language files with nested object structures.
+
 ## [1.1.3] - 2025-10-28
 
 ### Added

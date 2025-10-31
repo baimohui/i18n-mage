@@ -1,18 +1,14 @@
-<p align="center">
-  <img src="https://raw.githubusercontent.com/baimohui/i18n-mage/main/images/icon.png" width="120" alt="i18n Mage Logo" />
-</p>
+<h1>i18n Mage</h1>
 
-<h1 align="center">i18n Mage</h1>
-
-<p align="center">
+<p>
   <a href="./README.md">English</a> | <a href="https://baimohui.github.io/i18n-mage-docs/zh/guide/introduction.html">简体中文</a>
 </p>
 
-<p align="center">
-  🪄 Streamline your frontend i18n workflow with Vue I18n & React i18next support, auto-completion, inline hints, and Excel import/export.
+<p>
+  Streamline your frontend i18n workflow with Vue I18n & React i18next support, auto-completion, inline hints, and Excel import/export.
 </p>
 
-<p align="center">
+<p>
   <a href="https://marketplace.visualstudio.com/items?itemName=jensen-wen.i18n-mage">
     <img src="https://img.shields.io/visual-studio-marketplace/v/jensen-wen.i18n-mage.svg?label=VS%20Code%20Marketplace" alt="VS Code Marketplace" />
   </a>
