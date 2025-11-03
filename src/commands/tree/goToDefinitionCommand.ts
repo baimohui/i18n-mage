@@ -1,7 +1,7 @@
 import path from "path";
 import * as vscode from "vscode";
 import LangMage from "@/core/LangMage";
-import { getFileLocationFromId, getValueByAmbiguousEntryName, selectProperty } from "@/utils/regex";
+import { getFileLocationFromId, selectProperty } from "@/utils/regex";
 import { registerDisposable } from "@/utils/dispose";
 import { t } from "@/utils/i18n";
 
@@ -12,8 +12,7 @@ export function registerGoToDefinitionCommand(context: vscode.ExtensionContext) 
     let target: { key: string; lang: string } | undefined = undefined;
     const dictionary = mage.langDetail.dictionary;
     if (e === undefined) {
-      let keyAtCursor = context.workspaceState.get<string>("keyAtCursor");
-      keyAtCursor = getValueByAmbiguousEntryName(mage.langDetail.tree, keyAtCursor ?? "");
+      const keyAtCursor = context.workspaceState.get<string>("keyAtCursor");
       if (keyAtCursor !== undefined) {
         target = { key: keyAtCursor, lang: publicCtx.referredLang };
       } else {
