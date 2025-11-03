@@ -31,7 +31,7 @@ class ExtensionState {
   public initialize(context: vscode.ExtensionContext) {
     this._context = context;
     this._enabled = getConfig<boolean>("general.enable", true);
-    vscode.commands.executeCommand("setContext", "enabled", this._enabled);
+    vscode.commands.executeCommand("setContext", "i18nMage.enabled", this._enabled);
   }
 
   get enabled(): boolean {
@@ -41,7 +41,7 @@ class ExtensionState {
   public async setEnabled(enabled: boolean): Promise<void> {
     if (this._enabled === enabled) return;
     this._enabled = enabled;
-    vscode.commands.executeCommand("setContext", "enabled", enabled);
+    vscode.commands.executeCommand("setContext", "i18nMage.enabled", enabled);
     if (enabled) {
       await this.activateExtensions();
     } else {
@@ -54,7 +54,7 @@ class ExtensionState {
     NotificationManager.init();
     vscode.window.registerTreeDataProvider("treeProvider", treeInstance);
     registerAllCommands(this._context);
-    registerAllListeners();
+    registerAllListeners(this._context);
     registerDisposable(vscode.languages.registerHoverProvider("*", new HoverProvider()));
     registerDisposable(
       vscode.languages.registerCompletionItemProvider(
@@ -90,7 +90,7 @@ class ExtensionState {
       this._extensionSubscriptions.length = 0; // 清空订阅
     }
     // 隐藏树视图
-    vscode.commands.executeCommand("setContext", "enabled", false);
+    vscode.commands.executeCommand("setContext", "i18nMage.enabled", false);
     // 清除装饰器
     const decorator = DecoratorController.getInstance();
     decorator.dispose();

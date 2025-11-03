@@ -1101,44 +1101,49 @@
       {
         "command": "i18nMage.toggleInlineTranslation",
         "key": "ctrl+alt+d",
-        "when": "enabled && hasValidLangPath && editorTextFocus"
+        "when": "i18nMage.enabled && i18nMage.hasValidLangPath && editorTextFocus"
       },
       {
         "command": "i18nMage.checkUsage",
         "key": "ctrl+alt+c",
-        "when": "workspaceFolderCount != 0 && enabled"
+        "when": "workspaceFolderCount != 0 && i18nMage.enabled"
       },
       {
         "command": "i18nMage.fix",
         "key": "ctrl+alt+f",
-        "when": "enabled && hasValidLangPath"
+        "when": "i18nMage.enabled && i18nMage.hasValidLangPath"
+      },
+      {
+        "command": "i18nMage.goToDefinition",
+        "key": "f12",
+        "when": "i18nMage.enabled && i18nMage.hasValidLangPath && editorTextFocus && i18nMage.inKey"
       }
     ],
     "menus": {
       "view/title": [
         {
           "command": "i18nMage.checkUsage",
-          "when": "view == treeProvider && hasValidLangPath",
+          "when": "view == treeProvider && i18nMage.hasValidLangPath",
           "group": "navigation@5"
         },
         {
           "command": "i18nMage.export",
-          "when": "view == treeProvider && hasValidLangPath",
+          "when": "view == treeProvider && i18nMage.hasValidLangPath",
           "group": "navigation@10"
         },
         {
           "command": "i18nMage.import",
-          "when": "view == treeProvider && hasValidLangPath",
+          "when": "view == treeProvider && i18nMage.hasValidLangPath",
           "group": "navigation@15"
         },
         {
           "command": "i18nMage.sort",
-          "when": "view == treeProvider && hasValidLangPath && allowSort",
+          "when": "view == treeProvider && i18nMage.hasValidLangPath && i18nMage.allowSort",
           "group": "navigation@20"
         },
         {
           "command": "i18nMage.fix",
-          "when": "view == treeProvider && hasValidLangPath",
+          "when": "view == treeProvider && i18nMage.hasValidLangPath",
           "group": "navigation@25"
         },
         {
@@ -1255,19 +1260,19 @@
       "editor/context": [
         {
           "command": "i18nMage.copyKeyValue",
-          "when": "hasDefinedEntriesInFile",
+          "when": "i18nMage.hasDefinedEntriesInFile",
           "group": "2_i18n@1"
         },
         {
           "command": "i18nMage.fixUndefinedEntries",
-          "when": "hasUndefinedEntriesInFile",
+          "when": "i18nMage.hasUndefinedEntriesInFile",
           "group": "2_i18n@3"
         }
       ],
       "explorer/context": [
         {
           "submenu": "i18nMage.pathConfigMenu",
-          "when": "enabled",
+          "when": "i18nMage.enabled",
           "group": "3_i18n@1"
         }
       ],
@@ -1310,7 +1315,7 @@
           "icon": "images/i18nMage.png",
           "id": "treeProvider",
           "name": "Grimoire",
-          "when": "initialized && workspaceFolderCount != 0 && enabled"
+          "when": "i18nMage.initialized && workspaceFolderCount != 0 && i18nMage.enabled"
         }
       ]
     },
@@ -1318,7 +1323,7 @@
       {
         "view": "treeProvider",
         "contents": "%view.welcome.title%",
-        "when": "initialized  && !hasValidLangPath"
+        "when": "i18nMage.initialized && !i18nMage.hasValidLangPath"
       }
     ]
   },

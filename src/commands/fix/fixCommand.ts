@@ -132,7 +132,7 @@ export function registerFixCommand(context: vscode.ExtensionContext) {
           if (commonFiles.length > 1) {
             NotificationManager.showProgress({ message: t("command.fix.waitForFileSelection"), increment: 0 });
             let sortedFiles: string[] = commonFiles;
-            const lastPicked = context.globalState.get<string>("lastPickedFile");
+            const lastPicked = context.workspaceState.get<string>("lastPickedFile");
             if (lastPicked !== undefined && commonFiles.includes(lastPicked)) {
               sortedFiles = [lastPicked, ...commonFiles.filter(f => f !== lastPicked)];
             }
@@ -145,7 +145,7 @@ export function registerFixCommand(context: vscode.ExtensionContext) {
           if (typeof missingEntryFile === "string" && missingEntryFile.trim()) {
             missingEntryFile = missingEntryFile.replaceAll("/", ".");
             mage.setOptions({ missingEntryFile });
-            await context.globalState.update("lastPickedFile", missingEntryFile);
+            await context.workspaceState.update("lastPickedFile", missingEntryFile);
           } else {
             mage.setOptions({ missingEntryFile: "" });
             return;
@@ -170,7 +170,7 @@ export function registerFixCommand(context: vscode.ExtensionContext) {
           let missingEntryPath: string | undefined = "";
           if (commonKeys.length > 0) {
             NotificationManager.showProgress({ message: t("command.fix.waitForFileSelection"), increment: 0 });
-            const lastPicked = context.globalState.get<string>("lastPickedKey");
+            const lastPicked = context.workspaceState.get<string>("lastPickedKey");
             if (lastPicked !== undefined && commonKeys.includes(lastPicked)) {
               commonKeys = [lastPicked, ...commonKeys.filter(f => f !== lastPicked)];
             }
@@ -185,7 +185,7 @@ export function registerFixCommand(context: vscode.ExtensionContext) {
           }
           if (missingEntryPath === undefined) return;
           missingEntryPath = missingEntryPath.trim();
-          await context.globalState.update("lastPickedKey", missingEntryPath);
+          await context.workspaceState.update("lastPickedKey", missingEntryPath);
           mage.setOptions({ missingEntryPath });
         }
       }

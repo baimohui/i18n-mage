@@ -210,7 +210,7 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
           }
         }
         if (this.#mage.detectedLangList.length === 0) {
-          vscode.commands.executeCommand("setContext", "hasValidLangPath", false);
+          vscode.commands.executeCommand("setContext", "i18nMage.hasValidLangPath", false);
           success = false;
           if (!(await detectI18nProject(projectPath))) {
             return false;
@@ -221,10 +221,10 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
             }
           });
         } else {
-          vscode.commands.executeCommand("setContext", "hasValidLangPath", true);
+          vscode.commands.executeCommand("setContext", "i18nMage.hasValidLangPath", true);
           success = true;
           const sortMode = getCacheConfig<string>("writeRules.sortRule");
-          vscode.commands.executeCommand("setContext", "allowSort", this.langInfo.isFlat && sortMode !== SORT_MODE.None);
+          vscode.commands.executeCommand("setContext", "i18nMage.allowSort", this.langInfo.isFlat && sortMode !== SORT_MODE.None);
           this.publicCtx = this.#mage.getPublicContext();
           const langPath = toRelativePath(this.publicCtx.langPath);
           setTimeout(() => {
@@ -279,7 +279,7 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
       }
       this.isInitialized = true;
       this.refresh();
-      vscode.commands.executeCommand("setContext", "initialized", true);
+      vscode.commands.executeCommand("setContext", "i18nMage.initialized", true);
       return success;
     } catch (e: unknown) {
       const errorMessage = t("tree.init.error", e instanceof Error ? e.message : (e as string));
@@ -714,8 +714,8 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
     this.definedEntriesInCurrentFile = [];
     this.undefinedEntriesInCurrentFile = [];
     const editor = vscode.window.activeTextEditor;
-    vscode.commands.executeCommand("setContext", "hasDefinedEntriesInFile", false);
-    vscode.commands.executeCommand("setContext", "hasUndefinedEntriesInFile", false);
+    vscode.commands.executeCommand("setContext", "i18nMage.hasDefinedEntriesInFile", false);
+    vscode.commands.executeCommand("setContext", "i18nMage.hasUndefinedEntriesInFile", false);
     if (editor) {
       const text = editor.document.getText();
       this.usedEntries = catchTEntries(text);
@@ -741,8 +741,8 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
           }
         });
       });
-      vscode.commands.executeCommand("setContext", "hasDefinedEntriesInFile", this.definedEntriesInCurrentFile.length > 0);
-      vscode.commands.executeCommand("setContext", "hasUndefinedEntriesInFile", this.undefinedEntriesInCurrentFile.length > 0);
+      vscode.commands.executeCommand("setContext", "i18nMage.hasDefinedEntriesInFile", this.definedEntriesInCurrentFile.length > 0);
+      vscode.commands.executeCommand("setContext", "i18nMage.hasUndefinedEntriesInFile", this.undefinedEntriesInCurrentFile.length > 0);
     }
   }
 

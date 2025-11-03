@@ -38,7 +38,7 @@ export function registerOnConfigChange() {
               decorator.updateTranslationDecoration();
             } else if (key === "writeRules.sortRule") {
               const sortMode = subConfig[name] as SortMode;
-              vscode.commands.executeCommand("setContext", "allowSort", mage.langDetail.isFlat && sortMode !== SORT_MODE.None);
+              vscode.commands.executeCommand("setContext", "i18nMage.allowSort", mage.langDetail.isFlat && sortMode !== SORT_MODE.None);
             }
           }
         }

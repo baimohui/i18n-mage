@@ -24,11 +24,11 @@ export function registerSelectLangPathCommand() {
         await mage.execute();
         if (mage.detectedLangList.length === 0) {
           NotificationManager.showWarning(t("command.selectLangPath.error"));
-          vscode.commands.executeCommand("setContext", "hasValidLangPath", false);
+          vscode.commands.executeCommand("setContext", "i18nMage.hasValidLangPath", false);
         } else {
           const relativeLangPath = toRelativePath(langPath);
           NotificationManager.showSuccess(t("command.selectLangPath.success", relativeLangPath));
-          vscode.commands.executeCommand("setContext", "hasValidLangPath", true);
+          vscode.commands.executeCommand("setContext", "i18nMage.hasValidLangPath", true);
           await setConfig("workspace.languagePath", relativeLangPath);
           treeInstance.refresh();
         }
