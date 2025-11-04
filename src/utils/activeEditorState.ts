@@ -10,7 +10,8 @@ export class ActiveEditorState {
   private static keyAtCursor: string = "";
   private static offsetBase: number = 0;
 
-  static updateVisibleEntries(editor: vscode.TextEditor) {
+  static updateVisibleEntries(editor?: vscode.TextEditor) {
+    if (!editor) return;
     this.visibleEntries = [];
     const filePath = editor.document.uri.fsPath;
     if (isValidI18nCallablePath(filePath)) {
@@ -56,7 +57,8 @@ export class ActiveEditorState {
     }
   }
 
-  static updateKeyAtCursor(editor: vscode.TextEditor) {
+  static updateKeyAtCursor(editor?: vscode.TextEditor) {
+    if (!editor) return;
     const entry = this.getEntryAtPosition(editor.document, editor.selection.active);
     const keyAtCursor = entry ? entry.nameInfo.name : "";
     vscode.commands.executeCommand("setContext", "i18nMage.inKey", !!keyAtCursor);

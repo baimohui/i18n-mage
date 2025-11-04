@@ -130,10 +130,13 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
     };
     this.displayLang = resolveLang(getCacheConfig<string>("general.displayLanguage"));
     this.checkUsedInfo();
-    ActiveEditorState.updateVisibleEntries(vscode.window.activeTextEditor!);
-    ActiveEditorState.updateKeyAtCursor(vscode.window.activeTextEditor!);
-    const decorator = DecoratorController.getInstance();
-    decorator.update(vscode.window.activeTextEditor);
+    const editor = vscode.window.activeTextEditor;
+    if (editor) {
+      ActiveEditorState.updateVisibleEntries(editor);
+      ActiveEditorState.updateKeyAtCursor(editor);
+      const decorator = DecoratorController.getInstance();
+      decorator.update(editor);
+    }
     const diagnostics = Diagnostics.getInstance();
     const statusBarItemManager = StatusBarItemManager.getInstance();
     statusBarItemManager.update();
