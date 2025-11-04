@@ -1,18 +1,10 @@
 import * as vscode from "vscode";
 import LangMage from "@/core/LangMage";
 import { treeInstance } from "@/views/tree";
-import {
-  getValueByAmbiguousEntryName,
-  catchTEntries,
-  getLineEnding,
-  unescapeString,
-  isValidI18nCallablePath,
-  formatEscapeChar,
-  catchPossibleEntries
-} from "@/utils/regex";
+import { getValueByAmbiguousEntryName, catchTEntries, unescapeString, formatEscapeChar } from "@/utils/regex";
 import { getCacheConfig } from "@/utils/config";
-import { INLINE_HINTS_DISPLAY_MODE, InlineHintsDisplayMode, TEntry } from "@/types";
-import path from "path";
+import { INLINE_HINTS_DISPLAY_MODE, InlineHintsDisplayMode } from "@/types";
+import { ActiveEditorState } from "@/utils/activeEditorState";
 
 export class DecoratorController implements vscode.Disposable {
   private static instance: DecoratorController;
@@ -34,8 +26,6 @@ export class DecoratorController implements vscode.Disposable {
   >();
   private lastCursorLine: number = -1;
   private currentEditor?: vscode.TextEditor;
-  public entries: TEntry[] = [];
-  public offsetBase: number = 0;
 
   constructor() {
     // 初始化翻译文本装饰器
@@ -55,7 +45,6 @@ export class DecoratorController implements vscode.Disposable {
   }
 
   public update(editor: vscode.TextEditor | undefined): void {
-    this.entries = [];
     this.currentDecorations.clear();
     if (this.disposed || !editor) return;
     if (!getCacheConfig<boolean>("translationHints.enable")) {
@@ -64,75 +53,39 @@ export class DecoratorController implements vscode.Disposable {
       editor.setDecorations(this.hiddenKeyDecoration, []);
       return;
     }
-    const filePath = editor.document.uri.fsPath;
-    if (isValidI18nCallablePath(filePath)) {
-      const mage = LangMage.getInstance();
-      this.currentEditor = editor;
-      const { tree, countryMap } = mage.langDetail;
-      const translations = countryMap[treeInstance.displayLang];
-      if (translations === undefined) return;
-      // 获取可视区域范围
-      const visibleRanges = editor.visibleRanges;
-      const visibleStart = Math.min(...visibleRanges.map(r => r.start.line));
-      const visibleEnd = Math.max(...visibleRanges.map(r => r.end.line));
-      // 按行提取文本，避免全量 getText
-      const visibleLines: string[] = [];
-      for (let i = visibleStart; i <= visibleEnd; i++) {
-        if (i < editor.document.lineCount) {
-          visibleLines.push(editor.document.lineAt(i).text);
-        }
+    this.currentEditor = editor;
+    const mage = LangMage.getInstance();
+    const { tree, countryMap } = mage.langDetail;
+    const translations = countryMap[treeInstance.displayLang];
+    if (translations === undefined) return;
+    const entries = ActiveEditorState.getVisibleEntries();
+    const maxLen = getCacheConfig<number>("translationHints.maxLength");
+    const enableLooseKeyMatch = getCacheConfig<boolean>("translationHints.enableLooseKeyMatch");
+    const totalEntryList = Object.keys(mage.langDetail.dictionary).map(key => unescapeString(key));
+    entries.forEach(entry => {
+      let [startPos, endPos] = entry.pos.split(",").map(Number);
+      startPos++;
+      endPos--;
+      const entryKey = getValueByAmbiguousEntryName(tree, entry.nameInfo.name);
+      let entryValue = translations[entryKey as string];
+      let isLooseMatch = false;
+      if (entryValue === undefined) {
+        if (!enableLooseKeyMatch || entry.nameInfo.vars.length === 0) return;
+        const matchedEntryName = totalEntryList.find(entryName => entry.nameInfo.regex.test(entryName)) ?? "";
+        const matchedEntryKey = getValueByAmbiguousEntryName(tree, matchedEntryName);
+        if (matchedEntryKey === undefined) return;
+        isLooseMatch = true;
+        entryValue = translations[matchedEntryKey];
       }
-      const lineEnding = getLineEnding();
-      const visibleText = visibleLines.join(lineEnding);
-      this.offsetBase = editor.document.offsetAt(new vscode.Position(visibleStart, 0));
-      const entries = catchTEntries(visibleText);
-      const applyToStringLiterals = getCacheConfig<boolean>("translationHints.applyToStringLiterals");
-      if (applyToStringLiterals) {
-        catchPossibleEntries(visibleText, mage.langDetail.tree, path.basename(filePath)).forEach(entry => {
-          entries.push({
-            raw: entry.value,
-            pos: entry.pos,
-            vars: [],
-            nameInfo: {
-              text: entry.name,
-              regex: new RegExp(entry.name),
-              name: entry.name,
-              boundKey: "",
-              boundPrefix: "",
-              vars: []
-            }
-          });
-        });
-      }
-      this.entries = entries;
-      const maxLen = getCacheConfig<number>("translationHints.maxLength");
-      const enableLooseKeyMatch = getCacheConfig<boolean>("translationHints.enableLooseKeyMatch");
-      const totalEntryList = Object.keys(mage.langDetail.dictionary).map(key => unescapeString(key));
-      entries.forEach(entry => {
-        let [startPos, endPos] = entry.pos.split(",").map(Number);
-        startPos++;
-        endPos--;
-        const entryKey = getValueByAmbiguousEntryName(tree, entry.nameInfo.name);
-        let entryValue = translations[entryKey as string];
-        let isLooseMatch = false;
-        if (entryValue === undefined) {
-          if (!enableLooseKeyMatch || entry.nameInfo.vars.length === 0) return;
-          const matchedEntryName = totalEntryList.find(entryName => entry.nameInfo.regex.test(entryName)) ?? "";
-          const matchedEntryKey = getValueByAmbiguousEntryName(tree, matchedEntryName);
-          if (matchedEntryKey === undefined) return;
-          isLooseMatch = true;
-          entryValue = translations[matchedEntryKey];
-        }
-        const uniqueId = `${this.offsetBase + startPos}:${entry.nameInfo.name}`;
-        const formattedEntryValue = this.formatEntryValue(entryValue, maxLen);
-        this.currentDecorations.set(uniqueId, {
-          startPos,
-          endPos,
-          value: formattedEntryValue,
-          isLooseMatch
-        });
+      const uniqueId = `${startPos}:${entry.nameInfo.name}`;
+      const formattedEntryValue = this.formatEntryValue(entryValue, maxLen);
+      this.currentDecorations.set(uniqueId, {
+        startPos,
+        endPos,
+        value: formattedEntryValue,
+        isLooseMatch
       });
-    }
+    });
     this.applyDecorations(editor);
   }
 
@@ -205,12 +158,12 @@ export class DecoratorController implements vscode.Disposable {
         startPos--;
         endPos++;
       }
-      const globalStartPos = editor.document.positionAt(this.offsetBase + startPos);
-      let globalEndPos = editor.document.positionAt(this.offsetBase + endPos);
+      const globalStartPos = editor.document.positionAt(startPos);
+      let globalEndPos = editor.document.positionAt(endPos);
       const isOnCursorLine = globalStartPos.line <= cursorLine && globalEndPos.line >= cursorLine;
       if (isInline || isOnCursorLine) {
         if (isLooseMatch) {
-          globalEndPos = editor.document.positionAt(this.offsetBase + endPos - 1);
+          globalEndPos = editor.document.positionAt(endPos - 1);
         }
         const range = new vscode.Range(globalEndPos, globalEndPos);
         const appendedDec = {

@@ -29,6 +29,7 @@ import { getCacheConfig, getConfig, setCacheConfig, setConfig } from "@/utils/co
 import { DecoratorController } from "@/features/Decorator";
 import { Diagnostics } from "@/features/Diagnostics";
 import { StatusBarItemManager } from "@/features/StatusBarItemManager";
+import { ActiveEditorState } from "@/utils/activeEditorState";
 
 interface ExtendedTreeItem extends vscode.TreeItem {
   level?: number;
@@ -129,6 +130,8 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
     };
     this.displayLang = resolveLang(getCacheConfig<string>("general.displayLanguage"));
     this.checkUsedInfo();
+    ActiveEditorState.updateVisibleEntries(vscode.window.activeTextEditor!);
+    ActiveEditorState.updateKeyAtCursor(vscode.window.activeTextEditor!);
     const decorator = DecoratorController.getInstance();
     decorator.update(vscode.window.activeTextEditor);
     const diagnostics = Diagnostics.getInstance();

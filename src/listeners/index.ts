@@ -1,4 +1,3 @@
-import * as vscode from "vscode";
 import { registerOnFileSave } from "./onFileSave";
 import { registerOnActiveEditorChange } from "./onActiveEditorChange";
 import { registerOnConfigChange } from "./onConfigChange";
@@ -8,11 +7,11 @@ import { registerOnEditorVisibleRangesChange } from "./onEditorVisibleRangesChan
 import { registerOnDocumentOpen } from "./onDocumentOpen";
 import { registerOnDocumentClose } from "./onDocumentClose";
 
-export function registerAllListeners(context: vscode.ExtensionContext) {
+export function registerAllListeners() {
   registerOnFileSave();
   registerOnActiveEditorChange();
   registerOnConfigChange();
-  registerOnEditorSelectionChange(context);
+  registerOnEditorSelectionChange();
   registerOnFileChange();
   registerOnEditorVisibleRangesChange();
   registerOnDocumentOpen();

@@ -4,16 +4,17 @@ import LangMage from "@/core/LangMage";
 import { getFileLocationFromId, selectProperty } from "@/utils/regex";
 import { registerDisposable } from "@/utils/dispose";
 import { t } from "@/utils/i18n";
+import { ActiveEditorState } from "@/utils/activeEditorState";
 
-export function registerGoToDefinitionCommand(context: vscode.ExtensionContext) {
+export function registerGoToDefinitionCommand() {
   const mage = LangMage.getInstance();
   const disposable = vscode.commands.registerCommand("i18nMage.goToDefinition", async (e?: { key: string; meta: { scope: string } }) => {
     const publicCtx = mage.getPublicContext();
     let target: { key: string; lang: string } | undefined = undefined;
     const dictionary = mage.langDetail.dictionary;
     if (e === undefined) {
-      const keyAtCursor = context.workspaceState.get<string>("keyAtCursor");
-      if (keyAtCursor !== undefined) {
+      const keyAtCursor = ActiveEditorState.getKeyAtCursor();
+      if (keyAtCursor) {
         target = { key: keyAtCursor, lang: publicCtx.referredLang };
       } else {
         const key = await vscode.window.showQuickPick(Object.keys(dictionary), {

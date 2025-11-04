@@ -1,16 +1,11 @@
 import * as vscode from "vscode";
-import { DecoratorController } from "./Decorator";
 import LangMage from "@/core/LangMage";
 import { getValueByAmbiguousEntryName, displayToInternalName, escapeMarkdown, formatEscapeChar } from "@/utils/regex";
+import { ActiveEditorState } from "@/utils/activeEditorState";
 
 export class HoverProvider implements vscode.HoverProvider {
   provideHover(document: vscode.TextDocument, position: vscode.Position): vscode.ProviderResult<vscode.Hover> {
-    const decorator = DecoratorController.getInstance();
-    const entry = decorator.entries.find(item => {
-      const [startPos, endPos] = item.pos.split(",").map(pos => document.positionAt(decorator.offsetBase + +pos - 1));
-      const range = new vscode.Range(startPos, endPos);
-      return range.contains(position);
-    });
+    const entry = ActiveEditorState.getEntryAtPosition(document, position);
     if (entry) {
       const mage = LangMage.getInstance();
       const publicCtx = mage.getPublicContext();
