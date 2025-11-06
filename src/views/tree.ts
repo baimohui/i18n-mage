@@ -1,7 +1,6 @@
 import * as vscode from "vscode";
 import LangMage from "@/core/LangMage";
 import {
-  catchTEntries,
   unescapeString,
   getValueByAmbiguousEntryName,
   detectI18nFramework,
@@ -129,18 +128,21 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
       );
     };
     this.displayLang = resolveLang(getCacheConfig<string>("general.displayLanguage"));
-    this.checkUsedInfo();
+    this.definedEntriesInCurrentFile = [];
+    this.undefinedEntriesInCurrentFile = [];
     const editor = vscode.window.activeTextEditor;
     if (editor) {
-      ActiveEditorState.updateVisibleEntries(editor);
-      ActiveEditorState.updateKeyAtCursor(editor);
+      ActiveEditorState.update(editor);
+      this.definedEntriesInCurrentFile = ActiveEditorState.definedEntries;
+      this.undefinedEntriesInCurrentFile = ActiveEditorState.undefinedEntries;
       const decorator = DecoratorController.getInstance();
       decorator.update(editor);
+      const diagnostics = Diagnostics.getInstance();
+      diagnostics.update(editor.document);
+      // vscode.workspace.textDocuments.forEach(doc => diagnostics.update(doc));
     }
-    const diagnostics = Diagnostics.getInstance();
     const statusBarItemManager = StatusBarItemManager.getInstance();
     statusBarItemManager.update();
-    vscode.workspace.textDocuments.forEach(doc => diagnostics.update(doc));
     this._onDidChangeTreeData.fire();
   }
 
@@ -713,42 +715,6 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
             collapsibleState: vscode.TreeItemCollapsibleState.Collapsed
           };
         });
-    }
-  }
-
-  public checkUsedInfo(): void {
-    this.definedEntriesInCurrentFile = [];
-    this.undefinedEntriesInCurrentFile = [];
-    const editor = vscode.window.activeTextEditor;
-    vscode.commands.executeCommand("setContext", "i18nMage.hasDefinedEntriesInFile", false);
-    vscode.commands.executeCommand("setContext", "i18nMage.hasUndefinedEntriesInFile", false);
-    if (editor) {
-      const text = editor.document.getText();
-      this.usedEntries = catchTEntries(text);
-      this.usedEntries.forEach(entry => {
-        const { regex, name, text } = entry.nameInfo;
-        if (Object.hasOwn(this.undefinedEntryMap, text)) {
-          if (!this.undefinedEntriesInCurrentFile.some(item => item.nameInfo.text === text)) {
-            this.undefinedEntriesInCurrentFile.push(entry);
-          }
-          return;
-        }
-        if (Object.hasOwn(this.usedEntryMap, name)) {
-          if (!this.definedEntriesInCurrentFile.some(item => item.nameInfo.name === name)) {
-            this.definedEntriesInCurrentFile.push(entry);
-          }
-          return;
-        }
-        const matchList = Object.keys(this.usedEntryMap).filter(key => regex.test(key));
-        matchList.forEach(matchItem => {
-          if (!this.definedEntriesInCurrentFile.some(item => item.nameInfo.name === matchItem)) {
-            const newEntry = { ...entry, nameInfo: { ...entry.nameInfo, text: matchItem, name: matchItem, id: matchItem } };
-            this.definedEntriesInCurrentFile.push(newEntry);
-          }
-        });
-      });
-      vscode.commands.executeCommand("setContext", "i18nMage.hasDefinedEntriesInFile", this.definedEntriesInCurrentFile.length > 0);
-      vscode.commands.executeCommand("setContext", "i18nMage.hasUndefinedEntriesInFile", this.undefinedEntriesInCurrentFile.length > 0);
     }
   }
 

@@ -45,7 +45,7 @@
   "config.i18nFeatures.auto": "Follow framework default",
   "config.i18nFeatures.singleBrackets": "Single braces (e.g. {name})",
   "config.i18nFeatures.doubleBrackets": "Double braces (e.g. {{name}})",
-  "config.defaultNamespace.desc": "Default namespace for frameworks like react-i18next. Used if no namespace is provided in t() calls.",
+  "config.defaultNamespace.desc": "Default namespace for frameworks like react-i18next",
   "config.namespaceSeparator.desc": "Separator between namespace and key",
   "config.matchExistingKey.desc": "On fix, missing keys are matched to existing entries in the reference language. If found, text is replaced with that key (priority over auto-translation)",
   "config.autoTranslateMissingKey.desc": "On fix, for undefined translation texts, the translation service is invoked to generate new entries and update the files",

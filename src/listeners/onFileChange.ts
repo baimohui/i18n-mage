@@ -9,7 +9,7 @@ export function registerOnFileChange() {
   const decorator = DecoratorController.getInstance();
   const diagnostics = Diagnostics.getInstance();
   const throttledHandler = throttle((event: vscode.TextDocumentChangeEvent) => {
-    ActiveEditorState.updateVisibleEntries(vscode.window.activeTextEditor);
+    ActiveEditorState.update(vscode.window.activeTextEditor);
     decorator.handleDocumentChange(event);
     diagnostics.update(event.document);
   }, 500);

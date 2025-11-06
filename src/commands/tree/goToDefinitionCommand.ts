@@ -13,7 +13,7 @@ export function registerGoToDefinitionCommand() {
     let target: { key: string; lang: string } | undefined = undefined;
     const dictionary = mage.langDetail.dictionary;
     if (e === undefined) {
-      const keyAtCursor = ActiveEditorState.getKeyAtCursor();
+      const keyAtCursor = ActiveEditorState.keyAtCursor;
       if (keyAtCursor) {
         target = { key: keyAtCursor, lang: publicCtx.referredLang };
       } else {

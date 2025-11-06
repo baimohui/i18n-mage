@@ -1,7 +1,7 @@
 import * as vscode from "vscode";
 import LangMage from "@/core/LangMage";
 import { treeInstance } from "@/views/tree";
-import { getValueByAmbiguousEntryName, catchTEntries, unescapeString, formatEscapeChar } from "@/utils/regex";
+import { getValueByAmbiguousEntryName, unescapeString, formatEscapeChar } from "@/utils/regex";
 import { getCacheConfig } from "@/utils/config";
 import { INLINE_HINTS_DISPLAY_MODE, InlineHintsDisplayMode } from "@/types";
 import { ActiveEditorState } from "@/utils/activeEditorState";
@@ -58,7 +58,7 @@ export class DecoratorController implements vscode.Disposable {
     const { tree, countryMap } = mage.langDetail;
     const translations = countryMap[treeInstance.displayLang];
     if (translations === undefined) return;
-    const entries = ActiveEditorState.getVisibleEntries();
+    const entries = ActiveEditorState.visibleEntries;
     const maxLen = getCacheConfig<number>("translationHints.maxLength");
     const enableLooseKeyMatch = getCacheConfig<boolean>("translationHints.enableLooseKeyMatch");
     const totalEntryList = Object.keys(mage.langDetail.dictionary).map(key => unescapeString(key));
@@ -91,14 +91,13 @@ export class DecoratorController implements vscode.Disposable {
 
   // 处理光标移动
   public handleCursorMove(event: vscode.TextEditorSelectionChangeEvent): void {
-    const editor = event.textEditor;
-    this.currentEditor = editor;
+    if (event.textEditor !== this.currentEditor) return;
     const cursorLine = event.selections[0].active.line;
     // 只有跨行移动时才更新（性能优化）
     if (cursorLine === this.lastCursorLine) return;
     this.lastCursorLine = cursorLine;
     // 更新装饰器状态
-    this.applyDecorations(editor);
+    this.applyDecorations(this.currentEditor);
   }
 
   // 文档变化处理
@@ -121,7 +120,7 @@ export class DecoratorController implements vscode.Disposable {
     }
     // 如果改动在可视区域内 或者包含换行/潜在 TEntry，触发更新
     const fullText = changedTextSnippets.join("\n");
-    if (affected || fullText.includes("\n") || catchTEntries(fullText).length > 0) {
+    if (affected || fullText.includes("\n") || ActiveEditorState.visibleEntries.length > 0) {
       this.update(editor);
     }
   }

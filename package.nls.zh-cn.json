@@ -45,7 +45,7 @@
   "config.i18nFeatures.auto": "跟随框架默认",
   "config.i18nFeatures.singleBrackets": "单层花括号（{name}）",
   "config.i18nFeatures.doubleBrackets": "双层花括号（{{name}}）",
-  "config.defaultNamespace.desc": "默认命名空间（用于 react-i18next 等框架）。t() 未指定时使用该命名空间",
+  "config.defaultNamespace.desc": "默认命名空间（用于 react-i18next 等框架）",
   "config.namespaceSeparator.desc": "命名空间与 key 的分隔符",
   "config.matchExistingKey.desc": "修复时，未定义词条将优先匹配翻译源语言中已存在的词条，若匹配则替换为对应 key（优先于自动翻译）",
   "config.autoTranslateMissingKey.desc": "修复时，将调用翻译服务对未定义词条文本生成新词条并更新文件",
