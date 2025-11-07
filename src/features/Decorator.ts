@@ -58,7 +58,9 @@ export class DecoratorController implements vscode.Disposable {
     const { tree, countryMap } = mage.langDetail;
     const translations = countryMap[treeInstance.displayLang];
     if (translations === undefined) return;
-    const entries = ActiveEditorState.visibleEntries;
+    const entries = Array.from(ActiveEditorState.definedEntries.values())
+      .flat()
+      .filter(item => item.visible);
     const maxLen = getCacheConfig<number>("translationHints.maxLength");
     const enableLooseKeyMatch = getCacheConfig<boolean>("translationHints.enableLooseKeyMatch");
     const totalEntryList = Object.keys(mage.langDetail.dictionary).map(key => unescapeString(key));
@@ -120,7 +122,13 @@ export class DecoratorController implements vscode.Disposable {
     }
     // 如果改动在可视区域内 或者包含换行/潜在 TEntry，触发更新
     const fullText = changedTextSnippets.join("\n");
-    if (affected || fullText.includes("\n") || ActiveEditorState.visibleEntries.length > 0) {
+    if (
+      affected ||
+      fullText.includes("\n") ||
+      Array.from(ActiveEditorState.definedEntries.values())
+        .flat()
+        .some(item => item.visible)
+    ) {
       this.update(editor);
     }
   }

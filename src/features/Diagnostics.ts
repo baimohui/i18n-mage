@@ -28,7 +28,8 @@ export class Diagnostics {
       return;
     }
     const diagnostics: vscode.Diagnostic[] = [];
-    for (const entry of ActiveEditorState.undefinedEntries) {
+    const undefinedEntries = Array.from(ActiveEditorState.undefinedEntries.values()).flat();
+    for (const entry of undefinedEntries) {
       const [startPos, endPos] = entry.pos.split(",").map(pos => document.positionAt(+pos));
       const range = new vscode.Range(startPos, endPos);
       const diagnostic = new vscode.Diagnostic(

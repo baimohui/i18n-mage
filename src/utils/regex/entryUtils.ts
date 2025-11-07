@@ -3,8 +3,19 @@ import { escapeRegExp } from "./stringUtils";
 import { getValueByAmbiguousEntryName } from "./treeUtils";
 import { getCacheConfig } from "../config";
 
-export function catchPossibleEntries(fileContent: string, entryTree: EntryTree, fileName: string): PEntry[] {
-  const regex = /(["'`])(?:\\[\s\S]|(?!\1)[^\\])*?\1/g;
+export function catchLiteralEntries(fileContent: string, entryTree: EntryTree, fileName: string): PEntry[] {
+  // const regex = /(["'`])(?:\\[\s\S]|(?!\1)[^\\])*?\1/g;
+  // 匹配普通字符串，但前面不能是 `t(`、`tc(`、等国际化函数调用
+  const tFuncNames = getCacheConfig<string[]>("i18nFeatures.translationFunctionNames", []);
+  const framework = getCacheConfig<I18nFramework>("i18nFeatures.framework", I18N_FRAMEWORK.none);
+  if (!tFuncNames.length) tFuncNames.push("t");
+  if (framework === I18N_FRAMEWORK.vueI18n) {
+    ["t", "tc"].forEach(name => {
+      if (!tFuncNames.includes(name)) tFuncNames.push(name);
+    });
+  }
+  const funcNamePattern = tFuncNames.map(fn => `\\b${fn}\\b`).join("|");
+  const regex = new RegExp(`(?!\\b(?:${funcNamePattern})\\s*\\()(["'\`])(?:\\\\[\\s\\S]|(?!\\1)[^\\\\])*?\\1`, "g");
   let res: RegExpExecArray | null = null;
   const entryInfoList: PEntry[] = [];
   while ((res = regex.exec(fileContent)) !== null) {

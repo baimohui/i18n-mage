@@ -3,7 +3,7 @@ import path from "path";
 import { EntryClassTreeItem, EntryNode, I18N_FRAMEWORK, LangContextInternal, NAMESPACE_STRATEGY, NamespaceStrategy } from "@/types";
 import {
   catchTEntries,
-  catchPossibleEntries,
+  catchLiteralEntries,
   extractLangDataFromDir,
   getValueByAmbiguousEntryName,
   flattenNestedObj,
@@ -74,7 +74,7 @@ export class ReadHandler {
       const tItems = catchTEntries(fileContent);
       let usedEntryList: { name: string; pos: string }[] = [];
       if (this.ctx.scanStringLiterals) {
-        const existedItems = catchPossibleEntries(fileContent, this.ctx.entryTree, path.basename(filePath));
+        const existedItems = catchLiteralEntries(fileContent, this.ctx.entryTree, path.basename(filePath));
         usedEntryList = existedItems.slice();
       }
       for (const item of tItems) {
