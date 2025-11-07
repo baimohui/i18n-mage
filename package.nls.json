@@ -26,7 +26,7 @@
   "config.langAliasCustomMappings.desc": "Custom language alias mapping (format: { 'language_code': ['alias1', 'alias2'] }), where language codes follow Google Translate's country/region code standard",
   "config.translationHints.title": "Inline Translation Hints",
   "config.translateHintsEnabled.desc": "Enable inline translation hints",
-  "config.translateHintsEnableLooseKeyMatch.desc": "Enable fuzzy match for dynamic keys (e.g. t(`prefix.${key}.suffix`)). If multiple results match, only the first is shown",
+  "config.translateHintsEnableLooseKeyMatch.desc": "Enable fuzzy match for dynamic keys (e.g. t(`prefix.${key}.suffix`))",
   "config.translateHintsMaxLength.desc": "Max characters for inline hints",
   "config.translateHintsFontColorInLight.desc": "Text color in light theme (hex)",
   "config.translateHintsBackgroundColorInLight.desc": "Background color in light theme (hex)",

@@ -1,7 +1,7 @@
 import * as vscode from "vscode";
 import LangMage from "@/core/LangMage";
 import { treeInstance } from "@/views/tree";
-import { getValueByAmbiguousEntryName, unescapeString, formatEscapeChar } from "@/utils/regex";
+import { getValueByAmbiguousEntryName, formatEscapeChar } from "@/utils/regex";
 import { getCacheConfig } from "@/utils/config";
 import { INLINE_HINTS_DISPLAY_MODE, InlineHintsDisplayMode } from "@/types";
 import { ActiveEditorState } from "@/utils/activeEditorState";
@@ -63,7 +63,7 @@ export class DecoratorController implements vscode.Disposable {
       .filter(item => item.visible);
     const maxLen = getCacheConfig<number>("translationHints.maxLength");
     const enableLooseKeyMatch = getCacheConfig<boolean>("translationHints.enableLooseKeyMatch");
-    const totalEntryList = Object.keys(mage.langDetail.dictionary).map(key => unescapeString(key));
+    const dynamicMatchInfo = ActiveEditorState.dynamicMatchInfo;
     entries.forEach(entry => {
       let [startPos, endPos] = entry.pos.split(",").map(Number);
       startPos++;
@@ -71,14 +71,13 @@ export class DecoratorController implements vscode.Disposable {
       const entryKey = getValueByAmbiguousEntryName(tree, entry.nameInfo.name);
       let entryValue = translations[entryKey as string];
       let isLooseMatch = false;
-      if (entryValue === undefined) {
-        if (!enableLooseKeyMatch || entry.nameInfo.vars.length === 0) return;
-        const matchedEntryName = totalEntryList.find(entryName => entry.nameInfo.regex.test(entryName)) ?? "";
-        const matchedEntryKey = getValueByAmbiguousEntryName(tree, matchedEntryName);
-        if (matchedEntryKey === undefined) return;
+      if (entry.dynamic && dynamicMatchInfo.has(entry.nameInfo.name)) {
+        if (!enableLooseKeyMatch) return;
         isLooseMatch = true;
-        entryValue = translations[matchedEntryKey];
+        const matchedKeys = dynamicMatchInfo.get(entry.nameInfo.name) || [];
+        entryValue = matchedKeys.map(key => translations[key]).join(" | ");
       }
+      if (!entryValue) return;
       const uniqueId = `${startPos}:${entry.nameInfo.name}`;
       const formattedEntryValue = this.formatEntryValue(entryValue, maxLen);
       this.currentDecorations.set(uniqueId, {

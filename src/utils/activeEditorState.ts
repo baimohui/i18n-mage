@@ -116,7 +116,7 @@ export class ActiveEditorState {
     this.keyAtCursor = keyAtCursor ?? "";
   }
 
-  static getEntryAtPosition(document: vscode.TextDocument, position: vscode.Position): TEntry | undefined {
+  static getEntryAtPosition(document: vscode.TextDocument, position: vscode.Position): DefinedEntryInEditor | undefined {
     for (const entries of this.definedEntries.values()) {
       const entry = entries.find(item => {
         const [startPos, endPos] = item.pos.split(",").map(pos => document.positionAt(+pos - 1));
