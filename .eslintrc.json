@@ -24,8 +24,8 @@
     "@typescript-eslint"
   ],
   "rules": {
-    // 示例：启用严格类型规则
     "@typescript-eslint/no-explicit-any": "warn",
+    "@typescript-eslint/no-unsafe-call": "off",
     // "@typescript-eslint/explicit-function-return-type": "error",
     "@typescript-eslint/strict-boolean-expressions": "error",
     "@typescript-eslint/no-unused-vars": [

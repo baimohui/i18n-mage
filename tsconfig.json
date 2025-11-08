@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "module": "commonjs",
+    "module": "nodenext",
     "target": "ES2022",
     "outDir": "dist",
     "rootDir": "",
@@ -11,7 +11,7 @@
     "allowJs": true,
     "checkJs": true,
     "esModuleInterop": true,
-    "moduleResolution": "node",
+    "moduleResolution": "nodenext",
     "resolveJsonModule": true,
     "jsx": "react-jsx",
     "jsxImportSource": "preact",

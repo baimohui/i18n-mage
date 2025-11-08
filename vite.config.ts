@@ -1,14 +1,17 @@
 import { defineConfig } from "vite";
 import preact from "@preact/preset-vite";
 import { resolve } from "path";
+import tailwindcss from "@tailwindcss/vite";
 
 export default defineConfig(({ mode }) => {
   const isDev = mode === "development";
 
   return {
-    plugins: [preact()],
+    plugins: [preact(), tailwindcss()],
     resolve: {
       alias: {
+        react: "preact/compat",
+        "react-dom": "preact/compat",
         "@": resolve(__dirname, "src"),
         "@utils": resolve(__dirname, "src/utils")
       }
