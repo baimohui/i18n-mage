@@ -1,9 +1,10 @@
 import * as vscode from "vscode";
-import { catchLiteralEntries, catchTEntries, isValidI18nCallablePath } from "./regex";
+import { catchLiteralEntries, catchTEntries, getValueByAmbiguousEntryName, isValidI18nCallablePath } from "./regex";
 import LangMage from "@/core/LangMage";
 import { getCacheConfig } from "./config";
 import path from "path";
 import { TEntry } from "@/types";
+import { CodeLensProvider } from "@/features/CodeLensProvider";
 
 export type DefinedEntryInEditor = TEntry & { visible: boolean; funcCall: boolean; dynamic: boolean };
 export type UndefinedEntryInEditor = TEntry & { visible: boolean };
@@ -24,14 +25,15 @@ export class ActiveEditorState {
       const text = editor.document.getText();
       const entries = catchTEntries(text);
       const publicCtx = mage.getPublicContext();
-      const { used: usedEntryMap, undefined: undefinedEntryMap } = mage.langDetail;
+      const { used: usedEntryMap, tree } = mage.langDetail;
       const usedEntryNames = Object.keys(usedEntryMap);
       for (const entry of entries) {
         const [startPos, endPos] = entry.pos.split(",").map(pos => editor.document.positionAt(+pos - 1));
         const range = new vscode.Range(startPos, endPos);
         const visible = editor.visibleRanges.some(vr => vr.intersection(range));
-        const { regex, name, text } = entry.nameInfo;
-        if (Object.hasOwn(undefinedEntryMap, text) && !publicCtx.ignoredUndefinedEntries.includes(name)) {
+        const { regex, name } = entry.nameInfo;
+        const key = getValueByAmbiguousEntryName(tree, name);
+        if (key === undefined && !publicCtx.ignoredUndefinedEntries.includes(name)) {
           this.setUndefinedEntry(name, { ...entry, visible });
           continue;
         }
@@ -75,6 +77,8 @@ export class ActiveEditorState {
           [...this.definedEntries.entries()].sort((a, b) => +a[1][0].pos.split(",")[0] - +b[1][0].pos.split(",")[0])
         );
       }
+      const codeLensProvider = new CodeLensProvider();
+      setTimeout(() => codeLensProvider.refresh(), 0);
     }
     vscode.commands.executeCommand("setContext", "i18nMage.hasDefinedEntriesInFile", this.definedEntries.size > 0);
     vscode.commands.executeCommand("setContext", "i18nMage.hasUndefinedEntriesInFile", this.undefinedEntries.size > 0);

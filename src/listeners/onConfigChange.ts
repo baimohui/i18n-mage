@@ -19,9 +19,17 @@ export function registerOnConfigChange() {
           const key = `${type}.${name}`;
           if (event.affectsConfiguration(`i18n-mage.${key}`)) {
             clearConfigCache(key);
-            if (["i18nFeatures.namespaceStrategy", "analysis.syncBasedOnReferredEntries", "analysis.scanStringLiterals"].includes(key)) {
-              vscode.commands.executeCommand("i18nMage.checkUsage");
-            } else if (["general.fileExtensions", "analysis.fileSizeSkipThresholdKB", "analysis.ignoreCommentedCode"].includes(key)) {
+            if (
+              [
+                "i18nFeatures.namespaceStrategy",
+                "analysis.syncBasedOnReferredEntries",
+                "analysis.scanStringLiterals",
+                "general.fileExtensions",
+                "analysis.fileSizeSkipThresholdKB",
+                "analysis.ignoreCommentedCode",
+                "workspace.ignoredUndefinedEntries"
+              ].includes(key)
+            ) {
               vscode.commands.executeCommand("i18nMage.checkUsage");
             } else if (
               [

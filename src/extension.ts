@@ -11,6 +11,7 @@ import { HoverProvider } from "./features/HoverProvider";
 import { I18nCompletionProvider } from "./features/I18nCompletionProvider";
 import { registerDisposable } from "@/utils/dispose";
 import { StatusBarItemManager } from "./features/StatusBarItemManager";
+import { CodeLensProvider } from "./features/CodeLensProvider";
 
 // 全局状态管理
 class ExtensionState {
@@ -56,21 +57,15 @@ class ExtensionState {
     registerAllCommands(this._context);
     registerAllListeners();
     registerDisposable(vscode.languages.registerHoverProvider("*", new HoverProvider()));
-    registerDisposable(
-      vscode.languages.registerCompletionItemProvider(
-        [
-          { language: "javascript", scheme: "file" },
-          { language: "typescript", scheme: "file" },
-          { language: "vue", scheme: "file" },
-          { language: "javascriptreact", scheme: "file" },
-          { language: "typescriptreact", scheme: "file" }
-        ],
-        new I18nCompletionProvider(),
-        '"',
-        "'",
-        "`"
-      )
-    );
+    const selector = [
+      { language: "javascript", scheme: "file" },
+      { language: "typescript", scheme: "file" },
+      { language: "vue", scheme: "file" },
+      { language: "javascriptreact", scheme: "file" },
+      { language: "typescriptreact", scheme: "file" }
+    ];
+    registerDisposable(vscode.languages.registerCompletionItemProvider(selector, new I18nCompletionProvider(), '"', "'", "`"));
+    registerDisposable(vscode.languages.registerCodeLensProvider(selector, new CodeLensProvider()));
     const statusBarItemManager = StatusBarItemManager.getInstance();
     statusBarItemManager.createStatusBarItem();
     registerDisposable(statusBarItemManager);
