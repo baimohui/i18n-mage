@@ -242,7 +242,7 @@ export function getEntryNameInfoByForm(nameForm: { type: TEntryPartType; value: 
       entryReg = entryReg.includes(":") ? entryReg.replace(":", "\\.") : defaultNamespace ? `${defaultNamespace}\\.${entryReg}` : entryReg;
     }
   } else if (framework === I18N_FRAMEWORK.vueI18n) {
-    entryReg = entryReg.replace(/\\\[([^\]]+)\\\]/g, ".*");
+    entryReg = entryReg.replace(/\\\[([^\]]+)\\\]/g, "\\.\\d+");
   }
   return {
     text: entryText,

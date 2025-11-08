@@ -46,8 +46,8 @@ export class ActiveEditorState {
         }
       }
 
-      const applyToStringLiterals = getCacheConfig<boolean>("translationHints.applyToStringLiterals");
-      if (applyToStringLiterals) {
+      const scanStringLiterals = getCacheConfig<boolean>("analysis.scanStringLiterals");
+      if (scanStringLiterals) {
         const literalEntries = catchLiteralEntries(text, mage.langDetail.tree, path.basename(filePath));
         literalEntries.forEach(entry => {
           const [startPos, endPos] = entry.pos.split(",").map(pos => editor.document.positionAt(+pos - 1));
@@ -71,6 +71,9 @@ export class ActiveEditorState {
           };
           this.setDefinedEntry(entry.name, literalEntry);
         });
+        this.definedEntries = new Map(
+          [...this.definedEntries.entries()].sort((a, b) => +a[1][0].pos.split(",")[0] - +b[1][0].pos.split(",")[0])
+        );
       }
     }
     vscode.commands.executeCommand("setContext", "i18nMage.hasDefinedEntriesInFile", this.definedEntries.size > 0);
@@ -82,6 +85,7 @@ export class ActiveEditorState {
   private static setDefinedEntry(name: string, entry: DefinedEntryInEditor) {
     if (this.definedEntries.has(name)) {
       this.definedEntries.get(name)?.push(entry);
+      this.definedEntries.get(name)?.sort((a, b) => +a.pos.split(",")[0] - +b.pos.split(",")[0]);
     } else {
       this.definedEntries.set(name, [entry]);
     }

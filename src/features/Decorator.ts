@@ -64,7 +64,9 @@ export class DecoratorController implements vscode.Disposable {
     const maxLen = getCacheConfig<number>("translationHints.maxLength");
     const enableLooseKeyMatch = getCacheConfig<boolean>("translationHints.enableLooseKeyMatch");
     const dynamicMatchInfo = ActiveEditorState.dynamicMatchInfo;
+    const applyToStringLiterals = getCacheConfig<boolean>("translationHints.applyToStringLiterals");
     entries.forEach(entry => {
+      if (!applyToStringLiterals && !entry.funcCall) return;
       let [startPos, endPos] = entry.pos.split(",").map(Number);
       startPos++;
       endPos--;
