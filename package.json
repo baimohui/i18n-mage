@@ -1095,28 +1095,42 @@
         "command": "i18nMage.toggleInlineTranslation",
         "category": "%extension.name%",
         "title": "%command.toggleInlineTranslation.title%"
+      },
+      {
+        "command": "i18nMage.browseTranslationsInFile",
+        "category": "%extension.name%",
+        "title": "%command.browseTranslationsInFile.title%"
       }
     ],
     "keybindings": [
       {
         "command": "i18nMage.toggleInlineTranslation",
         "key": "ctrl+alt+d",
+        "mac": "cmd+alt+d",
         "when": "i18nMage.enabled && i18nMage.hasValidLangPath && editorTextFocus"
       },
       {
         "command": "i18nMage.checkUsage",
         "key": "ctrl+alt+c",
+        "mac": "cmd+alt+c",
         "when": "workspaceFolderCount != 0 && i18nMage.enabled"
       },
       {
         "command": "i18nMage.fix",
         "key": "ctrl+alt+f",
+        "mac": "cmd+alt+f",
         "when": "i18nMage.enabled && i18nMage.hasValidLangPath"
       },
       {
         "command": "i18nMage.goToDefinition",
         "key": "f12",
         "when": "i18nMage.enabled && i18nMage.hasValidLangPath && editorTextFocus && i18nMage.inKey"
+      },
+      {
+        "command": "i18nMage.browseTranslationsInFile",
+        "key": "ctrl+alt+t",
+        "mac": "cmd+alt+t",
+        "when": "i18nMage.enabled && i18nMage.hasValidLangPath && i18nMage.hasDefinedEntriesInFile"
       }
     ],
     "menus": {
@@ -1259,9 +1273,14 @@
       ],
       "editor/context": [
         {
-          "command": "i18nMage.copyKeyValue",
+          "command": "i18nMage.browseTranslationsInFile",
           "when": "i18nMage.hasDefinedEntriesInFile",
           "group": "2_i18n@1"
+        },
+        {
+          "command": "i18nMage.copyKeyValue",
+          "when": "i18nMage.hasDefinedEntriesInFile",
+          "group": "2_i18n@2"
         },
         {
           "command": "i18nMage.fixUndefinedEntries",

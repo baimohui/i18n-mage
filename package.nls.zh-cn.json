@@ -174,5 +174,6 @@
   "command.feedback.title": "反馈",
   "command.fixUndefinedEntries.title": "提取未定义文案",
   "command.fillMissingTranslations.title": "填充缺失翻译",
+  "command.browseTranslationsInFile.title": "浏览文件翻译",
   "view.welcome.title": "未检测到翻译文件目录\n[选择翻译文件目录](command:i18nMage.selectLangPath)"
 }

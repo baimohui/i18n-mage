@@ -174,5 +174,6 @@
   "command.feedback.title": "Feedback",
   "command.fixUndefinedEntries.title": "Extract Undefined Text",
   "command.fillMissingTranslations.title": "Fill Missing Translations",
+  "command.browseTranslationsInFile.title": "Browse Translations in File",
   "view.welcome.title": "No translation directory detected\n[Select translation directory](command:i18nMage.selectLangPath)"
 }

@@ -15,8 +15,8 @@ import { registerFixCommand } from "./fix/fixCommand";
 import { registerSortCommand } from "./fix/sortCommand";
 import { registerExportCommand } from "./importExport/exportCommand";
 import { registerImportCommand } from "./importExport/importCommand";
-import { registerGoToDefinitionCommand } from "./tree/goToDefinitionCommand";
-import { registerGoToReferenceCommand } from "./tree/goToReferenceCommand";
+import { registerGoToDefinitionCommand } from "./search/goToDefinitionCommand";
+import { registerGoToReferenceCommand } from "./search/goToReferenceCommand";
 import { registerIgnoreFileCommand } from "./ignore/ignoreFileCommand";
 import { registerSetDisplayLangCommand } from "./config/setDisplayLangCommand";
 import { registerIgnoreDirectoryCommand } from "./ignore/ignoreDirectoryCommand";
@@ -29,6 +29,7 @@ import { registerFeedbackCommand } from "./guide/feedbackCommand";
 import { registerOpenSettingsCommand } from "./guide/openSettingsCommand";
 import { registerOpenDocsCommand } from "./guide/openDocsCommand";
 import { registerStarCommand } from "./guide/starCommand";
+import { registerBrowseTranslationsInFileCommand } from "./search/browseTranslationsInFile";
 
 export function registerAllCommands(context: vscode.ExtensionContext) {
   registerCheckUsageCommand();
@@ -61,4 +62,5 @@ export function registerAllCommands(context: vscode.ExtensionContext) {
   registerOpenDocsCommand();
   registerOpenSettingsCommand();
   registerStarCommand();
+  registerBrowseTranslationsInFileCommand();
 }
