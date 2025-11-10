@@ -30,7 +30,6 @@ export function registerFixCommand(context: vscode.ExtensionContext) {
     }
     setTimeout(() => {
       treeInstance.isSyncing = false;
-      vscode.commands.executeCommand("workbench.view.extension.i18nMage");
       treeInstance.refresh();
       res.defaultSuccessMessage = t("command.rewrite.success");
       NotificationManager.showResult(res);
