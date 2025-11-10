@@ -32,11 +32,6 @@ export class ActiveEditorState {
         const range = new vscode.Range(startPos, endPos);
         const visible = editor.visibleRanges.some(vr => vr.intersection(range));
         const { regex, name } = entry.nameInfo;
-        const key = getValueByAmbiguousEntryName(tree, name);
-        if (key === undefined && !publicCtx.ignoredUndefinedEntries.includes(name)) {
-          this.setUndefinedEntry(name, { ...entry, visible });
-          continue;
-        }
         if (Object.hasOwn(usedEntryMap, name)) {
           this.setDefinedEntry(name, { ...entry, visible, funcCall: true, dynamic: false });
           continue;
@@ -45,6 +40,11 @@ export class ActiveEditorState {
         if (matchKeys.length > 0) {
           this.setDefinedEntry(name, { ...entry, visible, funcCall: true, dynamic: true });
           this.dynamicMatchInfo.set(name, matchKeys);
+          continue;
+        }
+        const key = getValueByAmbiguousEntryName(tree, name);
+        if (key === undefined && !publicCtx.ignoredUndefinedEntries.includes(name)) {
+          this.setUndefinedEntry(name, { ...entry, visible });
         }
       }
 
