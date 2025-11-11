@@ -4,6 +4,22 @@ All notable changes to the i18n Mage VS Code extension will be documented in thi
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.5] - 2025-11-11
+
+### Added
+- **Smart Key Value Navigation**: Pressing F12 on translation keys now directly navigates to corresponding key locations in source language files for quick definition lookup.
+- **Enhanced Dynamic Entry Display**: Improved dynamic concatenated entry presentation, showing all matched translations (separated by " | ") and supporting hover information for complete key overview.
+- **CodeLens Quick Actions**: Added CodeLens buttons for undefined entries in current files, enabling one-click extraction as new entries or ignore operations.
+- **Quick Translation Preview**: Introduced QuickSelect feature to browse all entry translations in current file, with direct navigation to usage locations (via right-click menu or Ctrl+Alt+T).
+- **Cross-platform Shortcut Support**: Added Command key shortcuts for Mac users, enhancing cross-platform usability.
+
+### Improved
+- **Refined Variable Detection**: Adjusted variable identification rules - all-uppercase letters no longer misidentified as variables, while underscore-connected words are correctly recognized.
+- **String Literal Visualization**: With "Scan String Literals" enabled, the "Defined" section in sidebar's "Current File" panel now displays all potential entry information.
+
+### Fixed
+- **Extraction Scope Isolation**: Resolved scope confusion where global missing translation operations incorrectly appeared during individual undefined text extraction.
+
 ## [1.1.4] - 2025-10-31
 
 ### Improved
