@@ -118,8 +118,9 @@ export class ActiveEditorState {
 
   static updateKeyAtCursor(editor?: vscode.TextEditor) {
     if (!editor) return;
+    const mage = LangMage.getInstance();
     const entry = this.getEntryAtPosition(editor.document, editor.selection.active);
-    const keyAtCursor = entry ? entry.nameInfo.name : "";
+    const keyAtCursor = entry ? (getValueByAmbiguousEntryName(mage.langDetail.tree, entry.nameInfo.name) ?? "") : "";
     vscode.commands.executeCommand("setContext", "i18nMage.inKey", !!keyAtCursor);
     this.keyAtCursor = keyAtCursor ?? "";
   }
