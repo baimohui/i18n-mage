@@ -1,6 +1,14 @@
 import fs from "fs";
 import path from "path";
-import { EntryClassTreeItem, EntryNode, I18N_FRAMEWORK, LangContextInternal, NAMESPACE_STRATEGY, NamespaceStrategy } from "@/types";
+import {
+  DirNode,
+  EntryClassTreeItem,
+  EntryNode,
+  I18N_FRAMEWORK,
+  LangContextInternal,
+  NAMESPACE_STRATEGY,
+  NamespaceStrategy
+} from "@/types";
 import {
   catchTEntries,
   catchLiteralEntries,
@@ -10,7 +18,8 @@ import {
   escapeString,
   unescapeString,
   isValidI18nCallablePath,
-  stripLanguageLayer
+  stripLanguageLayer,
+  getCommonFilePaths
 } from "@/utils/regex";
 import { EntryTree, LangDictionary, LangTree } from "@/types";
 import { isFileTooLarge } from "@/utils/fs";
@@ -51,7 +60,7 @@ export class ReadHandler {
     this.ctx.langDictionary = lookup;
     if (this.ctx.nestedLocale > 0) {
       this.ctx.nameSeparator = ".";
-      this.buildEntryClassTree(langData.langTree, fileNestedLevelOffset, this.ctx.multiFileMode);
+      this.buildEntryClassTree(langData.langTree, this.ctx.fileStructure, this.ctx.namespaceStrategy);
     } else {
       const entryNameList = Object.keys(lookup);
       this.ctx.nameSeparator = this.detectCommonSeparator(entryNameList);
@@ -188,15 +197,26 @@ export class ReadHandler {
     return { structure, lookup };
   }
 
-  private buildEntryClassTree(langTree: LangTree, fileNestedLevelOffset: number, multiFileMode: number) {
+  private buildEntryClassTree(langTree: LangTree, fileStructure: DirNode | null, namespaceStrategy: NamespaceStrategy) {
     const ignoredLangs = this.ctx.ignoredLangs;
+    const commonFilePaths = getCommonFilePaths(fileStructure);
     const setAtPath = (path: string[], isEmpty = false): void => {
-      const filePos = path.slice(0, multiFileMode).join(".");
+      const fileSegs = commonFilePaths
+        .map(item => item.split("/"))
+        .find(fileSegs => path.slice(0, fileSegs.length).every((seg, index) => seg === fileSegs[index]));
+      if (fileSegs === undefined) return;
+      const filePos = fileSegs.join(".");
       if (this.ctx.entryClassTree.find(item => item.filePos === filePos) === undefined) {
         this.ctx.entryClassTree.push({ filePos, data: {} });
       }
       let entryClassTreeItem = this.ctx.entryClassTree.find(item => item.filePos === filePos)!.data;
-      const entryClassTreePath = path.slice(multiFileMode - fileNestedLevelOffset);
+      let fileNestedLevelOffset = 0;
+      if (namespaceStrategy === NAMESPACE_STRATEGY.none) {
+        fileNestedLevelOffset = fileSegs.length;
+      } else if (namespaceStrategy === NAMESPACE_STRATEGY.file) {
+        fileNestedLevelOffset = fileSegs.length - 1;
+      }
+      const entryClassTreePath = path.slice(fileNestedLevelOffset);
       for (let i = 0; i < entryClassTreePath.length - 1; i++) {
         const key = entryClassTreePath[i];
         if (!Object.hasOwn(entryClassTreeItem, key) || typeof entryClassTreeItem[key] !== "object") {
