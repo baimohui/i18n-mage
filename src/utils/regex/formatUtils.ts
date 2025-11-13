@@ -3,7 +3,8 @@ import * as vscode from "vscode";
 import { getLangCode } from "@/utils/langKey";
 import { EntryTree, FileExtraInfo } from "@/types";
 import { unescapeString } from "./stringUtils";
-import { flattenNestedObj } from "./fileUtils";
+import { expandDotKeys, flattenNestedObj } from "./fileUtils";
+import { getCacheConfig } from "../config";
 
 /**
  * 获取当前编辑器最准确的换行符
@@ -165,7 +166,12 @@ export function formatObjectToString(tree: EntryTree, filePath: string, extraInf
   if (fileType !== "json" && innerVar) {
     output.push(`${indents}${innerVar}`);
   }
-  const formattedObj = formatObject(isFlat ? flattenNestedObj(tree) : tree);
+  if (isFlat) {
+    tree = flattenNestedObj(tree);
+  } else if (!getCacheConfig<boolean>("i18nFeatures.allowDotInNestedKey", true)) {
+    tree = expandDotKeys(tree);
+  }
+  const formattedObj = formatObject(tree);
   if (formattedObj) {
     output.push(formattedObj);
   }

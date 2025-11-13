@@ -159,6 +159,12 @@
             "default": "auto",
             "description": "%config.languageStructure.desc%"
           },
+          "i18n-mage.i18nFeatures.allowDotInNestedKey": {
+            "order": 6,
+            "type": "boolean",
+            "default": true,
+            "description": "%config.allowDotInNestedKey.desc%"
+          },
           "i18n-mage.i18nFeatures.namespaceStrategy": {
             "order": 7,
             "enum": [

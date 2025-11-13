@@ -146,6 +146,7 @@
   "config.languageStructure.desc": "Choose language structure",
   "config.languageStructure.nested": "Nested structure",
   "config.languageStructure.flat": "Flat structure",
+  "config.allowDotInNestedKey.desc": "Allow dot in nested key",
   "command.setReferredLang.title": "Set as Source Language",
   "command.setDisplayLang.title": "Set as Display Language",
   "command.markAsKnownLang.title": "Mark as Known Language",

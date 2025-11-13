@@ -293,6 +293,26 @@ export function flattenNestedObj(obj: EntryTree | string[], className = ""): Ent
   return result;
 }
 
+export function expandDotKeys(obj: EntryTree | string[] | string) {
+  if (Array.isArray(obj)) return obj;
+  if (typeof obj !== "object" || obj === null) return obj;
+  const result = {};
+  for (const [key, value] of Object.entries(obj)) {
+    const parts = key.split(".");
+    let current = result;
+    for (let i = 0; i < parts.length; i++) {
+      const part = parts[i];
+      if (i === parts.length - 1) {
+        current[part] = expandDotKeys(value);
+      } else {
+        current[part] ??= {};
+        current = current[part] as EntryTree;
+      }
+    }
+  }
+  return result;
+}
+
 export interface ExtractResult {
   fileType: string; // 最终使用的文件后缀
   langTree: LangTree; // 语言数据树

@@ -146,6 +146,7 @@
   "config.languageStructure.desc": "语言文件的结构",
   "config.languageStructure.nested": "嵌套结构",
   "config.languageStructure.flat": "扁平结构",
+  "config.allowDotInNestedKey.desc": "允许在嵌套结构的 key 中使用点号。当设置为 false 且启用嵌套结构时，遇到 \"a.b\" 形式的 key 将在写入时自动转换为 { a: { b: \"\" } }",
   "command.setReferredLang.title": "设为翻译源语言",
   "command.setDisplayLang.title": "设为显示语言",
   "command.markAsKnownLang.title": "标记为已知语言",
