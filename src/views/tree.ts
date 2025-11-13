@@ -300,9 +300,9 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
                 });
               }
             }
-            if (getCacheConfig("i18nFeatures.languageStructure") === LANGUAGE_STRUCTURE.auto) {
+            if (getCacheConfig("writeRules.languageStructure") === LANGUAGE_STRUCTURE.auto) {
               const isFlat = fileExtraData.every(item => item.isFlat);
-              setConfig("i18nFeatures.languageStructure", LANGUAGE_STRUCTURE[isFlat ? "flat" : "nested"]).catch(error => {
+              setConfig("writeRules.languageStructure", LANGUAGE_STRUCTURE[isFlat ? "flat" : "nested"]).catch(error => {
                 NotificationManager.logToOutput(`Failed to set config for languageStructure: ${error}`, "error");
               });
             }

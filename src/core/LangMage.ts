@@ -72,7 +72,7 @@ class LangMage {
           this.ctx.keyGenerationFillScope
         ),
         invalidKeyStrategy: getCacheConfig<InvalidKeyStrategy>("writeRules.invalidKeyStrategy", this.ctx.invalidKeyStrategy),
-        languageStructure: getCacheConfig<LanguageStructure>("i18nFeatures.languageStructure", this.ctx.languageStructure),
+        languageStructure: getCacheConfig<LanguageStructure>("writeRules.languageStructure", this.ctx.languageStructure),
         ...options
       };
       for (const [key, value] of Object.entries(combinedOptions)) {

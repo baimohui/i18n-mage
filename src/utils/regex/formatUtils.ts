@@ -168,7 +168,7 @@ export function formatObjectToString(tree: EntryTree, filePath: string, extraInf
   }
   if (isFlat) {
     tree = flattenNestedObj(tree);
-  } else if (!getCacheConfig<boolean>("i18nFeatures.allowDotInNestedKey", true)) {
+  } else if (!getCacheConfig<boolean>("writeRules.allowDotInNestedKey", true)) {
     tree = expandDotKeys(tree);
   }
   const formattedObj = formatObject(tree);
