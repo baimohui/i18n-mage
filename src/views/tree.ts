@@ -20,7 +20,8 @@ import {
   UNMATCHED_LANGUAGE_ACTION,
   UnmatchedLanguageAction,
   INDENT_TYPE,
-  I18nFramework
+  I18nFramework,
+  LANGUAGE_STRUCTURE
 } from "@/types";
 import { t } from "@/utils/i18n";
 import { NotificationManager } from "@/utils/notification";
@@ -245,7 +246,11 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
           vscode.commands.executeCommand("setContext", "i18nMage.hasValidLangPath", true);
           success = true;
           const sortMode = getCacheConfig<string>("writeRules.sortRule");
-          vscode.commands.executeCommand("setContext", "i18nMage.allowSort", this.langInfo.isFlat && sortMode !== SORT_MODE.None);
+          vscode.commands.executeCommand(
+            "setContext",
+            "i18nMage.allowSort",
+            this.langInfo.multiFileMode !== 0 && this.langInfo.languageStructure === LANGUAGE_STRUCTURE.flat && sortMode !== SORT_MODE.None
+          );
           this.publicCtx = this.#mage.getPublicContext();
           const langPath = toRelativePath(this.publicCtx.langPath);
           setTimeout(() => {
@@ -294,6 +299,12 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
                   NotificationManager.logToOutput(`Failed to set config for indentSize: ${error}`, "error");
                 });
               }
+            }
+            if (getCacheConfig("i18nFeatures.languageStructure") === LANGUAGE_STRUCTURE.auto) {
+              const isFlat = fileExtraData.every(item => item.isFlat);
+              setConfig("i18nFeatures.languageStructure", LANGUAGE_STRUCTURE[isFlat ? "flat" : "nested"]).catch(error => {
+                NotificationManager.logToOutput(`Failed to set config for languageStructure: ${error}`, "error");
+              });
             }
           }, 10000);
         }

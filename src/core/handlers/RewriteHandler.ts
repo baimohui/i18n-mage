@@ -1,6 +1,6 @@
 import fs from "fs";
 import path from "path";
-import { LangContextInternal, EntryTree, FileExtraInfo, INDENT_TYPE } from "@/types";
+import { LangContextInternal, EntryTree, FileExtraInfo, INDENT_TYPE, LANGUAGE_STRUCTURE } from "@/types";
 import {
   getFileLocationFromId,
   getContentAtLocation,
@@ -53,7 +53,7 @@ export class RewriteHandler {
           if (Array.isArray(filePos) && filePos.length > 0) updateInfo[lang].add(filePos.join("."));
         }
       }
-      if (rewriteAll && this.ctx.multiFileMode === 0 && this.ctx.nestedLocale === 0) {
+      if (rewriteAll && this.ctx.multiFileMode === 0 && this.ctx.languageStructure === LANGUAGE_STRUCTURE.flat) {
         for (const lang of this.detectedLangList) {
           updateInfo[lang] ??= new Set<string>();
           updateInfo[lang].add("");
@@ -95,7 +95,7 @@ export class RewriteHandler {
         }
       }
     };
-    if (this.ctx.multiFileMode === 0 && this.ctx.nestedLocale === 0) {
+    if (this.ctx.multiFileMode === 0 && this.ctx.languageStructure === LANGUAGE_STRUCTURE.flat) {
       langObj = translation;
     } else {
       const entryTree = getContentAtLocation(filePos, this.ctx.entryTree, this.ctx.langDictionary, this.ctx.namespaceStrategy);
@@ -110,7 +110,7 @@ export class RewriteHandler {
       innerVar: "",
       indentType: INDENT_TYPE.space,
       indentSize: 2,
-      nestedLevel: 1,
+      isFlat: true,
       keyQuotes: "double",
       valueQuotes: "double"
     };
@@ -133,6 +133,9 @@ export class RewriteHandler {
     }
     if (this.ctx.indentType !== INDENT_TYPE.auto) {
       extraInfo.indentType = this.ctx.indentType;
+    }
+    if (this.ctx.languageStructure !== LANGUAGE_STRUCTURE.auto) {
+      extraInfo.isFlat = this.ctx.languageStructure === LANGUAGE_STRUCTURE.flat;
     }
     const isFileExists = await checkPathExists(filePath);
     if (!isFileExists) {

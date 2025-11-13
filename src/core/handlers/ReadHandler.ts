@@ -6,6 +6,7 @@ import {
   EntryNode,
   I18N_FRAMEWORK,
   LangContextInternal,
+  LANGUAGE_STRUCTURE,
   NAMESPACE_STRATEGY,
   NamespaceStrategy
 } from "@/types";
@@ -39,26 +40,23 @@ export class ReadHandler {
     this.ctx.langFileType = langData.fileType;
     this.ctx.fileStructure = stripLanguageLayer(langData.fileStructure);
     this.ctx.multiFileMode = langData.fileNestedLevel;
-    let fileNestedLevelOffset = 0;
     if (this.ctx.multiFileMode > 0) {
       const { treeData, keyMap } = this.processLanguageData(langTree, this.ctx.namespaceStrategy);
       langTree = treeData;
       keyPathMap = keyMap;
-      if (this.ctx.namespaceStrategy === NAMESPACE_STRATEGY.full) {
-        fileNestedLevelOffset = this.ctx.multiFileMode;
-      } else if (this.ctx.namespaceStrategy === NAMESPACE_STRATEGY.file) {
-        fileNestedLevelOffset = 1;
-      }
     }
     Object.entries(langTree).forEach(([lang, tree]) => {
-      const { data, depth } = flattenNestedObj(tree);
-      this.ctx.langCountryMap[lang] = data;
-      this.ctx.nestedLocale = Math.max(this.ctx.nestedLocale, depth - fileNestedLevelOffset);
+      this.ctx.langCountryMap[lang] = flattenNestedObj(tree);
     });
     const { structure, lookup } = this.buildEntryTreeAndDictionary(langTree, keyPathMap);
     this.ctx.entryTree = structure;
     this.ctx.langDictionary = lookup;
-    if (this.ctx.nestedLocale > 0) {
+    if (this.ctx.languageStructure === LANGUAGE_STRUCTURE.auto) {
+      this.ctx.languageStructure = Object.values(this.ctx.langFileExtraInfo).every(info => info.isFlat)
+        ? LANGUAGE_STRUCTURE.flat
+        : LANGUAGE_STRUCTURE.nested;
+    }
+    if (this.ctx.languageStructure === LANGUAGE_STRUCTURE.nested) {
       this.ctx.nameSeparator = ".";
       this.buildEntryClassTree(langData.langTree, this.ctx.fileStructure, this.ctx.namespaceStrategy);
     } else {

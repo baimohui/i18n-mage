@@ -1,4 +1,4 @@
-import { INDENT_TYPE, INVALID_KEY_STRATEGY, KEY_GENERATION_FILL_SCOPE, KEY_STRATEGY, KEY_STYLE } from "@/types";
+import { INDENT_TYPE, INVALID_KEY_STRATEGY, KEY_GENERATION_FILL_SCOPE, KEY_STRATEGY, KEY_STYLE, LANGUAGE_STRUCTURE } from "@/types";
 import { LangContextInternal } from "@/types/context";
 
 export const createLangContext = (): LangContextInternal => ({
@@ -51,7 +51,6 @@ export const createLangContext = (): LangContextInternal => ({
   usedKeySet: new Set<string>(),
   unusedKeySet: new Set<string>(),
   multiFileMode: 0,
-  nestedLocale: 0,
   langFileExtraInfo: {},
   isVacant: true,
   entryTree: {},
@@ -66,5 +65,6 @@ export const createLangContext = (): LangContextInternal => ({
   trimKeyList: [],
   manuallyMarkedUsedEntries: [],
   ignoredUndefinedEntries: [],
-  nameSeparator: ""
+  nameSeparator: "",
+  languageStructure: LANGUAGE_STRUCTURE.auto
 });

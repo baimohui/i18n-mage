@@ -127,3 +127,11 @@ export const INVALID_KEY_STRATEGY = {
 } as const;
 
 export type InvalidKeyStrategy = (typeof INVALID_KEY_STRATEGY)[keyof typeof INVALID_KEY_STRATEGY];
+
+export const LANGUAGE_STRUCTURE = {
+  auto: "auto",
+  nested: "nested",
+  flat: "flat"
+} as const;
+
+export type LanguageStructure = (typeof LANGUAGE_STRUCTURE)[keyof typeof LANGUAGE_STRUCTURE];

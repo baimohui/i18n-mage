@@ -72,14 +72,15 @@ export function getLangFileInfo(filePath: string): LangFileInfo | null {
         }
       }
       if (tree === null) return null;
+      const isFlat = Object.keys(tree).every(key => typeof tree[key] !== "object");
       const extraInfo = {
         indentType: type,
         indentSize: size,
-        nestedLevel: 1,
         prefix,
         suffix,
         innerVar,
         keyQuotes,
+        isFlat,
         valueQuotes
       };
       NotificationManager.logToOutput(t("command.parseLangFile.success", JSON.stringify(extraInfo)), "info");
@@ -273,11 +274,9 @@ export function getNestedValues(obj: EntryTree | string[]): string[] {
   return values;
 }
 
-export function flattenNestedObj(obj: EntryTree | string[], className = ""): { data: EntryMap; depth: number } {
+export function flattenNestedObj(obj: EntryTree | string[], className = ""): EntryMap {
   const result: EntryMap = {};
-  let maxDepth = 0;
   const traverse = (node: EntryTree | string[], prefix: string, depth: number) => {
-    maxDepth = Math.max(maxDepth, depth);
     Object.keys(node).forEach(key => {
       if (key.trim() === "") return;
       const value = node[key] as EntryTree;
@@ -291,7 +290,7 @@ export function flattenNestedObj(obj: EntryTree | string[], className = ""): { d
     });
   };
   traverse(obj, className, 0);
-  return { data: result, depth: maxDepth };
+  return result;
 }
 
 export interface ExtractResult {

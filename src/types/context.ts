@@ -19,7 +19,8 @@ import {
   KeyStrategy,
   IndentType,
   I18nUpdatePayload,
-  InvalidKeyStrategy
+  InvalidKeyStrategy,
+  LanguageStructure
 } from "@/types";
 
 // 外部模块可访问的公共上下文
@@ -62,6 +63,7 @@ export interface LangContextPublic {
   missingEntryPath: string;
   fixQuery: FixQuery;
   invalidKeyStrategy: InvalidKeyStrategy;
+  languageStructure: LanguageStructure;
 }
 
 // 内部模块才能访问的完整上下文
@@ -78,7 +80,6 @@ export interface LangContextInternal extends LangContextPublic {
   usedKeySet: Set<string>;
   unusedKeySet: Set<string>;
   multiFileMode: number; // 0: 单文件模式，>0: 多文件模式
-  nestedLocale: number; // 嵌套的语言级别
   langFileExtraInfo: Record<string, FileExtraInfo>;
   isVacant: boolean;
   entryTree: EntryTree;

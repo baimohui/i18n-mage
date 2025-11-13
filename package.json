@@ -134,7 +134,7 @@
             ]
           },
           "i18n-mage.i18nFeatures.translationFunctionNames": {
-            "order": 5,
+            "order": 3,
             "type": "array",
             "default": [
               "t"
@@ -143,6 +143,21 @@
             "items": {
               "type": "string"
             }
+          },
+          "i18n-mage.i18nFeatures.languageStructure": {
+            "order": 5,
+            "enum": [
+              "auto",
+              "nested",
+              "flat"
+            ],
+            "enumDescriptions": [
+              "%config.option.auto%",
+              "%config.languageStructure.nested%",
+              "%config.languageStructure.flat%"
+            ],
+            "default": "auto",
+            "description": "%config.languageStructure.desc%"
           },
           "i18n-mage.i18nFeatures.namespaceStrategy": {
             "order": 7,

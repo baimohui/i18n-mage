@@ -5,6 +5,7 @@ import type {
   KeyGenerationFillScope,
   LangContextInternal,
   LangContextPublic,
+  LanguageStructure,
   NamespaceStrategy,
   QuoteStyle,
   SortMode
@@ -71,6 +72,7 @@ class LangMage {
           this.ctx.keyGenerationFillScope
         ),
         invalidKeyStrategy: getCacheConfig<InvalidKeyStrategy>("writeRules.invalidKeyStrategy", this.ctx.invalidKeyStrategy),
+        languageStructure: getCacheConfig<LanguageStructure>("i18nFeatures.languageStructure", this.ctx.languageStructure),
         ...options
       };
       for (const [key, value] of Object.entries(combinedOptions)) {
@@ -168,7 +170,8 @@ class LangMage {
       missingEntryFile: this.ctx.missingEntryFile,
       missingEntryPath: this.ctx.missingEntryPath,
       fixQuery: this.ctx.fixQuery,
-      invalidKeyStrategy: this.ctx.invalidKeyStrategy
+      invalidKeyStrategy: this.ctx.invalidKeyStrategy,
+      languageStructure: this.ctx.languageStructure
     };
   }
 
@@ -189,8 +192,7 @@ class LangMage {
       usedKeySet: this.ctx.usedKeySet,
       unusedKeySet: this.ctx.unusedKeySet,
       multiFileMode: this.ctx.multiFileMode,
-      nestedLocale: this.ctx.nestedLocale,
-      isFlat: this.ctx.multiFileMode === 0 && this.ctx.nestedLocale === 0,
+      languageStructure: this.ctx.languageStructure,
       tree: this.ctx.entryTree,
       classTree: this.ctx.entryClassTree,
       nameSeparator: this.ctx.nameSeparator,
@@ -257,7 +259,6 @@ class LangMage {
     this.ctx.usedKeySet = new Set();
     this.ctx.unusedKeySet = new Set();
     this.ctx.multiFileMode = 0;
-    this.ctx.nestedLocale = 0;
     this.ctx.isVacant = true;
     this.ctx.entryTree = {};
     this.ctx.updatePayloads = [];

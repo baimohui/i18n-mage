@@ -9,11 +9,11 @@ export type LangFileType = "js" | "ts" | "json" | "json5" | "mjs" | "cjs";
 export interface FileExtraInfo {
   indentType: IndentType;
   indentSize: number;
-  nestedLevel: number;
   prefix: string;
   suffix: string;
   innerVar: string;
   keyQuotes: QuoteStyle;
+  isFlat: boolean;
   valueQuotes: QuoteStyle;
 }
 export interface LangFileInfo {

@@ -6,6 +6,7 @@ import {
   KeyGenerationFillScope,
   KeyStrategy,
   KeyStyle,
+  LanguageStructure,
   NamespaceStrategy,
   QuoteStyle,
   SortMode
@@ -50,6 +51,7 @@ export interface LangMageOptions {
   missingEntryPath?: string;
   fixQuery?: FixQuery;
   invalidKeyStrategy?: InvalidKeyStrategy;
+  languageStructure?: LanguageStructure;
 }
 
 export const EXECUTION_RESULT_CODE = {
