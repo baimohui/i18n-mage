@@ -171,7 +171,20 @@ export class DecoratorController implements vscode.Disposable {
       const isOnCursorLine = globalStartPos.line <= cursorLine && globalEndPos.line >= cursorLine;
       if (isInline || isOnCursorLine) {
         if (isLooseMatch) {
-          globalEndPos = editor.document.positionAt(endPos - 1);
+          const document = editor.document;
+          const text = document.getText();
+          const searchStart = Math.max(startPos, 0);
+          const searchEnd = Math.min(endPos - 1, text.length - 1);
+          let quotePosition: number | null = null;
+          for (let i = searchEnd; i >= searchStart; i--) {
+            if (text[i] === '"' || text[i] === "'" || text[i] === "`") {
+              quotePosition = i;
+              break;
+            }
+          }
+          if (quotePosition !== null) {
+            globalEndPos = document.positionAt(quotePosition);
+          }
         }
         const range = new vscode.Range(globalEndPos, globalEndPos);
         const appendedDec = {

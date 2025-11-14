@@ -468,27 +468,6 @@
         "type": "object",
         "title": "%config.writeRules.title%",
         "properties": {
-          "i18n-mage.writeRules.languageStructure": {
-            "order": 5,
-            "enum": [
-              "auto",
-              "nested",
-              "flat"
-            ],
-            "enumDescriptions": [
-              "%config.option.auto%",
-              "%config.languageStructure.nested%",
-              "%config.languageStructure.flat%"
-            ],
-            "default": "auto",
-            "description": "%config.languageStructure.desc%"
-          },
-          "i18n-mage.writeRules.allowDotInNestedKey": {
-            "order": 6,
-            "type": "boolean",
-            "default": true,
-            "description": "%config.allowDotInNestedKey.desc%"
-          },
           "i18n-mage.writeRules.sortRule": {
             "order": 4,
             "type": "string",
@@ -510,6 +489,27 @@
             "type": "boolean",
             "default": false,
             "description": "%config.sorting.writeBehavior%"
+          },
+          "i18n-mage.writeRules.languageStructure": {
+            "order": 10,
+            "enum": [
+              "auto",
+              "nested",
+              "flat"
+            ],
+            "enumDescriptions": [
+              "%config.option.auto%",
+              "%config.languageStructure.nested%",
+              "%config.languageStructure.flat%"
+            ],
+            "default": "auto",
+            "description": "%config.languageStructure.desc%"
+          },
+          "i18n-mage.writeRules.allowDotInNestedKey": {
+            "order": 11,
+            "type": "boolean",
+            "default": true,
+            "description": "%config.allowDotInNestedKey.desc%"
           },
           "i18n-mage.writeRules.keyPrefix": {
             "order": 18,
