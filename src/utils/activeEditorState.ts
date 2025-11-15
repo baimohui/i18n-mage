@@ -4,7 +4,6 @@ import LangMage from "@/core/LangMage";
 import { getCacheConfig } from "./config";
 import path from "path";
 import { TEntry } from "@/types";
-import { CodeLensProvider } from "@/features/CodeLensProvider";
 
 export type DefinedEntryInEditor = TEntry & { visible: boolean; funcCall: boolean; dynamic: boolean };
 export type UndefinedEntryInEditor = TEntry & { visible: boolean };
@@ -77,8 +76,6 @@ export class ActiveEditorState {
           [...this.definedEntries.entries()].sort((a, b) => +a[1][0].pos.split(",")[0] - +b[1][0].pos.split(",")[0])
         );
       }
-      const codeLensProvider = new CodeLensProvider();
-      setTimeout(() => codeLensProvider.refresh(), 0);
     }
     vscode.commands.executeCommand("setContext", "i18nMage.hasDefinedEntriesInFile", this.definedEntries.size > 0);
     vscode.commands.executeCommand("setContext", "i18nMage.hasUndefinedEntriesInFile", this.undefinedEntries.size > 0);
