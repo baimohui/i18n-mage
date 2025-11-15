@@ -59,6 +59,7 @@
   "config.maxKeyLength.desc": "Max length for generated keys, overlength keys will use fallback strategy",
   "config.keyPrefix.desc": "Prefix for generated keys",
   "config.keyPrefix.auto-popular": "Use most common prefix",
+  "config.keyPrefix.auto-path": "Use directory path",
   "config.keyPrefix.none": "No prefix",
   "config.keyPrefix.manual-selection": "Manual selection",
   "config.writeRules.title": "Write Rules",

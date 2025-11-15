@@ -172,7 +172,7 @@ export class FixHandler {
         }
       }
       namePrefix += this.ctx.missingEntryPath;
-    } else if (this.ctx.keyPrefix && this.ctx.keyPrefix !== "none") {
+    } else if (this.ctx.keyPrefix && this.ctx.keyPrefix !== "none" && this.ctx.keyPrefix !== "auto-path") {
       namePrefix = this.ctx.keyPrefix;
     }
     const newIdSet = new Set<string>();
@@ -182,6 +182,11 @@ export class FixHandler {
       const id = genNameList[index];
       const nameInfo = entry.nameInfo;
       if (!nameInfo.boundKey) {
+        if (this.ctx.keyPrefix === "auto-path") {
+          const relativePath = toRelativePath(entry.path as string);
+          const nameSeparator = this.ctx.nameSeparator || ".";
+          namePrefix = relativePath.replace(/\.\w+/, "").replace(/\//g, nameSeparator) + nameSeparator;
+        }
         let prefix = nameInfo.boundPrefix || namePrefix;
         if (prefix && !prefix.endsWith(this.ctx.nameSeparator) && !prefix.endsWith(".")) {
           prefix += this.ctx.nameSeparator;

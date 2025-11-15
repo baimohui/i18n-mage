@@ -59,6 +59,7 @@
   "config.maxKeyLength.desc": "生成 key 的最大长度，超长时自动使用回退策略",
   "config.keyPrefix.desc": "生成 key 的前缀",
   "config.keyPrefix.auto-popular": "使用最常见前缀",
+  "config.keyPrefix.auto-path": "使用文件路径生成前缀",
   "config.keyPrefix.none": "无前缀",
   "config.keyPrefix.manual-selection": "手动选择前缀",
   "config.writeRules.title": "写入规则",

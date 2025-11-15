@@ -519,11 +519,13 @@
             "enum": [
               "none",
               "manual-selection",
+              "auto-path",
               "auto-popular"
             ],
             "enumDescriptions": [
               "%config.keyPrefix.none%",
               "%config.keyPrefix.manual-selection%",
+              "%config.keyPrefix.auto-path%",
               "%config.keyPrefix.auto-popular%"
             ]
           },
