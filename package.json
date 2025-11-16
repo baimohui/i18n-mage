@@ -661,6 +661,15 @@
             },
             "description": "%config.stopWords.desc%"
           },
+          "i18n-mage.writeRules.stopPrefixes": {
+            "order": 31,
+            "type": "array",
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "description": "%config.stopPrefixes.desc%"
+          },
           "i18n-mage.writeRules.enableKeyTagRule": {
             "order": 34,
             "type": "boolean",

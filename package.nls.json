@@ -56,6 +56,7 @@
   "config.keyStyle.kebabCase": "kebab-case (e.g. hello-world)",
   "config.keyStyle.raw": "Raw (e.g. helloworld)",
   "config.stopWords.desc": "Stop words excluded from generated keys",
+  "config.stopPrefixes.desc": "Prefixes excluded from generated keys",
   "config.maxKeyLength.desc": "Max length for generated keys, overlength keys will use fallback strategy",
   "config.keyPrefix.desc": "Prefix for generated keys",
   "config.keyPrefix.auto-popular": "Use most common prefix",

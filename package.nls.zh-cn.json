@@ -56,6 +56,7 @@
   "config.keyStyle.kebabCase": "短横线（hello-world）",
   "config.keyStyle.raw": "原样（helloworld）",
   "config.stopWords.desc": "生成 key 时剔除的停用词",
+  "config.stopPrefixes.desc": "生成 key 时剔除的前缀",
   "config.maxKeyLength.desc": "生成 key 的最大长度，超长时自动使用回退策略",
   "config.keyPrefix.desc": "生成 key 的前缀",
   "config.keyPrefix.auto-popular": "使用最常见前缀",

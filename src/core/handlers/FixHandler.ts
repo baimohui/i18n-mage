@@ -162,7 +162,10 @@ export class FixHandler {
     let namePrefix = "";
     if (this.ctx.keyPrefix === "auto-popular") {
       const pcList = this.getPopularClassList();
-      namePrefix = pcList[0]?.name ?? "";
+      namePrefix =
+        pcList
+          .map(item => item.name)
+          .find(item => item.split(this.ctx.nameSeparator).every(part => !this.ctx.stopPrefixes.includes(part))) ?? "";
     } else if (this.ctx.keyPrefix === "manual-selection") {
       if (this.ctx.missingEntryFile) {
         if (this.ctx.namespaceStrategy === NAMESPACE_STRATEGY.full) {
@@ -185,7 +188,11 @@ export class FixHandler {
         if (this.ctx.keyPrefix === "auto-path") {
           const relativePath = toRelativePath(entry.path as string);
           const nameSeparator = this.ctx.nameSeparator || ".";
-          namePrefix = relativePath.replace(/\.\w+/, "").replace(/\//g, nameSeparator) + nameSeparator;
+          const pathParts = relativePath
+            .replace(/\.\w+/, "")
+            .split("/")
+            .filter(part => !this.ctx.stopPrefixes.includes(part));
+          namePrefix = pathParts.join(nameSeparator) + nameSeparator;
         }
         let prefix = nameInfo.boundPrefix || namePrefix;
         if (prefix && !prefix.endsWith(this.ctx.nameSeparator) && !prefix.endsWith(".")) {

@@ -22,6 +22,7 @@ export const createLangContext = (): LangContextInternal => ({
   keyStyle: KEY_STYLE.camelCase,
   keyStrategy: KEY_STRATEGY.english,
   stopWords: [],
+  stopPrefixes: [],
   maxKeyLength: 40,
   keyPrefix: "",
   indentType: INDENT_TYPE.auto,

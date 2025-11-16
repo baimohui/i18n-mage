@@ -40,6 +40,7 @@ export interface LangMageOptions {
   keyStyle?: KeyStyle;
   keyStrategy?: KeyStrategy;
   stopWords?: string[];
+  stopPrefixes?: string[];
   maxKeyLength?: number;
   keyPrefix?: string;
   indentType?: IndentType;
