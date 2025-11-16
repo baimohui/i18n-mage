@@ -167,7 +167,7 @@ export function formatObjectToString(tree: EntryTree, filePath: string, extraInf
     output.push(`${indents}${innerVar}`);
   }
   if (isFlat) {
-    tree = flattenNestedObj(tree);
+    tree = flattenNestedObj(tree, true);
   } else if (!getCacheConfig<boolean>("writeRules.allowDotInNestedKey", true)) {
     tree = expandDotKeys(tree);
   }

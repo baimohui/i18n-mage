@@ -238,7 +238,7 @@ export function extractContent(content: string): [string, string, string] {
 
   function isLikelyTargetStart(start: number): boolean {
     const leftAll = content.slice(0, start);
-    if (leftAll.trim() === "") return true; // JSON文件
+    if (leftAll.trim() === "") return true; // JSON 文件
 
     const lineStart = Math.max(0, leftAll.lastIndexOf("\n"));
     const linePrefix = leftAll.slice(lineStart, start).trim();
@@ -274,13 +274,13 @@ export function getNestedValues(obj: EntryTree | string[]): string[] {
   return values;
 }
 
-export function flattenNestedObj(obj: EntryTree | string[], className = ""): EntryMap {
+export function flattenNestedObj(obj: EntryTree | string[], isKeyEscaped = false): EntryMap {
   const result: EntryMap = {};
   const traverse = (node: EntryTree | string[], prefix: string, depth: number) => {
     Object.keys(node).forEach(key => {
       if (key.trim() === "") return;
       const value = node[key] as EntryTree;
-      const escapedKey = escapeString(key);
+      const escapedKey = isKeyEscaped ? key : escapeString(key);
       const fullKey = prefix ? `${prefix}.${escapedKey}` : escapedKey;
       if (value != null && typeof value === "object") {
         traverse(value, fullKey, depth + 1);
@@ -289,7 +289,7 @@ export function flattenNestedObj(obj: EntryTree | string[], className = ""): Ent
       }
     });
   };
-  traverse(obj, className, 0);
+  traverse(obj, "", 0);
   return result;
 }
 
