@@ -45,6 +45,7 @@
   "contributes": {
     "configuration": [
       {
+        "id": "i18n-mage-general",
         "type": "object",
         "title": "%config.general.title%",
         "properties": {
@@ -108,6 +109,7 @@
         }
       },
       {
+        "id": "i18n-mage-i18nFeatures",
         "type": "object",
         "title": "%config.i18nFeatures.title%",
         "properties": {
@@ -200,6 +202,7 @@
         }
       },
       {
+        "id": "i18n-mage-translationServices",
         "type": "object",
         "title": "%config.translateServices.title%",
         "properties": {
@@ -413,6 +416,7 @@
         }
       },
       {
+        "id": "i18n-mage-analysis",
         "type": "object",
         "title": "%config.analysis.title%",
         "properties": {
@@ -465,6 +469,7 @@
         }
       },
       {
+        "id": "i18n-mage-writeRules",
         "type": "object",
         "title": "%config.writeRules.title%",
         "properties": {
@@ -671,6 +676,7 @@
         }
       },
       {
+        "id": "i18n-mage-translationHints",
         "type": "object",
         "title": "%config.translationHints.title%",
         "properties": {
@@ -757,6 +763,7 @@
         }
       },
       {
+        "id": "i18n-mage-completion",
         "type": "object",
         "title": "%config.completion.title%",
         "properties": {
@@ -817,6 +824,7 @@
         }
       },
       {
+        "id": "i18n-mage-workspace",
         "type": "object",
         "title": "%config.workspace.title%",
         "properties": {
