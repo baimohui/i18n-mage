@@ -4,6 +4,22 @@ All notable changes to the i18n Mage VS Code extension will be documented in thi
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.6] - 2025-11-17
+
+### Added
+- **Flexible Language File Structure**: Introduced `languageStructure` setting, supporting both nested and flat file organization based on project requirements.
+- **Smart Dot Notation Control**: Added dot usage control in nested structures, enabling automatic conversion of `"a.b"` format keys to hierarchical objects `{ a: { b: "" } }` when disabled.
+- **Auto Path Prefix Generation**: `keyPrefix` configuration now includes `auto-path` option, generating prefixes from file paths and creating nested keys following directory structure.
+- **Prefix Exclusion List**: New `stopPrefixes` configuration allows customizing lists of key prefixes to exclude from usage.
+
+### Improved
+- **Repair Operation Interaction Upgrade**: Migrated in-file undefined entry repair operations from CodeLens to CodeAction format, resolving editor auto-focus issues and enhancing user experience.
+- **Dynamic Entry Display Precision**: Corrected display positions for dynamically concatenated entry text decorations, ensuring accurate tooltip alignment.
+
+### Fixed
+- **Special Character Key Navigation**: Resolved F12 navigation failure for keys containing non-special meaning dots, ensuring correct jumps to corresponding locations in source language files.
+- **Multi-level Path Prefix Parsing**: Fixed key prefix reading errors when translation directories contain language files at different hierarchy levels.
+
 ## [1.1.5] - 2025-11-11
 
 ### Added
