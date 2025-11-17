@@ -199,10 +199,10 @@ export class ReadHandler {
     const ignoredLangs = this.ctx.ignoredLangs;
     const commonFilePaths = getCommonFilePaths(fileStructure);
     const setAtPath = (path: string[], isEmpty = false): void => {
-      const fileSegs = commonFilePaths
-        .map(item => item.split("/"))
-        .find(fileSegs => path.slice(0, fileSegs.length).every((seg, index) => seg === fileSegs[index]));
-      if (fileSegs === undefined) return;
+      const fileSegs =
+        commonFilePaths
+          .map(item => item.split("/"))
+          .find(fileSegs => path.slice(0, fileSegs.length).every((seg, index) => seg === fileSegs[index])) ?? [];
       const filePos = fileSegs.join(".");
       if (this.ctx.entryClassTree.find(item => item.filePos === filePos) === undefined) {
         this.ctx.entryClassTree.push({ filePos, data: {} });
