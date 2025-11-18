@@ -42,7 +42,7 @@ export function registerEditValueCommand() {
         value: formatEscapeChar(value)
       });
       if (typeof newValue === "string" && newValue !== value && newValue.trim() !== "") {
-        mage.setOptions({ task: "modify", modifyList: [{ ...target, value: unFormatEscapeChar(newValue) }] });
+        mage.setOptions({ task: "modify", modifyQuery: { type: "editValue", ...target, value: unFormatEscapeChar(newValue) } });
         const res = await mage.execute();
         if (res.success) {
           if (e) e.description = newValue;

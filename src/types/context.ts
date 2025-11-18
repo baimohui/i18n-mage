@@ -20,7 +20,8 @@ import {
   IndentType,
   I18nUpdatePayload,
   InvalidKeyStrategy,
-  LanguageStructure
+  LanguageStructure,
+  ModifyQuery
 } from "@/types";
 
 // 外部模块可访问的公共上下文
@@ -45,7 +46,7 @@ export interface LangContextPublic {
   sortingExportMode: SortMode;
   manuallyMarkedUsedEntries: string[];
   ignoredUndefinedEntries: string[];
-  modifyList: Array<{ key: string; name: string; value: string; lang: string }>;
+  modifyQuery: ModifyQuery | null;
   matchExistingKey: boolean;
   autoTranslateEmptyKey: boolean;
   keyGenerationFillScope: KeyGenerationFillScope;

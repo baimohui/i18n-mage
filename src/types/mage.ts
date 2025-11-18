@@ -7,6 +7,7 @@ import {
   KeyStrategy,
   KeyStyle,
   LanguageStructure,
+  ModifyQuery,
   NamespaceStrategy,
   QuoteStyle,
   SortMode
@@ -30,7 +31,7 @@ export interface LangMageOptions {
   sortAfterFix?: boolean;
   sortingWriteMode?: SortMode;
   sortingExportMode?: SortMode;
-  modifyList?: Array<{ key: string; name: string; value: string; lang: string }>;
+  modifyQuery?: ModifyQuery | null;
   trimKeyList?: string[];
   manuallyMarkedUsedEntries?: string[];
   ignoredUndefinedEntries?: string[];

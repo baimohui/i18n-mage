@@ -1140,6 +1140,11 @@
         "command": "i18nMage.browseTranslationsInFile",
         "category": "%extension.name%",
         "title": "%command.browseTranslationsInFile.title%"
+      },
+      {
+        "command": "i18nMage.rewriteEntry",
+        "category": "%extension.name%",
+        "title": "%command.rewriteEntry.title%"
       }
     ],
     "keybindings": [
@@ -1309,6 +1314,10 @@
           "command": "i18nMage.fillMissingTranslations",
           "when": "viewItem =~ /FILL_VALUE/",
           "group": "inline@5"
+        },
+        {
+          "command": "i18nMage.rewriteEntry",
+          "when": "viewItem =~ /REWRITE_ENTRY/"
         }
       ],
       "editor/context": [

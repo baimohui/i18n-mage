@@ -422,7 +422,7 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
         const contextValueList = ["COPY_NAME"];
         let description = "";
         if (element.type === "defined") {
-          contextValueList.push("definedEntryInCurFile");
+          contextValueList.push("definedEntryInCurFile", "REWRITE_ENTRY");
           description = entryInfo[this.displayLang] ?? "";
         } else {
           contextValueList.push("undefinedEntryInCurFile", "IGNORE_UNDEFINED");
@@ -441,6 +441,7 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
         }
         return {
           name: entry.nameInfo.name,
+          key: getValueByAmbiguousEntryName(this.tree, entry.nameInfo.name) ?? "",
           label: internalToDisplayName(entry.nameInfo.text),
           description,
           collapsibleState: vscode.TreeItemCollapsibleState[element.type === "defined" ? "Collapsed" : "None"],
@@ -454,8 +455,8 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
         };
       });
     } else if (element.level === 2) {
-      const entryKey = getValueByAmbiguousEntryName(this.tree, element.name as string) ?? "";
-      const entryInfo = this.dictionary[entryKey].value;
+      const key = element.key as string;
+      const entryInfo = this.dictionary[key].value;
       return this.langInfo.langList
         .filter(lang => !this.publicCtx.ignoredLangs.includes(lang))
         .map(lang => {
@@ -477,8 +478,8 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
             description: entryInfo[lang] ?? false,
             collapsibleState: vscode.TreeItemCollapsibleState.None,
             level: 3,
-            key: entryKey,
-            data: [entryKey],
+            key: key,
+            data: [key],
             meta: { scope: lang },
             contextValue: contextValueList.join(","),
             id: this.genId(element, lang),

@@ -152,7 +152,7 @@ class LangMage {
       syncBasedOnReferredEntries: this.ctx.syncBasedOnReferredEntries,
       manuallyMarkedUsedEntries: this.ctx.manuallyMarkedUsedEntries,
       ignoredUndefinedEntries: this.ctx.ignoredUndefinedEntries,
-      modifyList: this.ctx.modifyList,
+      modifyQuery: this.ctx.modifyQuery,
       i18nFramework: this.ctx.i18nFramework,
       namespaceStrategy: this.ctx.namespaceStrategy,
       matchExistingKey: this.ctx.matchExistingKey,

@@ -120,6 +120,13 @@ export interface FixQuery {
   fillWithOriginal?: boolean;
 }
 
+export interface ModifyQuery {
+  type: "editValue" | "renameKey" | "rewriteEntry";
+  key: string;
+  value: string;
+  lang?: string;
+}
+
 export interface I18nUpdatePayload {
   type: "add" | "edit" | "fill" | "delete" | "rename";
   key: string; // 原始 key（rename 时是旧 key）
