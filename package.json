@@ -1418,6 +1418,9 @@
       "pre-commit": "lint-staged"
     }
   },
+  "overrides": {
+    "glob": "^11.1.0"
+  },
   "dependencies": {
     "@vitalets/google-translate-api": "^9.2.0",
     "axios": "^1.12.0",
