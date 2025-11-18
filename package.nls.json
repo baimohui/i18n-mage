@@ -106,7 +106,7 @@
   "config.namespaceStrategy.full": "Use full path",
   "config.namespaceStrategy.file": "Use filename only",
   "config.namespaceStrategy.none": "No namespace",
-  "config.enableDiagnostics.desc": "Enable diagnostics to underline undefined keys in code",
+  "config.enableDiagnostics.desc": "Enable diagnostics: highlight undefined entries in files and provide quick fix actions",
   "config.completion.title": "Completion",
   "config.completionEnabled.desc": "Enable i18n key completion in code editors",
   "config.completionValueLanguage.desc": "Choose which language is used for completion values",

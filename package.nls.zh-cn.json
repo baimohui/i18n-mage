@@ -106,7 +106,7 @@
   "config.namespaceStrategy.full": "使用完整路径",
   "config.namespaceStrategy.file": "仅使用文件名",
   "config.namespaceStrategy.none": "不使用命名空间",
-  "config.enableDiagnostics.desc": "启用诊断功能，以代码中的波浪线标识未定义词条",
+  "config.enableDiagnostics.desc": "启用诊断功能：在文件中标识未定义词条，并提供快捷修复操作",
   "config.completion.title": "自动补全",
   "config.completionEnabled.desc": "启用 i18n 代码补全功能",
   "config.completionValueLanguage.desc": "自动补全时显示的翻译语言",

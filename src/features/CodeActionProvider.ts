@@ -8,6 +8,7 @@ export class CodeActionProvider implements vscode.CodeActionProvider {
   public static readonly providedCodeActionKinds = [vscode.CodeActionKind.QuickFix];
 
   provideCodeActions(document: vscode.TextDocument, range: vscode.Range | vscode.Selection): vscode.CodeAction[] | undefined {
+    if (!getCacheConfig<boolean>("general.enableDiagnostics")) return;
     const undefinedEntries = Array.from(ActiveEditorState.undefinedEntries.values()).flat();
     if (undefinedEntries.length === 0) return;
 
