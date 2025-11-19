@@ -35,7 +35,7 @@ export function registerBrowseTranslationsInFileCommand() {
       const entry = map[translation];
       const editor = vscode.window.activeTextEditor;
       if (editor) {
-        const [startPos, endPos] = entry.pos.split(",").map(pos => editor.document.positionAt(+pos - 1));
+        const [startPos, endPos] = entry.pos.split(",").map(pos => editor.document.positionAt(+pos));
         editor.revealRange(new vscode.Range(startPos, endPos), vscode.TextEditorRevealType.InCenter);
         editor.selection = new vscode.Selection(startPos, endPos);
       }

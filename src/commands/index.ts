@@ -1,5 +1,5 @@
 import * as vscode from "vscode";
-import { registerCheckUsageCommand } from "./check/checkUsageCommand";
+import { registerCheckUsageCommand } from "./inspection/checkUsageCommand";
 import { registerMarkAsKnownLangCommand } from "./mark/markAsKnownLangCommand";
 import { registerSetReferredLangCommand } from "./config/setReferredLangCommand";
 import { registerMarkAsUsedCommand } from "./mark/markAsUsedCommand";
@@ -15,8 +15,8 @@ import { registerFixCommand } from "./fix/fixCommand";
 import { registerSortCommand } from "./fix/sortCommand";
 import { registerExportCommand } from "./importExport/exportCommand";
 import { registerImportCommand } from "./importExport/importCommand";
-import { registerGoToDefinitionCommand } from "./search/goToDefinitionCommand";
-import { registerGoToReferenceCommand } from "./search/goToReferenceCommand";
+import { registerGoToDefinitionCommand } from "./inspection/goToDefinitionCommand";
+import { registerGoToReferenceCommand } from "./inspection/goToReferenceCommand";
 import { registerIgnoreFileCommand } from "./ignore/ignoreFileCommand";
 import { registerSetDisplayLangCommand } from "./config/setDisplayLangCommand";
 import { registerIgnoreDirectoryCommand } from "./ignore/ignoreDirectoryCommand";
@@ -29,7 +29,7 @@ import { registerFeedbackCommand } from "./guide/feedbackCommand";
 import { registerOpenSettingsCommand } from "./guide/openSettingsCommand";
 import { registerOpenDocsCommand } from "./guide/openDocsCommand";
 import { registerStarCommand } from "./guide/starCommand";
-import { registerBrowseTranslationsInFileCommand } from "./search/browseTranslationsInFile";
+import { registerBrowseTranslationsInFileCommand } from "./inspection/browseTranslationsInFileCommand";
 import { registerRewriteEntryCommand } from "./fix/rewriteEntryCommand";
 
 export function registerAllCommands(context: vscode.ExtensionContext) {
