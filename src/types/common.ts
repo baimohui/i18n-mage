@@ -68,6 +68,7 @@ export interface FixedTEntry {
   id: string;
   raw: string;
   fixedRaw: string;
+  pos: string;
 }
 
 export interface PEntry {
@@ -131,15 +132,15 @@ export interface I18nUpdatePayload {
   type: "add" | "edit" | "fill" | "delete" | "rename";
   key: string; // 原始 key（rename 时是旧 key）
   name?: string;
-  newKey?: string; // rename 新 key
-  changes?: Record<string, TranslationChange>; // 各语言的变化
+  valueChanges?: Record<string, Comparison>; // 各语言的变化
+  keyChange?: Comparison; // key 的变化
   meta?: {
     source?: string; // 来源（例如手动、自动翻译）
     timestamp?: number; // 操作时间
   };
 }
 
-interface TranslationChange {
+interface Comparison {
   before?: string; // 修改前（新增时无）
   after?: string; // 修改后（删除时无）
 }

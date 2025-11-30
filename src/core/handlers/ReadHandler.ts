@@ -75,6 +75,7 @@ export class ReadHandler {
     this.ctx.usedEntryMap = {};
     this.ctx.undefinedEntryList = [];
     this.ctx.undefinedEntryMap = {};
+    const usedLiteralsNameSet = new Set<string>();
     for (const filePath of filePaths) {
       if (await isFileTooLarge(filePath)) continue;
       const fileContent = fs.readFileSync(filePath, "utf8");
@@ -82,6 +83,9 @@ export class ReadHandler {
       let usedEntryList: { name: string; pos: string }[] = [];
       if (this.ctx.scanStringLiterals) {
         const existedItems = catchLiteralEntries(fileContent, this.ctx.entryTree, path.basename(filePath));
+        existedItems.forEach(item => {
+          usedLiteralsNameSet.add(item.name);
+        });
         usedEntryList = existedItems.slice();
       }
       for (const item of tItems) {
@@ -118,10 +122,16 @@ export class ReadHandler {
         this.ctx.usedEntryMap[entryName] = {};
       }
     });
+    this.ctx.usedKeySet = new Set<string>();
+    this.ctx.unusedKeySet = new Set<string>();
+    this.ctx.usedLiteralKeySet = new Set<string>();
     for (const name in this.ctx.usedEntryMap) {
       const key = getValueByAmbiguousEntryName(this.ctx.entryTree, name);
       if (key !== undefined) {
         this.ctx.usedKeySet.add(key);
+        if (usedLiteralsNameSet.has(name)) {
+          this.ctx.usedLiteralKeySet.add(key);
+        }
       }
     }
     for (const key in this.ctx.langDictionary) {

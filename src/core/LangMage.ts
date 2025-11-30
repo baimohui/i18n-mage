@@ -192,6 +192,7 @@ class LangMage {
       used: this.ctx.usedEntryMap,
       undefined: this.ctx.undefinedEntryMap,
       usedKeySet: this.ctx.usedKeySet,
+      usedLiteralKeySet: this.ctx.usedLiteralKeySet,
       unusedKeySet: this.ctx.unusedKeySet,
       multiFileMode: this.ctx.multiFileMode,
       languageStructure: this.ctx.languageStructure,

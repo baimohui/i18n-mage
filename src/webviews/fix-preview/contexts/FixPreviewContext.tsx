@@ -25,8 +25,8 @@ export function FixPreviewProvider({ initialData, children }: { initialData: Fix
     setUpdatePayloads(prevPayloads => {
       const payloads = [...prevPayloads];
       for (const payload of payloads) {
-        if (payload.key === update.key && payload.changes && Object.hasOwn(payload.changes, update.locale)) {
-          payload.changes[update.locale].after = update.value;
+        if (payload.key === update.key && payload.valueChanges && Object.hasOwn(payload.valueChanges, update.locale)) {
+          payload.valueChanges[update.locale].after = update.value;
         }
       }
       return payloads;

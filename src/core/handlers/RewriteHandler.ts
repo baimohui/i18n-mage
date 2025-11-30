@@ -24,10 +24,10 @@ export class RewriteHandler {
     try {
       const updateInfo: Record<string, Set<string>> = {};
       for (const payload of this.ctx.updatePayloads) {
-        for (const lang in payload.changes) {
+        for (const lang in payload.valueChanges) {
           updateInfo[lang] ??= new Set<string>();
           const key = payload.key;
-          const value = payload.changes[lang].after ?? "";
+          const value = payload.valueChanges[lang].after ?? "";
           switch (payload.type) {
             case "add":
             case "fill":
@@ -51,6 +51,35 @@ export class RewriteHandler {
           if (!this.ctx.fileStructure) continue;
           const filePos = getFileLocationFromId(this.ctx.langDictionary[payload.key].fullPath, this.ctx.fileStructure);
           if (Array.isArray(filePos) && filePos.length > 0) updateInfo[lang].add(filePos.join("."));
+        }
+        if (payload.keyChange) {
+          const oldKey = payload.key;
+          const newKey = payload.keyChange.after;
+          if (newKey === undefined) continue;
+          for (const lang of Object.keys(this.ctx.langCountryMap)) {
+            if (Object.hasOwn(this.ctx.langCountryMap[lang], oldKey)) {
+              const val = this.ctx.langCountryMap[lang][oldKey];
+              this.ctx.langCountryMap[lang][newKey] = val;
+              delete this.ctx.langCountryMap[lang][oldKey];
+            }
+          }
+          if (Object.hasOwn(this.ctx.langDictionary, oldKey)) {
+            this.ctx.langDictionary[newKey] = this.ctx.langDictionary[oldKey];
+            delete this.ctx.langDictionary[oldKey];
+          }
+          setValueByEscapedEntryName(this.ctx.entryTree, oldKey, undefined);
+          setValueByEscapedEntryName(this.ctx.entryTree, newKey, newKey);
+          for (const lang of this.detectedLangList) {
+            updateInfo[lang] ??= new Set<string>();
+            let filePos = "";
+            if (this.ctx.fileStructure) {
+              const fileLocation = getFileLocationFromId(this.ctx.langDictionary[newKey].fullPath, this.ctx.fileStructure);
+              if (Array.isArray(fileLocation) && fileLocation.length > 0) {
+                filePos = fileLocation.join(".");
+              }
+            }
+            updateInfo[lang].add(filePos);
+          }
         }
       }
       if (rewriteAll && this.ctx.multiFileMode === 0 && this.ctx.languageStructure === LANGUAGE_STRUCTURE.flat) {
@@ -162,13 +191,21 @@ export class RewriteHandler {
     for (const fixPath in this.ctx.patchedEntryIdInfo) {
       const fixList = this.ctx.patchedEntryIdInfo[fixPath];
       const absolutePath = toAbsolutePath(fixPath);
-      let fileContent = fs.readFileSync(absolutePath, "utf8");
+      const fileContent = fs.readFileSync(absolutePath, "utf8");
+      let lastEndPos = 0;
+      let fixedFileContent = "";
       fixList.forEach(item => {
+        const [startPos, endPos] = item.pos.split(",").map(pos => parseInt(pos, 10));
         if (item.fixedRaw) {
-          fileContent = fileContent.replaceAll(item.raw, item.fixedRaw);
+          fixedFileContent += fileContent.slice(lastEndPos, startPos + 1) + item.fixedRaw;
+          lastEndPos = endPos - 1;
+        } else {
+          fixedFileContent += fileContent.slice(lastEndPos, endPos);
+          lastEndPos = endPos;
         }
       });
-      await fs.promises.writeFile(absolutePath, fileContent);
+      fixedFileContent += fileContent.slice(lastEndPos);
+      await fs.promises.writeFile(absolutePath, fixedFileContent);
     }
     this.ctx.patchedEntryIdInfo = {};
   }

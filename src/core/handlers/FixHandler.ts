@@ -253,11 +253,11 @@ export class FixHandler {
       const updatePayload: I18nUpdatePayload = {
         type: "add",
         key: nameInfo.boundKey,
-        changes: {}
+        valueChanges: {}
       };
       this.detectedLangList.forEach(lang => {
         if (filledScope.includes(lang)) {
-          updatePayload.changes![lang] = { after: lang === this.ctx.referredLang ? nameInfo.text : enTextList[index] };
+          updatePayload.valueChanges![lang] = { after: lang === this.ctx.referredLang ? nameInfo.text : enTextList[index] };
         } else {
           this.lackInfoFromUndefined[lang] ??= [];
           this.lackInfoFromUndefined[lang].push(nameInfo.boundKey);
@@ -279,7 +279,8 @@ export class FixHandler {
       this.ctx.patchedEntryIdInfo[relativePath].push({
         id: this.getIdByText(entry.nameInfo.text),
         raw: entry.raw,
-        fixedRaw: entry.fixedRaw
+        fixedRaw: entry.fixedRaw,
+        pos: entry.pos
       });
     });
     if (patchedEntryIdList.length > 0) {
@@ -356,7 +357,7 @@ export class FixHandler {
             this.ctx.updatePayloads.push({
               type: "fill",
               key,
-              changes: {
+              valueChanges: {
                 [lang]: { after: referredEntriesText[index] }
               }
             });
@@ -374,7 +375,7 @@ export class FixHandler {
               this.ctx.updatePayloads.push({
                 type: "fill",
                 key,
-                changes: {
+                valueChanges: {
                   [lang]: { after: res.data?.[index] }
                 }
               });

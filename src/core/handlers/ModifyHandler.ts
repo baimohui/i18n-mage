@@ -5,6 +5,8 @@ import { ExecutionResult, EXECUTION_RESULT_CODE } from "@/types";
 import translateTo from "@/translator/index";
 import { getDetectedLangList } from "../tools/contextTools";
 import { NotificationManager } from "@/utils/notification";
+import { internalToDisplayName, unescapeString } from "@/utils/regex";
+import { toRelativePath } from "@/utils/fs";
 
 export class ModifyHandler {
   constructor(private ctx: LangContextInternal) {}
@@ -17,6 +19,8 @@ export class ModifyHandler {
       const type = this.ctx.modifyQuery.type;
       if (type === "editValue") {
         this.handleEditValue(this.ctx.modifyQuery);
+      } else if (type === "renameKey") {
+        this.handleRenameKey(this.ctx.modifyQuery);
       } else if (type === "rewriteEntry") {
         const res = await this.handleRewrite(this.ctx.modifyQuery);
         await new RewriteHandler(this.ctx).run();
@@ -35,7 +39,7 @@ export class ModifyHandler {
     this.ctx.updatePayloads.push({
       type: "edit",
       key,
-      changes: {
+      valueChanges: {
         [lang]: { before: this.ctx.langCountryMap[lang][key], after: value }
       }
     });
@@ -46,7 +50,7 @@ export class ModifyHandler {
     const payload: I18nUpdatePayload = {
       type: "edit",
       key,
-      changes: {
+      valueChanges: {
         [this.ctx.referredLang]: { before: this.ctx.langCountryMap[this.ctx.referredLang][key], after: value }
       }
     };
@@ -60,9 +64,9 @@ export class ModifyHandler {
         target: lang,
         sourceTextList: [value]
       });
-      if (res.success && res.data && payload.changes) {
+      if (res.success && res.data && payload.valueChanges) {
         successCount++;
-        payload.changes[lang] = { before: this.ctx.langCountryMap[lang][key], after: res.data[0] };
+        payload.valueChanges[lang] = { before: this.ctx.langCountryMap[lang][key], after: res.data[0] };
       } else {
         failCount++;
       }
@@ -103,6 +107,31 @@ export class ModifyHandler {
         });
       }, 1500);
     });
+  }
+
+  private handleRenameKey(query: ModifyQuery) {
+    const { key, value } = query;
+    const payload: I18nUpdatePayload = {
+      type: "rename",
+      key,
+      keyChange: { before: key, after: value }
+    };
+    this.ctx.updatePayloads.push(payload);
+    const name = unescapeString(key);
+    if (Object.hasOwn(this.ctx.usedEntryMap, name)) {
+      Object.entries(this.ctx.usedEntryMap[name]).forEach(([path, posSet]) => {
+        const relativePath = toRelativePath(path);
+        this.ctx.patchedEntryIdInfo[relativePath] ??= [];
+        Array.from(posSet).forEach(pos => {
+          this.ctx.patchedEntryIdInfo[relativePath].push({
+            id: key,
+            raw: key,
+            fixedRaw: internalToDisplayName(unescapeString(value)),
+            pos
+          });
+        });
+      });
+    }
   }
 
   get detectedLangList() {

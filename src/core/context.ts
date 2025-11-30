@@ -50,6 +50,7 @@ export const createLangContext = (): LangContextInternal => ({
   undefinedEntryMap: {},
   usedEntryMap: {},
   usedKeySet: new Set<string>(),
+  usedLiteralKeySet: new Set<string>(),
   unusedKeySet: new Set<string>(),
   multiFileMode: 0,
   langFileExtraInfo: {},

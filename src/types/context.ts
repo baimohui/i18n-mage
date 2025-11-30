@@ -80,6 +80,7 @@ export interface LangContextInternal extends LangContextPublic {
   undefinedEntryMap: Record<string, Record<string, Set<string>>>;
   usedEntryMap: Record<string, Record<string, Set<string>>>;
   usedKeySet: Set<string>;
+  usedLiteralKeySet: Set<string>;
   unusedKeySet: Set<string>;
   multiFileMode: number; // 0: 单文件模式，>0: 多文件模式
   langFileExtraInfo: Record<string, FileExtraInfo>;
