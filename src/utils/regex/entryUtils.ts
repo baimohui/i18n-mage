@@ -4,7 +4,6 @@ import { getValueByAmbiguousEntryName } from "./treeUtils";
 import { getCacheConfig } from "../config";
 
 export function catchLiteralEntries(fileContent: string, entryTree: EntryTree, fileName: string): PEntry[] {
-  // const regex = /(["'`])(?:\\[\s\S]|(?!\1)[^\\])*?\1/g;
   // 匹配普通字符串，但前面不能是 `t(`、`tc(`、等国际化函数调用
   const tFuncNames = getCacheConfig<string[]>("i18nFeatures.translationFunctionNames", []);
   const framework = getCacheConfig<I18nFramework>("i18nFeatures.framework", I18N_FRAMEWORK.none);
@@ -15,10 +14,19 @@ export function catchLiteralEntries(fileContent: string, entryTree: EntryTree, f
     });
   }
   const funcNamePattern = tFuncNames.map(fn => `\\b${fn}\\b`).join("|");
-  const regex = new RegExp(`(?!\\b(?:${funcNamePattern})\\s*\\()(["'\`])(?:\\\\[\\s\\S]|(?!\\1)[^\\\\])*?\\1`, "g");
+  const withoutTRegex = new RegExp(`(\\b(?:${funcNamePattern})\\s*\\()(["'\`])((?:\\\\[\\s\\S]|(?!\\2)[^\\\\])*?\\2)`, "g");
+  const withoutTContent = fileContent.replace(withoutTRegex, (match, prefix, quote, content: string) => {
+    // 计算原字符串内容的长度
+    const contentLength = content.length + 1;
+    // 创建相同长度的占位符（使用*号）
+    const placeholder = "*".repeat(contentLength);
+    // 返回相同长度的替换结果
+    return `${prefix}${placeholder}`;
+  });
   let res: RegExpExecArray | null = null;
   const entryInfoList: PEntry[] = [];
-  while ((res = regex.exec(fileContent)) !== null) {
+  const regex = /(["'`])(?:\\[\s\S]|(?!\1)[^\\])*?\1/g;
+  while ((res = regex.exec(withoutTContent)) !== null) {
     let entryName = displayToInternalName(res[0].slice(1, -1));
     let entryValue = "";
     const framework = getCacheConfig<I18nFramework>("i18nFeatures.framework");
