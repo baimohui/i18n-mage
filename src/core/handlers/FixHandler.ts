@@ -137,6 +137,8 @@ export class FixHandler {
               code: EXECUTION_RESULT_CODE.TranslatorFailed
             };
           }
+        } else if (this.ctx.fixQuery.fillWithOriginal === true) {
+          enTextList = genNameList;
         }
       } else if (this.ctx.keyStrategy === KEY_STRATEGY.pinyin) {
         genNameList = genNameList.map(name => pinyin.convertToPinyin(name));
