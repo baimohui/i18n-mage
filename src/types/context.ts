@@ -9,7 +9,6 @@ import {
   FileExtraInfo,
   SortMode,
   KeyStyle,
-  QuoteStyle,
   I18nFramework,
   NamespaceStrategy,
   EntryClassTree,
@@ -21,7 +20,9 @@ import {
   I18nUpdatePayload,
   InvalidKeyStrategy,
   LanguageStructure,
-  ModifyQuery
+  ModifyQuery,
+  QuoteStyle4Key,
+  QuoteStyle4Value
 } from "@/types";
 
 // 外部模块可访问的公共上下文
@@ -58,8 +59,8 @@ export interface LangContextPublic {
   keyPrefix: string;
   indentType: IndentType;
   indentSize: number;
-  quoteStyleForKey: "auto" | QuoteStyle;
-  quoteStyleForValue: "auto" | QuoteStyle;
+  quoteStyleForKey: QuoteStyle4Key;
+  quoteStyleForValue: QuoteStyle4Value;
   scanStringLiterals: boolean;
   missingEntryFile: string;
   missingEntryPath: string;

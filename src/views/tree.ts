@@ -21,7 +21,9 @@ import {
   UnmatchedLanguageAction,
   INDENT_TYPE,
   I18nFramework,
-  LANGUAGE_STRUCTURE
+  LANGUAGE_STRUCTURE,
+  QUOTE_STYLE_4_KEY,
+  QUOTE_STYLE_4_VALUE
 } from "@/types";
 import { t } from "@/utils/i18n";
 import { NotificationManager } from "@/utils/notification";
@@ -297,6 +299,24 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
               if (isUnified) {
                 setConfig("writeRules.indentSize", initIndentSize).catch(error => {
                   NotificationManager.logToOutput(`Failed to set config for indentSize: ${error}`, "error");
+                });
+              }
+            }
+            if (getCacheConfig("writeRules.quoteStyleForKey") === QUOTE_STYLE_4_KEY.auto) {
+              const initKeyQuotes = fileExtraData[0].keyQuotes;
+              const isUnified = fileExtraData.every(item => item.keyQuotes === initKeyQuotes);
+              if (isUnified) {
+                setConfig("writeRules.quoteStyleForKey", initKeyQuotes).catch(error => {
+                  NotificationManager.logToOutput(`Failed to set config for quoteStyleForKey: ${error}`, "error");
+                });
+              }
+            }
+            if (getCacheConfig("writeRules.quoteStyleForValue") === QUOTE_STYLE_4_VALUE.auto) {
+              const initValueQuotes = fileExtraData[0].valueQuotes;
+              const isUnified = fileExtraData.every(item => item.valueQuotes === initValueQuotes);
+              if (isUnified) {
+                setConfig("writeRules.quoteStyleForValue", initValueQuotes).catch(error => {
+                  NotificationManager.logToOutput(`Failed to set config for quoteStyleForValue: ${error}`, "error");
                 });
               }
             }

@@ -1,4 +1,4 @@
-import { IndentType } from "./config";
+import { IndentType, QuoteStyle4Key, QuoteStyle4Value } from "./config";
 
 export type LangName = string;
 export type EntryValue = string;
@@ -12,9 +12,9 @@ export interface FileExtraInfo {
   prefix: string;
   suffix: string;
   innerVar: string;
-  keyQuotes: QuoteStyle;
   isFlat: boolean;
-  valueQuotes: QuoteStyle;
+  keyQuotes: Omit<QuoteStyle4Key, "auto">;
+  valueQuotes: Omit<QuoteStyle4Value, "auto">;
 }
 export interface LangFileInfo {
   data: EntryTree;
@@ -112,8 +112,6 @@ export type DirNode = {
 };
 
 export type EntryNode = FileNode | DirNode;
-
-export type QuoteStyle = "single" | "double" | "none";
 
 export interface FixQuery {
   entriesToGen: string[] | boolean;

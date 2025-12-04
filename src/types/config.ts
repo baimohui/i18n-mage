@@ -135,3 +135,20 @@ export const LANGUAGE_STRUCTURE = {
 } as const;
 
 export type LanguageStructure = (typeof LANGUAGE_STRUCTURE)[keyof typeof LANGUAGE_STRUCTURE];
+
+export const QUOTE_STYLE_4_KEY = {
+  none: "none",
+  single: "single",
+  double: "double",
+  auto: "auto"
+};
+
+export type QuoteStyle4Key = (typeof QUOTE_STYLE_4_KEY)[keyof typeof QUOTE_STYLE_4_KEY];
+
+export const QUOTE_STYLE_4_VALUE = {
+  single: "single",
+  double: "double",
+  auto: "auto"
+};
+
+export type QuoteStyle4Value = (typeof QUOTE_STYLE_4_VALUE)[keyof typeof QUOTE_STYLE_4_VALUE];

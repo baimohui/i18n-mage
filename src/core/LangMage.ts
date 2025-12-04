@@ -7,7 +7,8 @@ import type {
   LangContextPublic,
   LanguageStructure,
   NamespaceStrategy,
-  QuoteStyle,
+  QuoteStyle4Key,
+  QuoteStyle4Value,
   SortMode
 } from "@/types";
 import { createLangContext } from "@/core/context";
@@ -65,8 +66,8 @@ class LangMage {
         keyPrefix: getCacheConfig<string>("writeRules.keyPrefix", this.ctx.keyPrefix),
         indentType: getCacheConfig<IndentType>("writeRules.indentType", this.ctx.indentType),
         indentSize: getCacheConfig<number>("writeRules.indentSize", this.ctx.indentSize),
-        quoteStyleForKey: getCacheConfig<"auto" | QuoteStyle>("writeRules.quoteStyleForKey", this.ctx.quoteStyleForKey),
-        quoteStyleForValue: getCacheConfig<"auto" | QuoteStyle>("writeRules.quoteStyleForValue", this.ctx.quoteStyleForValue),
+        quoteStyleForKey: getCacheConfig<QuoteStyle4Key>("writeRules.quoteStyleForKey", this.ctx.quoteStyleForKey),
+        quoteStyleForValue: getCacheConfig<QuoteStyle4Value>("writeRules.quoteStyleForValue", this.ctx.quoteStyleForValue),
         scanStringLiterals: getCacheConfig<boolean>("analysis.scanStringLiterals", this.ctx.scanStringLiterals),
         keyGenerationFillScope: getCacheConfig<KeyGenerationFillScope>(
           "translationServices.keyGenerationFillScope",

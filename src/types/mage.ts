@@ -9,7 +9,8 @@ import {
   LanguageStructure,
   ModifyQuery,
   NamespaceStrategy,
-  QuoteStyle,
+  QuoteStyle4Key,
+  QuoteStyle4Value,
   SortMode
 } from "@/types";
 
@@ -46,8 +47,8 @@ export interface LangMageOptions {
   keyPrefix?: string;
   indentType?: IndentType;
   indentSize?: number;
-  quoteStyleForKey?: "auto" | QuoteStyle;
-  quoteStyleForValue?: "auto" | QuoteStyle;
+  quoteStyleForKey?: QuoteStyle4Key;
+  quoteStyleForValue?: QuoteStyle4Value;
   scanStringLiterals?: boolean;
   missingEntryFile?: string;
   missingEntryPath?: string;

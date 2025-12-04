@@ -12,8 +12,9 @@ import {
   EntryTree,
   I18nFramework,
   I18N_FRAMEWORK,
-  QuoteStyle,
-  DirNode
+  DirNode,
+  QuoteStyle4Key,
+  QuoteStyle4Value
 } from "@/types";
 import { isPathInsideDirectory, isSamePath, toRelativePath } from "../fs";
 import { getCacheConfig } from "../config";
@@ -467,11 +468,11 @@ export function stripLanguageLayer(root: DirNode): DirNode | null {
 }
 
 export function detectQuoteStyle(code: string): {
-  key: QuoteStyle;
-  value: QuoteStyle;
+  key: QuoteStyle4Key;
+  value: QuoteStyle4Value;
 } {
-  const keyCount: Record<QuoteStyle, number> = { single: 0, double: 0, none: 0 };
-  const valueCount: Record<QuoteStyle, number> = { single: 0, double: 0, none: 0 };
+  const keyCount: Record<QuoteStyle4Key, number> = { single: 0, double: 0, none: 0 };
+  const valueCount: Record<QuoteStyle4Value, number> = { single: 0, double: 0, none: 0 };
   const pairRegex = /(?<key>'[^']*'|"[^"]*"|[a-zA-Z0-9_]+)\s*:\s*(?<value>'[^']*'|"[^"]*")/g;
   let match: RegExpExecArray | null = null;
   while ((match = pairRegex.exec(code)) !== null) {
@@ -482,8 +483,7 @@ export function detectQuoteStyle(code: string): {
     if (value.startsWith('"')) valueCount["double"]++;
     else if (value.startsWith("'")) valueCount["single"]++;
   }
-  const mostUsed = (counts: Record<QuoteStyle, number>): QuoteStyle =>
-    Object.entries(counts).sort((a, b) => b[1] - a[1])[0][0] as QuoteStyle;
+  const mostUsed = (counts: Record<QuoteStyle4Key, number>): QuoteStyle4Key => Object.entries(counts).sort((a, b) => b[1] - a[1])[0][0];
   return {
     key: mostUsed(keyCount),
     value: mostUsed(valueCount)
