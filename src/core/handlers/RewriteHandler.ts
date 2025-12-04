@@ -195,13 +195,20 @@ export class RewriteHandler {
       let lastEndPos = 0;
       let fixedFileContent = "";
       fixList.forEach(item => {
-        const [startPos, endPos] = item.pos.split(",").map(pos => parseInt(pos, 10));
+        const [nameStartPos, nameEndPos, , endPos] = item.pos.split(",").map(pos => parseInt(pos, 10));
         if (item.fixedRaw) {
-          fixedFileContent += fileContent.slice(lastEndPos, startPos + 1) + item.fixedRaw;
-          lastEndPos = endPos - 1;
+          fixedFileContent += fileContent.slice(lastEndPos, nameStartPos);
+          const quoteStr = fileContent[nameStartPos];
+          fixedFileContent += quoteStr + item.fixedKey + quoteStr;
+          if (item.addedVars) {
+            fixedFileContent += item.addedVars;
+            lastEndPos = endPos - 1;
+          } else {
+            lastEndPos = nameEndPos;
+          }
         } else {
-          fixedFileContent += fileContent.slice(lastEndPos, endPos);
-          lastEndPos = endPos;
+          fixedFileContent += fileContent.slice(lastEndPos, nameEndPos);
+          lastEndPos = nameEndPos;
         }
       });
       fixedFileContent += fileContent.slice(lastEndPos);

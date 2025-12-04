@@ -4,6 +4,7 @@ import LangMage from "@/core/LangMage";
 import { getValueByAmbiguousEntryName } from "@/utils/regex";
 import { NotificationManager } from "@/utils/notification";
 import { t } from "@/utils/i18n";
+import { treeInstance } from "@/views/tree";
 
 export class RenameKeyProvider implements vscode.RenameProvider {
   async provideRenameEdits(document: vscode.TextDocument, position: vscode.Position, newKey: string): Promise<vscode.WorkspaceEdit | null> {
@@ -23,6 +24,7 @@ export class RenameKeyProvider implements vscode.RenameProvider {
     await mage.execute({ task: "modify", modifyQuery: { type: "renameKey", key: entryKey, value: newKey } });
     const publicCtx = mage.getPublicContext();
     await mage.execute({ task: "check" });
+    treeInstance.refresh();
     if (publicCtx.sortAfterFix) {
       await mage.execute({ task: "sort" });
     }

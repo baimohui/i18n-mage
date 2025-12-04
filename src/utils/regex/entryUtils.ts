@@ -143,7 +143,7 @@ export function parseTEntry(fileContent: string, startPos: number, offset: numbe
     raw: entryRaw,
     vars: entryVarList,
     nameInfo,
-    pos: `${nameStartPos},${nameEndPos}`
+    pos: `${nameStartPos},${nameEndPos},${startPos},${curPos + 1}`
   };
 }
 

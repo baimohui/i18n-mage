@@ -84,7 +84,7 @@ export class FixHandler {
       {} as Record<string, string>
     );
     const needTranslateList: TEntry[] = [];
-    const patchedEntryIdList: (TEntry & { fixedRaw: string })[] = [];
+    const patchedEntryIdList: (TEntry & { fixedRaw: string; fixedKey: string; addedVars: string })[] = [];
     const undefinedEntryIdSet = new Set<string>();
     const entriesToGen = this.ctx.fixQuery.entriesToGen;
     const genScope = this.ctx.fixQuery.genScope;
@@ -108,9 +108,9 @@ export class FixHandler {
           entryKey = convertKeyToVueI18nPath(entryKey, quote);
         }
         entry.nameInfo.boundKey = entryKey;
-        patchedEntryIdList.push({ ...entry, fixedRaw: this.getFixedRaw(entry, entryKey) });
+        patchedEntryIdList.push({ ...entry, ...this.getFixedInfo(entry, entryKey) });
       } else if (undefinedEntryIdSet.has(entryId)) {
-        patchedEntryIdList.push({ ...entry, fixedRaw: "" });
+        patchedEntryIdList.push({ ...entry, fixedRaw: "", fixedKey: "", addedVars: "" });
       } else {
         undefinedEntryIdSet.add(entryId);
         needTranslateList.push(entry);
@@ -221,7 +221,7 @@ export class FixHandler {
         nameInfo.boundKey = entryKey;
         newIdSet.add(entryKey);
       }
-      patchedEntryIdList.push({ ...entry, fixedRaw: this.getFixedRaw(entry, nameInfo.boundKey) });
+      patchedEntryIdList.push({ ...entry, ...this.getFixedInfo(entry, nameInfo.boundKey) });
       this.needFix = true;
       referredLangMap[nameInfo.boundKey] = nameInfo.text;
       let fullPath = nameInfo.boundKey;
@@ -274,15 +274,14 @@ export class FixHandler {
             item => this.getIdByText(item.nameInfo.text) === this.getIdByText(entry.nameInfo.text) && item.fixedRaw.length > 0
           )?.nameInfo.boundKey ?? entry.nameInfo.text;
         entry.nameInfo.boundKey = fixedEntryId;
-        entry.fixedRaw = this.getFixedRaw(entry, fixedEntryId);
+        const fixedInfo = this.getFixedInfo(entry, fixedEntryId);
+        Object.assign(entry, fixedInfo);
       }
       const relativePath = toRelativePath(entry.path as string);
       this.ctx.patchedEntryIdInfo[relativePath] ??= [];
       this.ctx.patchedEntryIdInfo[relativePath].push({
         id: this.getIdByText(entry.nameInfo.text),
-        raw: entry.raw,
-        fixedRaw: entry.fixedRaw,
-        pos: entry.pos
+        ...entry
       });
     });
     if (patchedEntryIdList.length > 0) {
@@ -450,7 +449,7 @@ export class FixHandler {
     }
   }
 
-  private getFixedRaw(entry: TEntry, key: string): string {
+  private getFixedInfo(entry: TEntry, key: string) {
     const displayName = internalToDisplayName(unescapeString(key));
     let varStr = "";
     if (entry.vars.length > 0) {
@@ -471,7 +470,12 @@ export class FixHandler {
     }
     const quote = entry.raw.slice(1).match(/["'`]{1}/)?.[0] ?? '"';
     const funcName = entry.raw.match(/^([^]+?)\(/)?.[1] ?? "";
-    return funcName ? `${funcName}(${quote}${displayName}${quote}${varStr})` : `${quote}${displayName}${quote}`;
+    return {
+      id: key,
+      fixedRaw: funcName ? `${funcName}(${quote}${displayName}${quote}${varStr})` : `${quote}${displayName}${quote}`,
+      fixedKey: displayName,
+      addedVars: varStr
+    };
   }
 
   private getPopularClassMap(tree: EntryClassTreeItem, map: Record<string, number> = {}, classPrefix: string = ""): Record<string, number> {

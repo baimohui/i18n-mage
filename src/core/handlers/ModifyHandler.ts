@@ -119,6 +119,7 @@ export class ModifyHandler {
     this.ctx.updatePayloads.push(payload);
     const name = unescapeString(key);
     if (Object.hasOwn(this.ctx.usedEntryMap, name)) {
+      const displayName = internalToDisplayName(unescapeString(value));
       Object.entries(this.ctx.usedEntryMap[name]).forEach(([path, posSet]) => {
         const relativePath = toRelativePath(path);
         this.ctx.patchedEntryIdInfo[relativePath] ??= [];
@@ -126,7 +127,9 @@ export class ModifyHandler {
           this.ctx.patchedEntryIdInfo[relativePath].push({
             id: key,
             raw: key,
-            fixedRaw: internalToDisplayName(unescapeString(value)),
+            fixedRaw: displayName,
+            fixedKey: displayName,
+            addedVars: "",
             pos
           });
         });

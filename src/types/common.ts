@@ -68,6 +68,8 @@ export interface FixedTEntry {
   id: string;
   raw: string;
   fixedRaw: string;
+  fixedKey: string;
+  addedVars: string;
   pos: string;
 }
 
