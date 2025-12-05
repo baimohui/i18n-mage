@@ -121,11 +121,23 @@ export interface FixQuery {
   fillWithOriginal?: boolean;
 }
 
-export interface ModifyQuery {
-  type: "editValue" | "renameKey" | "rewriteEntry";
+export type ModifyQuery = EditValueQuery | RenameKeyQuery;
+
+export interface EditValueQuery {
+  type: "editValue" | "rewriteEntry";
   key: string;
   value: string;
   lang?: string;
+}
+
+export interface RenameKeyQuery {
+  type: "renameKey";
+  key: string;
+  keyChange: {
+    key: Comparison;
+    filePos: Comparison;
+    fullPath: Comparison;
+  };
 }
 
 export interface I18nUpdatePayload {
@@ -133,7 +145,11 @@ export interface I18nUpdatePayload {
   key: string; // 原始 key（rename 时是旧 key）
   name?: string;
   valueChanges?: Record<string, Comparison>; // 各语言的变化
-  keyChange?: Comparison; // key 的变化
+  keyChange?: {
+    key: Comparison;
+    filePos: Comparison;
+    fullPath: Comparison;
+  }; // key 的变化
   meta?: {
     source?: string; // 来源（例如手动、自动翻译）
     timestamp?: number; // 操作时间
@@ -142,5 +158,5 @@ export interface I18nUpdatePayload {
 
 interface Comparison {
   before?: string; // 修改前（新增时无）
-  after?: string; // 修改后（删除时无）
+  after: string; // 修改后（删除时无）
 }

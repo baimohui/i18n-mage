@@ -377,7 +377,7 @@ export class FixHandler {
                 type: "fill",
                 key,
                 valueChanges: {
-                  [lang]: { after: res.data?.[index] }
+                  [lang]: { after: res.data?.[index] ?? "" }
                 }
               });
             });

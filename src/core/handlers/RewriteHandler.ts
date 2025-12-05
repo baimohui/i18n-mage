@@ -54,7 +54,8 @@ export class RewriteHandler {
         }
         if (payload.keyChange) {
           const oldKey = payload.key;
-          const newKey = payload.keyChange.after;
+          const { key, filePos, fullPath } = payload.keyChange;
+          const newKey = key.after;
           if (newKey === undefined) continue;
           for (const lang of Object.keys(this.ctx.langCountryMap)) {
             if (Object.hasOwn(this.ctx.langCountryMap[lang], oldKey)) {
@@ -64,21 +65,20 @@ export class RewriteHandler {
             }
           }
           if (Object.hasOwn(this.ctx.langDictionary, oldKey)) {
-            this.ctx.langDictionary[newKey] = this.ctx.langDictionary[oldKey];
+            const oldInfo = this.ctx.langDictionary[oldKey];
+            if (this.ctx.fileStructure) this.ctx.langDictionary[newKey] = oldInfo;
+            this.ctx.langDictionary[newKey].fileScope = filePos.after;
+            this.ctx.langDictionary[newKey].fullPath = fullPath.after;
             delete this.ctx.langDictionary[oldKey];
           }
           setValueByEscapedEntryName(this.ctx.entryTree, oldKey, undefined);
           setValueByEscapedEntryName(this.ctx.entryTree, newKey, newKey);
           for (const lang of this.detectedLangList) {
             updateInfo[lang] ??= new Set<string>();
-            let filePos = "";
-            if (this.ctx.fileStructure) {
-              const fileLocation = getFileLocationFromId(this.ctx.langDictionary[newKey].fullPath, this.ctx.fileStructure);
-              if (Array.isArray(fileLocation) && fileLocation.length > 0) {
-                filePos = fileLocation.join(".");
-              }
+            if (filePos.before !== undefined) {
+              updateInfo[lang].add(filePos.before);
             }
-            updateInfo[lang].add(filePos);
+            updateInfo[lang].add(filePos.after);
           }
         }
       }

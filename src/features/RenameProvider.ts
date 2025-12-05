@@ -1,7 +1,7 @@
 import * as vscode from "vscode";
 import { ActiveEditorState } from "@/utils/activeEditorState";
 import LangMage from "@/core/LangMage";
-import { getValueByAmbiguousEntryName } from "@/utils/regex";
+import { getFileLocationFromId, getValueByAmbiguousEntryName } from "@/utils/regex";
 import { NotificationManager } from "@/utils/notification";
 import { t } from "@/utils/i18n";
 import { treeInstance } from "@/views/tree";
@@ -12,6 +12,7 @@ export class RenameKeyProvider implements vscode.RenameProvider {
     if (!prepareResult) return null;
     const mage = LangMage.getInstance();
     const { dictionary, usedLiteralKeySet } = mage.langDetail;
+    const publicCtx = mage.getPublicContext();
     const entryKey = prepareResult.placeholder;
     if (usedLiteralKeySet.has(entryKey)) {
       NotificationManager.setStatusBarMessage(t(`command.rename.suspectedNonFunctionImport`, entryKey));
@@ -21,8 +22,22 @@ export class RenameKeyProvider implements vscode.RenameProvider {
       NotificationManager.setStatusBarMessage(t(`command.rename.key0AlreadyExists`, newKey));
       return null;
     }
-    await mage.execute({ task: "modify", modifyQuery: { type: "renameKey", key: entryKey, value: newKey } });
-    const publicCtx = mage.getPublicContext();
+    const keyChange = {
+      key: { before: entryKey, after: newKey },
+      filePos: { before: "", after: "" },
+      fullPath: { before: entryKey, after: newKey }
+    };
+    if (publicCtx.fileStructure) {
+      const fullPath = dictionary[entryKey].fullPath.replace(entryKey, newKey);
+      const filePos = getFileLocationFromId(fullPath, publicCtx.fileStructure);
+      if (filePos === null) {
+        NotificationManager.setStatusBarMessage(t("command.rename.key0PointsToANonExistentFilePath", newKey));
+        return null;
+      }
+      keyChange.filePos = { before: dictionary[entryKey].fileScope, after: filePos.join(".") };
+      keyChange.fullPath = { before: dictionary[entryKey].fullPath, after: fullPath };
+    }
+    await mage.execute({ task: "modify", modifyQuery: { type: "renameKey", key: entryKey, keyChange } });
     await mage.execute({ task: "check" });
     treeInstance.refresh();
     if (publicCtx.sortAfterFix) {

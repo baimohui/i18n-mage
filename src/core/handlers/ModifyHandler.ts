@@ -1,4 +1,4 @@
-import { FixExecutionResult, I18nUpdatePayload, LangContextInternal, ModifyQuery } from "@/types";
+import { EditValueQuery, FixExecutionResult, I18nUpdatePayload, LangContextInternal, RenameKeyQuery } from "@/types";
 import { RewriteHandler } from "./RewriteHandler";
 import { t } from "@/utils/i18n";
 import { ExecutionResult, EXECUTION_RESULT_CODE } from "@/types";
@@ -33,7 +33,7 @@ export class ModifyHandler {
     }
   }
 
-  private handleEditValue(query: ModifyQuery) {
+  private handleEditValue(query: EditValueQuery) {
     const { key, value, lang } = query;
     if (lang === undefined) return;
     this.ctx.updatePayloads.push({
@@ -45,7 +45,7 @@ export class ModifyHandler {
     });
   }
 
-  private async handleRewrite(query: ModifyQuery) {
+  private async handleRewrite(query: EditValueQuery) {
     const { key, value } = query;
     const payload: I18nUpdatePayload = {
       type: "edit",
@@ -109,17 +109,17 @@ export class ModifyHandler {
     });
   }
 
-  private handleRenameKey(query: ModifyQuery) {
-    const { key, value } = query;
+  private handleRenameKey(query: RenameKeyQuery) {
+    const { key, keyChange } = query;
     const payload: I18nUpdatePayload = {
       type: "rename",
       key,
-      keyChange: { before: key, after: value }
+      keyChange
     };
     this.ctx.updatePayloads.push(payload);
     const name = unescapeString(key);
     if (Object.hasOwn(this.ctx.usedEntryMap, name)) {
-      const displayName = internalToDisplayName(unescapeString(value));
+      const displayName = internalToDisplayName(unescapeString(keyChange.key.after));
       Object.entries(this.ctx.usedEntryMap[name]).forEach(([path, posSet]) => {
         const relativePath = toRelativePath(path);
         this.ctx.patchedEntryIdInfo[relativePath] ??= [];

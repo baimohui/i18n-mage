@@ -86,6 +86,7 @@
   "command.pick.selectReferredLangForThese": "Select the source language for these translations: {0}",
   "command.rename.fillInKeyId": "Fill in the key ID",
   "command.rename.key0AlreadyExists": "Key \"{0}\" already exists",
+  "command.rename.key0PointsToANonExistentFilePath": "Key \"{0}\" points to a non-existent file path.",
   "command.rename.renameEntryKey": "Rename entry key",
   "command.rename.selectEntryKeyToRename": "Select the entry key to rename",
   "command.rename.suspectedNonFunctionImport": "Key \"{0}\" is suspected to be introduced outside the function and cannot be changed for now",
