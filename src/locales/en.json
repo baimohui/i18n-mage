@@ -89,6 +89,7 @@
   "command.rename.key0PointsToANonExistentFilePath": "Key \"{0}\" points to a non-existent file path.",
   "command.rename.renameEntryKey": "Rename entry key",
   "command.rename.selectEntryKeyToRename": "Select the entry key to rename",
+  "command.rename.selectSourceLanguageToRewrite": "Select the source language to rewrite",
   "command.rename.suspectedNonFunctionImport": "Key \"{0}\" is suspected to be introduced outside the function and cannot be changed for now",
   "command.rewrite.fileNotFound": "Invalid file path ({0})",
   "command.rewrite.progress": "Writing...",

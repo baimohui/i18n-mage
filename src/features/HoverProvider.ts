@@ -28,7 +28,7 @@ export class HoverProvider implements vscode.HoverProvider {
         for (const key of entryKeys) {
           const entryName = displayToInternalName(unescapeString(key));
           const entryInfo = dictionary[key]?.value ?? {};
-          const rewriteBtn = `[🔄](command:i18nMage.rewriteEntry?${encodeURIComponent(JSON.stringify({ name: entryName, key, value: entryInfo[publicCtx.referredLang] ?? "" }))})`;
+          const rewriteBtn = `[🔄](command:i18nMage.rewriteEntry?${encodeURIComponent(JSON.stringify({ name: entryName, key, value: entryInfo[publicCtx.referredLang] ?? "", meta: { scope: publicCtx.referredLang } }))})`;
           markdown.appendMarkdown(`\`${entryName}\` ${rewriteBtn}\n\n`);
           for (const lang of mage.detectedLangList) {
             const value = entryInfo[lang] ?? "";

@@ -46,21 +46,22 @@ export class ModifyHandler {
   }
 
   private async handleRewrite(query: EditValueQuery) {
-    const { key, value } = query;
+    const { key, value, lang } = query;
+    const sourceLang = lang ?? this.ctx.referredLang;
     const payload: I18nUpdatePayload = {
       type: "edit",
       key,
       valueChanges: {
-        [this.ctx.referredLang]: { before: this.ctx.langCountryMap[this.ctx.referredLang][key], after: value }
+        [sourceLang]: { before: this.ctx.langCountryMap[sourceLang][key], after: value }
       }
     };
     const steps = this.detectedLangList.length - 1;
     let successCount = 0;
     let failCount = 0;
     for (const lang of this.detectedLangList) {
-      if (lang === this.ctx.referredLang) continue;
+      if (lang === sourceLang) continue;
       const res = await translateTo({
-        source: this.ctx.referredLang,
+        source: sourceLang,
         target: lang,
         sourceTextList: [value]
       });

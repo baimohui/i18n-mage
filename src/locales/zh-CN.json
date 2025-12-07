@@ -89,6 +89,7 @@
   "command.rename.key0PointsToANonExistentFilePath": "键 \"{0}\" 指向了不存在的文件路径",
   "command.rename.renameEntryKey": "重命名词条键",
   "command.rename.selectEntryKeyToRename": "选择要重命名的词条 Key",
+  "command.rename.selectSourceLanguageToRewrite": "选择要重写的源语言",
   "command.rename.suspectedNonFunctionImport": "键 \"{0}\" 疑似存在非函数内引入，暂不支持更改",
   "command.rewrite.fileNotFound": "无效的文件路径（{0}）",
   "command.rewrite.progress": "写入中",

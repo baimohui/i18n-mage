@@ -480,7 +480,7 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
       return this.langInfo.langList
         .filter(lang => !this.publicCtx.ignoredLangs.includes(lang))
         .map(lang => {
-          const contextValueList = ["entryTranslationInCurFile", "EDIT_VALUE"];
+          const contextValueList = ["entryTranslationInCurFile", "EDIT_VALUE", "REWRITE_ENTRY"];
           if (entryInfo[lang]) {
             contextValueList.push("COPY_VALUE");
           } else if (entryInfo[this.publicCtx.referredLang]) {
@@ -542,7 +542,7 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
       }));
     } else if (element.level === 2) {
       return (element.data as string[]).map(key => {
-        const contextValueList = ["syncInfoItem", "EDIT_VALUE"];
+        const contextValueList = ["syncInfoItem", "EDIT_VALUE", "REWRITE_ENTRY"];
         if (element.type !== "lack") {
           contextValueList.push("GO_TO_DEFINITION");
         }
@@ -723,7 +723,7 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
     const res = (element.stack || []).reduce((acc, item) => acc[item] as LangTree, this.tree) as string | LangTree;
     if (typeof res === "string") {
       return Object.entries(this.dictionary[res].value).map(item => {
-        const contextValueList = ["dictionaryItem", "GO_TO_DEFINITION", "EDIT_VALUE"];
+        const contextValueList = ["dictionaryItem", "GO_TO_DEFINITION", "EDIT_VALUE", "REWRITE_ENTRY"];
         if (item[1]) {
           contextValueList.push("COPY_VALUE");
         }
