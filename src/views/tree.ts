@@ -733,6 +733,7 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
           tooltip: getLangText(item[0]) || t("common.unknownLang"),
           id: this.genId(element, item[0]),
           contextValue: contextValueList.join(","),
+          name: unescapeString(res),
           key: res,
           value: item[1],
           meta: { scope: item[0] },
