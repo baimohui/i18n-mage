@@ -4,6 +4,19 @@ All notable changes to the i18n Mage VS Code extension will be documented in thi
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.7] - 2025-12-08
+
+### Added
+- **Smart Entry Rewriting**: Introduced entry text rewriting functionality, automatically updating translations across languages using translation services when source language text is modified. Accessible via hover panels, sidebar context menus, or the `rewriteEntry` command.
+- **Key Refactoring**: Added key renaming capability - press F2 at usage locations to rename keys, with automatic synchronization across language files and all reference points.
+
+### Improved
+- **Silent Check Execution**: Check commands now run without automatically opening the extension sidebar view, preserving current editing context.
+- **Repair-Diagnostic Linkage**: Linked quick fix actions for undefined entries with diagnostic functionality, synchronizing their enable/disable states for simplified configuration management.
+
+### Fixed
+- **Multi-language Write Integrity**: Resolved synchronization issue where English language files were omitted when filling undefined entries with original text.
+
 ## [1.1.6] - 2025-11-17
 
 ### Added
