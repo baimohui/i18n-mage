@@ -1,4 +1,4 @@
-import { EntryTree, EXECUTION_RESULT_CODE, LangContextInternal, SORT_MODE, SortMode } from "@/types";
+import { EntryTree, EXECUTION_RESULT_CODE, LangContextInternal, LANGUAGE_STRUCTURE, SORT_MODE, SortMode } from "@/types";
 import { RewriteHandler } from "./RewriteHandler";
 import { t } from "@/utils/i18n";
 
@@ -6,7 +6,11 @@ export class SortHandler {
   constructor(private ctx: LangContextInternal) {}
 
   public async run() {
-    if (this.ctx.sortingWriteMode !== SORT_MODE.None && this.ctx.multiFileMode === 0 && this.ctx.nestedLocale === 0) {
+    if (
+      this.ctx.sortingWriteMode !== SORT_MODE.None &&
+      this.ctx.multiFileMode === 0 &&
+      this.ctx.languageStructure === LANGUAGE_STRUCTURE.flat
+    ) {
       Object.keys(this.ctx.langCountryMap).forEach(lang => {
         if (this.ctx.ignoredLangs.includes(lang)) return;
         const sortedTree = {};

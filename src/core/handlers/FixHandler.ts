@@ -84,7 +84,7 @@ export class FixHandler {
       {} as Record<string, string>
     );
     const needTranslateList: TEntry[] = [];
-    const patchedEntryIdList: (TEntry & { fixedRaw: string })[] = [];
+    const patchedEntryIdList: (TEntry & { fixedRaw: string; fixedKey: string; addedVars: string })[] = [];
     const undefinedEntryIdSet = new Set<string>();
     const entriesToGen = this.ctx.fixQuery.entriesToGen;
     const genScope = this.ctx.fixQuery.genScope;
@@ -108,9 +108,9 @@ export class FixHandler {
           entryKey = convertKeyToVueI18nPath(entryKey, quote);
         }
         entry.nameInfo.boundKey = entryKey;
-        patchedEntryIdList.push({ ...entry, fixedRaw: this.getFixedRaw(entry, entryKey) });
+        patchedEntryIdList.push({ ...entry, ...this.getFixedInfo(entry, entryKey) });
       } else if (undefinedEntryIdSet.has(entryId)) {
-        patchedEntryIdList.push({ ...entry, fixedRaw: "" });
+        patchedEntryIdList.push({ ...entry, fixedRaw: "", fixedKey: "", addedVars: "" });
       } else {
         undefinedEntryIdSet.add(entryId);
         needTranslateList.push(entry);
@@ -137,6 +137,8 @@ export class FixHandler {
               code: EXECUTION_RESULT_CODE.TranslatorFailed
             };
           }
+        } else if (this.ctx.fixQuery.fillWithOriginal === true) {
+          enTextList = genNameList;
         }
       } else if (this.ctx.keyStrategy === KEY_STRATEGY.pinyin) {
         genNameList = genNameList.map(name => pinyin.convertToPinyin(name));
@@ -162,7 +164,10 @@ export class FixHandler {
     let namePrefix = "";
     if (this.ctx.keyPrefix === "auto-popular") {
       const pcList = this.getPopularClassList();
-      namePrefix = pcList[0]?.name ?? "";
+      namePrefix =
+        pcList
+          .map(item => item.name)
+          .find(item => item.split(this.ctx.nameSeparator).every(part => !this.ctx.stopPrefixes.includes(part))) ?? "";
     } else if (this.ctx.keyPrefix === "manual-selection") {
       if (this.ctx.missingEntryFile) {
         if (this.ctx.namespaceStrategy === NAMESPACE_STRATEGY.full) {
@@ -172,7 +177,7 @@ export class FixHandler {
         }
       }
       namePrefix += this.ctx.missingEntryPath;
-    } else if (this.ctx.keyPrefix && this.ctx.keyPrefix !== "none") {
+    } else if (this.ctx.keyPrefix && this.ctx.keyPrefix !== "none" && this.ctx.keyPrefix !== "auto-path") {
       namePrefix = this.ctx.keyPrefix;
     }
     const newIdSet = new Set<string>();
@@ -182,6 +187,15 @@ export class FixHandler {
       const id = genNameList[index];
       const nameInfo = entry.nameInfo;
       if (!nameInfo.boundKey) {
+        if (this.ctx.keyPrefix === "auto-path") {
+          const relativePath = toRelativePath(entry.path as string);
+          const nameSeparator = this.ctx.nameSeparator || ".";
+          const pathParts = relativePath
+            .replace(/\.\w+/, "")
+            .split("/")
+            .filter(part => !this.ctx.stopPrefixes.includes(part));
+          namePrefix = pathParts.join(nameSeparator) + nameSeparator;
+        }
         let prefix = nameInfo.boundPrefix || namePrefix;
         if (prefix && !prefix.endsWith(this.ctx.nameSeparator) && !prefix.endsWith(".")) {
           prefix += this.ctx.nameSeparator;
@@ -207,7 +221,7 @@ export class FixHandler {
         nameInfo.boundKey = entryKey;
         newIdSet.add(entryKey);
       }
-      patchedEntryIdList.push({ ...entry, fixedRaw: this.getFixedRaw(entry, nameInfo.boundKey) });
+      patchedEntryIdList.push({ ...entry, ...this.getFixedInfo(entry, nameInfo.boundKey) });
       this.needFix = true;
       referredLangMap[nameInfo.boundKey] = nameInfo.text;
       let fullPath = nameInfo.boundKey;
@@ -241,11 +255,11 @@ export class FixHandler {
       const updatePayload: I18nUpdatePayload = {
         type: "add",
         key: nameInfo.boundKey,
-        changes: {}
+        valueChanges: {}
       };
       this.detectedLangList.forEach(lang => {
         if (filledScope.includes(lang)) {
-          updatePayload.changes![lang] = { after: lang === this.ctx.referredLang ? nameInfo.text : enTextList[index] };
+          updatePayload.valueChanges![lang] = { after: lang === this.ctx.referredLang ? nameInfo.text : enTextList[index] };
         } else {
           this.lackInfoFromUndefined[lang] ??= [];
           this.lackInfoFromUndefined[lang].push(nameInfo.boundKey);
@@ -260,14 +274,14 @@ export class FixHandler {
             item => this.getIdByText(item.nameInfo.text) === this.getIdByText(entry.nameInfo.text) && item.fixedRaw.length > 0
           )?.nameInfo.boundKey ?? entry.nameInfo.text;
         entry.nameInfo.boundKey = fixedEntryId;
-        entry.fixedRaw = this.getFixedRaw(entry, fixedEntryId);
+        const fixedInfo = this.getFixedInfo(entry, fixedEntryId);
+        Object.assign(entry, fixedInfo);
       }
       const relativePath = toRelativePath(entry.path as string);
       this.ctx.patchedEntryIdInfo[relativePath] ??= [];
       this.ctx.patchedEntryIdInfo[relativePath].push({
         id: this.getIdByText(entry.nameInfo.text),
-        raw: entry.raw,
-        fixedRaw: entry.fixedRaw
+        ...entry
       });
     });
     if (patchedEntryIdList.length > 0) {
@@ -344,7 +358,7 @@ export class FixHandler {
             this.ctx.updatePayloads.push({
               type: "fill",
               key,
-              changes: {
+              valueChanges: {
                 [lang]: { after: referredEntriesText[index] }
               }
             });
@@ -362,8 +376,8 @@ export class FixHandler {
               this.ctx.updatePayloads.push({
                 type: "fill",
                 key,
-                changes: {
-                  [lang]: { after: res.data?.[index] }
+                valueChanges: {
+                  [lang]: { after: res.data?.[index] ?? "" }
                 }
               });
             });
@@ -435,7 +449,7 @@ export class FixHandler {
     }
   }
 
-  private getFixedRaw(entry: TEntry, key: string): string {
+  private getFixedInfo(entry: TEntry, key: string) {
     const displayName = internalToDisplayName(unescapeString(key));
     let varStr = "";
     if (entry.vars.length > 0) {
@@ -456,7 +470,12 @@ export class FixHandler {
     }
     const quote = entry.raw.slice(1).match(/["'`]{1}/)?.[0] ?? '"';
     const funcName = entry.raw.match(/^([^]+?)\(/)?.[1] ?? "";
-    return funcName ? `${funcName}(${quote}${displayName}${quote}${varStr})` : `${quote}${displayName}${quote}`;
+    return {
+      id: key,
+      fixedRaw: funcName ? `${funcName}(${quote}${displayName}${quote}${varStr})` : `${quote}${displayName}${quote}`,
+      fixedKey: displayName,
+      addedVars: varStr
+    };
   }
 
   private getPopularClassMap(tree: EntryClassTreeItem, map: Record<string, number> = {}, classPrefix: string = ""): Record<string, number> {

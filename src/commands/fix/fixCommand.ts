@@ -41,6 +41,7 @@ export function registerFixCommand(context: vscode.ExtensionContext) {
       await mage.execute({ task: "check" });
       const publicCtx = mage.getPublicContext();
       const { multiFileMode, nameSeparator, undefined: undefinedMap, classTree } = mage.langDetail;
+      // 修复未定义词条
       let undefinedKeys = Object.keys(undefinedMap).filter(key => {
         const { entriesToGen, genScope } = fixQuery;
         return (
@@ -132,7 +133,7 @@ export function registerFixCommand(context: vscode.ExtensionContext) {
           if (commonFiles.length > 1) {
             NotificationManager.showProgress({ message: t("command.fix.waitForFileSelection"), increment: 0 });
             let sortedFiles: string[] = commonFiles;
-            const lastPicked = context.globalState.get<string>("lastPickedFile");
+            const lastPicked = context.workspaceState.get<string>("lastPickedFile");
             if (lastPicked !== undefined && commonFiles.includes(lastPicked)) {
               sortedFiles = [lastPicked, ...commonFiles.filter(f => f !== lastPicked)];
             }
@@ -145,7 +146,7 @@ export function registerFixCommand(context: vscode.ExtensionContext) {
           if (typeof missingEntryFile === "string" && missingEntryFile.trim()) {
             missingEntryFile = missingEntryFile.replaceAll("/", ".");
             mage.setOptions({ missingEntryFile });
-            await context.globalState.update("lastPickedFile", missingEntryFile);
+            await context.workspaceState.update("lastPickedFile", missingEntryFile);
           } else {
             mage.setOptions({ missingEntryFile: "" });
             return;
@@ -155,7 +156,7 @@ export function registerFixCommand(context: vscode.ExtensionContext) {
         if (nameSeparator && keyPrefix === "manual-selection") {
           const classTreeItem = classTree.find(item => item.filePos === (missingEntryFile ?? ""));
           let commonKeys = classTreeItem ? getParentKeys(classTreeItem.data, nameSeparator) : [];
-          const offset = publicCtx.namespaceStrategy === NAMESPACE_STRATEGY.file ? 1 : multiFileMode;
+          const offset = publicCtx.namespaceStrategy === NAMESPACE_STRATEGY.file ? 1 : (missingEntryFile?.split(".").length ?? 0);
           if (publicCtx.namespaceStrategy !== NAMESPACE_STRATEGY.none) {
             commonKeys = commonKeys
               .map(key => {
@@ -170,31 +171,37 @@ export function registerFixCommand(context: vscode.ExtensionContext) {
           let missingEntryPath: string | undefined = "";
           if (commonKeys.length > 0) {
             NotificationManager.showProgress({ message: t("command.fix.waitForFileSelection"), increment: 0 });
-            const lastPicked = context.globalState.get<string>("lastPickedKey");
+            const lastPicked = context.workspaceState.get<string>("lastPickedKey");
             if (lastPicked !== undefined && commonKeys.includes(lastPicked)) {
               commonKeys = [lastPicked, ...commonKeys.filter(f => f !== lastPicked)];
             }
-          }
-          missingEntryPath = await vscode.window.showQuickPick([...commonKeys, t("command.fix.customKey")], {
-            placeHolder: t("command.fix.selectKeyToWrite")
-          });
-          if (missingEntryPath === t("command.fix.customKey")) {
-            missingEntryPath = await vscode.window.showInputBox({
-              placeHolder: t("command.fix.customKeyInput")
+            missingEntryPath = await vscode.window.showQuickPick([...commonKeys, t("command.fix.customKey")], {
+              placeHolder: t("command.fix.selectKeyToWrite")
             });
+            if (missingEntryPath === t("command.fix.customKey")) {
+              missingEntryPath = await vscode.window.showInputBox({
+                placeHolder: t("command.fix.customKeyInput")
+              });
+            }
+            if (missingEntryPath === undefined) return;
           }
-          if (missingEntryPath === undefined) return;
           missingEntryPath = missingEntryPath.trim();
-          await context.globalState.update("lastPickedKey", missingEntryPath);
+          await context.workspaceState.update("lastPickedKey", missingEntryPath);
           mage.setOptions({ missingEntryPath });
         }
       }
-      if (validateLanguageBeforeTranslate) {
-        let lackKeys = Object.values(mage.langDetail.lack).flat();
-        if (publicCtx.autoTranslateEmptyKey) {
-          lackKeys.push(...Object.values(mage.langDetail.null).flat());
+      // 补充缺漏翻译
+      if (validateLanguageBeforeTranslate && fixQuery.entriesToFill !== false) {
+        let lackKeys: string[] = [];
+        if (Array.isArray(fixQuery.entriesToFill)) {
+          lackKeys = fixQuery.entriesToFill;
+        } else {
+          lackKeys = Object.values(mage.langDetail.lack).flat();
+          if (publicCtx.autoTranslateEmptyKey) {
+            lackKeys.push(...Object.values(mage.langDetail.null).flat());
+          }
+          lackKeys = [...new Set(lackKeys)];
         }
-        lackKeys = [...new Set(lackKeys)];
         const referredTranslation = mage.langDetail.countryMap[publicCtx.referredLang];
         let currentNonSourceKeys = lackKeys.filter(key => {
           return !!referredTranslation[key] && !validateLang(referredTranslation[key], publicCtx.referredLang);

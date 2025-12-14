@@ -1,7 +1,6 @@
 import * as vscode from "vscode";
 import LangMage from "@/core/LangMage";
 import {
-  catchTEntries,
   unescapeString,
   getValueByAmbiguousEntryName,
   detectI18nFramework,
@@ -21,7 +20,10 @@ import {
   UNMATCHED_LANGUAGE_ACTION,
   UnmatchedLanguageAction,
   INDENT_TYPE,
-  I18nFramework
+  I18nFramework,
+  LANGUAGE_STRUCTURE,
+  QUOTE_STYLE_4_KEY,
+  QUOTE_STYLE_4_VALUE
 } from "@/types";
 import { t } from "@/utils/i18n";
 import { NotificationManager } from "@/utils/notification";
@@ -29,6 +31,7 @@ import { getCacheConfig, getConfig, setCacheConfig, setConfig } from "@/utils/co
 import { DecoratorController } from "@/features/Decorator";
 import { Diagnostics } from "@/features/Diagnostics";
 import { StatusBarItemManager } from "@/features/StatusBarItemManager";
+import { ActiveEditorState } from "@/utils/activeEditorState";
 
 interface ExtendedTreeItem extends vscode.TreeItem {
   level?: number;
@@ -128,13 +131,34 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
       );
     };
     this.displayLang = resolveLang(getCacheConfig<string>("general.displayLanguage"));
-    this.checkUsedInfo();
-    const decorator = DecoratorController.getInstance();
-    decorator.update(vscode.window.activeTextEditor);
-    const diagnostics = Diagnostics.getInstance();
+    this.definedEntriesInCurrentFile = [];
+    this.undefinedEntriesInCurrentFile = [];
+    const editor = vscode.window.activeTextEditor;
+    if (editor) {
+      ActiveEditorState.update(editor);
+      const definedEntries = Array.from(ActiveEditorState.definedEntries.values()).map(item => item[0]);
+      for (const entry of definedEntries) {
+        if (entry.dynamic) {
+          const matchKeys = ActiveEditorState.dynamicMatchInfo.get(entry.nameInfo.name) || [];
+          matchKeys.forEach(key => {
+            if (!this.definedEntriesInCurrentFile.find(item => item.nameInfo.name === key)) {
+              const newEntry = { ...entry, nameInfo: { ...entry.nameInfo, text: key, name: key, id: key } };
+              this.definedEntriesInCurrentFile.push(newEntry);
+            }
+          });
+        } else {
+          this.definedEntriesInCurrentFile.push(entry);
+        }
+      }
+      this.undefinedEntriesInCurrentFile = Array.from(ActiveEditorState.undefinedEntries.values()).map(item => item[0]);
+      const decorator = DecoratorController.getInstance();
+      decorator.update(editor);
+      const diagnostics = Diagnostics.getInstance();
+      diagnostics.update(editor.document);
+      // vscode.workspace.textDocuments.forEach(doc => diagnostics.update(doc));
+    }
     const statusBarItemManager = StatusBarItemManager.getInstance();
     statusBarItemManager.update();
-    vscode.workspace.textDocuments.forEach(doc => diagnostics.update(doc));
     this._onDidChangeTreeData.fire();
   }
 
@@ -210,7 +234,7 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
           }
         }
         if (this.#mage.detectedLangList.length === 0) {
-          vscode.commands.executeCommand("setContext", "hasValidLangPath", false);
+          vscode.commands.executeCommand("setContext", "i18nMage.hasValidLangPath", false);
           success = false;
           if (!(await detectI18nProject(projectPath))) {
             return false;
@@ -221,10 +245,14 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
             }
           });
         } else {
-          vscode.commands.executeCommand("setContext", "hasValidLangPath", true);
+          vscode.commands.executeCommand("setContext", "i18nMage.hasValidLangPath", true);
           success = true;
           const sortMode = getCacheConfig<string>("writeRules.sortRule");
-          vscode.commands.executeCommand("setContext", "allowSort", this.langInfo.isFlat && sortMode !== SORT_MODE.None);
+          vscode.commands.executeCommand(
+            "setContext",
+            "i18nMage.allowSort",
+            this.langInfo.multiFileMode !== 0 && this.langInfo.languageStructure === LANGUAGE_STRUCTURE.flat && sortMode !== SORT_MODE.None
+          );
           this.publicCtx = this.#mage.getPublicContext();
           const langPath = toRelativePath(this.publicCtx.langPath);
           setTimeout(() => {
@@ -274,12 +302,36 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
                 });
               }
             }
+            if (getCacheConfig("writeRules.quoteStyleForKey") === QUOTE_STYLE_4_KEY.auto) {
+              const initKeyQuotes = fileExtraData[0].keyQuotes;
+              const isUnified = fileExtraData.every(item => item.keyQuotes === initKeyQuotes);
+              if (isUnified) {
+                setConfig("writeRules.quoteStyleForKey", initKeyQuotes).catch(error => {
+                  NotificationManager.logToOutput(`Failed to set config for quoteStyleForKey: ${error}`, "error");
+                });
+              }
+            }
+            if (getCacheConfig("writeRules.quoteStyleForValue") === QUOTE_STYLE_4_VALUE.auto) {
+              const initValueQuotes = fileExtraData[0].valueQuotes;
+              const isUnified = fileExtraData.every(item => item.valueQuotes === initValueQuotes);
+              if (isUnified) {
+                setConfig("writeRules.quoteStyleForValue", initValueQuotes).catch(error => {
+                  NotificationManager.logToOutput(`Failed to set config for quoteStyleForValue: ${error}`, "error");
+                });
+              }
+            }
+            if (getCacheConfig("writeRules.languageStructure") === LANGUAGE_STRUCTURE.auto) {
+              const isFlat = fileExtraData.every(item => item.isFlat);
+              setConfig("writeRules.languageStructure", LANGUAGE_STRUCTURE[isFlat ? "flat" : "nested"]).catch(error => {
+                NotificationManager.logToOutput(`Failed to set config for languageStructure: ${error}`, "error");
+              });
+            }
           }, 10000);
         }
       }
       this.isInitialized = true;
       this.refresh();
-      vscode.commands.executeCommand("setContext", "initialized", true);
+      vscode.commands.executeCommand("setContext", "i18nMage.initialized", true);
       return success;
     } catch (e: unknown) {
       const errorMessage = t("tree.init.error", e instanceof Error ? e.message : (e as string));
@@ -390,7 +442,7 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
         const contextValueList = ["COPY_NAME"];
         let description = "";
         if (element.type === "defined") {
-          contextValueList.push("definedEntryInCurFile");
+          contextValueList.push("definedEntryInCurFile", "REWRITE_ENTRY");
           description = entryInfo[this.displayLang] ?? "";
         } else {
           contextValueList.push("undefinedEntryInCurFile", "IGNORE_UNDEFINED");
@@ -409,6 +461,7 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
         }
         return {
           name: entry.nameInfo.name,
+          key: getValueByAmbiguousEntryName(this.tree, entry.nameInfo.name) ?? "",
           label: internalToDisplayName(entry.nameInfo.text),
           description,
           collapsibleState: vscode.TreeItemCollapsibleState[element.type === "defined" ? "Collapsed" : "None"],
@@ -422,12 +475,12 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
         };
       });
     } else if (element.level === 2) {
-      const entryKey = getValueByAmbiguousEntryName(this.tree, element.name as string) ?? "";
-      const entryInfo = this.dictionary[entryKey].value;
+      const key = element.key as string;
+      const entryInfo = this.dictionary[key].value;
       return this.langInfo.langList
         .filter(lang => !this.publicCtx.ignoredLangs.includes(lang))
         .map(lang => {
-          const contextValueList = ["entryTranslationInCurFile", "EDIT_VALUE"];
+          const contextValueList = ["entryTranslationInCurFile", "EDIT_VALUE", "REWRITE_ENTRY"];
           if (entryInfo[lang]) {
             contextValueList.push("COPY_VALUE");
           } else if (entryInfo[this.publicCtx.referredLang]) {
@@ -445,8 +498,8 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
             description: entryInfo[lang] ?? false,
             collapsibleState: vscode.TreeItemCollapsibleState.None,
             level: 3,
-            key: entryKey,
-            data: [entryKey],
+            key: key,
+            data: [key],
             meta: { scope: lang },
             contextValue: contextValueList.join(","),
             id: this.genId(element, lang),
@@ -489,7 +542,7 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
       }));
     } else if (element.level === 2) {
       return (element.data as string[]).map(key => {
-        const contextValueList = ["syncInfoItem", "EDIT_VALUE"];
+        const contextValueList = ["syncInfoItem", "EDIT_VALUE", "REWRITE_ENTRY"];
         if (element.type !== "lack") {
           contextValueList.push("GO_TO_DEFINITION");
         }
@@ -670,7 +723,7 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
     const res = (element.stack || []).reduce((acc, item) => acc[item] as LangTree, this.tree) as string | LangTree;
     if (typeof res === "string") {
       return Object.entries(this.dictionary[res].value).map(item => {
-        const contextValueList = ["dictionaryItem", "GO_TO_DEFINITION", "EDIT_VALUE"];
+        const contextValueList = ["dictionaryItem", "GO_TO_DEFINITION", "EDIT_VALUE", "REWRITE_ENTRY"];
         if (item[1]) {
           contextValueList.push("COPY_VALUE");
         }
@@ -680,6 +733,7 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
           tooltip: getLangText(item[0]) || t("common.unknownLang"),
           id: this.genId(element, item[0]),
           contextValue: contextValueList.join(","),
+          name: unescapeString(res),
           key: res,
           value: item[1],
           meta: { scope: item[0] },
@@ -707,42 +761,6 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
             collapsibleState: vscode.TreeItemCollapsibleState.Collapsed
           };
         });
-    }
-  }
-
-  public checkUsedInfo(): void {
-    this.definedEntriesInCurrentFile = [];
-    this.undefinedEntriesInCurrentFile = [];
-    const editor = vscode.window.activeTextEditor;
-    vscode.commands.executeCommand("setContext", "hasDefinedEntriesInFile", false);
-    vscode.commands.executeCommand("setContext", "hasUndefinedEntriesInFile", false);
-    if (editor) {
-      const text = editor.document.getText();
-      this.usedEntries = catchTEntries(text);
-      this.usedEntries.forEach(entry => {
-        const { regex, name, text } = entry.nameInfo;
-        if (Object.hasOwn(this.undefinedEntryMap, text)) {
-          if (!this.undefinedEntriesInCurrentFile.some(item => item.nameInfo.text === text)) {
-            this.undefinedEntriesInCurrentFile.push(entry);
-          }
-          return;
-        }
-        if (Object.hasOwn(this.usedEntryMap, name)) {
-          if (!this.definedEntriesInCurrentFile.some(item => item.nameInfo.name === name)) {
-            this.definedEntriesInCurrentFile.push(entry);
-          }
-          return;
-        }
-        const matchList = Object.keys(this.usedEntryMap).filter(key => regex.test(key));
-        matchList.forEach(matchItem => {
-          if (!this.definedEntriesInCurrentFile.some(item => item.nameInfo.name === matchItem)) {
-            const newEntry = { ...entry, nameInfo: { ...entry.nameInfo, text: matchItem, name: matchItem, id: matchItem } };
-            this.definedEntriesInCurrentFile.push(newEntry);
-          }
-        });
-      });
-      vscode.commands.executeCommand("setContext", "hasDefinedEntriesInFile", this.definedEntriesInCurrentFile.length > 0);
-      vscode.commands.executeCommand("setContext", "hasUndefinedEntriesInFile", this.undefinedEntriesInCurrentFile.length > 0);
     }
   }
 

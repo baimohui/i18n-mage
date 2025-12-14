@@ -6,8 +6,11 @@ import {
   KeyGenerationFillScope,
   KeyStrategy,
   KeyStyle,
+  LanguageStructure,
+  ModifyQuery,
   NamespaceStrategy,
-  QuoteStyle,
+  QuoteStyle4Key,
+  QuoteStyle4Value,
   SortMode
 } from "@/types";
 
@@ -29,7 +32,7 @@ export interface LangMageOptions {
   sortAfterFix?: boolean;
   sortingWriteMode?: SortMode;
   sortingExportMode?: SortMode;
-  modifyList?: Array<{ key: string; name: string; value: string; lang: string }>;
+  modifyQuery?: ModifyQuery | null;
   trimKeyList?: string[];
   manuallyMarkedUsedEntries?: string[];
   ignoredUndefinedEntries?: string[];
@@ -39,17 +42,19 @@ export interface LangMageOptions {
   keyStyle?: KeyStyle;
   keyStrategy?: KeyStrategy;
   stopWords?: string[];
+  stopPrefixes?: string[];
   maxKeyLength?: number;
   keyPrefix?: string;
   indentType?: IndentType;
   indentSize?: number;
-  quoteStyleForKey?: "auto" | QuoteStyle;
-  quoteStyleForValue?: "auto" | QuoteStyle;
+  quoteStyleForKey?: QuoteStyle4Key;
+  quoteStyleForValue?: QuoteStyle4Value;
   scanStringLiterals?: boolean;
   missingEntryFile?: string;
   missingEntryPath?: string;
   fixQuery?: FixQuery;
   invalidKeyStrategy?: InvalidKeyStrategy;
+  languageStructure?: LanguageStructure;
 }
 
 export const EXECUTION_RESULT_CODE = {

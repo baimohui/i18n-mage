@@ -1,4 +1,4 @@
-import { IndentType } from "./config";
+import { IndentType, QuoteStyle4Key, QuoteStyle4Value } from "./config";
 
 export type LangName = string;
 export type EntryValue = string;
@@ -9,12 +9,12 @@ export type LangFileType = "js" | "ts" | "json" | "json5" | "mjs" | "cjs";
 export interface FileExtraInfo {
   indentType: IndentType;
   indentSize: number;
-  nestedLevel: number;
   prefix: string;
   suffix: string;
   innerVar: string;
-  keyQuotes: QuoteStyle;
-  valueQuotes: QuoteStyle;
+  isFlat: boolean;
+  keyQuotes: Omit<QuoteStyle4Key, "auto">;
+  valueQuotes: Omit<QuoteStyle4Value, "auto">;
 }
 export interface LangFileInfo {
   data: EntryTree;
@@ -68,6 +68,9 @@ export interface FixedTEntry {
   id: string;
   raw: string;
   fixedRaw: string;
+  fixedKey: string;
+  addedVars: string;
+  pos: string;
 }
 
 export interface PEntry {
@@ -110,8 +113,6 @@ export type DirNode = {
 
 export type EntryNode = FileNode | DirNode;
 
-export type QuoteStyle = "single" | "double" | "none";
-
 export interface FixQuery {
   entriesToGen: string[] | boolean;
   genScope?: string[];
@@ -120,19 +121,42 @@ export interface FixQuery {
   fillWithOriginal?: boolean;
 }
 
+export type ModifyQuery = EditValueQuery | RenameKeyQuery;
+
+export interface EditValueQuery {
+  type: "editValue" | "rewriteEntry";
+  key: string;
+  value: string;
+  lang?: string;
+}
+
+export interface RenameKeyQuery {
+  type: "renameKey";
+  key: string;
+  keyChange: {
+    key: Comparison;
+    filePos: Comparison;
+    fullPath: Comparison;
+  };
+}
+
 export interface I18nUpdatePayload {
   type: "add" | "edit" | "fill" | "delete" | "rename";
   key: string; // 原始 key（rename 时是旧 key）
   name?: string;
-  newKey?: string; // rename 新 key
-  changes?: Record<string, TranslationChange>; // 各语言的变化
+  valueChanges?: Record<string, Comparison>; // 各语言的变化
+  keyChange?: {
+    key: Comparison;
+    filePos: Comparison;
+    fullPath: Comparison;
+  }; // key 的变化
   meta?: {
     source?: string; // 来源（例如手动、自动翻译）
     timestamp?: number; // 操作时间
   };
 }
 
-interface TranslationChange {
+interface Comparison {
   before?: string; // 修改前（新增时无）
-  after?: string; // 修改后（删除时无）
+  after: string; // 修改后（删除时无）
 }

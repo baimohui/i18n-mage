@@ -1,18 +1,10 @@
 import * as vscode from "vscode";
 import LangMage from "@/core/LangMage";
 import { treeInstance } from "@/views/tree";
-import {
-  getValueByAmbiguousEntryName,
-  catchTEntries,
-  getLineEnding,
-  unescapeString,
-  isValidI18nCallablePath,
-  formatEscapeChar,
-  catchPossibleEntries
-} from "@/utils/regex";
+import { getValueByAmbiguousEntryName, formatEscapeChar } from "@/utils/regex";
 import { getCacheConfig } from "@/utils/config";
-import { INLINE_HINTS_DISPLAY_MODE, InlineHintsDisplayMode, TEntry } from "@/types";
-import path from "path";
+import { INLINE_HINTS_DISPLAY_MODE, InlineHintsDisplayMode } from "@/types";
+import { ActiveEditorState } from "@/utils/activeEditorState";
 
 export class DecoratorController implements vscode.Disposable {
   private static instance: DecoratorController;
@@ -34,8 +26,6 @@ export class DecoratorController implements vscode.Disposable {
   >();
   private lastCursorLine: number = -1;
   private currentEditor?: vscode.TextEditor;
-  public entries: TEntry[] = [];
-  public offsetBase: number = 0;
 
   constructor() {
     // 初始化翻译文本装饰器
@@ -55,7 +45,6 @@ export class DecoratorController implements vscode.Disposable {
   }
 
   public update(editor: vscode.TextEditor | undefined): void {
-    this.entries = [];
     this.currentDecorations.clear();
     if (this.disposed || !editor) return;
     if (!getCacheConfig<boolean>("translationHints.enable")) {
@@ -64,88 +53,54 @@ export class DecoratorController implements vscode.Disposable {
       editor.setDecorations(this.hiddenKeyDecoration, []);
       return;
     }
-    const filePath = editor.document.uri.fsPath;
-    if (isValidI18nCallablePath(filePath)) {
-      const mage = LangMage.getInstance();
-      this.currentEditor = editor;
-      const { tree, countryMap } = mage.langDetail;
-      const translations = countryMap[treeInstance.displayLang];
-      if (translations === undefined) return;
-      // 获取可视区域范围
-      const visibleRanges = editor.visibleRanges;
-      const visibleStart = Math.min(...visibleRanges.map(r => r.start.line));
-      const visibleEnd = Math.max(...visibleRanges.map(r => r.end.line));
-      // 按行提取文本，避免全量 getText
-      const visibleLines: string[] = [];
-      for (let i = visibleStart; i <= visibleEnd; i++) {
-        if (i < editor.document.lineCount) {
-          visibleLines.push(editor.document.lineAt(i).text);
-        }
+    this.currentEditor = editor;
+    const mage = LangMage.getInstance();
+    const { tree, countryMap } = mage.langDetail;
+    const translations = countryMap[treeInstance.displayLang];
+    if (translations === undefined) return;
+    const entries = Array.from(ActiveEditorState.definedEntries.values())
+      .flat()
+      .filter(item => item.visible);
+    const maxLen = getCacheConfig<number>("translationHints.maxLength");
+    const enableLooseKeyMatch = getCacheConfig<boolean>("translationHints.enableLooseKeyMatch");
+    const dynamicMatchInfo = ActiveEditorState.dynamicMatchInfo;
+    const applyToStringLiterals = getCacheConfig<boolean>("translationHints.applyToStringLiterals");
+    entries.forEach(entry => {
+      if (!applyToStringLiterals && !entry.funcCall) return;
+      let [startPos, endPos] = entry.pos.split(",").map(Number);
+      startPos++;
+      endPos--;
+      const entryKey = getValueByAmbiguousEntryName(tree, entry.nameInfo.name);
+      let entryValue = translations[entryKey as string];
+      let isLooseMatch = false;
+      if (entry.dynamic && dynamicMatchInfo.has(entry.nameInfo.name)) {
+        if (!enableLooseKeyMatch) return;
+        isLooseMatch = true;
+        const matchedKeys = dynamicMatchInfo.get(entry.nameInfo.name) || [];
+        entryValue = matchedKeys.map(key => translations[key]).join(" | ");
       }
-      const lineEnding = getLineEnding();
-      const visibleText = visibleLines.join(lineEnding);
-      this.offsetBase = editor.document.offsetAt(new vscode.Position(visibleStart, 0));
-      const entries = catchTEntries(visibleText);
-      const applyToStringLiterals = getCacheConfig<boolean>("translationHints.applyToStringLiterals");
-      if (applyToStringLiterals) {
-        catchPossibleEntries(visibleText, mage.langDetail.tree, path.basename(filePath)).forEach(entry => {
-          entries.push({
-            raw: entry.value,
-            pos: entry.pos,
-            vars: [],
-            nameInfo: {
-              text: entry.name,
-              regex: new RegExp(entry.name),
-              name: entry.name,
-              boundKey: "",
-              boundPrefix: "",
-              vars: []
-            }
-          });
-        });
-      }
-      this.entries = entries;
-      const maxLen = getCacheConfig<number>("translationHints.maxLength");
-      const enableLooseKeyMatch = getCacheConfig<boolean>("translationHints.enableLooseKeyMatch");
-      const totalEntryList = Object.keys(mage.langDetail.dictionary).map(key => unescapeString(key));
-      entries.forEach(entry => {
-        let [startPos, endPos] = entry.pos.split(",").map(Number);
-        startPos++;
-        endPos--;
-        const entryKey = getValueByAmbiguousEntryName(tree, entry.nameInfo.name);
-        let entryValue = translations[entryKey as string];
-        let isLooseMatch = false;
-        if (entryValue === undefined) {
-          if (!enableLooseKeyMatch || entry.nameInfo.vars.length === 0) return;
-          const matchedEntryName = totalEntryList.find(entryName => entry.nameInfo.regex.test(entryName)) ?? "";
-          const matchedEntryKey = getValueByAmbiguousEntryName(tree, matchedEntryName);
-          if (matchedEntryKey === undefined) return;
-          isLooseMatch = true;
-          entryValue = translations[matchedEntryKey];
-        }
-        const uniqueId = `${this.offsetBase + startPos}:${entry.nameInfo.name}`;
-        const formattedEntryValue = this.formatEntryValue(entryValue, maxLen);
-        this.currentDecorations.set(uniqueId, {
-          startPos,
-          endPos,
-          value: formattedEntryValue,
-          isLooseMatch
-        });
+      if (!entryValue) return;
+      const uniqueId = `${startPos}:${entry.nameInfo.name}`;
+      const formattedEntryValue = this.formatEntryValue(entryValue, maxLen);
+      this.currentDecorations.set(uniqueId, {
+        startPos,
+        endPos,
+        value: formattedEntryValue,
+        isLooseMatch
       });
-    }
+    });
     this.applyDecorations(editor);
   }
 
   // 处理光标移动
   public handleCursorMove(event: vscode.TextEditorSelectionChangeEvent): void {
-    const editor = event.textEditor;
-    this.currentEditor = editor;
+    if (event.textEditor !== this.currentEditor) return;
     const cursorLine = event.selections[0].active.line;
     // 只有跨行移动时才更新（性能优化）
     if (cursorLine === this.lastCursorLine) return;
     this.lastCursorLine = cursorLine;
     // 更新装饰器状态
-    this.applyDecorations(editor);
+    this.applyDecorations(this.currentEditor);
   }
 
   // 文档变化处理
@@ -168,7 +123,13 @@ export class DecoratorController implements vscode.Disposable {
     }
     // 如果改动在可视区域内 或者包含换行/潜在 TEntry，触发更新
     const fullText = changedTextSnippets.join("\n");
-    if (affected || fullText.includes("\n") || catchTEntries(fullText).length > 0) {
+    if (
+      affected ||
+      fullText.includes("\n") ||
+      Array.from(ActiveEditorState.definedEntries.values())
+        .flat()
+        .some(item => item.visible)
+    ) {
       this.update(editor);
     }
   }
@@ -205,12 +166,25 @@ export class DecoratorController implements vscode.Disposable {
         startPos--;
         endPos++;
       }
-      const globalStartPos = editor.document.positionAt(this.offsetBase + startPos);
-      let globalEndPos = editor.document.positionAt(this.offsetBase + endPos);
+      const globalStartPos = editor.document.positionAt(startPos);
+      let globalEndPos = editor.document.positionAt(endPos);
       const isOnCursorLine = globalStartPos.line <= cursorLine && globalEndPos.line >= cursorLine;
       if (isInline || isOnCursorLine) {
         if (isLooseMatch) {
-          globalEndPos = editor.document.positionAt(this.offsetBase + endPos - 1);
+          const document = editor.document;
+          const text = document.getText();
+          const searchStart = Math.max(startPos, 0);
+          const searchEnd = Math.min(endPos - 1, text.length - 1);
+          let quotePosition: number | null = null;
+          for (let i = searchEnd; i >= searchStart; i--) {
+            if (text[i] === '"' || text[i] === "'" || text[i] === "`") {
+              quotePosition = i;
+              break;
+            }
+          }
+          if (quotePosition !== null) {
+            globalEndPos = document.positionAt(quotePosition);
+          }
         }
         const range = new vscode.Range(globalEndPos, globalEndPos);
         const appendedDec = {

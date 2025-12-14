@@ -1,16 +1,26 @@
 import fs from "fs";
 import path from "path";
-import { EntryClassTreeItem, EntryNode, I18N_FRAMEWORK, LangContextInternal, NAMESPACE_STRATEGY, NamespaceStrategy } from "@/types";
+import {
+  DirNode,
+  EntryClassTreeItem,
+  EntryNode,
+  I18N_FRAMEWORK,
+  LangContextInternal,
+  LANGUAGE_STRUCTURE,
+  NAMESPACE_STRATEGY,
+  NamespaceStrategy
+} from "@/types";
 import {
   catchTEntries,
-  catchPossibleEntries,
+  catchLiteralEntries,
   extractLangDataFromDir,
   getValueByAmbiguousEntryName,
   flattenNestedObj,
   escapeString,
   unescapeString,
   isValidI18nCallablePath,
-  stripLanguageLayer
+  stripLanguageLayer,
+  getCommonFilePaths
 } from "@/utils/regex";
 import { EntryTree, LangDictionary, LangTree } from "@/types";
 import { isFileTooLarge } from "@/utils/fs";
@@ -30,28 +40,25 @@ export class ReadHandler {
     this.ctx.langFileType = langData.fileType;
     this.ctx.fileStructure = stripLanguageLayer(langData.fileStructure);
     this.ctx.multiFileMode = langData.fileNestedLevel;
-    let fileNestedLevelOffset = 0;
     if (this.ctx.multiFileMode > 0) {
       const { treeData, keyMap } = this.processLanguageData(langTree, this.ctx.namespaceStrategy);
       langTree = treeData;
       keyPathMap = keyMap;
-      if (this.ctx.namespaceStrategy === NAMESPACE_STRATEGY.full) {
-        fileNestedLevelOffset = this.ctx.multiFileMode;
-      } else if (this.ctx.namespaceStrategy === NAMESPACE_STRATEGY.file) {
-        fileNestedLevelOffset = 1;
-      }
     }
     Object.entries(langTree).forEach(([lang, tree]) => {
-      const { data, depth } = flattenNestedObj(tree);
-      this.ctx.langCountryMap[lang] = data;
-      this.ctx.nestedLocale = Math.max(this.ctx.nestedLocale, depth - fileNestedLevelOffset);
+      this.ctx.langCountryMap[lang] = flattenNestedObj(tree);
     });
     const { structure, lookup } = this.buildEntryTreeAndDictionary(langTree, keyPathMap);
     this.ctx.entryTree = structure;
     this.ctx.langDictionary = lookup;
-    if (this.ctx.nestedLocale > 0) {
+    if (this.ctx.languageStructure === LANGUAGE_STRUCTURE.auto) {
+      this.ctx.languageStructure = Object.values(this.ctx.langFileExtraInfo).every(info => info.isFlat)
+        ? LANGUAGE_STRUCTURE.flat
+        : LANGUAGE_STRUCTURE.nested;
+    }
+    if (this.ctx.languageStructure === LANGUAGE_STRUCTURE.nested) {
       this.ctx.nameSeparator = ".";
-      this.buildEntryClassTree(langData.langTree, fileNestedLevelOffset, this.ctx.multiFileMode);
+      this.buildEntryClassTree(langData.langTree, this.ctx.fileStructure, this.ctx.namespaceStrategy);
     } else {
       const entryNameList = Object.keys(lookup);
       this.ctx.nameSeparator = this.detectCommonSeparator(entryNameList);
@@ -68,13 +75,17 @@ export class ReadHandler {
     this.ctx.usedEntryMap = {};
     this.ctx.undefinedEntryList = [];
     this.ctx.undefinedEntryMap = {};
+    const usedLiteralsNameSet = new Set<string>();
     for (const filePath of filePaths) {
       if (await isFileTooLarge(filePath)) continue;
       const fileContent = fs.readFileSync(filePath, "utf8");
       const tItems = catchTEntries(fileContent);
       let usedEntryList: { name: string; pos: string }[] = [];
       if (this.ctx.scanStringLiterals) {
-        const existedItems = catchPossibleEntries(fileContent, this.ctx.entryTree, path.basename(filePath));
+        const existedItems = catchLiteralEntries(fileContent, this.ctx.entryTree, path.basename(filePath));
+        existedItems.forEach(item => {
+          usedLiteralsNameSet.add(item.name);
+        });
         usedEntryList = existedItems.slice();
       }
       for (const item of tItems) {
@@ -111,10 +122,16 @@ export class ReadHandler {
         this.ctx.usedEntryMap[entryName] = {};
       }
     });
+    this.ctx.usedKeySet = new Set<string>();
+    this.ctx.unusedKeySet = new Set<string>();
+    this.ctx.usedLiteralKeySet = new Set<string>();
     for (const name in this.ctx.usedEntryMap) {
       const key = getValueByAmbiguousEntryName(this.ctx.entryTree, name);
       if (key !== undefined) {
         this.ctx.usedKeySet.add(key);
+        if (usedLiteralsNameSet.has(name)) {
+          this.ctx.usedLiteralKeySet.add(key);
+        }
       }
     }
     for (const key in this.ctx.langDictionary) {
@@ -188,15 +205,26 @@ export class ReadHandler {
     return { structure, lookup };
   }
 
-  private buildEntryClassTree(langTree: LangTree, fileNestedLevelOffset: number, multiFileMode: number) {
+  private buildEntryClassTree(langTree: LangTree, fileStructure: DirNode | null, namespaceStrategy: NamespaceStrategy) {
     const ignoredLangs = this.ctx.ignoredLangs;
+    const commonFilePaths = getCommonFilePaths(fileStructure);
     const setAtPath = (path: string[], isEmpty = false): void => {
-      const filePos = path.slice(0, multiFileMode).join(".");
+      const fileSegs =
+        commonFilePaths
+          .map(item => item.split("/"))
+          .find(fileSegs => path.slice(0, fileSegs.length).every((seg, index) => seg === fileSegs[index])) ?? [];
+      const filePos = fileSegs.join(".");
       if (this.ctx.entryClassTree.find(item => item.filePos === filePos) === undefined) {
         this.ctx.entryClassTree.push({ filePos, data: {} });
       }
       let entryClassTreeItem = this.ctx.entryClassTree.find(item => item.filePos === filePos)!.data;
-      const entryClassTreePath = path.slice(multiFileMode - fileNestedLevelOffset);
+      let fileNestedLevelOffset = 0;
+      if (namespaceStrategy === NAMESPACE_STRATEGY.none) {
+        fileNestedLevelOffset = fileSegs.length;
+      } else if (namespaceStrategy === NAMESPACE_STRATEGY.file) {
+        fileNestedLevelOffset = fileSegs.length - 1;
+      }
+      const entryClassTreePath = path.slice(fileNestedLevelOffset);
       for (let i = 0; i < entryClassTreePath.length - 1; i++) {
         const key = entryClassTreePath[i];
         if (!Object.hasOwn(entryClassTreeItem, key) || typeof entryClassTreeItem[key] !== "object") {

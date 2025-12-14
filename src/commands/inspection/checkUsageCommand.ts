@@ -17,7 +17,7 @@ export function registerCheckUsageCommand() {
       } else {
         await treeInstance.initTree();
       }
-      vscode.commands.executeCommand("workbench.view.extension.i18nMage");
+      // vscode.commands.executeCommand("workbench.view.extension.i18nMage");
     });
   }, 3000);
   const disposable = vscode.commands.registerCommand("i18nMage.checkUsage", throttledHandler);

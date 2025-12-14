@@ -5,8 +5,10 @@ import type {
   KeyGenerationFillScope,
   LangContextInternal,
   LangContextPublic,
+  LanguageStructure,
   NamespaceStrategy,
-  QuoteStyle,
+  QuoteStyle4Key,
+  QuoteStyle4Value,
   SortMode
 } from "@/types";
 import { createLangContext } from "@/core/context";
@@ -59,18 +61,20 @@ class LangMage {
         keyStyle: getCacheConfig<KeyStyle>("writeRules.keyStyle", this.ctx.keyStyle),
         keyStrategy: getCacheConfig<KeyStrategy>("writeRules.keyStrategy", this.ctx.keyStrategy),
         stopWords: getCacheConfig<string[]>("writeRules.stopWords", this.ctx.stopWords),
+        stopPrefixes: getCacheConfig<string[]>("writeRules.stopPrefixes", this.ctx.stopPrefixes),
         maxKeyLength: getCacheConfig<number>("writeRules.maxKeyLength", this.ctx.maxKeyLength),
         keyPrefix: getCacheConfig<string>("writeRules.keyPrefix", this.ctx.keyPrefix),
         indentType: getCacheConfig<IndentType>("writeRules.indentType", this.ctx.indentType),
         indentSize: getCacheConfig<number>("writeRules.indentSize", this.ctx.indentSize),
-        quoteStyleForKey: getCacheConfig<"auto" | QuoteStyle>("writeRules.quoteStyleForKey", this.ctx.quoteStyleForKey),
-        quoteStyleForValue: getCacheConfig<"auto" | QuoteStyle>("writeRules.quoteStyleForValue", this.ctx.quoteStyleForValue),
+        quoteStyleForKey: getCacheConfig<QuoteStyle4Key>("writeRules.quoteStyleForKey", this.ctx.quoteStyleForKey),
+        quoteStyleForValue: getCacheConfig<QuoteStyle4Value>("writeRules.quoteStyleForValue", this.ctx.quoteStyleForValue),
         scanStringLiterals: getCacheConfig<boolean>("analysis.scanStringLiterals", this.ctx.scanStringLiterals),
         keyGenerationFillScope: getCacheConfig<KeyGenerationFillScope>(
           "translationServices.keyGenerationFillScope",
           this.ctx.keyGenerationFillScope
         ),
         invalidKeyStrategy: getCacheConfig<InvalidKeyStrategy>("writeRules.invalidKeyStrategy", this.ctx.invalidKeyStrategy),
+        languageStructure: getCacheConfig<LanguageStructure>("writeRules.languageStructure", this.ctx.languageStructure),
         ...options
       };
       for (const [key, value] of Object.entries(combinedOptions)) {
@@ -149,7 +153,7 @@ class LangMage {
       syncBasedOnReferredEntries: this.ctx.syncBasedOnReferredEntries,
       manuallyMarkedUsedEntries: this.ctx.manuallyMarkedUsedEntries,
       ignoredUndefinedEntries: this.ctx.ignoredUndefinedEntries,
-      modifyList: this.ctx.modifyList,
+      modifyQuery: this.ctx.modifyQuery,
       i18nFramework: this.ctx.i18nFramework,
       namespaceStrategy: this.ctx.namespaceStrategy,
       matchExistingKey: this.ctx.matchExistingKey,
@@ -157,6 +161,7 @@ class LangMage {
       keyStyle: this.ctx.keyStyle,
       keyStrategy: this.ctx.keyStrategy,
       stopWords: this.ctx.stopWords,
+      stopPrefixes: this.ctx.stopPrefixes,
       maxKeyLength: this.ctx.maxKeyLength,
       keyPrefix: this.ctx.keyPrefix,
       indentType: this.ctx.indentType,
@@ -168,7 +173,8 @@ class LangMage {
       missingEntryFile: this.ctx.missingEntryFile,
       missingEntryPath: this.ctx.missingEntryPath,
       fixQuery: this.ctx.fixQuery,
-      invalidKeyStrategy: this.ctx.invalidKeyStrategy
+      invalidKeyStrategy: this.ctx.invalidKeyStrategy,
+      languageStructure: this.ctx.languageStructure
     };
   }
 
@@ -187,10 +193,10 @@ class LangMage {
       used: this.ctx.usedEntryMap,
       undefined: this.ctx.undefinedEntryMap,
       usedKeySet: this.ctx.usedKeySet,
+      usedLiteralKeySet: this.ctx.usedLiteralKeySet,
       unusedKeySet: this.ctx.unusedKeySet,
       multiFileMode: this.ctx.multiFileMode,
-      nestedLocale: this.ctx.nestedLocale,
-      isFlat: this.ctx.multiFileMode === 0 && this.ctx.nestedLocale === 0,
+      languageStructure: this.ctx.languageStructure,
       tree: this.ctx.entryTree,
       classTree: this.ctx.entryClassTree,
       nameSeparator: this.ctx.nameSeparator,
@@ -257,7 +263,6 @@ class LangMage {
     this.ctx.usedKeySet = new Set();
     this.ctx.unusedKeySet = new Set();
     this.ctx.multiFileMode = 0;
-    this.ctx.nestedLocale = 0;
     this.ctx.isVacant = true;
     this.ctx.entryTree = {};
     this.ctx.updatePayloads = [];

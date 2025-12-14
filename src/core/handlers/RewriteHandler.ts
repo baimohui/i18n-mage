@@ -1,6 +1,6 @@
 import fs from "fs";
 import path from "path";
-import { LangContextInternal, EntryTree, FileExtraInfo, INDENT_TYPE } from "@/types";
+import { LangContextInternal, EntryTree, FileExtraInfo, INDENT_TYPE, LANGUAGE_STRUCTURE } from "@/types";
 import {
   getFileLocationFromId,
   getContentAtLocation,
@@ -24,10 +24,10 @@ export class RewriteHandler {
     try {
       const updateInfo: Record<string, Set<string>> = {};
       for (const payload of this.ctx.updatePayloads) {
-        for (const lang in payload.changes) {
+        for (const lang in payload.valueChanges) {
           updateInfo[lang] ??= new Set<string>();
           const key = payload.key;
-          const value = payload.changes[lang].after ?? "";
+          const value = payload.valueChanges[lang].after ?? "";
           switch (payload.type) {
             case "add":
             case "fill":
@@ -52,8 +52,37 @@ export class RewriteHandler {
           const filePos = getFileLocationFromId(this.ctx.langDictionary[payload.key].fullPath, this.ctx.fileStructure);
           if (Array.isArray(filePos) && filePos.length > 0) updateInfo[lang].add(filePos.join("."));
         }
+        if (payload.keyChange) {
+          const oldKey = payload.key;
+          const { key, filePos, fullPath } = payload.keyChange;
+          const newKey = key.after;
+          if (newKey === undefined) continue;
+          for (const lang of Object.keys(this.ctx.langCountryMap)) {
+            if (Object.hasOwn(this.ctx.langCountryMap[lang], oldKey)) {
+              const val = this.ctx.langCountryMap[lang][oldKey];
+              this.ctx.langCountryMap[lang][newKey] = val;
+              delete this.ctx.langCountryMap[lang][oldKey];
+            }
+          }
+          if (Object.hasOwn(this.ctx.langDictionary, oldKey)) {
+            const oldInfo = this.ctx.langDictionary[oldKey];
+            if (this.ctx.fileStructure) this.ctx.langDictionary[newKey] = oldInfo;
+            this.ctx.langDictionary[newKey].fileScope = filePos.after;
+            this.ctx.langDictionary[newKey].fullPath = fullPath.after;
+            delete this.ctx.langDictionary[oldKey];
+          }
+          setValueByEscapedEntryName(this.ctx.entryTree, oldKey, undefined);
+          setValueByEscapedEntryName(this.ctx.entryTree, newKey, newKey);
+          for (const lang of this.detectedLangList) {
+            updateInfo[lang] ??= new Set<string>();
+            if (filePos.before !== undefined) {
+              updateInfo[lang].add(filePos.before);
+            }
+            updateInfo[lang].add(filePos.after);
+          }
+        }
       }
-      if (rewriteAll && this.ctx.multiFileMode === 0 && this.ctx.nestedLocale === 0) {
+      if (rewriteAll && this.ctx.multiFileMode === 0 && this.ctx.languageStructure === LANGUAGE_STRUCTURE.flat) {
         for (const lang of this.detectedLangList) {
           updateInfo[lang] ??= new Set<string>();
           updateInfo[lang].add("");
@@ -95,7 +124,7 @@ export class RewriteHandler {
         }
       }
     };
-    if (this.ctx.multiFileMode === 0 && this.ctx.nestedLocale === 0) {
+    if (this.ctx.multiFileMode === 0 && this.ctx.languageStructure === LANGUAGE_STRUCTURE.flat) {
       langObj = translation;
     } else {
       const entryTree = getContentAtLocation(filePos, this.ctx.entryTree, this.ctx.langDictionary, this.ctx.namespaceStrategy);
@@ -110,7 +139,7 @@ export class RewriteHandler {
       innerVar: "",
       indentType: INDENT_TYPE.space,
       indentSize: 2,
-      nestedLevel: 1,
+      isFlat: true,
       keyQuotes: "double",
       valueQuotes: "double"
     };
@@ -133,6 +162,9 @@ export class RewriteHandler {
     }
     if (this.ctx.indentType !== INDENT_TYPE.auto) {
       extraInfo.indentType = this.ctx.indentType;
+    }
+    if (this.ctx.languageStructure !== LANGUAGE_STRUCTURE.auto) {
+      extraInfo.isFlat = this.ctx.languageStructure === LANGUAGE_STRUCTURE.flat;
     }
     const isFileExists = await checkPathExists(filePath);
     if (!isFileExists) {
@@ -159,13 +191,28 @@ export class RewriteHandler {
     for (const fixPath in this.ctx.patchedEntryIdInfo) {
       const fixList = this.ctx.patchedEntryIdInfo[fixPath];
       const absolutePath = toAbsolutePath(fixPath);
-      let fileContent = fs.readFileSync(absolutePath, "utf8");
+      const fileContent = fs.readFileSync(absolutePath, "utf8");
+      let lastEndPos = 0;
+      let fixedFileContent = "";
       fixList.forEach(item => {
+        const [nameStartPos, nameEndPos, , endPos] = item.pos.split(",").map(pos => parseInt(pos, 10));
         if (item.fixedRaw) {
-          fileContent = fileContent.replaceAll(item.raw, item.fixedRaw);
+          fixedFileContent += fileContent.slice(lastEndPos, nameStartPos);
+          const quoteStr = fileContent[nameStartPos];
+          fixedFileContent += quoteStr + item.fixedKey + quoteStr;
+          if (item.addedVars) {
+            fixedFileContent += item.addedVars;
+            lastEndPos = endPos - 1;
+          } else {
+            lastEndPos = nameEndPos;
+          }
+        } else {
+          fixedFileContent += fileContent.slice(lastEndPos, nameEndPos);
+          lastEndPos = nameEndPos;
         }
       });
-      await fs.promises.writeFile(absolutePath, fileContent);
+      fixedFileContent += fileContent.slice(lastEndPos);
+      await fs.promises.writeFile(absolutePath, fixedFileContent);
     }
     this.ctx.patchedEntryIdInfo = {};
   }

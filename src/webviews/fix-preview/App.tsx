@@ -36,9 +36,9 @@ function AppInner({ data }: Props) {
   const selectedCount = useMemo(() => {
     let count = 0;
     updatePayloads.forEach(payload => {
-      const { changes } = payload;
-      for (const locale in changes) {
-        if (changes[locale].after !== undefined) {
+      const { valueChanges } = payload;
+      for (const locale in valueChanges) {
+        if (valueChanges[locale].after !== undefined) {
           count++;
         }
       }

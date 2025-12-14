@@ -12,8 +12,9 @@ import {
   EntryTree,
   I18nFramework,
   I18N_FRAMEWORK,
-  QuoteStyle,
-  DirNode
+  DirNode,
+  QuoteStyle4Key,
+  QuoteStyle4Value
 } from "@/types";
 import { isPathInsideDirectory, isSamePath, toRelativePath } from "../fs";
 import { getCacheConfig } from "../config";
@@ -72,14 +73,15 @@ export function getLangFileInfo(filePath: string): LangFileInfo | null {
         }
       }
       if (tree === null) return null;
+      const isFlat = Object.keys(tree).every(key => typeof tree[key] !== "object");
       const extraInfo = {
         indentType: type,
         indentSize: size,
-        nestedLevel: 1,
         prefix,
         suffix,
         innerVar,
         keyQuotes,
+        isFlat,
         valueQuotes
       };
       NotificationManager.logToOutput(t("command.parseLangFile.success", JSON.stringify(extraInfo)), "info");
@@ -237,7 +239,7 @@ export function extractContent(content: string): [string, string, string] {
 
   function isLikelyTargetStart(start: number): boolean {
     const leftAll = content.slice(0, start);
-    if (leftAll.trim() === "") return true; // JSON文件
+    if (leftAll.trim() === "") return true; // JSON 文件
 
     const lineStart = Math.max(0, leftAll.lastIndexOf("\n"));
     const linePrefix = leftAll.slice(lineStart, start).trim();
@@ -273,15 +275,13 @@ export function getNestedValues(obj: EntryTree | string[]): string[] {
   return values;
 }
 
-export function flattenNestedObj(obj: EntryTree | string[], className = ""): { data: EntryMap; depth: number } {
+export function flattenNestedObj(obj: EntryTree | string[], isKeyEscaped = false): EntryMap {
   const result: EntryMap = {};
-  let maxDepth = 0;
   const traverse = (node: EntryTree | string[], prefix: string, depth: number) => {
-    maxDepth = Math.max(maxDepth, depth);
     Object.keys(node).forEach(key => {
       if (key.trim() === "") return;
       const value = node[key] as EntryTree;
-      const escapedKey = escapeString(key);
+      const escapedKey = isKeyEscaped ? key : escapeString(key);
       const fullKey = prefix ? `${prefix}.${escapedKey}` : escapedKey;
       if (value != null && typeof value === "object") {
         traverse(value, fullKey, depth + 1);
@@ -290,8 +290,28 @@ export function flattenNestedObj(obj: EntryTree | string[], className = ""): { d
       }
     });
   };
-  traverse(obj, className, 0);
-  return { data: result, depth: maxDepth };
+  traverse(obj, "", 0);
+  return result;
+}
+
+export function expandDotKeys(obj: EntryTree | string[] | string) {
+  if (Array.isArray(obj)) return obj;
+  if (typeof obj !== "object" || obj === null) return obj;
+  const result = {};
+  for (const [key, value] of Object.entries(obj)) {
+    const parts = key.split(".");
+    let current = result;
+    for (let i = 0; i < parts.length; i++) {
+      const part = parts[i];
+      if (i === parts.length - 1) {
+        current[part] = expandDotKeys(value);
+      } else {
+        current[part] ??= {};
+        current = current[part] as EntryTree;
+      }
+    }
+  }
+  return result;
 }
 
 export interface ExtractResult {
@@ -448,11 +468,11 @@ export function stripLanguageLayer(root: DirNode): DirNode | null {
 }
 
 export function detectQuoteStyle(code: string): {
-  key: QuoteStyle;
-  value: QuoteStyle;
+  key: QuoteStyle4Key;
+  value: QuoteStyle4Value;
 } {
-  const keyCount: Record<QuoteStyle, number> = { single: 0, double: 0, none: 0 };
-  const valueCount: Record<QuoteStyle, number> = { single: 0, double: 0, none: 0 };
+  const keyCount: Record<QuoteStyle4Key, number> = { single: 0, double: 0, none: 0 };
+  const valueCount: Record<QuoteStyle4Value, number> = { single: 0, double: 0, none: 0 };
   const pairRegex = /(?<key>'[^']*'|"[^"]*"|[a-zA-Z0-9_]+)\s*:\s*(?<value>'[^']*'|"[^"]*")/g;
   let match: RegExpExecArray | null = null;
   while ((match = pairRegex.exec(code)) !== null) {
@@ -463,8 +483,7 @@ export function detectQuoteStyle(code: string): {
     if (value.startsWith('"')) valueCount["double"]++;
     else if (value.startsWith("'")) valueCount["single"]++;
   }
-  const mostUsed = (counts: Record<QuoteStyle, number>): QuoteStyle =>
-    Object.entries(counts).sort((a, b) => b[1] - a[1])[0][0] as QuoteStyle;
+  const mostUsed = (counts: Record<QuoteStyle4Key, number>): QuoteStyle4Key => Object.entries(counts).sort((a, b) => b[1] - a[1])[0][0];
   return {
     key: mostUsed(keyCount),
     value: mostUsed(valueCount)

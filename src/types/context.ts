@@ -9,7 +9,6 @@ import {
   FileExtraInfo,
   SortMode,
   KeyStyle,
-  QuoteStyle,
   I18nFramework,
   NamespaceStrategy,
   EntryClassTree,
@@ -19,7 +18,11 @@ import {
   KeyStrategy,
   IndentType,
   I18nUpdatePayload,
-  InvalidKeyStrategy
+  InvalidKeyStrategy,
+  LanguageStructure,
+  ModifyQuery,
+  QuoteStyle4Key,
+  QuoteStyle4Value
 } from "@/types";
 
 // 外部模块可访问的公共上下文
@@ -44,24 +47,26 @@ export interface LangContextPublic {
   sortingExportMode: SortMode;
   manuallyMarkedUsedEntries: string[];
   ignoredUndefinedEntries: string[];
-  modifyList: Array<{ key: string; name: string; value: string; lang: string }>;
+  modifyQuery: ModifyQuery | null;
   matchExistingKey: boolean;
   autoTranslateEmptyKey: boolean;
   keyGenerationFillScope: KeyGenerationFillScope;
   keyStyle: KeyStyle;
   keyStrategy: KeyStrategy;
   stopWords: string[];
+  stopPrefixes: string[];
   maxKeyLength: number;
   keyPrefix: string;
   indentType: IndentType;
   indentSize: number;
-  quoteStyleForKey: "auto" | QuoteStyle;
-  quoteStyleForValue: "auto" | QuoteStyle;
+  quoteStyleForKey: QuoteStyle4Key;
+  quoteStyleForValue: QuoteStyle4Value;
   scanStringLiterals: boolean;
   missingEntryFile: string;
   missingEntryPath: string;
   fixQuery: FixQuery;
   invalidKeyStrategy: InvalidKeyStrategy;
+  languageStructure: LanguageStructure;
 }
 
 // 内部模块才能访问的完整上下文
@@ -76,9 +81,9 @@ export interface LangContextInternal extends LangContextPublic {
   undefinedEntryMap: Record<string, Record<string, Set<string>>>;
   usedEntryMap: Record<string, Record<string, Set<string>>>;
   usedKeySet: Set<string>;
+  usedLiteralKeySet: Set<string>;
   unusedKeySet: Set<string>;
   multiFileMode: number; // 0: 单文件模式，>0: 多文件模式
-  nestedLocale: number; // 嵌套的语言级别
   langFileExtraInfo: Record<string, FileExtraInfo>;
   isVacant: boolean;
   entryTree: EntryTree;

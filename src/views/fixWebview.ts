@@ -51,6 +51,10 @@ export default function launchFixWebview(
       await onCancel();
     }
   });
+
+  setTimeout(() => {
+    vscode.commands.executeCommand("workbench.action.focusActiveEditorGroup");
+  }, 100);
 }
 
 function buildWebviewHtml(

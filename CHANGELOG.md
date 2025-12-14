@@ -4,6 +4,51 @@ All notable changes to the i18n Mage VS Code extension will be documented in thi
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.7] - 2025-12-08
+
+### Added
+- **Smart Entry Rewriting**: Introduced entry text rewriting functionality, automatically updating translations across languages using translation services when source language text is modified. Accessible via hover panels, sidebar context menus, or the `rewriteEntry` command.
+- **Key Refactoring**: Added key renaming capability - press F2 at usage locations to rename keys, with automatic synchronization across language files and all reference points.
+
+### Improved
+- **Silent Check Execution**: Check commands now run without automatically opening the extension sidebar view, preserving current editing context.
+- **Repair-Diagnostic Linkage**: Linked quick fix actions for undefined entries with diagnostic functionality, synchronizing their enable/disable states for simplified configuration management.
+
+### Fixed
+- **Multi-language Write Integrity**: Resolved synchronization issue where English language files were omitted when filling undefined entries with original text.
+
+## [1.1.6] - 2025-11-17
+
+### Added
+- **Flexible Language File Structure**: Introduced `languageStructure` setting, supporting both nested and flat file organization based on project requirements.
+- **Smart Dot Notation Control**: Added dot usage control in nested structures, enabling automatic conversion of `"a.b"` format keys to hierarchical objects `{ a: { b: "" } }` when disabled.
+- **Auto Path Prefix Generation**: `keyPrefix` configuration now includes `auto-path` option, generating prefixes from file paths and creating nested keys following directory structure.
+- **Prefix Exclusion List**: New `stopPrefixes` configuration allows customizing lists of key prefixes to exclude from usage.
+
+### Improved
+- **Repair Operation Interaction Upgrade**: Migrated in-file undefined entry repair operations from CodeLens to CodeAction format, resolving editor auto-focus issues and enhancing user experience.
+- **Dynamic Entry Display Precision**: Corrected display positions for dynamically concatenated entry text decorations, ensuring accurate tooltip alignment.
+
+### Fixed
+- **Special Character Key Navigation**: Resolved F12 navigation failure for keys containing non-special meaning dots, ensuring correct jumps to corresponding locations in source language files.
+- **Multi-level Path Prefix Parsing**: Fixed key prefix reading errors when translation directories contain language files at different hierarchy levels.
+
+## [1.1.5] - 2025-11-11
+
+### Added
+- **Smart Key Value Navigation**: Pressing F12 on translation keys now directly navigates to corresponding key locations in source language files for quick definition lookup.
+- **Enhanced Dynamic Entry Display**: Improved dynamic concatenated entry presentation, showing all matched translations (separated by " | ") and supporting hover information for complete key overview.
+- **CodeLens Quick Actions**: Added CodeLens buttons for undefined entries in current files, enabling one-click extraction as new entries or ignore operations.
+- **Quick Translation Preview**: Introduced QuickSelect feature to browse all entry translations in current file, with direct navigation to usage locations (via right-click menu or Ctrl+Alt+T).
+- **Cross-platform Shortcut Support**: Added Command key shortcuts for Mac users, enhancing cross-platform usability.
+
+### Improved
+- **Refined Variable Detection**: Adjusted variable identification rules - all-uppercase letters no longer misidentified as variables, while underscore-connected words are correctly recognized.
+- **String Literal Visualization**: With "Scan String Literals" enabled, the "Defined" section in sidebar's "Current File" panel now displays all potential entry information.
+
+### Fixed
+- **Extraction Scope Isolation**: Resolved scope confusion where global missing translation operations incorrectly appeared during individual undefined text extraction.
+
 ## [1.1.4] - 2025-10-31
 
 ### Improved

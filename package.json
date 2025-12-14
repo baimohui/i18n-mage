@@ -21,7 +21,7 @@
     "翻译",
     "国际化"
   ],
-  "version": "1.1.4",
+  "version": "1.1.7",
   "engines": {
     "vscode": "^1.89.0"
   },
@@ -45,6 +45,7 @@
   "contributes": {
     "configuration": [
       {
+        "id": "i18n-mage-general",
         "type": "object",
         "title": "%config.general.title%",
         "properties": {
@@ -108,6 +109,7 @@
         }
       },
       {
+        "id": "i18n-mage-i18nFeatures",
         "type": "object",
         "title": "%config.i18nFeatures.title%",
         "properties": {
@@ -134,7 +136,7 @@
             ]
           },
           "i18n-mage.i18nFeatures.translationFunctionNames": {
-            "order": 5,
+            "order": 3,
             "type": "array",
             "default": [
               "t"
@@ -200,6 +202,7 @@
         }
       },
       {
+        "id": "i18n-mage-translationServices",
         "type": "object",
         "title": "%config.translateServices.title%",
         "properties": {
@@ -413,6 +416,7 @@
         }
       },
       {
+        "id": "i18n-mage-analysis",
         "type": "object",
         "title": "%config.analysis.title%",
         "properties": {
@@ -465,6 +469,7 @@
         }
       },
       {
+        "id": "i18n-mage-writeRules",
         "type": "object",
         "title": "%config.writeRules.title%",
         "properties": {
@@ -490,6 +495,27 @@
             "default": false,
             "description": "%config.sorting.writeBehavior%"
           },
+          "i18n-mage.writeRules.languageStructure": {
+            "order": 10,
+            "enum": [
+              "auto",
+              "nested",
+              "flat"
+            ],
+            "enumDescriptions": [
+              "%config.option.auto%",
+              "%config.languageStructure.nested%",
+              "%config.languageStructure.flat%"
+            ],
+            "default": "auto",
+            "description": "%config.languageStructure.desc%"
+          },
+          "i18n-mage.writeRules.allowDotInNestedKey": {
+            "order": 11,
+            "type": "boolean",
+            "default": true,
+            "description": "%config.allowDotInNestedKey.desc%"
+          },
           "i18n-mage.writeRules.keyPrefix": {
             "order": 18,
             "type": "string",
@@ -498,11 +524,13 @@
             "enum": [
               "none",
               "manual-selection",
+              "auto-path",
               "auto-popular"
             ],
             "enumDescriptions": [
               "%config.keyPrefix.none%",
               "%config.keyPrefix.manual-selection%",
+              "%config.keyPrefix.auto-path%",
               "%config.keyPrefix.auto-popular%"
             ]
           },
@@ -633,6 +661,15 @@
             },
             "description": "%config.stopWords.desc%"
           },
+          "i18n-mage.writeRules.stopPrefixes": {
+            "order": 31,
+            "type": "array",
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "description": "%config.stopPrefixes.desc%"
+          },
           "i18n-mage.writeRules.enableKeyTagRule": {
             "order": 34,
             "type": "boolean",
@@ -648,6 +685,7 @@
         }
       },
       {
+        "id": "i18n-mage-translationHints",
         "type": "object",
         "title": "%config.translationHints.title%",
         "properties": {
@@ -734,6 +772,7 @@
         }
       },
       {
+        "id": "i18n-mage-completion",
         "type": "object",
         "title": "%config.completion.title%",
         "properties": {
@@ -794,6 +833,7 @@
         }
       },
       {
+        "id": "i18n-mage-workspace",
         "type": "object",
         "title": "%config.workspace.title%",
         "properties": {
@@ -1095,50 +1135,74 @@
         "command": "i18nMage.toggleInlineTranslation",
         "category": "%extension.name%",
         "title": "%command.toggleInlineTranslation.title%"
+      },
+      {
+        "command": "i18nMage.browseTranslationsInFile",
+        "category": "%extension.name%",
+        "title": "%command.browseTranslationsInFile.title%"
+      },
+      {
+        "command": "i18nMage.rewriteEntry",
+        "category": "%extension.name%",
+        "title": "%command.rewriteEntry.title%"
       }
     ],
     "keybindings": [
       {
         "command": "i18nMage.toggleInlineTranslation",
         "key": "ctrl+alt+d",
-        "when": "enabled && hasValidLangPath && editorTextFocus"
+        "mac": "cmd+alt+d",
+        "when": "i18nMage.enabled && i18nMage.hasValidLangPath && editorTextFocus"
       },
       {
         "command": "i18nMage.checkUsage",
         "key": "ctrl+alt+c",
-        "when": "workspaceFolderCount != 0 && enabled"
+        "mac": "cmd+alt+c",
+        "when": "workspaceFolderCount != 0 && i18nMage.enabled"
       },
       {
         "command": "i18nMage.fix",
         "key": "ctrl+alt+f",
-        "when": "enabled && hasValidLangPath"
+        "mac": "cmd+alt+f",
+        "when": "i18nMage.enabled && i18nMage.hasValidLangPath"
+      },
+      {
+        "command": "i18nMage.goToDefinition",
+        "key": "f12",
+        "when": "i18nMage.enabled && i18nMage.hasValidLangPath && editorTextFocus && i18nMage.inKey"
+      },
+      {
+        "command": "i18nMage.browseTranslationsInFile",
+        "key": "ctrl+alt+t",
+        "mac": "cmd+alt+t",
+        "when": "i18nMage.enabled && i18nMage.hasValidLangPath && i18nMage.hasDefinedEntriesInFile"
       }
     ],
     "menus": {
       "view/title": [
         {
           "command": "i18nMage.checkUsage",
-          "when": "view == treeProvider && hasValidLangPath",
+          "when": "view == treeProvider && i18nMage.hasValidLangPath",
           "group": "navigation@5"
         },
         {
           "command": "i18nMage.export",
-          "when": "view == treeProvider && hasValidLangPath",
+          "when": "view == treeProvider && i18nMage.hasValidLangPath",
           "group": "navigation@10"
         },
         {
           "command": "i18nMage.import",
-          "when": "view == treeProvider && hasValidLangPath",
+          "when": "view == treeProvider && i18nMage.hasValidLangPath",
           "group": "navigation@15"
         },
         {
           "command": "i18nMage.sort",
-          "when": "view == treeProvider && hasValidLangPath && allowSort",
+          "when": "view == treeProvider && i18nMage.hasValidLangPath && i18nMage.allowSort",
           "group": "navigation@20"
         },
         {
           "command": "i18nMage.fix",
-          "when": "view == treeProvider && hasValidLangPath",
+          "when": "view == treeProvider && i18nMage.hasValidLangPath",
           "group": "navigation@25"
         },
         {
@@ -1250,24 +1314,33 @@
           "command": "i18nMage.fillMissingTranslations",
           "when": "viewItem =~ /FILL_VALUE/",
           "group": "inline@5"
+        },
+        {
+          "command": "i18nMage.rewriteEntry",
+          "when": "viewItem =~ /REWRITE_ENTRY/"
         }
       ],
       "editor/context": [
         {
-          "command": "i18nMage.copyKeyValue",
-          "when": "hasDefinedEntriesInFile",
+          "command": "i18nMage.browseTranslationsInFile",
+          "when": "i18nMage.hasDefinedEntriesInFile",
           "group": "2_i18n@1"
         },
         {
+          "command": "i18nMage.copyKeyValue",
+          "when": "i18nMage.hasDefinedEntriesInFile",
+          "group": "2_i18n@2"
+        },
+        {
           "command": "i18nMage.fixUndefinedEntries",
-          "when": "hasUndefinedEntriesInFile",
+          "when": "i18nMage.hasUndefinedEntriesInFile",
           "group": "2_i18n@3"
         }
       ],
       "explorer/context": [
         {
           "submenu": "i18nMage.pathConfigMenu",
-          "when": "enabled",
+          "when": "i18nMage.enabled",
           "group": "3_i18n@1"
         }
       ],
@@ -1310,7 +1383,7 @@
           "icon": "images/i18nMage.png",
           "id": "treeProvider",
           "name": "Grimoire",
-          "when": "initialized && workspaceFolderCount != 0 && enabled"
+          "when": "i18nMage.initialized && workspaceFolderCount != 0 && i18nMage.enabled"
         }
       ]
     },
@@ -1318,7 +1391,7 @@
       {
         "view": "treeProvider",
         "contents": "%view.welcome.title%",
-        "when": "initialized  && !hasValidLangPath"
+        "when": "i18nMage.initialized && !i18nMage.hasValidLangPath"
       }
     ]
   },
@@ -1353,6 +1426,9 @@
     "hooks": {
       "pre-commit": "lint-staged"
     }
+  },
+  "overrides": {
+    "glob": "^11.1.0"
   },
   "dependencies": {
     "@radix-ui/react-checkbox": "^1.3.3",

@@ -75,7 +75,7 @@ export class ImportHandler {
                 this.ctx.updatePayloads.push({
                   type: "edit",
                   key,
-                  changes: {
+                  valueChanges: {
                     [lang]: { before: oldLangText, after: newLangText }
                   }
                 });

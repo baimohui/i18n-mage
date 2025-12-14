@@ -151,7 +151,7 @@ export function getContentAtLocation(
     return Object.keys(result).length > 0 ? result : null;
   }
   const filteredTree = helper(tree);
-  if (filteredTree && location && namespaceStrategy !== NAMESPACE_STRATEGY.none) {
+  if (filteredTree && location && namespaceStrategy !== NAMESPACE_STRATEGY.none && namespaceStrategy !== NAMESPACE_STRATEGY.auto) {
     const parts = location.split(".").slice(namespaceStrategy === NAMESPACE_STRATEGY.full ? 0 : -1);
     return parts.reduce((acc, part) => {
       if (Object.hasOwn(acc, part)) {

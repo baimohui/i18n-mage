@@ -4,7 +4,7 @@ import { DecoratorController } from "@/features/Decorator";
 import LangMage from "@/core/LangMage";
 import { clearConfigCache } from "@/utils/config";
 import { treeInstance } from "@/views/tree";
-import { SORT_MODE, SortMode } from "@/types";
+import { LANGUAGE_STRUCTURE, SORT_MODE, SortMode } from "@/types";
 
 export function registerOnConfigChange() {
   const mage = LangMage.getInstance();
@@ -19,9 +19,17 @@ export function registerOnConfigChange() {
           const key = `${type}.${name}`;
           if (event.affectsConfiguration(`i18n-mage.${key}`)) {
             clearConfigCache(key);
-            if (["i18nFeatures.namespaceStrategy", "analysis.syncBasedOnReferredEntries", "analysis.scanStringLiterals"].includes(key)) {
-              vscode.commands.executeCommand("i18nMage.checkUsage");
-            } else if (["general.fileExtensions", "analysis.fileSizeSkipThresholdKB", "analysis.ignoreCommentedCode"].includes(key)) {
+            if (
+              [
+                "i18nFeatures.namespaceStrategy",
+                "analysis.syncBasedOnReferredEntries",
+                "analysis.scanStringLiterals",
+                "general.fileExtensions",
+                "analysis.fileSizeSkipThresholdKB",
+                "analysis.ignoreCommentedCode",
+                "workspace.ignoredUndefinedEntries"
+              ].includes(key)
+            ) {
               vscode.commands.executeCommand("i18nMage.checkUsage");
             } else if (
               [
@@ -38,7 +46,13 @@ export function registerOnConfigChange() {
               decorator.updateTranslationDecoration();
             } else if (key === "writeRules.sortRule") {
               const sortMode = subConfig[name] as SortMode;
-              vscode.commands.executeCommand("setContext", "allowSort", mage.langDetail.isFlat && sortMode !== SORT_MODE.None);
+              vscode.commands.executeCommand(
+                "setContext",
+                "i18nMage.allowSort",
+                mage.langDetail.multiFileMode === 0 &&
+                  mage.langDetail.languageStructure === LANGUAGE_STRUCTURE.flat &&
+                  sortMode !== SORT_MODE.None
+              );
             }
           }
         }

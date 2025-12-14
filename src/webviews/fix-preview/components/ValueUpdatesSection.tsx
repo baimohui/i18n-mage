@@ -18,11 +18,11 @@ export function ValueUpdatesSection({ data }: Props) {
   const valueUpdates: Record<string, Record<string, string | undefined>> = {};
   const keyNameMap: Record<string, string> = {};
   updatePayloads.forEach(payload => {
-    const { key, name, changes } = payload;
+    const { key, name, valueChanges } = payload;
     keyNameMap[key] = name ?? key;
-    for (const locale in changes) {
+    for (const locale in valueChanges) {
       if (!Object.hasOwn(valueUpdates, locale)) valueUpdates[locale] = {};
-      valueUpdates[locale][key] = changes[locale].after;
+      valueUpdates[locale][key] = valueChanges[locale].after;
     }
   });
 

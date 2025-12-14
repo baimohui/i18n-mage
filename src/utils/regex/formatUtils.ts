@@ -3,6 +3,8 @@ import * as vscode from "vscode";
 import { getLangCode } from "@/utils/langKey";
 import { EntryTree, FileExtraInfo } from "@/types";
 import { unescapeString } from "./stringUtils";
+import { expandDotKeys, flattenNestedObj } from "./fileUtils";
+import { getCacheConfig } from "../config";
 
 /**
  * 获取当前编辑器最准确的换行符
@@ -120,7 +122,7 @@ export function formatObjectToString(tree: EntryTree, filePath: string, extraInf
     innerVar = "",
     indentType = "space",
     indentSize = 2,
-    nestedLevel = 1,
+    isFlat = true,
     keyQuotes = "double",
     valueQuotes = "double"
   } = extraInfo;
@@ -164,7 +166,12 @@ export function formatObjectToString(tree: EntryTree, filePath: string, extraInf
   if (fileType !== "json" && innerVar) {
     output.push(`${indents}${innerVar}`);
   }
-  const formattedObj = formatObject(tree, nestedLevel);
+  if (isFlat) {
+    tree = flattenNestedObj(tree, true);
+  } else if (!getCacheConfig<boolean>("writeRules.allowDotInNestedKey", true)) {
+    tree = expandDotKeys(tree);
+  }
+  const formattedObj = formatObject(tree);
   if (formattedObj) {
     output.push(formattedObj);
   }
@@ -192,15 +199,17 @@ export function isEnglishVariable(str: string): boolean {
   if (!str?.trim()) return false;
   // 基础字符约束
   if (!/^[A-Za-z_][A-Za-z0-9_.-]*$/.test(str) || /[.!?]\s*$/.test(str)) return false;
-  // 忽略前导下划线（_private、__dirname 等）
+  // 忽略前导下划线
   const s = str.replace(/^_+/, "");
-  // 具体形态
-  const isSnake = /^[a-z]+(?:_[a-z0-9]+)+$/.test(s); // snake_case
-  const isKebab = /^[a-z]+(?:-[a-z0-9]+)+$/.test(s); // kebab-case
-  const isDotCase = /^[a-z]+(?:\.[a-z0-9]+)+$/.test(s); // dot.case
-  const isCamel = /^[a-z]+(?:[A-Z][a-z0-9]*)+$/.test(s); // camelCase（至少一处上边界）
-  const isPascal = /^(?:[A-Z][a-z0-9]*){2,}$/.test(s); // PascalCase（≥2 段，避免 "Name"）
-  const isScream = /^[A-Z0-9]+(?:_[A-Z0-9]+)+$/.test(s); // SCREAMING_SNAKE_CASE
-  const isAllCapsWithDigit = /^[A-Z0-9]+$/.test(s) && /\d/.test(s); // 如 MD5、ISO8601
-  return isSnake || isKebab || isDotCase || isCamel || isPascal || isScream || isAllCapsWithDigit;
+  // 常规形式
+  const isSnake = /^[A-Za-z0-9]+(?:_[A-Za-z0-9]+)+$/.test(s); // 支持大小写混合 snake_case
+  const isKebab = /^[a-z]+(?:-[a-z0-9]+)+$/.test(s);
+  const isDotCase = /^[a-z]+(?:\.[a-z0-9]+)+$/.test(s);
+  const isCamel = /^[a-z]+(?:[A-Z][a-z0-9]*)+$/.test(s);
+  const isPascal = /^(?:[A-Z][a-z0-9]*){2,}$/.test(s);
+  const isScream = /^[A-Z0-9]+(?:_[A-Z0-9]+)+$/.test(s);
+  const isAllCapsWithDigit = /^[A-Z0-9]+$/.test(s) && /\d/.test(s);
+  // 全大写字母（如 PMF、CPU）不视为变量
+  const isAllUpper = /^[A-Z]+$/.test(s);
+  return !isAllUpper && (isSnake || isKebab || isDotCase || isCamel || isPascal || isScream || isAllCapsWithDigit);
 }

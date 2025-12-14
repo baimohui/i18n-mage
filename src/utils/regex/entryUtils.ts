@@ -3,11 +3,30 @@ import { escapeRegExp } from "./stringUtils";
 import { getValueByAmbiguousEntryName } from "./treeUtils";
 import { getCacheConfig } from "../config";
 
-export function catchPossibleEntries(fileContent: string, entryTree: EntryTree, fileName: string): PEntry[] {
-  const regex = /(["'`])(?:\\[\s\S]|(?!\1)[^\\])*?\1/g;
+export function catchLiteralEntries(fileContent: string, entryTree: EntryTree, fileName: string): PEntry[] {
+  // 匹配普通字符串，但前面不能是 `t(`、`tc(`、等国际化函数调用
+  const tFuncNames = getCacheConfig<string[]>("i18nFeatures.translationFunctionNames", []);
+  const framework = getCacheConfig<I18nFramework>("i18nFeatures.framework", I18N_FRAMEWORK.none);
+  if (!tFuncNames.length) tFuncNames.push("t");
+  if (framework === I18N_FRAMEWORK.vueI18n) {
+    ["t", "tc"].forEach(name => {
+      if (!tFuncNames.includes(name)) tFuncNames.push(name);
+    });
+  }
+  const funcNamePattern = tFuncNames.map(fn => `\\b${fn}\\b`).join("|");
+  const withoutTRegex = new RegExp(`(\\b(?:${funcNamePattern})\\s*\\()(["'\`])((?:\\\\[\\s\\S]|(?!\\2)[^\\\\])*?\\2)`, "g");
+  const withoutTContent = fileContent.replace(withoutTRegex, (match, prefix, quote, content: string) => {
+    // 计算原字符串内容的长度
+    const contentLength = content.length + 1;
+    // 创建相同长度的占位符（使用*号）
+    const placeholder = "*".repeat(contentLength);
+    // 返回相同长度的替换结果
+    return `${prefix}${placeholder}`;
+  });
   let res: RegExpExecArray | null = null;
   const entryInfoList: PEntry[] = [];
-  while ((res = regex.exec(fileContent)) !== null) {
+  const regex = /(["'`])(?:\\[\s\S]|(?!\1)[^\\])*?\1/g;
+  while ((res = regex.exec(withoutTContent)) !== null) {
     let entryName = displayToInternalName(res[0].slice(1, -1));
     let entryValue = "";
     const framework = getCacheConfig<I18nFramework>("i18nFeatures.framework");
@@ -124,7 +143,7 @@ export function parseTEntry(fileContent: string, startPos: number, offset: numbe
     raw: entryRaw,
     vars: entryVarList,
     nameInfo,
-    pos: `${nameStartPos},${nameEndPos}`
+    pos: `${nameStartPos},${nameEndPos},${startPos},${curPos + 1}`
   };
 }
 
@@ -231,7 +250,7 @@ export function getEntryNameInfoByForm(nameForm: { type: TEntryPartType; value: 
       entryReg = entryReg.includes(":") ? entryReg.replace(":", "\\.") : defaultNamespace ? `${defaultNamespace}\\.${entryReg}` : entryReg;
     }
   } else if (framework === I18N_FRAMEWORK.vueI18n) {
-    entryReg = entryReg.replace(/\\\[([^\]]+)\\\]/g, ".*");
+    entryReg = entryReg.replace(/\\\[([^\]]+)\\\]/g, "\\.\\d+");
   }
   return {
     text: entryText,

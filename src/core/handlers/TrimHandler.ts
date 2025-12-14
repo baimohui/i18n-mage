@@ -13,7 +13,7 @@ export class TrimHandler {
           this.ctx.updatePayloads.push({
             type: "delete",
             key,
-            changes: Object.entries(this.ctx.langDictionary[key].value).reduce((acc, [lang, val]) => {
+            valueChanges: Object.entries(this.ctx.langDictionary[key].value).reduce((acc, [lang, val]) => {
               if (val) {
                 acc[lang] = { before: val };
               }
