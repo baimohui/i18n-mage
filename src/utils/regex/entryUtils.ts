@@ -87,14 +87,15 @@ export function catchPropertyEntries(fileContent: string, rootNames: string[]): 
   const rootPattern = rootNames.map(fn => `\\b${escapeRegExp(fn)}`).join("|");
   
   /** 正则 匹配对象属性访问形式  前缀I18N */
-  const propertyReg = new RegExp(`(?<=[$\\s.[({:="']{1})(${rootPattern})\\.([a-zA-Z0-9_]+(?:\\.[a-zA-Z0-9_]+)*)`, "g");
+  const propertyReg = new RegExp(`(?<=[$\\s.[({:="']{1})(${rootPattern})\\.([a-zA-Z0-9_]+(?:\\s*\\.\\s*[a-zA-Z0-9_]+)*)`, "g");
 
   let match: RegExpExecArray | null;
   while ((match = propertyReg.exec(fileContent)) !== null) {
-    const fullMatch = match[0]; 
-    const keyPath = match[2];   
+    const fullMatchDifLength = match[0].length - match[0].replace(/\s+/g, "").length;
+    const fullMatch = match[0].replace(/\s+/g, ""); 
+    const keyPath = match[2].replace(/\s+/g, "");   
     const startPos = match.index - 1;
-    const endPos = match.index + fullMatch.length + 1;
+    const endPos = match.index + fullMatch.length + 1 + fullMatchDifLength;
 
     // 检查是否在注释中
     if (isPositionInComment(fileContent, match.index)) continue;
