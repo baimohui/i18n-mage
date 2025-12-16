@@ -24,7 +24,7 @@ export interface I18nFrameworkConfig {
 }
 
 export const I18N_FRAMEWORK_DEFAULT_CONFIG: Record<
-  Exclude<I18nFramework, typeof I18N_FRAMEWORK.auto | typeof I18N_FRAMEWORK.none>,
+  Exclude<I18nFramework, typeof I18N_FRAMEWORK.auto | typeof I18N_FRAMEWORK.none | typeof I18N_FRAMEWORK.variableName>,
   I18nFrameworkConfig
 > = {
   [I18N_FRAMEWORK.vueI18n]: {

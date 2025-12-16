@@ -144,6 +144,7 @@
   "config.i18nFramework.reactI18next": "基于 i18next 的 React 国际化框架",
   "config.i18nFramework.i18next": "轻量高效的 JavaScript 国际化核心库，框架无关",
   "config.i18nFramework.vscodeL10n": "VS Code 扩展本地化工具",
+  "config.i18nFramework.variableName": "变量名形式",
   "config.i18nFramework.none": "无",
   "config.languageStructure.desc": "语言文件的结构",
   "config.languageStructure.nested": "嵌套结构",
