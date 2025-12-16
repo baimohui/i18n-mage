@@ -65,7 +65,7 @@ export function catchTEntries(fileContent: string): TEntry[] {
   const entryInfoList: TEntry[] = [];
 
   // 新增：识别对象属性访问形式 (e.g. I18N.Home.Title) 改成tFunNames 可以按照配置来
-  const propertyEntries = catchPropertyEntries(fileContent, ["I18N"]);
+  const propertyEntries = catchPropertyEntries(fileContent, tFuncNames);
   entryInfoList.push(...propertyEntries);
 
   let tRes: RegExpExecArray | null;
