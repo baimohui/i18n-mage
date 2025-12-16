@@ -63,6 +63,11 @@ export function catchTEntries(fileContent: string): TEntry[] {
   const funcNamePattern = tFuncNames.map(fn => `\\b${fn}\\b`).join("|");
   const tReg = new RegExp(`(?<=[$\\s.[({:="']{1})(${funcNamePattern})\\s*\\(\\s*(\\S)`, "g");
   const entryInfoList: TEntry[] = [];
+
+  // 新增：识别对象属性访问形式 (e.g. I18N.Home.Title) 改成tFunNames 可以按照配置来
+  const propertyEntries = catchPropertyEntries(fileContent, ["I18N"]);
+  entryInfoList.push(...propertyEntries);
+
   let tRes: RegExpExecArray | null;
   while ((tRes = tReg.exec(fileContent)) !== null) {
     const startPos = tRes.index - 1; // 起始位
@@ -73,6 +78,42 @@ export function catchTEntries(fileContent: string): TEntry[] {
     }
   }
   return entryInfoList;
+}
+
+export function catchPropertyEntries(fileContent: string, rootNames: string[]): TEntry[] {
+  const entries: TEntry[] = [];
+  
+  /** 匹配对象属性访问形式  前缀I18N */
+  const rootPattern = rootNames.map(fn => `\\b${escapeRegExp(fn)}`).join("|");
+  
+  /** 正则 匹配对象属性访问形式  前缀I18N */
+  const propertyReg = new RegExp(`(?<=[$\\s.[({:="']{1})(${rootPattern})\\.([a-zA-Z0-9_]+(?:\\.[a-zA-Z0-9_]+)*)`, "g");
+
+  let match: RegExpExecArray | null;
+  while ((match = propertyReg.exec(fileContent)) !== null) {
+    const fullMatch = match[0]; 
+    const keyPath = match[2];   
+    const startPos = match.index - 1;
+    const endPos = match.index + fullMatch.length + 1;
+
+    // 检查是否在注释中
+    if (isPositionInComment(fileContent, match.index)) continue;
+
+    entries.push({
+      raw: fullMatch,
+      vars: [], // 属性访问不支持变量插值
+      pos: `${startPos},${endPos},${startPos},${endPos}`,
+      nameInfo: {
+        text: fullMatch,
+        regex: new RegExp(`^${escapeRegExp(fullMatch)}$`),
+        name: keyPath,
+        boundPrefix: "",
+        boundKey: "",
+        vars: []
+      },
+    });
+  }
+  return entries;
 }
 
 export function parseTEntry(fileContent: string, startPos: number, offset: number): TEntry | null {
