@@ -71,12 +71,24 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
   usedEntries: TEntry[] = [];
   definedEntriesInCurrentFile: TEntry[] = [];
   undefinedEntriesInCurrentFile: TEntry[] = [];
+  private globalFilter: { text: string; scope: string[] } = { text: "", scope: ["defined", "undefined", "used", "unused"] };
+  private sectionFilters = new Map<string, string>();
+
+  public setFilter(filter: { text: string; scope: string[] }) {
+    this.globalFilter = filter;
+    this.refresh();
+  }
   private _onDidChangeTreeData = new vscode.EventEmitter<void>();
   readonly onDidChangeTreeData = this._onDidChangeTreeData.event;
 
   constructor() {
     this.#mage = LangMage.getInstance();
     this.publicCtx = this.#mage.getPublicContext();
+  }
+
+  public updateSectionFilter(section: string, text: string) {
+    this.sectionFilters.set(section, text);
+    this.refresh();
   }
 
   get langInfo() {
@@ -171,6 +183,7 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
       if (!this.publicCtx.langPath) {
         return [];
       }
+
       if (!element) {
         return this.getRootChildren();
       }
@@ -341,6 +354,16 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
   }
 
   private getRootChildren(): ExtendedTreeItem[] {
+    const filterText = this.globalFilter.text;
+    const filterScope = this.globalFilter.scope;
+
+    if (filterText && filterScope.includes("defined")) {
+      this.definedEntriesInCurrentFile = this.definedEntriesInCurrentFile.filter(
+        item =>
+          item.nameInfo.text.includes(filterText.toLowerCase()) ||
+          this.dictionary[item.nameInfo?.name]?.value[this.displayLang]?.toLowerCase()?.includes(filterText.toLowerCase())
+      );
+    }
     return [
       {
         level: 0,
@@ -382,7 +405,6 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
       }
     ];
   }
-
   private getCurrentFileChildren(element: ExtendedTreeItem): ExtendedTreeItem[] {
     if (element.level === 0) {
       const definedContextValueList = ["definedEntriesInCurFile"];
@@ -437,7 +459,24 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
         }
       ];
     } else if (element.level === 1) {
-      return this[element.type === "defined" ? "definedEntriesInCurrentFile" : "undefinedEntriesInCurrentFile"].map(entry => {
+      let entries = this[element.type === "defined" ? "definedEntriesInCurrentFile" : "undefinedEntriesInCurrentFile"];
+      const filterKey = `currentFile.${element.type}`;
+      let filterText = this.globalFilter.text;
+      const filterScope = this.globalFilter.scope;
+      if (filterText === "") {
+        filterText = this.sectionFilters.get(filterKey) ?? "";
+      }
+
+      if (filterText !== "" && element.type !== undefined && filterScope.includes(element.type)) {
+        const lowerFilter = filterText.toLowerCase();
+        entries = entries.filter(
+          item =>
+            (item.nameInfo?.text.toLowerCase()?.includes(lowerFilter) ?? false) ||
+            (this.dictionary[item.nameInfo?.name]?.value[this.displayLang]?.toLowerCase()?.includes(lowerFilter) ?? false)
+        );
+      }
+
+      return [...entries].map(entry => {
         const entryInfo = this.dictionary[getValueByAmbiguousEntryName(this.tree, entry.nameInfo.name) as string]?.value ?? {};
         const contextValueList = ["COPY_NAME"];
         let description = "";
@@ -582,11 +621,43 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
   }
 
   private async getUsageInfoChildren(element: ExtendedTreeItem): Promise<ExtendedTreeItem[]> {
+    const filterText = this.globalFilter.text;
+    const filterScope = this.globalFilter.scope;
+    let filterUsedKeySet = this.usedKeySet;
+    let filterUnusedKeySet = this.unusedKeySet;
+    let filterUndefinedEntryMap = this.undefinedEntryMap;
+    if (filterText !== "" && filterScope.includes("used")) {
+      filterUsedKeySet = new Set(
+        [...filterUsedKeySet].filter(
+          item =>
+            item.toLowerCase().includes(filterText.toLowerCase()) ||
+            (this.dictionary[item]?.value[this.displayLang]?.toLowerCase()?.includes(filterText.toLowerCase()) ?? false)
+        )
+      );
+    }
+    if (filterText !== "" && filterScope.includes("unused")) {
+      filterUnusedKeySet = new Set(
+        [...filterUnusedKeySet].filter(
+          item =>
+            item.toLowerCase().includes(filterText.toLowerCase()) ||
+            (this.dictionary[item]?.value[this.displayLang]?.toLowerCase()?.includes(filterText.toLowerCase()) ?? false)
+        )
+      );
+    }
+    if (filterText !== "" && filterScope.includes("undefined")) {
+      filterUndefinedEntryMap = Object.fromEntries(
+        Object.entries(this.undefinedEntryMap).filter(
+          ([key]) =>
+            key.toLowerCase().includes(filterText.toLowerCase()) ||
+            (this.dictionary[key]?.value[this.displayLang]?.toLowerCase()?.includes(filterText.toLowerCase()) ?? false)
+        )
+      );
+    }
     if (element.level === 0) {
-      const undefinedEntries = Object.keys(this.undefinedEntryMap);
+      const undefinedEntries = Object.keys(filterUndefinedEntryMap);
       return [
-        { type: "used", label: t("tree.usedInfo.used"), num: this.usedKeySet.size },
-        { type: "unused", label: t("tree.usedInfo.unused"), num: this.unusedKeySet.size },
+        { type: "used", label: t("tree.usedInfo.used"), num: filterUsedKeySet.size },
+        { type: "unused", label: t("tree.usedInfo.unused"), num: filterUnusedKeySet.size },
         { type: "undefined", label: t("tree.usedInfo.undefined"), num: undefinedEntries.length }
       ].map(item => {
         let data: string[] = [];
@@ -594,9 +665,9 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
         let tooltip = "";
         const contextValueList = [item.num === 0 ? `${item.type}GroupHeader-None` : `${item.type}GroupHeader`];
         if (item.type === "used") {
-          data = Array.from(this.usedKeySet);
+          data = Array.from(filterUsedKeySet);
         } else if (item.type === "unused") {
-          data = Array.from(this.unusedKeySet);
+          data = Array.from(filterUnusedKeySet);
         } else {
           data = undefinedEntries;
           if (item.num > 0) {
@@ -631,10 +702,17 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
         };
       });
     } else if (element.level === 1) {
+      const filterKey = `usageInfo.${element.type}`;
+      let filterText = this.globalFilter.text;
+      if (filterText === "") {
+        filterText = this.sectionFilters.get(filterKey) ?? "";
+      }
+
       if (element.type === "undefined") {
-        return Object.keys(this.undefinedEntryMap)
-          .sort()
-          .map(item => {
+        const keys = Object.keys(filterUndefinedEntryMap);
+
+        return [
+          ...keys.map(item => {
             const contextValueList = ["undefinedEntry", "IGNORE_UNDEFINED"];
             const undefinedNum = Object.values(this.undefinedEntryMap[item]).reduce((acc, cur) => acc + cur.size, 0);
             const descriptions = [`<${undefinedNum}>`];
@@ -660,43 +738,52 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
               type: element.type,
               root: element.root,
               id: this.genId(element, item),
-              collapsibleState: vscode.TreeItemCollapsibleState.Collapsed
+              collapsibleState: vscode.TreeItemCollapsibleState.None
             };
-          });
+          })
+        ];
       } else if (element.type === "used") {
-        return Array.from(this.usedKeySet).map(key => {
-          const name = unescapeString(key);
-          const usedNum = Object.values(this.usedEntryMap[name]).reduce((acc, cur) => acc + cur.size, 0);
-          const entryInfo = this.dictionary[key];
-          return {
-            key,
-            name,
-            label: internalToDisplayName(name),
-            description: `<${usedNum || "?"}>${entryInfo.value[this.displayLang]}`,
-            level: 2,
-            contextValue: usedNum === 0 ? "usedGroupItem-None" : "usedGroupItem",
-            type: element.type,
-            root: element.root,
-            id: this.genId(element, key),
-            collapsibleState: vscode.TreeItemCollapsibleState[usedNum === 0 ? "None" : "Collapsed"]
-          };
-        });
+        const keys = Array.from(filterUsedKeySet);
+
+        return [
+          ...keys.map(key => {
+            const name = unescapeString(key);
+            const usedNum = Object.values(this.usedEntryMap[name]).reduce((acc, cur) => acc + cur.size, 0);
+            const entryInfo = this.dictionary[key];
+            return {
+              key,
+              name,
+              label: internalToDisplayName(name),
+              description: `<${usedNum || "?"}>${entryInfo.value[this.displayLang]}`,
+              level: 2,
+              contextValue: usedNum === 0 ? "usedGroupItem-None" : "usedGroupItem",
+              type: element.type,
+              root: element.root,
+              id: this.genId(element, key),
+              collapsibleState: vscode.TreeItemCollapsibleState[usedNum === 0 ? "None" : "Collapsed"]
+            };
+          })
+        ];
       } else {
-        return Array.from(this.unusedKeySet).map(key => {
-          const name = unescapeString(key);
-          const entryInfo = this.dictionary[key];
-          const contextValueList = ["unusedGroupItem", "COPY_NAME"];
-          return {
-            label: internalToDisplayName(name),
-            description: entryInfo.value[this.displayLang],
-            level: 2,
-            root: element.root,
-            data: [key],
-            contextValue: contextValueList.join(","),
-            id: this.genId(element, key),
-            collapsibleState: vscode.TreeItemCollapsibleState.None
-          };
-        });
+        const keys = Array.from(filterUnusedKeySet);
+
+        return [
+          ...keys.map(key => {
+            const name = unescapeString(key);
+            const entryInfo = this.dictionary[key];
+            const contextValueList = ["unusedGroupItem", "COPY_NAME"];
+            return {
+              label: internalToDisplayName(name),
+              description: entryInfo.value[this.displayLang],
+              level: 2,
+              root: element.root,
+              data: [key],
+              contextValue: contextValueList.join(","),
+              id: this.genId(element, key),
+              collapsibleState: vscode.TreeItemCollapsibleState.None
+            };
+          })
+        ];
       }
     } else if (element.level === 2) {
       const entryUsedInfo =

@@ -182,5 +182,7 @@
   "command.fillMissingTranslations.title": "填充缺失翻译",
   "command.browseTranslationsInFile.title": "浏览文件翻译",
   "command.rewriteEntry.title": "重写词条",
-  "view.welcome.title": "未检测到翻译文件目录\n[选择翻译文件目录](command:i18nMage.selectLangPath)"
+  "view.welcome.title": "未检测到翻译文件目录\n[选择翻译文件目录](command:i18nMage.selectLangPath)",
+  "view.search.title": "搜索",
+  "command.search.title": "搜索"
 }

@@ -118,6 +118,7 @@
   "commands.ignoreUndefined.placeholder": "选择要忽略的未定义词条",
   "commands.unmarkAsUsed.noManuallyMarked": "当前没有手动标记的已使用词条",
   "commands.unmarkAsUsed.placeholder": "选择要取消标记为已使用的词条",
+  "commands.search.placeholder": "搜索词条",
   "common.confirm": "确定",
   "common.init.progress": "初始化中",
   "common.noActiveEditorWarn": "未发现活动编辑器",

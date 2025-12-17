@@ -1145,6 +1145,15 @@
         "command": "i18nMage.rewriteEntry",
         "category": "%extension.name%",
         "title": "%command.rewriteEntry.title%"
+      },
+      {
+        "command": "i18nMage.search",
+        "category": "%extension.name%",
+        "title": "%command.search.title%",
+        "icon": {
+          "light": "./images/search-line-light.svg",
+          "dark": "./images/search-line-dark.svg"
+        }
       }
     ],
     "keybindings": [
@@ -1318,6 +1327,11 @@
         {
           "command": "i18nMage.rewriteEntry",
           "when": "viewItem =~ /REWRITE_ENTRY/"
+        },
+        {
+          "command": "i18nMage.search",
+          "when": "viewItem =~ /SEARCH/",
+          "group": "inline@4"
         }
       ],
       "editor/context": [
@@ -1379,6 +1393,12 @@
     },
     "views": {
       "i18nMage": [
+        {
+          "type": "webview",
+          "id": "i18nMage.searchView",
+          "name": "%view.search.title%",
+          "when": "i18nMage.initialized && workspaceFolderCount != 0 && i18nMage.enabled"
+        },
         {
           "icon": "images/i18nMage.png",
           "id": "treeProvider",

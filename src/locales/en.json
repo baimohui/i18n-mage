@@ -118,6 +118,7 @@
   "commands.ignoreUndefined.placeholder": "Select the undefined entry to ignore",
   "commands.unmarkAsUsed.noManuallyMarked": "Used entries that are not manually marked",
   "commands.unmarkAsUsed.placeholder": "Select the entry you want to unmarked as used",
+  "commands.search.placeholder": "Search entries",
   "common.confirm": "Confirm",
   "common.init.progress": "Initializing...",
   "common.noActiveEditorWarn": "No active editor found",
