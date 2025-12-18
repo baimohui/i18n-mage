@@ -358,11 +358,12 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
     const filterScope = this.globalFilter.scope;
 
     if (filterText && filterScope.includes("defined")) {
-      this.definedEntriesInCurrentFile = this.definedEntriesInCurrentFile.filter(
-        item =>
-          item.nameInfo.text.includes(filterText.toLowerCase()) ||
+      this.definedEntriesInCurrentFile = this.definedEntriesInCurrentFile.filter(item => {
+        return (
+          item.nameInfo.text.toLowerCase().includes(filterText.toLowerCase()) ||
           this.dictionary[item.nameInfo?.name]?.value[this.displayLang]?.toLowerCase()?.includes(filterText.toLowerCase())
-      );
+        );
+      });
     }
     return [
       {

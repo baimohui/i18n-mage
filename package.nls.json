@@ -182,6 +182,9 @@
   "command.fillMissingTranslations.title": "Fill Missing Translations",
   "command.browseTranslationsInFile.title": "Browse Translations in File",
   "command.rewriteEntry.title": "Rewrite Entry",
+  "command.focusSearch.title": "Focus Search",
   "view.welcome.title": "No translation directory detected\n[Select translation directory](command:i18nMage.selectLangPath)",
-  "view.search.title": "Search"
+  "view.search.title": "Search",
+  "command.search.title": "Search",
+  "content.search.placeholder": "Search for Words"
 }

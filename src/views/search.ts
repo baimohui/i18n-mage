@@ -10,6 +10,13 @@ export class SearchProvider implements vscode.WebviewViewProvider {
     private readonly _onSearch: (filter: { text: string; scope: string[] }) => void
   ) {}
 
+  public focus() {
+    if (this._view) {
+      this._view.show(true);
+      this._view.webview.postMessage({ type: "focus" });
+    }
+  }
+
   public resolveWebviewView(webviewView: vscode.WebviewView, _context: vscode.WebviewViewResolveContext, _token: vscode.CancellationToken) {
     this._view = webviewView;
 
@@ -83,7 +90,7 @@ export class SearchProvider implements vscode.WebviewViewProvider {
 			</head>
 			<body>
 				<div class="search-box">
-                    <input type="text" id="search-input" placeholder="${t("command.search.placeholder") || "Search..."}" />
+                    <input type="text" id="search-input" placeholder="${t("content.search.placeholder") || "Search..."}" />
                 </div>
                 <div class="scopes">
                     <label class="scope-item"><input type="checkbox" value="defined" checked> ${t("tree.currentFile.defined")}</label>
@@ -101,11 +108,32 @@ export class SearchProvider implements vscode.WebviewViewProvider {
                         const scope = Array.from(checkboxes)
                             .filter(cb => cb.checked)
                             .map(cb => cb.value);
+                        vscode.setState({ text, scope });
                         vscode.postMessage({ type: 'search', value: { text, scope } });
+                    }
+
+                    const state = vscode.getState();
+                    if (state) {
+                        input.value = state.text || '';
+                        if (state.scope) {
+                            checkboxes.forEach(cb => {
+                                cb.checked = state.scope.includes(cb.value);
+                            });
+                        }
+                        triggerSearch();
                     }
 
                     input.addEventListener('input', triggerSearch);
                     checkboxes.forEach(cb => cb.addEventListener('change', triggerSearch));
+
+                    window.addEventListener('message', event => {
+                        const message = event.data;
+                        switch (message.type) {
+                            case 'focus':
+                                input.focus();
+                                break;
+                        }
+                    });
                 </script>
 			</body>
 			</html>`;

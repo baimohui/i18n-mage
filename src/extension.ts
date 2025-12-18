@@ -8,7 +8,6 @@ import { bindDisposablesToContext } from "@/utils/dispose";
 import { NotificationManager } from "@/utils/notification";
 import { getConfig } from "@/utils/config";
 import { HoverProvider } from "./features/HoverProvider";
-import { SearchProvider } from "@/views/search";
 import { I18nCompletionProvider } from "./features/I18nCompletionProvider";
 import { registerDisposable } from "@/utils/dispose";
 import { StatusBarItemManager } from "./features/StatusBarItemManager";
@@ -56,12 +55,6 @@ class ExtensionState {
     if (!this._context) return;
     NotificationManager.init();
     vscode.window.registerTreeDataProvider("treeProvider", treeInstance);
-    registerDisposable(
-      vscode.window.registerWebviewViewProvider(
-        SearchProvider.viewType,
-        new SearchProvider(this._context.extensionUri, filter => treeInstance.setFilter(filter))
-      )
-    );
     registerAllCommands(this._context);
     registerAllListeners();
     registerDisposable(vscode.languages.registerHoverProvider("*", new HoverProvider()));

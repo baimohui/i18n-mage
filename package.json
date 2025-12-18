@@ -1147,16 +1147,18 @@
         "title": "%command.rewriteEntry.title%"
       },
       {
-        "command": "i18nMage.search",
+        "command": "i18nMage.focusSearch",
         "category": "%extension.name%",
-        "title": "%command.search.title%",
-        "icon": {
-          "light": "./images/search-line-light.svg",
-          "dark": "./images/search-line-dark.svg"
-        }
+        "title": "%command.focusSearch.title%"
       }
     ],
     "keybindings": [
+      {
+        "command": "i18nMage.focusSearch",
+        "key": "ctrl+alt+s",
+        "mac": "cmd+alt+s",
+        "when": "i18nMage.enabled && i18nMage.hasValidLangPath"
+      },
       {
         "command": "i18nMage.toggleInlineTranslation",
         "key": "ctrl+alt+d",
@@ -1327,11 +1329,6 @@
         {
           "command": "i18nMage.rewriteEntry",
           "when": "viewItem =~ /REWRITE_ENTRY/"
-        },
-        {
-          "command": "i18nMage.search",
-          "when": "viewItem =~ /SEARCH/",
-          "group": "inline@4"
         }
       ],
       "editor/context": [
@@ -1397,6 +1394,7 @@
           "type": "webview",
           "id": "i18nMage.searchView",
           "name": "%view.search.title%",
+          "icon": "./images/search-line-dark.svg",
           "when": "i18nMage.initialized && workspaceFolderCount != 0 && i18nMage.enabled"
         },
         {
