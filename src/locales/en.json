@@ -134,6 +134,7 @@
   "common.progress.timeout": "Operation timed out after {0}ms",
   "common.unknownError": "An unknown error occurred",
   "common.unknownLang": "Unknown language",
+  "common.search.clear": "Clear",
   "config.toggleInlineTranslation.disabled": "Inline translation prompts disabled",
   "config.toggleInlineTranslation.enabled": "Inline translation prompts enabled",
   "diagnostics.undefinedWarn": "\"{0}\": Undefined entry",

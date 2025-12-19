@@ -86,11 +86,24 @@ export class SearchProvider implements vscode.WebviewViewProvider {
                         width: auto;
                         margin: 0;
                     }
+                    .clear-btn {
+                        cursor: pointer;
+                        padding: 2px;
+                        display: none;
+                        font-size: 16px;
+                        line-height: 1;
+                        opacity: 0.8;
+                    }
+                    .clear-btn:hover {
+                        opacity: 1;
+                        color: var(--vscode-inputOption-activeForeground);
+                    }
                 </style>
 			</head>
 			<body>
 				<div class="search-box">
                     <input type="text" id="search-input" placeholder="${t("content.search.placeholder") || "Search..."}" />
+                    <div id="clear-btn" class="clear-btn" title="${t("common.search.clear") || "Clear"}">×</div>
                 </div>
                 <div class="scopes">
                     <label class="scope-item"><input type="checkbox" value="defined" checked> ${t("tree.currentFile.defined")}</label>
@@ -101,10 +114,16 @@ export class SearchProvider implements vscode.WebviewViewProvider {
 				<script nonce="${nonce}">
                     const vscode = acquireVsCodeApi();
                     const input = document.getElementById('search-input');
+                    const clearBtn = document.getElementById('clear-btn');
                     const checkboxes = document.querySelectorAll('input[type="checkbox"]');
                     
+                    function updateClearBtn() {
+                        clearBtn.style.display = input.value ? 'block' : 'none';
+                    }
+
                     function triggerSearch() {
                         const text = input.value;
+                        updateClearBtn();
                         const scope = Array.from(checkboxes)
                             .filter(cb => cb.checked)
                             .map(cb => cb.value);
@@ -112,9 +131,16 @@ export class SearchProvider implements vscode.WebviewViewProvider {
                         vscode.postMessage({ type: 'search', value: { text, scope } });
                     }
 
+                    clearBtn.addEventListener('click', () => {
+                        input.value = '';
+                        input.focus();
+                        triggerSearch();
+                    });
+
                     const state = vscode.getState();
                     if (state) {
                         input.value = state.text || '';
+                        updateClearBtn();
                         if (state.scope) {
                             checkboxes.forEach(cb => {
                                 cb.checked = state.scope.includes(cb.value);

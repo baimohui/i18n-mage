@@ -134,6 +134,7 @@
   "common.progress.timeout": "操作在 {0} 毫秒后超时",
   "common.unknownError": "发生未知错误",
   "common.unknownLang": "未知语言",
+  "common.search.clear": "清除",
   "config.toggleInlineTranslation.disabled": "已关闭内联翻译提示",
   "config.toggleInlineTranslation.enabled": "已开启内联翻译提示",
   "diagnostics.undefinedWarn": "\"{0}\"：未定义的词条",
