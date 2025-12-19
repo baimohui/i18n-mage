@@ -80,11 +80,11 @@ function AppInner({ data }: Props) {
 
       <div className="actions">
         <span id="countDisplay">{t("preview.itemsSelected", selectedCount)}</span>
-        <button id="btn-apply" disabled={selectedCount === 0} onClick={handleApply}>
-          {t("preview.apply")}
-        </button>
         <button id="btn-cancel" onClick={handleCancel}>
           {t("preview.cancel")}
+        </button>
+        <button id="btn-apply" disabled={selectedCount === 0} onClick={handleApply}>
+          {t("preview.apply")}
         </button>
       </div>
     </div>

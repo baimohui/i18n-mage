@@ -52,9 +52,7 @@ export default function launchFixWebview(
     }
   });
 
-  setTimeout(() => {
-    vscode.commands.executeCommand("workbench.action.focusActiveEditorGroup");
-  }, 100);
+  panel.reveal(vscode.ViewColumn.One);
 }
 
 function buildWebviewHtml(
@@ -209,7 +207,7 @@ textarea {
 }
 
 .actions {
-  text-align: right;
+  text-align: left;
   position: sticky;
   bottom: 0;
   background: var(--bg);
