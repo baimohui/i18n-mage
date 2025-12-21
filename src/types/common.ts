@@ -119,6 +119,7 @@ export interface FixQuery {
   entriesToFill: string[] | boolean;
   fillScope?: string[];
   fillWithOriginal?: boolean;
+  keyPatch?: Record<string, string>;
 }
 
 export type ModifyQuery = EditValueQuery | RenameKeyQuery;

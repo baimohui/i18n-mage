@@ -41,7 +41,7 @@ export function splitFileName(name: string): string[] {
     .map(word => word.toLowerCase()); // 统一小写，可根据需要调整
 }
 
-export function getIdByStr(str: string, genKeyInfo: { keyStyle: KeyStyle; stopWords: string[] }): string {
+export function genKeyFromText(str: string, genKeyInfo: { keyStyle: KeyStyle; stopWords: string[] }): string {
   if (typeof str !== "string" || str.length === 0) return "";
   const id = str
     .toLowerCase()
@@ -51,6 +51,10 @@ export function getIdByStr(str: string, genKeyInfo: { keyStyle: KeyStyle; stopWo
     .join("");
   const parts = id.split(/\s/).filter(part => !genKeyInfo.stopWords.includes(part));
   return generateKey(parts, genKeyInfo.keyStyle);
+}
+
+export function genIdFromText(text: string) {
+  return text.toLowerCase().replace(/[\s\\]/g, "");
 }
 
 export function escapeString(str: string): string {

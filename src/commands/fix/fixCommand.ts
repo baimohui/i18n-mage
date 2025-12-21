@@ -7,7 +7,7 @@ import { registerDisposable } from "@/utils/dispose";
 import { t } from "@/utils/i18n";
 import { NotificationManager } from "@/utils/notification";
 import { getConfig } from "@/utils/config";
-import { getCommonFilePaths, getParentKeys, isEnglishVariable, validateLang } from "@/utils/regex";
+import { genIdFromText, getCommonFilePaths, getParentKeys, isEnglishVariable, validateLang } from "@/utils/regex";
 import {
   EXECUTION_RESULT_CODE,
   FixExecutionResult,
@@ -51,15 +51,42 @@ export function registerFixCommand(context: vscode.ExtensionContext) {
       });
       const ignorePossibleVariables = getConfig<boolean>("translationServices.ignorePossibleVariables", true);
       if (ignorePossibleVariables) {
-        undefinedKeys = undefinedKeys.filter(key => !isEnglishVariable(key));
-        fixQuery.entriesToGen = undefinedKeys;
+        undefinedKeys = undefinedKeys.filter(key => isEnglishVariable(key) === false);
       }
       let tasks: LangMageOptions[] = [{ task: "fix", fixQuery }];
+      const matchExistingKey = getConfig<boolean>("translationServices.matchExistingKey", true);
       const validateLanguageBeforeTranslate = getConfig<boolean>("translationServices.validateLanguageBeforeTranslate", true);
       if (undefinedKeys.length > 0) {
+        if (matchExistingKey) {
+          fixQuery.keyPatch = {};
+          const referredLangMap = mage.langDetail.countryMap[publicCtx.referredLang];
+          const valueKeyMap = Object.keys(referredLangMap).reduce(
+            (prev, cur) => {
+              const id = genIdFromText(referredLangMap[cur]);
+              return { ...prev, [id]: (prev[id] ?? []).concat(cur) };
+            },
+            {} as Record<string, string[]>
+          );
+          const matchedExistingKeySet = new Set<string>();
+          for (const key of undefinedKeys) {
+            const id = genIdFromText(key);
+            if (Object.hasOwn(valueKeyMap, id)) {
+              const matchedValidKeys = valueKeyMap[id];
+              let selectedValidKey: string | undefined = matchedValidKeys[0];
+              if (matchedValidKeys.length > 1) {
+                selectedValidKey = await vscode.window.showQuickPick(matchedValidKeys, {
+                  placeHolder: t(`command.fix.multipleMatchesForUndefinedKey`, key)
+                });
+                if (selectedValidKey === undefined) return;
+              }
+              fixQuery.keyPatch[id] = selectedValidKey;
+              matchedExistingKeySet.add(key);
+            }
+          }
+          undefinedKeys = undefinedKeys.filter(key => !matchedExistingKeySet.has(key));
+        }
         if (validateLanguageBeforeTranslate) {
           const unmatchedLanguageAction = getConfig<UnmatchedLanguageAction>("translationServices.unmatchedLanguageAction");
-          fixQuery.entriesToGen = undefinedKeys;
           let currentNonSourceKeys = undefinedKeys.filter(key => !validateLang(key, publicCtx.referredLang));
           if (unmatchedLanguageAction === UNMATCHED_LANGUAGE_ACTION.query) {
             while (currentNonSourceKeys.length > 0) {
@@ -79,9 +106,9 @@ export function registerFixCommand(context: vscode.ExtensionContext) {
               );
               if (operation === undefined) return;
               if (operation === t("command.fix.skip")) {
-                fixQuery.entriesToGen = fixQuery.entriesToGen.filter(key => !selectKeys.includes(key));
+                undefinedKeys = undefinedKeys.filter(key => !selectKeys.includes(key));
               } else if (operation === t("command.fix.fill")) {
-                fixQuery.entriesToGen = fixQuery.entriesToGen.filter(key => !selectKeys.includes(key));
+                undefinedKeys = undefinedKeys.filter(key => !selectKeys.includes(key));
                 tasks.push({
                   task: "fix",
                   fixQuery: { entriesToGen: selectKeys, entriesToFill: false, fillWithOriginal: true }
@@ -93,7 +120,7 @@ export function registerFixCommand(context: vscode.ExtensionContext) {
                 });
                 if (referredLang === undefined) return;
                 if (referredLang !== publicCtx.referredLang) {
-                  fixQuery.entriesToGen = fixQuery.entriesToGen.filter(key => !selectKeys.includes(key));
+                  undefinedKeys = undefinedKeys.filter(key => !selectKeys.includes(key));
                   tasks.push({
                     task: "fix",
                     referredLang,
@@ -104,7 +131,7 @@ export function registerFixCommand(context: vscode.ExtensionContext) {
               currentNonSourceKeys = currentNonSourceKeys.filter(key => !selectKeys.includes(key));
             }
           } else if (unmatchedLanguageAction === UNMATCHED_LANGUAGE_ACTION.fill) {
-            fixQuery.entriesToGen = fixQuery.entriesToGen.filter(key => !currentNonSourceKeys.includes(key));
+            undefinedKeys = undefinedKeys.filter(key => !currentNonSourceKeys.includes(key));
             tasks.push({
               task: "fix",
               fixQuery: { entriesToGen: currentNonSourceKeys, entriesToFill: false, fillWithOriginal: true }
@@ -116,7 +143,7 @@ export function registerFixCommand(context: vscode.ExtensionContext) {
             });
             if (referredLang === undefined) return;
             if (referredLang !== publicCtx.referredLang) {
-              fixQuery.entriesToGen = fixQuery.entriesToGen.filter(key => !currentNonSourceKeys.includes(key));
+              undefinedKeys = undefinedKeys.filter(key => !currentNonSourceKeys.includes(key));
               tasks.push({
                 task: "fix",
                 referredLang,
@@ -124,11 +151,13 @@ export function registerFixCommand(context: vscode.ExtensionContext) {
               });
             }
           } else if (unmatchedLanguageAction === UNMATCHED_LANGUAGE_ACTION.ignore) {
-            fixQuery.entriesToGen = fixQuery.entriesToGen.filter(key => !currentNonSourceKeys.includes(key));
+            undefinedKeys = undefinedKeys.filter(key => !currentNonSourceKeys.includes(key));
           }
         }
+        fixQuery.entriesToGen = undefinedKeys;
+        const writeFlag = tasks.length > 1 || undefinedKeys.length > 0;
         let missingEntryFile: string | undefined = undefined;
-        if (multiFileMode && publicCtx.fileStructure) {
+        if (writeFlag && multiFileMode && publicCtx.fileStructure) {
           const commonFiles = getCommonFilePaths(publicCtx.fileStructure);
           if (commonFiles.length > 1) {
             NotificationManager.showProgress({ message: t("command.fix.waitForFileSelection"), increment: 0 });
@@ -153,7 +182,7 @@ export function registerFixCommand(context: vscode.ExtensionContext) {
           }
         }
         const keyPrefix = getConfig<string>("writeRules.keyPrefix", "");
-        if (nameSeparator && keyPrefix === "manual-selection") {
+        if (writeFlag && nameSeparator && keyPrefix === "manual-selection") {
           const classTreeItem = classTree.find(item => item.filePos === (missingEntryFile ?? ""));
           let commonKeys = classTreeItem ? getParentKeys(classTreeItem.data, nameSeparator) : [];
           const offset = publicCtx.namespaceStrategy === NAMESPACE_STRATEGY.file ? 1 : (missingEntryFile?.split(".").length ?? 0);
@@ -189,6 +218,8 @@ export function registerFixCommand(context: vscode.ExtensionContext) {
           await context.workspaceState.update("lastPickedKey", missingEntryPath);
           mage.setOptions({ missingEntryPath });
         }
+      } else {
+        fixQuery.entriesToGen = false;
       }
       // 补充缺漏翻译
       if (validateLanguageBeforeTranslate && fixQuery.entriesToFill !== false) {

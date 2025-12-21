@@ -13,13 +13,14 @@ import {
 import { getLangCode } from "@/utils/langKey";
 import { TEntry, I18N_FRAMEWORK } from "@/types";
 import {
-  getIdByStr,
+  genKeyFromText,
   getValueByAmbiguousEntryName,
   internalToDisplayName,
   generateKey,
   unescapeString,
   convertKeyToVueI18nPath,
-  splitFileName
+  splitFileName,
+  genIdFromText
 } from "@/utils/regex";
 import { getDetectedLangList } from "@/core/tools/contextTools";
 import translateTo from "@/translator/index";
@@ -71,37 +72,23 @@ export class FixHandler {
     }
   }
 
-  private getIdByText(text: string) {
-    return text.toLowerCase().replace(/[\s\\]/g, "");
-  }
-
   private async processUndefinedEntries(): Promise<FixExecutionResult> {
     this.lackInfoFromUndefined = {};
     const referredLangCode = getLangCode(this.ctx.referredLang);
     const referredLangMap = this.ctx.langCountryMap[this.ctx.referredLang];
-    const valueKeyMap = Object.keys(referredLangMap).reduce(
-      (prev, cur) => ({ ...prev, [this.getIdByText(referredLangMap[cur])]: cur }),
-      {} as Record<string, string>
-    );
     const needTranslateList: TEntry[] = [];
     const patchedEntryIdList: (TEntry & { fixedRaw: string; fixedKey: string; addedVars: string })[] = [];
     const undefinedEntryIdSet = new Set<string>();
     const entriesToGen = this.ctx.fixQuery.entriesToGen;
     const genScope = this.ctx.fixQuery.genScope;
+    const keyPatch = this.ctx.fixQuery.keyPatch;
     for (const entry of this.ctx.undefinedEntryList) {
       const nameInfo = entry.nameInfo;
-      const entryId = this.getIdByText(nameInfo.text);
+      const entryId = genIdFromText(nameInfo.text);
       if (this.ctx.i18nFramework === I18N_FRAMEWORK.none && nameInfo.vars.length > 0) continue;
-      if (entriesToGen !== true) {
-        if (entry.path === undefined || (genScope !== undefined && !genScope.includes(entry.path))) {
-          continue;
-        } else if (Array.isArray(entriesToGen) && entriesToGen.every(e => e !== entry.nameInfo.text)) {
-          continue;
-        }
-      }
-      if (this.ctx.matchExistingKey && valueKeyMap[entryId] && !entry.nameInfo.boundKey) {
+      if (keyPatch && keyPatch[entryId]) {
         this.needFix = true;
-        let entryKey = valueKeyMap[entryId];
+        let entryKey = keyPatch[entryId];
         if (this.ctx.i18nFramework === I18N_FRAMEWORK.vueI18n) {
           const quoteMatch = entry.raw.match(/["'`]{1}/);
           const quote = quoteMatch ? `\\${quoteMatch[0]}` : "'";
@@ -109,7 +96,16 @@ export class FixHandler {
         }
         entry.nameInfo.boundKey = entryKey;
         patchedEntryIdList.push({ ...entry, ...this.getFixedInfo(entry, entryKey) });
-      } else if (undefinedEntryIdSet.has(entryId)) {
+        continue;
+      }
+      if (entriesToGen !== true) {
+        if (entry.path === undefined || (genScope !== undefined && !genScope.includes(entry.path))) {
+          continue;
+        } else if (Array.isArray(entriesToGen) && entriesToGen.every(e => e !== entry.nameInfo.text)) {
+          continue;
+        }
+      }
+      if (undefinedEntryIdSet.has(entryId)) {
         patchedEntryIdList.push({ ...entry, fixedRaw: "", fixedKey: "", addedVars: "" });
       } else {
         undefinedEntryIdSet.add(entryId);
@@ -143,7 +139,7 @@ export class FixHandler {
       } else if (this.ctx.keyStrategy === KEY_STRATEGY.pinyin) {
         genNameList = genNameList.map(name => pinyin.convertToPinyin(name));
       }
-      genNameList = genNameList.map(name => getIdByStr(name, genKeyInfo));
+      genNameList = genNameList.map(name => genKeyFromText(name, genKeyInfo));
       if (this.ctx.invalidKeyStrategy === INVALID_KEY_STRATEGY.ai) {
         const maxLen = this.ctx.maxKeyLength;
         const invalidNameIndexList = genNameList
@@ -271,7 +267,7 @@ export class FixHandler {
       if (entry.fixedRaw === "") {
         const fixedEntryId =
           patchedEntryIdList.find(
-            item => this.getIdByText(item.nameInfo.text) === this.getIdByText(entry.nameInfo.text) && item.fixedRaw.length > 0
+            item => genIdFromText(item.nameInfo.text) === genIdFromText(entry.nameInfo.text) && item.fixedRaw.length > 0
           )?.nameInfo.boundKey ?? entry.nameInfo.text;
         entry.nameInfo.boundKey = fixedEntryId;
         const fixedInfo = this.getFixedInfo(entry, fixedEntryId);
@@ -280,7 +276,7 @@ export class FixHandler {
       const relativePath = toRelativePath(entry.path as string);
       this.ctx.patchedEntryIdInfo[relativePath] ??= [];
       this.ctx.patchedEntryIdInfo[relativePath].push({
-        id: this.getIdByText(entry.nameInfo.text),
+        id: genIdFromText(entry.nameInfo.text),
         ...entry
       });
     });
