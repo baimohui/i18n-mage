@@ -4,6 +4,14 @@ All notable changes to the i18n Mage VS Code extension will be documented in thi
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.8] - 2025-12-22
+
+### Improved
+- **Enhanced Repair Preview Interaction**: Relocated function buttons to left side of repair preview interface to prevent result notifications from blocking operations; optimized auto-focus logic to ensure direct Enter key application.
+- **Smart Key Matching Selection**: When existing key matching is enabled, added manual selection capability allowing users to specify target keys from multiple match results.
+- **Streamlined Repair Workflow**: Optimized repair operation logic to skip redundant selection steps when no new entries need to be created.
+- **Precise Editing Prompts**: Corrected prompt information in sidebar entry structure module's edit dialogs to accurately display currently edited entry names.
+
 ## [1.1.7] - 2025-12-08
 
 ### Added
