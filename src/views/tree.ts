@@ -461,12 +461,8 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
       ];
     } else if (element.level === 1) {
       let entries = this[element.type === "defined" ? "definedEntriesInCurrentFile" : "undefinedEntriesInCurrentFile"];
-      const filterKey = `currentFile.${element.type}`;
-      let filterText = this.globalFilter.text;
+      const filterText = this.getFilterText("currentFile", element.type!);
       const filterScope = this.globalFilter.scope;
-      if (filterText === "") {
-        filterText = this.sectionFilters.get(filterKey) ?? "";
-      }
 
       if (filterText !== "" && element.type !== undefined && filterScope.includes(element.type)) {
         const lowerFilter = filterText.toLowerCase();
@@ -622,170 +618,70 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
   }
 
   private async getUsageInfoChildren(element: ExtendedTreeItem): Promise<ExtendedTreeItem[]> {
-    const filterText = this.globalFilter.text;
     const filterScope = this.globalFilter.scope;
-    let filterUsedKeySet = this.usedKeySet;
-    let filterUnusedKeySet = this.unusedKeySet;
-    let filterUndefinedEntryMap = this.undefinedEntryMap;
-    if (filterText !== "" && filterScope.includes("used")) {
-      filterUsedKeySet = new Set(
-        [...filterUsedKeySet].filter(
-          item =>
-            item.toLowerCase().includes(filterText.toLowerCase()) ||
-            (this.dictionary[item]?.value[this.displayLang]?.toLowerCase()?.includes(filterText.toLowerCase()) ?? false)
-        )
-      );
-    }
-    if (filterText !== "" && filterScope.includes("unused")) {
-      filterUnusedKeySet = new Set(
-        [...filterUnusedKeySet].filter(
-          item =>
-            item.toLowerCase().includes(filterText.toLowerCase()) ||
-            (this.dictionary[item]?.value[this.displayLang]?.toLowerCase()?.includes(filterText.toLowerCase()) ?? false)
-        )
-      );
-    }
-    if (filterText !== "" && filterScope.includes("undefined")) {
-      filterUndefinedEntryMap = Object.fromEntries(
-        Object.entries(this.undefinedEntryMap).filter(
-          ([key]) =>
-            key.toLowerCase().includes(filterText.toLowerCase()) ||
-            (this.dictionary[key]?.value[this.displayLang]?.toLowerCase()?.includes(filterText.toLowerCase()) ?? false)
-        )
-      );
-    }
+
     if (element.level === 0) {
-      const undefinedEntries = Object.keys(filterUndefinedEntryMap);
-      return [
-        { type: "used", label: t("tree.usedInfo.used"), num: filterUsedKeySet.size },
-        { type: "unused", label: t("tree.usedInfo.unused"), num: filterUnusedKeySet.size },
-        { type: "undefined", label: t("tree.usedInfo.undefined"), num: undefinedEntries.length }
-      ].map(item => {
-        let data: string[] = [];
-        let description = String(item.num);
-        let tooltip = "";
-        const contextValueList = [item.num === 0 ? `${item.type}GroupHeader-None` : `${item.type}GroupHeader`];
-        if (item.type === "used") {
-          data = Array.from(filterUsedKeySet);
-        } else if (item.type === "unused") {
-          data = Array.from(filterUnusedKeySet);
+      const types = ["used", "unused", "undefined"];
+      return types.map(type => {
+        let keys: string[] = [];
+        if (type === "used") {
+          keys = Array.from(this.usedKeySet);
+        } else if (type === "unused") {
+          keys = Array.from(this.unusedKeySet);
         } else {
-          data = undefinedEntries;
-          if (item.num > 0) {
-            contextValueList.push("IGNORE_UNDEFINED");
-            const fixableNum = undefinedEntries.filter(key => {
-              if (
-                this.validateLanguageBeforeTranslate &&
-                !validateLang(key, this.publicCtx.referredLang) &&
-                this.unmatchedLanguageAction === UNMATCHED_LANGUAGE_ACTION.ignore
-              )
-                return false;
-              if (this.ignorePossibleVariables && isEnglishVariable(key)) return false;
-              return true;
-            }).length;
-            description = `${item.num}(${fixableNum})`;
-            tooltip = t(`tree.undefinedInfo.tooltip`, item.num, fixableNum);
-            if (fixableNum > 0) {
-              contextValueList.push("GEN_KEY");
+          keys = Object.keys(this.undefinedEntryMap);
+        }
+
+        const filterText = this.getFilterText("usageInfo", type);
+        const shouldFilter = filterText !== "" && filterScope.includes(type);
+
+        if (shouldFilter) {
+          keys = this.filterKeys(keys, filterText);
+        }
+
+        const num = keys.length;
+        let description = String(num);
+        let tooltip = "";
+        const contextValueList = [num === 0 ? `${type}GroupHeader-None` : `${type}GroupHeader`];
+
+        if (type === "undefined" && num > 0) {
+          contextValueList.push("IGNORE_UNDEFINED");
+          const fixableNum = keys.filter(key => {
+            if (
+              this.validateLanguageBeforeTranslate &&
+              !validateLang(key, this.publicCtx.referredLang) &&
+              this.unmatchedLanguageAction === UNMATCHED_LANGUAGE_ACTION.ignore
+            ) {
+              return false;
             }
+            if (this.ignorePossibleVariables && isEnglishVariable(key)) return false;
+            return true;
+          }).length;
+          description = `${num}(${fixableNum})`;
+          tooltip = t(`tree.undefinedInfo.tooltip`, num, fixableNum);
+          if (fixableNum > 0) {
+            contextValueList.push("GEN_KEY");
           }
         }
+
         return {
-          ...item,
+          type,
+          label: t(`tree.usedInfo.${type}`),
           level: 1,
           root: element.root,
           description,
-          id: this.genId(element, item.type),
-          data,
+          id: this.genId(element, type),
+          data: keys,
           tooltip,
           contextValue: contextValueList.join(","),
-          collapsibleState: vscode.TreeItemCollapsibleState[item.num === 0 ? "None" : "Collapsed"]
+          collapsibleState: vscode.TreeItemCollapsibleState[num === 0 ? "None" : "Collapsed"]
         };
       });
     } else if (element.level === 1) {
-      const filterKey = `usageInfo.${element.type}`;
-      let filterText = this.globalFilter.text;
-      if (filterText === "") {
-        filterText = this.sectionFilters.get(filterKey) ?? "";
-      }
-
-      if (element.type === "undefined") {
-        const keys = Object.keys(filterUndefinedEntryMap);
-
-        return [
-          ...keys.map(item => {
-            const contextValueList = ["undefinedEntry", "IGNORE_UNDEFINED"];
-            const undefinedNum = Object.values(this.undefinedEntryMap[item]).reduce((acc, cur) => acc + cur.size, 0);
-            const descriptions = [`<${undefinedNum}>`];
-            if (this.autoTranslateMissingKey) {
-              if (this.ignorePossibleVariables && isEnglishVariable(item)) {
-                descriptions.push(t("tree.usedInfo.undefinedPossibleVariable"));
-              } else if (this.validateLanguageBeforeTranslate && !validateLang(item, this.publicCtx.referredLang)) {
-                descriptions.push(t("tree.usedInfo.undefinedNoSourceLang"));
-                if (this.unmatchedLanguageAction !== UNMATCHED_LANGUAGE_ACTION.ignore) {
-                  contextValueList.push("GEN_KEY");
-                }
-              } else {
-                contextValueList.push("GEN_KEY");
-              }
-            }
-            return {
-              key: item,
-              label: item,
-              level: 2,
-              data: [item],
-              contextValue: contextValueList.join(","),
-              description: descriptions.join(" "),
-              type: element.type,
-              root: element.root,
-              id: this.genId(element, item),
-              collapsibleState: vscode.TreeItemCollapsibleState.None
-            };
-          })
-        ];
-      } else if (element.type === "used") {
-        const keys = Array.from(filterUsedKeySet);
-
-        return [
-          ...keys.map(key => {
-            const name = unescapeString(key);
-            const usedNum = Object.values(this.usedEntryMap[name]).reduce((acc, cur) => acc + cur.size, 0);
-            const entryInfo = this.dictionary[key];
-            return {
-              key,
-              name,
-              label: internalToDisplayName(name),
-              description: `<${usedNum || "?"}>${entryInfo.value[this.displayLang]}`,
-              level: 2,
-              contextValue: usedNum === 0 ? "usedGroupItem-None" : "usedGroupItem",
-              type: element.type,
-              root: element.root,
-              id: this.genId(element, key),
-              collapsibleState: vscode.TreeItemCollapsibleState[usedNum === 0 ? "None" : "Collapsed"]
-            };
-          })
-        ];
-      } else {
-        const keys = Array.from(filterUnusedKeySet);
-
-        return [
-          ...keys.map(key => {
-            const name = unescapeString(key);
-            const entryInfo = this.dictionary[key];
-            const contextValueList = ["unusedGroupItem", "COPY_NAME"];
-            return {
-              label: internalToDisplayName(name),
-              description: entryInfo.value[this.displayLang],
-              level: 2,
-              root: element.root,
-              data: [key],
-              contextValue: contextValueList.join(","),
-              id: this.genId(element, key),
-              collapsibleState: vscode.TreeItemCollapsibleState.None
-            };
-          })
-        ];
-      }
+      const keys = element.data || [];
+      return keys.map(key => {
+        return this.createUsageTreeItem(key, element.type!, element.root!, element);
+      });
     } else if (element.level === 2) {
       const entryUsedInfo =
         element.type === "used" ? this.usedEntryMap[element.name as string] : this.undefinedEntryMap[element.key as string];
@@ -956,6 +852,97 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
     const total = Object.keys(this.dictionary).length;
     if (total === 0) return "";
     return Math.floor(Number(((this.usedKeySet.size / total) * 10000).toFixed(0))) / 100 + "%";
+  }
+
+  private getFilterText(prefix: string, type: string): string {
+    const filterKey = `${prefix}.${type}`;
+    return this.globalFilter.text !== "" ? this.globalFilter.text : (this.sectionFilters.get(filterKey) ?? "");
+  }
+
+  private filterKeys(keys: string[], filterText: string): string[] {
+    if (!filterText) {
+      return keys;
+    }
+    const lowerFilter = filterText.toLowerCase();
+    return keys.filter(
+      key =>
+        key.toLowerCase().includes(lowerFilter) ||
+        (this.dictionary[key]?.value[this.displayLang]?.toLowerCase()?.includes(lowerFilter) ?? false)
+    );
+  }
+
+  private createUsageTreeItem(key: string, type: string, root: string, element: ExtendedTreeItem): ExtendedTreeItem {
+    const name = unescapeString(key);
+    const contextValueList: string[] = [];
+    let description = "";
+    let collapsibleState = vscode.TreeItemCollapsibleState.None;
+
+    if (type === "undefined") {
+      contextValueList.push("undefinedEntry", "IGNORE_UNDEFINED");
+      const usedNum = Object.values(this.undefinedEntryMap[key]).reduce((acc, cur) => acc + cur.size, 0);
+      const descriptions = [`<${usedNum}>`];
+
+      if (this.autoTranslateMissingKey) {
+        if (this.ignorePossibleVariables && isEnglishVariable(key)) {
+          descriptions.push(t("tree.usedInfo.undefinedPossibleVariable"));
+        } else if (this.validateLanguageBeforeTranslate && !validateLang(key, this.publicCtx.referredLang)) {
+          descriptions.push(t("tree.usedInfo.undefinedNoSourceLang"));
+          if (this.unmatchedLanguageAction !== UNMATCHED_LANGUAGE_ACTION.ignore) {
+            contextValueList.push("GEN_KEY");
+          }
+        } else {
+          contextValueList.push("GEN_KEY");
+        }
+      }
+      description = descriptions.join(" ");
+
+      return {
+        key,
+        label: key,
+        level: 2,
+        data: [key],
+        contextValue: contextValueList.join(","),
+        description,
+        type,
+        root,
+        id: this.genId(element, key),
+        collapsibleState: vscode.TreeItemCollapsibleState.None
+      };
+    } else if (type === "used") {
+      const usedNum = Object.values(this.usedEntryMap[name]).reduce((acc, cur) => acc + cur.size, 0);
+      const entryInfo = this.dictionary[key];
+      description = `<${usedNum || "?"}>${entryInfo.value[this.displayLang]}`;
+      contextValueList.push(usedNum === 0 ? "usedGroupItem-None" : "usedGroupItem");
+      collapsibleState = usedNum === 0 ? vscode.TreeItemCollapsibleState.None : vscode.TreeItemCollapsibleState.Collapsed;
+
+      return {
+        key,
+        name,
+        label: internalToDisplayName(name),
+        description,
+        level: 2,
+        contextValue: contextValueList.join(","),
+        type,
+        root,
+        id: this.genId(element, key),
+        collapsibleState
+      };
+    } else {
+      const entryInfo = this.dictionary[key];
+      contextValueList.push("unusedGroupItem", "COPY_NAME");
+      description = entryInfo.value[this.displayLang];
+
+      return {
+        label: internalToDisplayName(name),
+        description,
+        level: 2,
+        root,
+        data: [key],
+        contextValue: contextValueList.join(","),
+        id: this.genId(element, key),
+        collapsibleState: vscode.TreeItemCollapsibleState.None
+      };
+    }
   }
 
   private genId(element: ExtendedTreeItem, name: string): string {
