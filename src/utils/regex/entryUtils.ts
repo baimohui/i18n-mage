@@ -70,7 +70,6 @@ export function catchTEntries(fileContent: string): TEntry[] {
     entryInfoList.push(...propertyEntries);
     return entryInfoList;
   }
-  // 新增：识别对象属性访问形式 (e.g. I18N.Home.Title) 改成tFunNames 可以按照配置来
 
   let tRes: RegExpExecArray | null;
   while ((tRes = tReg.exec(fileContent)) !== null) {
@@ -84,15 +83,15 @@ export function catchTEntries(fileContent: string): TEntry[] {
   return entryInfoList;
 }
 
-/** 捕获对象属性访问形式的国际化键  前缀I18N */
+/** 捕获对象属性访问形式的国际化键  前缀rootNames */
 export function catchVariableEntries(fileContent: string, rootNames: string[]): TEntry[] {
   const entries: TEntry[] = [];
 
-  /** 匹配对象属性访问形式  前缀I18N */
+  /** 匹配对象属性访问形式  前缀rootNames */
   const rootPattern = rootNames.map(fn => `\\b${escapeRegExp(fn)}`).join("|");
 
-  /** 正则 匹配对象属性访问形式  前缀I18N */
-  const propertyReg = new RegExp(`(?<=[$\\s.[({:="']{1})(${rootPattern})\\.([a-zA-Z0-9_]+(?:\\s*\\.\\s*[a-zA-Z0-9_]+)*)`, "g");
+  /** 正则 匹配对象属性访问形式  前缀rootNames 支持按.换行识别*/
+  const propertyReg = new RegExp(`(?<=[$\\s.[({:="']{1})(${rootPattern})\\s*\\.\\s*([a-zA-Z0-9_]+(?:\\s*\\.\\s*[a-zA-Z0-9_]+)*)`, "g");
 
   let match: RegExpExecArray | null;
   while ((match = propertyReg.exec(fileContent)) !== null) {
@@ -100,26 +99,94 @@ export function catchVariableEntries(fileContent: string, rootNames: string[]): 
     const fullMatch = match[0].replace(/\s+/g, "");
     const keyPath = match[2].replace(/\s+/g, "");
     const startPos = match.index - 1;
-    const endPos = match.index + fullMatch.length + 1 + fullMatchDifLength;
+    let endPos = match.index + fullMatch.length + 1 + fullMatchDifLength;
 
     // 检查是否在注释中
     if (isPositionInComment(fileContent, match.index)) continue;
 
+    let vars: string[] = [];
+    // 检查后面是否紧跟括号，如果有，解析参数作为变量
+    const afterMatchIndex = match.index + match[0].length;
+    let currentIdx = afterMatchIndex;
+    // 跳过空格
+    while (currentIdx < fileContent.length && /\s/.test(fileContent[currentIdx])) {
+      currentIdx++;
+    }
+
+    if (fileContent[currentIdx] === "(") {
+      const argsResult = parseFunctionArgs(fileContent, currentIdx);
+      if (argsResult) {
+        vars = argsResult.vars;
+        endPos = argsResult.endPos;
+      }
+    }
+
     entries.push({
-      raw: fullMatch,
-      vars: [], // 属性访问不支持变量插值
+      raw: fullMatch, // 保持 raw 为 keyPath 形式，或者根据需要修改为包含参数
+      vars,
       pos: `${startPos},${endPos},${startPos},${endPos}`,
       nameInfo: {
         text: fullMatch,
         regex: new RegExp(`^${escapeRegExp(fullMatch)}$`),
         name: keyPath,
+        /** 对象属性访问本身就是确定的层级结构，不支持也不需要这种 #...# 的标记语法 */
         boundPrefix: "",
+        /** 对象属性访问形式中，属性路径本身就是键名，不需要额外通过 %...% 来指定 */
         boundKey: "",
+        /** 对象属性访问是静态的属性链，其“文本”就是属性路径本身 不包含动态插值*/
         vars: []
       }
     });
   }
   return entries;
+}
+
+/** 解析函数参数 */
+function parseFunctionArgs(fileContent: string, openParenIndex: number): { vars: string[]; endPos: number } | null {
+  let curPos = openParenIndex + 1;
+  let symbolStr = fileContent[curPos];
+  const vars: string[] = [];
+  let isNewVar = true;
+  let connectorStr = "";
+
+  while (symbolStr !== ")" && curPos < fileContent.length) {
+    if (/[\s+,]/.test(symbolStr)) {
+      if (symbolStr === ",") {
+        isNewVar = true;
+      }
+      if (symbolStr === "+" || /\s/.test(symbolStr)) {
+        connectorStr += symbolStr;
+      }
+      curPos++;
+      symbolStr = fileContent[curPos];
+      continue;
+    }
+
+    const matchResult = matchTEntryPart(fileContent, curPos, symbolStr);
+    if (!matchResult) return null;
+
+    const { value } = matchResult;
+    // 移除引号
+    const val = /["'`]/.test(value) ? value.slice(1, -1) : value;
+
+    if (isNewVar) {
+      vars.push(val);
+      isNewVar = false;
+    } else {
+      const last = vars.pop();
+      if (last !== undefined) {
+        vars.push([last, val].join(connectorStr));
+      } else {
+        vars.push(val);
+      }
+    }
+
+    connectorStr = "";
+    curPos += value.length;
+    symbolStr = fileContent[curPos];
+  }
+
+  return { vars, endPos: curPos + 2 };
 }
 
 export function parseTEntry(fileContent: string, startPos: number, offset: number): TEntry | null {
@@ -218,7 +285,7 @@ export function getEntryNameInfoByForm(nameForm: { type: TEntryPartType; value: 
       framework &&
       framework !== I18N_FRAMEWORK.auto &&
       framework !== I18N_FRAMEWORK.none &&
-      !I18N_FRAMEWORK_DEFAULT_CONFIG[framework].singleBrackets);
+      !I18N_FRAMEWORK_DEFAULT_CONFIG[framework]?.singleBrackets);
   if (useDoubleBrackets) {
     varPrefix = "{{";
     varSuffix = "}}";
