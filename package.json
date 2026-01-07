@@ -124,6 +124,7 @@
               "react-i18next",
               "i18next",
               "vscode-l10n",
+              "variable-name",
               "none"
             ],
             "enumDescriptions": [
@@ -132,6 +133,7 @@
               "%config.i18nFramework.reactI18next%",
               "%config.i18nFramework.i18next%",
               "%config.i18nFramework.vscodeL10n%",
+              "%config.i18nFramework.variableName%",
               "%config.i18nFramework.none%"
             ]
           },

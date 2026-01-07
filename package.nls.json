@@ -144,6 +144,7 @@
   "config.i18nFramework.reactI18next": "React i18next",
   "config.i18nFramework.i18next": "i18next",
   "config.i18nFramework.vscodeL10n": "VS Code localization",
+  "config.i18nFramework.variableName": "Variable Name",
   "config.i18nFramework.none": "None",
   "config.languageStructure.desc": "Choose language structure",
   "config.languageStructure.nested": "Nested structure",

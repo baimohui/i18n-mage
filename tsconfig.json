@@ -3,7 +3,6 @@
     "module": "commonjs",
     "target": "ES2022",
     "outDir": "dist",
-    "rootDir": "",
     "sourceMap": true,
     "strict": true,
     "noImplicitAny": false,
@@ -20,7 +19,7 @@
       "mocha"
     ],
     "skipLibCheck": true,
-    "baseUrl": ".",
+    "baseUrl": "./",
     "paths": {
       "@/*": [
         "src/*"
