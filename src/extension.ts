@@ -13,6 +13,7 @@ import { registerDisposable } from "@/utils/dispose";
 import { StatusBarItemManager } from "./features/StatusBarItemManager";
 import { CodeActionProvider } from "./features/CodeActionProvider";
 import { RenameKeyProvider } from "./features/RenameProvider";
+import { KeyDefinitionProvider } from "./features/DefinitionProvider";
 
 // 全局状态管理
 class ExtensionState {
@@ -68,6 +69,7 @@ class ExtensionState {
     registerDisposable(vscode.languages.registerCompletionItemProvider(selector, new I18nCompletionProvider(), '"', "'", "`"));
     registerDisposable(vscode.languages.registerCodeActionsProvider(selector, new CodeActionProvider()));
     registerDisposable(vscode.languages.registerRenameProvider(selector, new RenameKeyProvider()));
+    registerDisposable(vscode.languages.registerDefinitionProvider(selector, new KeyDefinitionProvider()));
     const statusBarItemManager = StatusBarItemManager.getInstance();
     statusBarItemManager.createStatusBarItem();
     registerDisposable(statusBarItemManager);

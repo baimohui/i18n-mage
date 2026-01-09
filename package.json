@@ -1169,11 +1169,6 @@
         "when": "i18nMage.enabled && i18nMage.hasValidLangPath"
       },
       {
-        "command": "i18nMage.goToDefinition",
-        "key": "f12",
-        "when": "i18nMage.enabled && i18nMage.hasValidLangPath && editorTextFocus && i18nMage.inKey"
-      },
-      {
         "command": "i18nMage.browseTranslationsInFile",
         "key": "ctrl+alt+t",
         "mac": "cmd+alt+t",

@@ -1,11 +1,10 @@
 import * as vscode from "vscode";
 
-export async function selectProperty(uri: vscode.Uri, key: string) {
+export async function getPropertyRange(uri: vscode.Uri, key: string): Promise<vscode.Range | null> {
   // 1. 拆分并还原转义的点
   const isEndWithNum = key.match(/\.(\d+)$/);
   const parts = key.split(/(?<!\\)\./).map(p => p.replace(/\\\./g, "."));
   const doc = await vscode.workspace.openTextDocument(uri);
-  const editor = await vscode.window.showTextDocument(doc);
   const text = doc.getText();
   let searchStart = 0;
   let rangeStart: number | undefined;
@@ -21,7 +20,7 @@ export async function selectProperty(uri: vscode.Uri, key: string) {
     const m = pat.exec(text.slice(searchStart));
     // 未找到属性 key
     if (!m) {
-      return;
+      return null;
     }
     const matchIndex = searchStart + m.index;
     if (isLast || (isBeforeLast && isEndWithNum)) {
@@ -36,7 +35,7 @@ export async function selectProperty(uri: vscode.Uri, key: string) {
       const closeIdx = findMatchingBrace(subText);
       // 对象 key 的大括号不匹配
       if (closeIdx < 0) {
-        return;
+        return null;
       }
       // 更新下一轮搜索的起点，只在当前对象内部查找
       searchStart = objStart;
@@ -48,8 +47,18 @@ export async function selectProperty(uri: vscode.Uri, key: string) {
   if (rangeStart !== undefined) {
     const startPos = doc.positionAt(rangeStart);
     const endPos = startPos.translate(0, parts[parts.length - (isEndWithNum ? 2 : 1)].length);
-    editor.selection = new vscode.Selection(startPos, endPos);
-    editor.revealRange(new vscode.Range(startPos, endPos));
+    return new vscode.Range(startPos, endPos);
+  }
+  return null;
+}
+
+export async function selectProperty(uri: vscode.Uri, key: string) {
+  const doc = await vscode.workspace.openTextDocument(uri);
+  const editor = await vscode.window.showTextDocument(doc);
+  const range = await getPropertyRange(uri, key);
+  if (range) {
+    editor.selection = new vscode.Selection(range.start, range.end);
+    editor.revealRange(range);
   }
 }
 
