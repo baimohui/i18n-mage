@@ -1147,9 +1147,38 @@
         "command": "i18nMage.rewriteEntry",
         "category": "%extension.name%",
         "title": "%command.rewriteEntry.title%"
+      },
+      {
+        "command": "i18nMage.focusSearch",
+        "category": "%extension.name%",
+        "title": "%command.focusSearch.title%"
+      },
+      {
+        "command": "i18nMage.searchEntry",
+        "category": "%extension.name%",
+        "title": "%command.searchEntry.title%",
+        "icon": {
+          "light": "./images/search-line-light.svg",
+          "dark": "./images/search-line-dark.svg"
+        }
+      },
+      {
+        "command": "i18nMage.clearSearch",
+        "category": "%extension.name%",
+        "title": "%command.clearSearch.title%",
+        "icon": {
+          "light": "./images/filter-off-light.svg",
+          "dark": "./images/filter-off-dark.svg"
+        }
       }
     ],
     "keybindings": [
+      {
+        "command": "i18nMage.searchEntry",
+        "key": "ctrl+shift+s",
+        "mac": "cmd+shift+s",
+        "when": "i18nMage.enabled && i18nMage.hasValidLangPath"
+      },
       {
         "command": "i18nMage.toggleInlineTranslation",
         "key": "ctrl+alt+d",
@@ -1177,6 +1206,16 @@
     ],
     "menus": {
       "view/title": [
+        {
+          "command": "i18nMage.searchEntry",
+          "when": "view == treeProvider && i18nMage.hasValidLangPath",
+          "group": "navigation@1"
+        },
+        {
+          "command": "i18nMage.clearSearch",
+          "when": "view == treeProvider && i18nMage.hasValidLangPath && i18nMage.isSearching",
+          "group": "navigation@2"
+        },
         {
           "command": "i18nMage.checkUsage",
           "when": "view == treeProvider && i18nMage.hasValidLangPath",
