@@ -104,6 +104,8 @@
   "command.selectLangPath.success": "Selected translation file directory: {0}",
   "command.selectLangPath.title": "Select Translation File Directory",
   "command.selectSingleFile.dialogTitle": "Select file",
+  "command.searchEntry.placeHolder": "Enter search keyword",
+  "command.searchEntry.prompt": "Search for entries in all languages",
   "command.setProjectPath.invalidFolder": "Invalid project root directory",
   "command.setProjectPath.open": "Select the project root directory",
   "command.sort.progress": "Sorting...",

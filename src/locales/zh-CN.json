@@ -104,6 +104,8 @@
   "command.selectLangPath.success": "已选择翻译文件目录：{0}",
   "command.selectLangPath.title": "选择翻译文件目录",
   "command.selectSingleFile.dialogTitle": "选择文件",
+  "command.searchEntry.placeHolder": "输入搜索关键词",
+  "command.searchEntry.prompt": "在所有语言中搜索词条",
   "command.setProjectPath.invalidFolder": "无效的项目根路径",
   "command.setProjectPath.open": "选择项目根目录",
   "command.sort.progress": "排序中",
