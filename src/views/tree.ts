@@ -791,48 +791,159 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
       }
 
       const searchLower = this.searchKeyword.toLowerCase();
-      const results: Map<string, { key: string; name: string; displayValue: string; contextValue: string }> = new Map();
+      const results: ExtendedTreeItem[] = [];
 
-      // Search through all dictionary entries
-      for (const [key, entry] of Object.entries(this.dictionary)) {
-        // Check if key matches
+      // Helper function to check if entry matches search
+      const matchesSearch = (key: string, entryValue?: string): boolean => {
         if (key.toLowerCase().includes(searchLower)) {
-          const displayValue = entry.value[this.displayLang] || "";
-          const contextValueList = ["searchResultItem", "COPY_NAME", "GO_TO_DEFINITION", "EDIT_VALUE", "REWRITE_ENTRY"];
+          return true;
+        }
+        if (entryValue !== undefined && entryValue !== "" && entryValue.toLowerCase().includes(searchLower)) {
+          return true;
+        }
+        // Check all language values
+        const entry = this.dictionary[key];
+        if (entry !== undefined && entry !== null) {
+          for (const value of Object.values(entry.value)) {
+            if (value && value.toLowerCase().includes(searchLower)) {
+              return true;
+            }
+          }
+        }
+        return false;
+      };
+
+      // Search in Current File - Defined entries
+      for (const entry of this.definedEntriesInCurrentFile) {
+        const key = getValueByAmbiguousEntryName(this.tree, entry.nameInfo.name) as string;
+        if (matchesSearch(key)) {
+          const entryInfo = this.dictionary[key]?.value ?? {};
+          const displayValue = entryInfo[this.displayLang] ?? "";
+          const contextValueList = ["searchResultItem", "COPY_NAME", "definedEntryInCurFile", "REWRITE_ENTRY"];
           if (displayValue) {
             contextValueList.push("COPY_VALUE");
           }
-          results.set(key, {
+          results.push({
+            level: 1,
             key,
-            name: unescapeString(key),
-            displayValue,
-            contextValue: contextValueList.join(",")
+            name: entry.nameInfo.name,
+            label: internalToDisplayName(entry.nameInfo.text),
+            description: `${t("tree.currentFile.defined")}: ${displayValue}`,
+            contextValue: contextValueList.join(","),
+            id: this.genId(element, `defined-${key}`),
+            root: element.root,
+            collapsibleState: vscode.TreeItemCollapsibleState.None
           });
-          continue;
-        }
-
-        // Check if any translation value matches
-        for (const [_lang, value] of Object.entries(entry.value)) {
-          if (value && value.toLowerCase().includes(searchLower)) {
-            const displayValue = entry.value[this.displayLang] || "";
-            const contextValueList = ["searchResultItem", "COPY_NAME", "GO_TO_DEFINITION", "EDIT_VALUE", "REWRITE_ENTRY"];
-            if (displayValue) {
-              contextValueList.push("COPY_VALUE");
-            }
-            if (!results.has(key)) {
-              results.set(key, {
-                key,
-                name: unescapeString(key),
-                displayValue,
-                contextValue: contextValueList.join(",")
-              });
-            }
-            break;
-          }
         }
       }
 
-      if (results.size === 0) {
+      // Search in Current File - Undefined entries
+      for (const entry of this.undefinedEntriesInCurrentFile) {
+        if (matchesSearch(entry.nameInfo.text)) {
+          const contextValueList = ["searchResultItem", "undefinedEntryInCurFile", "IGNORE_UNDEFINED"];
+          if (this.autoTranslateMissingKey) {
+            if (this.ignorePossibleVariables && isEnglishVariable(entry.nameInfo.text)) {
+              // Skip variables
+              continue;
+            } else if (this.validateLanguageBeforeTranslate && !validateLang(entry.nameInfo.text, this.publicCtx.referredLang)) {
+              if (this.unmatchedLanguageAction !== UNMATCHED_LANGUAGE_ACTION.ignore) {
+                contextValueList.push("GEN_KEY");
+              }
+            } else {
+              contextValueList.push("GEN_KEY");
+            }
+          }
+          results.push({
+            level: 1,
+            key: entry.nameInfo.text,
+            name: entry.nameInfo.text,
+            label: internalToDisplayName(entry.nameInfo.text),
+            description: t("tree.currentFile.undefined"),
+            contextValue: contextValueList.join(","),
+            id: this.genId(element, `undefined-${entry.nameInfo.text}`),
+            root: element.root,
+            collapsibleState: vscode.TreeItemCollapsibleState.None
+          });
+        }
+      }
+
+      // Search in Usage Info - Used entries
+      for (const key of this.usedKeySet) {
+        if (matchesSearch(key)) {
+          const entryInfo = this.dictionary[key];
+          const displayValue = entryInfo?.value[this.displayLang] ?? "";
+          const contextValueList = ["searchResultItem", "COPY_NAME", "usedGroupItem"];
+          if (displayValue) {
+            contextValueList.push("COPY_VALUE");
+          }
+          results.push({
+            level: 1,
+            key,
+            name: unescapeString(key),
+            label: internalToDisplayName(key),
+            description: `${t("tree.usedInfo.used")}: ${displayValue}`,
+            contextValue: contextValueList.join(","),
+            id: this.genId(element, `used-${key}`),
+            root: element.root,
+            collapsibleState: vscode.TreeItemCollapsibleState.None
+          });
+        }
+      }
+
+      // Search in Usage Info - Unused entries
+      for (const key of this.unusedKeySet) {
+        if (matchesSearch(key)) {
+          const entryInfo = this.dictionary[key];
+          const displayValue = entryInfo?.value[this.displayLang] ?? "";
+          const contextValueList = ["searchResultItem", "COPY_NAME", "unusedGroupItem"];
+          if (displayValue) {
+            contextValueList.push("COPY_VALUE");
+          }
+          results.push({
+            level: 1,
+            key,
+            name: unescapeString(key),
+            label: internalToDisplayName(key),
+            description: `${t("tree.usedInfo.unused")}: ${displayValue}`,
+            contextValue: contextValueList.join(","),
+            id: this.genId(element, `unused-${key}`),
+            root: element.root,
+            collapsibleState: vscode.TreeItemCollapsibleState.None
+          });
+        }
+      }
+
+      // Search in Usage Info - Undefined entries (in code but not in files)
+      for (const key of Object.keys(this.undefinedEntryMap)) {
+        if (matchesSearch(key)) {
+          const contextValueList = ["searchResultItem", "undefinedEntry", "IGNORE_UNDEFINED"];
+          if (this.autoTranslateMissingKey) {
+            if (this.ignorePossibleVariables && isEnglishVariable(key)) {
+              // Skip variables
+              continue;
+            } else if (this.validateLanguageBeforeTranslate && !validateLang(key, this.publicCtx.referredLang)) {
+              if (this.unmatchedLanguageAction !== UNMATCHED_LANGUAGE_ACTION.ignore) {
+                contextValueList.push("GEN_KEY");
+              }
+            } else {
+              contextValueList.push("GEN_KEY");
+            }
+          }
+          results.push({
+            level: 1,
+            key,
+            name: unescapeString(key),
+            label: key,
+            description: t("tree.usedInfo.undefined"),
+            contextValue: contextValueList.join(","),
+            id: this.genId(element, `usage-undefined-${key}`),
+            root: element.root,
+            collapsibleState: vscode.TreeItemCollapsibleState.None
+          });
+        }
+      }
+
+      if (results.length === 0) {
         return [
           {
             level: 1,
@@ -844,17 +955,20 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
         ];
       }
 
-      return Array.from(results.values()).map(item => ({
-        level: 1,
-        key: item.key,
-        name: item.name,
-        label: internalToDisplayName(item.name),
-        description: item.displayValue,
-        contextValue: item.contextValue,
-        id: this.genId(element, item.key),
-        root: element.root,
-        collapsibleState: vscode.TreeItemCollapsibleState.None
-      }));
+      // Deduplicate results by key and type
+      const seen = new Set<string>();
+      return results.filter(item => {
+        let typePrefix = "";
+        if (item.description !== undefined && typeof item.description === "string") {
+          typePrefix = item.description.split(":")[0];
+        }
+        const uniqueKey = `${item.key}-${typePrefix}`;
+        if (seen.has(uniqueKey)) {
+          return false;
+        }
+        seen.add(uniqueKey);
+        return true;
+      });
     }
     return [];
   }
