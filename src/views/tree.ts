@@ -386,17 +386,24 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
         );
       });
     }
-    return [
-      {
-        level: 0,
-        label: t("tree.currentFile.title"),
-        id: "CURRENT_FILE",
-        root: "CURRENT_FILE",
-        iconPath: new vscode.ThemeIcon("file"),
-        collapsibleState: vscode.TreeItemCollapsibleState.Expanded,
-        description: String(this.definedEntriesInCurrentFile.length + this.undefinedEntriesInCurrentFile.length)
-      },
-      {
+
+    // Build the list of root sections
+    const rootSections: ExtendedTreeItem[] = [];
+
+    // Always show Current File
+    rootSections.push({
+      level: 0,
+      label: t("tree.currentFile.title"),
+      id: "CURRENT_FILE",
+      root: "CURRENT_FILE",
+      iconPath: new vscode.ThemeIcon("file"),
+      collapsibleState: vscode.TreeItemCollapsibleState.Expanded,
+      description: String(this.definedEntriesInCurrentFile.length + this.undefinedEntriesInCurrentFile.length)
+    });
+
+    // Hide Sync Info when searching
+    if (!this.isSearching) {
+      rootSections.push({
         level: 0,
         label: t("tree.syncInfo.title"),
         id: "SYNC_INFO",
@@ -405,18 +412,24 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
         iconPath: new vscode.ThemeIcon(this.isSyncing !== false ? "sync~spin" : "sync"),
         collapsibleState: vscode.TreeItemCollapsibleState.Expanded,
         description: this.getSyncPercent()
-      },
-      {
-        level: 0,
-        label: t("tree.usedInfo.title"),
-        id: "USAGE_INFO",
-        root: "USAGE_INFO",
-        contextValue: "checkUsage",
-        iconPath: new vscode.ThemeIcon("graph"),
-        collapsibleState: vscode.TreeItemCollapsibleState.Expanded,
-        description: this.getUsagePercent()
-      },
-      {
+      });
+    }
+
+    // Always show Usage Info
+    rootSections.push({
+      level: 0,
+      label: t("tree.usedInfo.title"),
+      id: "USAGE_INFO",
+      root: "USAGE_INFO",
+      contextValue: "checkUsage",
+      iconPath: new vscode.ThemeIcon("graph"),
+      collapsibleState: vscode.TreeItemCollapsibleState.Expanded,
+      description: this.getUsagePercent()
+    });
+
+    // Hide Entry Structure (Dictionary) when searching
+    if (!this.isSearching) {
+      rootSections.push({
         level: 0,
         label: t("tree.dictionary.title"),
         id: "DICTIONARY",
@@ -424,8 +437,10 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
         iconPath: new vscode.ThemeIcon("notebook"),
         collapsibleState: vscode.TreeItemCollapsibleState.Collapsed,
         description: String(Object.keys(this.langInfo.dictionary).length)
-      }
-    ];
+      });
+    }
+
+    return rootSections;
   }
   private getCurrentFileChildren(element: ExtendedTreeItem): ExtendedTreeItem[] {
     if (element.level === 0) {
