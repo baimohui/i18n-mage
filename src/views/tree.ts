@@ -73,6 +73,9 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
   undefinedEntriesInCurrentFile: TEntry[] = [];
   private globalFilter: { text: string; scope: string[] } = { text: "", scope: ["defined", "undefined", "used", "unused"] };
   private sectionFilters = new Map<string, string>();
+  // Search state
+  searchKeyword = "";
+  isSearching = false;
 
   public setFilter(filter: { text: string; scope: string[] }) {
     this.globalFilter = filter;
@@ -88,6 +91,20 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
 
   public updateSectionFilter(section: string, text: string) {
     this.sectionFilters.set(section, text);
+    this.refresh();
+  }
+
+  public setSearch(keyword: string) {
+    this.searchKeyword = keyword;
+    this.isSearching = keyword.trim() !== "";
+    vscode.commands.executeCommand("setContext", "i18nMage.isSearching", this.isSearching);
+    this.refresh();
+  }
+
+  public clearSearch() {
+    this.searchKeyword = "";
+    this.isSearching = false;
+    vscode.commands.executeCommand("setContext", "i18nMage.isSearching", false);
     this.refresh();
   }
 
@@ -196,6 +213,8 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
           return this.getUsageInfoChildren(element);
         case "DICTIONARY":
           return this.getDictionaryChildren(element);
+        case "SEARCH_RESULTS":
+          return this.getSearchResultChildren(element);
         default:
           return [];
       }
@@ -354,6 +373,22 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
   }
 
   private getRootChildren(): ExtendedTreeItem[] {
+    // When searching, only show search results
+    if (this.isSearching) {
+      return [
+        {
+          level: 0,
+          label: t("tree.search.title"),
+          id: "SEARCH_RESULTS",
+          root: "SEARCH_RESULTS",
+          tooltip: t("tree.search.status", this.searchKeyword),
+          iconPath: new vscode.ThemeIcon("search"),
+          collapsibleState: vscode.TreeItemCollapsibleState.Expanded,
+          description: this.searchKeyword
+        }
+      ];
+    }
+
     const filterText = this.globalFilter.text;
     const filterScope = this.globalFilter.scope;
 
@@ -746,6 +781,82 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
           };
         });
     }
+  }
+
+  private getSearchResultChildren(element: ExtendedTreeItem): ExtendedTreeItem[] {
+    if (element.level === 0) {
+      // Return empty array if no search keyword
+      if (!this.searchKeyword.trim()) {
+        return [];
+      }
+
+      const searchLower = this.searchKeyword.toLowerCase();
+      const results: Map<string, { key: string; name: string; displayValue: string; contextValue: string }> = new Map();
+
+      // Search through all dictionary entries
+      for (const [key, entry] of Object.entries(this.dictionary)) {
+        // Check if key matches
+        if (key.toLowerCase().includes(searchLower)) {
+          const displayValue = entry.value[this.displayLang] || "";
+          const contextValueList = ["searchResultItem", "COPY_NAME", "GO_TO_DEFINITION", "EDIT_VALUE", "REWRITE_ENTRY"];
+          if (displayValue) {
+            contextValueList.push("COPY_VALUE");
+          }
+          results.set(key, {
+            key,
+            name: unescapeString(key),
+            displayValue,
+            contextValue: contextValueList.join(",")
+          });
+          continue;
+        }
+
+        // Check if any translation value matches
+        for (const [_lang, value] of Object.entries(entry.value)) {
+          if (value && value.toLowerCase().includes(searchLower)) {
+            const displayValue = entry.value[this.displayLang] || "";
+            const contextValueList = ["searchResultItem", "COPY_NAME", "GO_TO_DEFINITION", "EDIT_VALUE", "REWRITE_ENTRY"];
+            if (displayValue) {
+              contextValueList.push("COPY_VALUE");
+            }
+            if (!results.has(key)) {
+              results.set(key, {
+                key,
+                name: unescapeString(key),
+                displayValue,
+                contextValue: contextValueList.join(",")
+              });
+            }
+            break;
+          }
+        }
+      }
+
+      if (results.size === 0) {
+        return [
+          {
+            level: 1,
+            label: t("tree.search.noResults", this.searchKeyword),
+            id: this.genId(element, "no-results"),
+            root: element.root,
+            collapsibleState: vscode.TreeItemCollapsibleState.None
+          }
+        ];
+      }
+
+      return Array.from(results.values()).map(item => ({
+        level: 1,
+        key: item.key,
+        name: item.name,
+        label: internalToDisplayName(item.name),
+        description: item.displayValue,
+        contextValue: item.contextValue,
+        id: this.genId(element, item.key),
+        root: element.root,
+        collapsibleState: vscode.TreeItemCollapsibleState.None
+      }));
+    }
+    return [];
   }
 
   private checkLangSyncInfo(lang: string) {

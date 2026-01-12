@@ -201,5 +201,8 @@
   "tree.usedInfo.undefinedPossibleVariable": "文本疑似变量",
   "tree.usedInfo.undefinedValidLang": "文本不符合要求，无法生成键",
   "tree.usedInfo.unused": "未使用",
-  "tree.usedInfo.used": "已使用"
+  "tree.usedInfo.used": "已使用",
+  "tree.search.title": "搜索结果",
+  "tree.search.noResults": "未找到\"{0}\"的结果",
+  "tree.search.status": "搜索中: {0}"
 }

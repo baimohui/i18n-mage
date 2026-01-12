@@ -1,5 +1,6 @@
 import * as vscode from "vscode";
 import { t } from "@/utils/i18n";
+import { treeInstance } from "@/views/tree";
 
 /**
  * 注册搜索词条命令
@@ -10,10 +11,11 @@ export function registerSearchEntryCommand(context: vscode.ExtensionContext) {
     vscode.commands.registerCommand("i18nMage.searchEntry", async () => {
       const keyword = await vscode.window.showInputBox({
         placeHolder: t("command.searchEntry.placeHolder"),
-        prompt: t("command.searchEntry.prompt")
+        prompt: t("command.searchEntry.prompt"),
+        value: treeInstance.searchKeyword // Pre-fill with current search keyword
       });
       if (keyword !== undefined) {
-        // treeInstance.search(keyword);
+        treeInstance.setSearch(keyword);
       }
     })
   );

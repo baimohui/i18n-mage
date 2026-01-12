@@ -201,5 +201,8 @@
   "tree.usedInfo.undefinedPossibleVariable": "Suspected variable",
   "tree.usedInfo.undefinedValidLang": "Unsupported language for auto-gen-key",
   "tree.usedInfo.unused": "Unused",
-  "tree.usedInfo.used": "Used"
+  "tree.usedInfo.used": "Used",
+  "tree.search.title": "Search Results",
+  "tree.search.noResults": "No results found for \"{0}\"",
+  "tree.search.status": "Searching for: {0}"
 }
