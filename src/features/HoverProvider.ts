@@ -14,8 +14,9 @@ export class HoverProvider implements vscode.HoverProvider {
       const { tree, dictionary } = mage.langDetail;
       const entryName = entry.nameInfo.name;
       if (entry.dynamic) {
-        const matchKeys = dynamicMatchInfo.get(entryName) || [];
-        entryKeys.push(...matchKeys);
+        const matchedNames = dynamicMatchInfo.get(entryName) || [];
+        const matchedKeys = matchedNames.map(name => getValueByAmbiguousEntryName(tree, name));
+        entryKeys.push(...matchedKeys.filter((key): key is string => key !== undefined));
       } else {
         const entryKey = getValueByAmbiguousEntryName(tree, entryName);
         if (entryKey !== undefined) {

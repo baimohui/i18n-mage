@@ -70,14 +70,20 @@ export class DecoratorController implements vscode.Disposable {
       let [startPos, endPos] = entry.pos.split(",").map(Number);
       startPos++;
       endPos--;
-      const entryKey = getValueByAmbiguousEntryName(tree, entry.nameInfo.name);
-      let entryValue = translations[entryKey as string];
+      let entryKey = "";
+      let entryValue = "";
       let isLooseMatch = false;
       if (entry.dynamic && dynamicMatchInfo.has(entry.nameInfo.name)) {
         if (!enableLooseKeyMatch) return;
         isLooseMatch = true;
-        const matchedKeys = dynamicMatchInfo.get(entry.nameInfo.name) || [];
+        const matchedNames = dynamicMatchInfo.get(entry.nameInfo.name) || [];
+        const matchedKeys = matchedNames
+          .map(name => getValueByAmbiguousEntryName(tree, name))
+          .filter((key): key is string => key !== undefined);
         entryValue = matchedKeys.map(key => translations[key]).join(" | ");
+      } else {
+        entryKey = getValueByAmbiguousEntryName(tree, entry.nameInfo.name) ?? "";
+        entryValue = entryKey ? translations[entryKey] : "";
       }
       if (!entryValue) return;
       const uniqueId = `${startPos}:${entry.nameInfo.name}`;

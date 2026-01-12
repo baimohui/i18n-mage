@@ -172,10 +172,10 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
       const definedEntries = Array.from(ActiveEditorState.definedEntries.values()).map(item => item[0]);
       for (const entry of definedEntries) {
         if (entry.dynamic) {
-          const matchKeys = ActiveEditorState.dynamicMatchInfo.get(entry.nameInfo.name) || [];
-          matchKeys.forEach(key => {
-            if (!this.definedEntriesInCurrentFile.find(item => item.nameInfo.name === key)) {
-              const newEntry = { ...entry, nameInfo: { ...entry.nameInfo, text: key, name: key, id: key } };
+          const matchedNames = ActiveEditorState.dynamicMatchInfo.get(entry.nameInfo.name) || [];
+          matchedNames.forEach(name => {
+            if (!this.definedEntriesInCurrentFile.find(item => item.nameInfo.name === name)) {
+              const newEntry = { ...entry, nameInfo: { ...entry.nameInfo, text: name, name: name, id: name } };
               this.definedEntriesInCurrentFile.push(newEntry);
             }
           });
