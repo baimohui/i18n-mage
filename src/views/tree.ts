@@ -209,6 +209,8 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
         return this.getRootChildren();
       }
       switch (element.root) {
+        case "SEARCH_STATUS":
+          return [];
         case "CURRENT_FILE":
           return this.getCurrentFileChildren(element);
         case "SYNC_INFO":
@@ -389,6 +391,19 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
 
     // Build the list of root sections
     const rootSections: ExtendedTreeItem[] = [];
+
+    // Add search status indicator at the top when searching
+    if (this.isSearching) {
+      rootSections.push({
+        level: 0,
+        label: t("tree.search.status", this.searchKeyword),
+        id: "SEARCH_STATUS",
+        root: "SEARCH_STATUS",
+        iconPath: new vscode.ThemeIcon("search"),
+        collapsibleState: vscode.TreeItemCollapsibleState.None,
+        description: ""
+      });
+    }
 
     // Always show Current File
     rootSections.push({

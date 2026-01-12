@@ -1419,13 +1419,6 @@
     "views": {
       "i18nMage": [
         {
-          "type": "webview",
-          "id": "i18nMage.searchView",
-          "name": "%view.search.title%",
-          "icon": "./images/search-line-dark.svg",
-          "when": "i18nMage.initialized && workspaceFolderCount != 0 && i18nMage.enabled"
-        },
-        {
           "icon": "images/i18nMage.png",
           "id": "treeProvider",
           "name": "Grimoire",
