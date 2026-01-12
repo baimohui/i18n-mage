@@ -548,7 +548,7 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
         }
         return {
           name: entry.nameInfo.name,
-          key: getValueByAmbiguousEntryName(this.tree, entry.nameInfo.name) ?? "",
+          key: getValueByAmbiguousEntryName(this.tree, entry.nameInfo.name) ?? entry.nameInfo.name,
           label: internalToDisplayName(entry.nameInfo.text),
           description,
           collapsibleState: vscode.TreeItemCollapsibleState[element.type === "defined" ? "Collapsed" : "None"],
@@ -556,7 +556,10 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
           data: [entry.nameInfo.text],
           meta: { scope: vscode.window.activeTextEditor?.document.uri.fsPath ?? "" },
           contextValue: contextValueList.join(","),
-          usedInfo: this[element.type === "defined" ? "usedEntryMap" : "undefinedEntryMap"][entry.nameInfo.name],
+          usedInfo:
+            this[element.type === "defined" ? "usedEntryMap" : "undefinedEntryMap"][
+              element.type === "defined" ? entry.nameInfo.name : entry.nameInfo.text
+            ],
           id: this.genId(element, entry.nameInfo.name || ""),
           root: element.root
         };

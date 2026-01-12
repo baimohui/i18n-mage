@@ -4,7 +4,8 @@ export const I18N_FRAMEWORK = {
   vueI18n: "vue-i18n",
   reactI18next: "react-i18next",
   i18nNext: "i18next",
-  vscodeL10n: "vscode-l10n"
+  vscodeL10n: "vscode-l10n",
+  variableName: "variable-name"
 } as const;
 
 export type I18nFramework = (typeof I18N_FRAMEWORK)[keyof typeof I18N_FRAMEWORK];
@@ -23,7 +24,7 @@ export interface I18nFrameworkConfig {
 }
 
 export const I18N_FRAMEWORK_DEFAULT_CONFIG: Record<
-  Exclude<I18nFramework, typeof I18N_FRAMEWORK.auto | typeof I18N_FRAMEWORK.none>,
+  Exclude<I18nFramework, typeof I18N_FRAMEWORK.auto | typeof I18N_FRAMEWORK.none | typeof I18N_FRAMEWORK.variableName>,
   I18nFrameworkConfig
 > = {
   [I18N_FRAMEWORK.vueI18n]: {

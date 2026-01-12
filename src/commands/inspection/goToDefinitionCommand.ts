@@ -4,7 +4,6 @@ import LangMage from "@/core/LangMage";
 import { getFileLocationFromId, selectProperty } from "@/utils/regex";
 import { registerDisposable } from "@/utils/dispose";
 import { t } from "@/utils/i18n";
-import { ActiveEditorState } from "@/utils/activeEditorState";
 
 export function registerGoToDefinitionCommand() {
   const mage = LangMage.getInstance();
@@ -13,22 +12,17 @@ export function registerGoToDefinitionCommand() {
     let target: { key: string; lang: string } | undefined = undefined;
     const dictionary = mage.langDetail.dictionary;
     if (e === undefined) {
-      const keyAtCursor = ActiveEditorState.keyAtCursor;
-      if (keyAtCursor) {
-        target = { key: keyAtCursor, lang: publicCtx.referredLang };
-      } else {
-        const key = await vscode.window.showQuickPick(Object.keys(dictionary), {
-          canPickMany: false,
-          placeHolder: t("command.goToDefinition.selectEntry")
-        });
-        if (key === undefined) return;
-        const lang = await vscode.window.showQuickPick(mage.langDetail.langList, {
-          canPickMany: false,
-          placeHolder: t("command.goToDefinition.selectLang")
-        });
-        if (lang === undefined) return;
-        target = { key, lang };
-      }
+      const key = await vscode.window.showQuickPick(Object.keys(dictionary), {
+        canPickMany: false,
+        placeHolder: t("command.goToDefinition.selectEntry")
+      });
+      if (key === undefined) return;
+      const lang = await vscode.window.showQuickPick(mage.langDetail.langList, {
+        canPickMany: false,
+        placeHolder: t("command.goToDefinition.selectLang")
+      });
+      if (lang === undefined) return;
+      target = { key, lang };
     } else {
       target = { key: e.key, lang: e.meta.scope };
     }

@@ -17,7 +17,7 @@
   "parserOptions": {
     "ecmaVersion": 2022,
     "requireConfigFile": false, // 禁用配置文件检查
-    "project": "./tsconfig.json" // 关联 TS 配置
+    "project": "./tsconfig.json" // 关联 TS 配置// 根目录位置
   },
   "plugins": [
     "@typescript-eslint"
