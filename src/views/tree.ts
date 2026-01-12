@@ -97,6 +97,8 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
   public setSearch(keyword: string) {
     this.searchKeyword = keyword;
     this.isSearching = keyword.trim() !== "";
+    // Set the global filter text to use existing filter logic
+    this.globalFilter.text = keyword;
     vscode.commands.executeCommand("setContext", "i18nMage.isSearching", this.isSearching);
     this.refresh();
   }
@@ -104,6 +106,8 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
   public clearSearch() {
     this.searchKeyword = "";
     this.isSearching = false;
+    // Clear the global filter text
+    this.globalFilter.text = "";
     vscode.commands.executeCommand("setContext", "i18nMage.isSearching", false);
     this.refresh();
   }
@@ -213,8 +217,6 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
           return this.getUsageInfoChildren(element);
         case "DICTIONARY":
           return this.getDictionaryChildren(element);
-        case "SEARCH_RESULTS":
-          return this.getSearchResultChildren(element);
         default:
           return [];
       }
@@ -373,22 +375,6 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
   }
 
   private getRootChildren(): ExtendedTreeItem[] {
-    // When searching, only show search results
-    if (this.isSearching) {
-      return [
-        {
-          level: 0,
-          label: t("tree.search.title"),
-          id: "SEARCH_RESULTS",
-          root: "SEARCH_RESULTS",
-          tooltip: t("tree.search.status", this.searchKeyword),
-          iconPath: new vscode.ThemeIcon("search"),
-          collapsibleState: vscode.TreeItemCollapsibleState.Expanded,
-          description: this.searchKeyword
-        }
-      ];
-    }
-
     const filterText = this.globalFilter.text;
     const filterScope = this.globalFilter.scope;
 
@@ -781,196 +767,6 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
           };
         });
     }
-  }
-
-  private getSearchResultChildren(element: ExtendedTreeItem): ExtendedTreeItem[] {
-    if (element.level === 0) {
-      // Return empty array if no search keyword
-      if (!this.searchKeyword.trim()) {
-        return [];
-      }
-
-      const searchLower = this.searchKeyword.toLowerCase();
-      const results: ExtendedTreeItem[] = [];
-
-      // Helper function to check if entry matches search
-      const matchesSearch = (key: string, entryValue?: string): boolean => {
-        if (key.toLowerCase().includes(searchLower)) {
-          return true;
-        }
-        if (entryValue !== undefined && entryValue !== "" && entryValue.toLowerCase().includes(searchLower)) {
-          return true;
-        }
-        // Check all language values
-        const entry = this.dictionary[key];
-        if (entry !== undefined && entry !== null) {
-          for (const value of Object.values(entry.value)) {
-            if (value && value.toLowerCase().includes(searchLower)) {
-              return true;
-            }
-          }
-        }
-        return false;
-      };
-
-      // Search in Current File - Defined entries
-      for (const entry of this.definedEntriesInCurrentFile) {
-        const key = getValueByAmbiguousEntryName(this.tree, entry.nameInfo.name) as string;
-        if (matchesSearch(key)) {
-          const entryInfo = this.dictionary[key]?.value ?? {};
-          const displayValue = entryInfo[this.displayLang] ?? "";
-          const contextValueList = ["searchResultItem", "COPY_NAME", "definedEntryInCurFile", "REWRITE_ENTRY"];
-          if (displayValue) {
-            contextValueList.push("COPY_VALUE");
-          }
-          results.push({
-            level: 1,
-            key,
-            name: entry.nameInfo.name,
-            label: internalToDisplayName(entry.nameInfo.text),
-            description: `${t("tree.currentFile.defined")}: ${displayValue}`,
-            contextValue: contextValueList.join(","),
-            id: this.genId(element, `defined-${key}`),
-            root: element.root,
-            collapsibleState: vscode.TreeItemCollapsibleState.None
-          });
-        }
-      }
-
-      // Search in Current File - Undefined entries
-      for (const entry of this.undefinedEntriesInCurrentFile) {
-        if (matchesSearch(entry.nameInfo.text)) {
-          const contextValueList = ["searchResultItem", "undefinedEntryInCurFile", "IGNORE_UNDEFINED"];
-          if (this.autoTranslateMissingKey) {
-            if (this.ignorePossibleVariables && isEnglishVariable(entry.nameInfo.text)) {
-              // Skip variables
-              continue;
-            } else if (this.validateLanguageBeforeTranslate && !validateLang(entry.nameInfo.text, this.publicCtx.referredLang)) {
-              if (this.unmatchedLanguageAction !== UNMATCHED_LANGUAGE_ACTION.ignore) {
-                contextValueList.push("GEN_KEY");
-              }
-            } else {
-              contextValueList.push("GEN_KEY");
-            }
-          }
-          results.push({
-            level: 1,
-            key: entry.nameInfo.text,
-            name: entry.nameInfo.text,
-            label: internalToDisplayName(entry.nameInfo.text),
-            description: t("tree.currentFile.undefined"),
-            contextValue: contextValueList.join(","),
-            id: this.genId(element, `undefined-${entry.nameInfo.text}`),
-            root: element.root,
-            collapsibleState: vscode.TreeItemCollapsibleState.None
-          });
-        }
-      }
-
-      // Search in Usage Info - Used entries
-      for (const key of this.usedKeySet) {
-        if (matchesSearch(key)) {
-          const entryInfo = this.dictionary[key];
-          const displayValue = entryInfo?.value[this.displayLang] ?? "";
-          const contextValueList = ["searchResultItem", "COPY_NAME", "usedGroupItem"];
-          if (displayValue) {
-            contextValueList.push("COPY_VALUE");
-          }
-          results.push({
-            level: 1,
-            key,
-            name: unescapeString(key),
-            label: internalToDisplayName(key),
-            description: `${t("tree.usedInfo.used")}: ${displayValue}`,
-            contextValue: contextValueList.join(","),
-            id: this.genId(element, `used-${key}`),
-            root: element.root,
-            collapsibleState: vscode.TreeItemCollapsibleState.None
-          });
-        }
-      }
-
-      // Search in Usage Info - Unused entries
-      for (const key of this.unusedKeySet) {
-        if (matchesSearch(key)) {
-          const entryInfo = this.dictionary[key];
-          const displayValue = entryInfo?.value[this.displayLang] ?? "";
-          const contextValueList = ["searchResultItem", "COPY_NAME", "unusedGroupItem"];
-          if (displayValue) {
-            contextValueList.push("COPY_VALUE");
-          }
-          results.push({
-            level: 1,
-            key,
-            name: unescapeString(key),
-            label: internalToDisplayName(key),
-            description: `${t("tree.usedInfo.unused")}: ${displayValue}`,
-            contextValue: contextValueList.join(","),
-            id: this.genId(element, `unused-${key}`),
-            root: element.root,
-            collapsibleState: vscode.TreeItemCollapsibleState.None
-          });
-        }
-      }
-
-      // Search in Usage Info - Undefined entries (in code but not in files)
-      for (const key of Object.keys(this.undefinedEntryMap)) {
-        if (matchesSearch(key)) {
-          const contextValueList = ["searchResultItem", "undefinedEntry", "IGNORE_UNDEFINED"];
-          if (this.autoTranslateMissingKey) {
-            if (this.ignorePossibleVariables && isEnglishVariable(key)) {
-              // Skip variables
-              continue;
-            } else if (this.validateLanguageBeforeTranslate && !validateLang(key, this.publicCtx.referredLang)) {
-              if (this.unmatchedLanguageAction !== UNMATCHED_LANGUAGE_ACTION.ignore) {
-                contextValueList.push("GEN_KEY");
-              }
-            } else {
-              contextValueList.push("GEN_KEY");
-            }
-          }
-          results.push({
-            level: 1,
-            key,
-            name: unescapeString(key),
-            label: key,
-            description: t("tree.usedInfo.undefined"),
-            contextValue: contextValueList.join(","),
-            id: this.genId(element, `usage-undefined-${key}`),
-            root: element.root,
-            collapsibleState: vscode.TreeItemCollapsibleState.None
-          });
-        }
-      }
-
-      if (results.length === 0) {
-        return [
-          {
-            level: 1,
-            label: t("tree.search.noResults", this.searchKeyword),
-            id: this.genId(element, "no-results"),
-            root: element.root,
-            collapsibleState: vscode.TreeItemCollapsibleState.None
-          }
-        ];
-      }
-
-      // Deduplicate results by key and type
-      const seen = new Set<string>();
-      return results.filter(item => {
-        let typePrefix = "";
-        if (item.description !== undefined && typeof item.description === "string") {
-          typePrefix = item.description.split(":")[0];
-        }
-        const uniqueKey = `${item.key}-${typePrefix}`;
-        if (seen.has(uniqueKey)) {
-          return false;
-        }
-        seen.add(uniqueKey);
-        return true;
-      });
-    }
-    return [];
   }
 
   private checkLangSyncInfo(lang: string) {
