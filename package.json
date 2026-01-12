@@ -1172,9 +1172,9 @@
     ],
     "keybindings": [
       {
-        "command": "i18nMage.focusSearch",
-        "key": "ctrl+alt+s",
-        "mac": "cmd+alt+s",
+        "command": "i18nMage.searchEntry",
+        "key": "ctrl+shift+s",
+        "mac": "cmd+shift+s",
         "when": "i18nMage.enabled && i18nMage.hasValidLangPath"
       },
       {
