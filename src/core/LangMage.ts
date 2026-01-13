@@ -96,7 +96,7 @@ class LangMage {
       let res = { success: true, message: "", code: EXECUTION_RESULT_CODE.Success };
       switch (this.ctx.task) {
         case "check":
-          if (!(await this.read())) {
+          if (!this.read()) {
             return { success: true, message: t("common.noLangPathDetectedWarn"), code: EXECUTION_RESULT_CODE.NoLangPathDetected };
           }
           res = new CheckHandler(this.ctx).run();
@@ -206,25 +206,25 @@ class LangMage {
     };
   }
 
-  private async read() {
+  private read() {
     const reader = new ReadHandler(this.ctx);
-    const detect = async () => {
+    const detect = () => {
       this.reset();
       reader.readLangFiles();
-      await reader.startCensus();
+      reader.startCensus();
     };
     if (this.ctx.namespaceStrategy === NAMESPACE_STRATEGY.auto) {
       const strategyList = [NAMESPACE_STRATEGY.full, NAMESPACE_STRATEGY.file, NAMESPACE_STRATEGY.none];
       for (const strategy of strategyList) {
         this.ctx.namespaceStrategy = strategy;
         if (this.ctx.multiFileMode === 1 && strategy === NAMESPACE_STRATEGY.file) continue;
-        await detect();
+        detect();
         if (this.ctx.multiFileMode === 0 || !this.ctx.globalFlag || this.ctx.usedKeySet.size > 0) {
           break;
         }
       }
     } else {
-      await detect();
+      detect();
     }
     if (this.detectedLangList.length === 0) {
       return false;

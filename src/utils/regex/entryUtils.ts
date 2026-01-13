@@ -1,4 +1,14 @@
-import { TEntry, EntryTree, PEntry, TEntryPartType, I18N_FRAMEWORK, I18N_FRAMEWORK_DEFAULT_CONFIG, I18nFramework } from "@/types";
+import {
+  TEntry,
+  EntryTree,
+  PEntry,
+  TEntryPartType,
+  I18N_FRAMEWORK,
+  I18N_FRAMEWORK_DEFAULT_CONFIG,
+  I18nFramework,
+  ACCESS_MODE,
+  AccessMode
+} from "@/types";
 import { escapeRegExp } from "./stringUtils";
 import { getValueByAmbiguousEntryName } from "./treeUtils";
 import { getCacheConfig } from "../config";
@@ -53,6 +63,7 @@ export function catchLiteralEntries(fileContent: string, entryTree: EntryTree, f
 
 export function catchTEntries(fileContent: string): TEntry[] {
   const tFuncNames = getCacheConfig<string[]>("i18nFeatures.translationFunctionNames", []);
+  const accessMode = getCacheConfig<AccessMode>("i18nFeatures.accessMode", ACCESS_MODE.function);
   const framework = getCacheConfig<I18nFramework>("i18nFeatures.framework", I18N_FRAMEWORK.none);
   if (!tFuncNames.length) tFuncNames.push("t");
   if (framework === I18N_FRAMEWORK.vueI18n) {
@@ -65,8 +76,9 @@ export function catchTEntries(fileContent: string): TEntry[] {
   const tReg = new RegExp(`(?<=[$\\s.[({:="']{1})(${funcNamePattern})\\s*\\(\\s*(\\S)`, "g");
   const entryInfoList: TEntry[] = [];
 
-  if (framework === I18N_FRAMEWORK.variableName) {
-    const propertyEntries = catchVariableEntries(fileContent, tFuncNames);
+  if (accessMode === ACCESS_MODE.object) {
+    const identifiers = getCacheConfig<string[]>("i18nFeatures.translationObjectIdentifiers", []);
+    const propertyEntries = catchVariableEntries(fileContent, identifiers);
     entryInfoList.push(...propertyEntries);
     return entryInfoList;
   }
@@ -91,13 +103,16 @@ export function catchVariableEntries(fileContent: string, rootNames: string[]): 
   const rootPattern = rootNames.map(fn => `\\b${escapeRegExp(fn)}`).join("|");
 
   /** 正则 匹配对象属性访问形式  前缀rootNames 支持按.换行识别*/
-  const propertyReg = new RegExp(`(?<=[$\\s.[({:="']{1})(${rootPattern})\\s*\\.\\s*([a-zA-Z0-9_]+(?:\\s*\\.\\s*[a-zA-Z0-9_]+)*)`, "g");
+  const propertyReg = new RegExp(
+    `(?<=[$\\s.[({:="']{1})${rootPattern ? rootPattern + "\\s*\\." : ""}\\s*([a-zA-Z0-9_]+(?:\\s*\\.\\s*[a-zA-Z0-9_]+)*)`,
+    "g"
+  );
 
   let match: RegExpExecArray | null;
   while ((match = propertyReg.exec(fileContent)) !== null) {
     const fullMatchDifLength = match[0].length - match[0].replace(/\s+/g, "").length;
     const fullMatch = match[0].replace(/\s+/g, "");
-    const keyPath = match[2].replace(/\s+/g, "");
+    const keyPath = match[1].replace(/\s+/g, "");
     const startPos = match.index - 1;
     let endPos = match.index + fullMatch.length + 1 + fullMatchDifLength;
 

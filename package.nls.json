@@ -191,5 +191,9 @@
   "view.welcome.title": "No translation directory detected\n[Select translation directory](command:i18nMage.selectLangPath)",
   "view.search.title": "Search",
   "command.search.title": "Search",
-  "content.search.placeholder": "Search for Words"
+  "content.search.placeholder": "Search for Words",
+  "config.accessMode.desc": "Choose how to access translation data",
+  "config.accessMode.function": "Access translations via functions",
+  "config.accessMode.object": "Access translations via objects",
+  "config.translationObjectIdentifiers.desc": "Identifiers of translation objects"
 }

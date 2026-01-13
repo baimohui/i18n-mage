@@ -4,8 +4,7 @@ export const I18N_FRAMEWORK = {
   vueI18n: "vue-i18n",
   reactI18next: "react-i18next",
   i18nNext: "i18next",
-  vscodeL10n: "vscode-l10n",
-  variableName: "variable-name"
+  vscodeL10n: "vscode-l10n"
 } as const;
 
 export type I18nFramework = (typeof I18N_FRAMEWORK)[keyof typeof I18N_FRAMEWORK];
@@ -24,7 +23,7 @@ export interface I18nFrameworkConfig {
 }
 
 export const I18N_FRAMEWORK_DEFAULT_CONFIG: Record<
-  Exclude<I18nFramework, typeof I18N_FRAMEWORK.auto | typeof I18N_FRAMEWORK.none | typeof I18N_FRAMEWORK.variableName>,
+  Exclude<I18nFramework, typeof I18N_FRAMEWORK.auto | typeof I18N_FRAMEWORK.none>,
   I18nFrameworkConfig
 > = {
   [I18N_FRAMEWORK.vueI18n]: {
@@ -62,7 +61,7 @@ export type KeyStyle = (typeof KEY_STYLE)[keyof typeof KEY_STYLE];
 export const KEY_STRATEGY = {
   english: "english",
   pinyin: "pinyin"
-};
+} as const;
 
 export type KeyStrategy = (typeof KEY_STRATEGY)[keyof typeof KEY_STRATEGY];
 
@@ -79,7 +78,7 @@ export type UnmatchedLanguageAction = (typeof UNMATCHED_LANGUAGE_ACTION)[keyof t
 export const COMPLETION_DISPLAY_LANGUAGE_SOURCE = {
   source: "source",
   display: "display"
-};
+} as const;
 
 export type CompletionDisplayLanguageSource = (typeof COMPLETION_DISPLAY_LANGUAGE_SOURCE)[keyof typeof COMPLETION_DISPLAY_LANGUAGE_SOURCE];
 
@@ -87,7 +86,7 @@ export const COMPLETION_MATCH_SCOPE = {
   both: "both",
   key: "key",
   value: "value"
-};
+} as const;
 
 export type CompletionMatchScope = (typeof COMPLETION_MATCH_SCOPE)[keyof typeof COMPLETION_MATCH_SCOPE];
 
@@ -96,14 +95,14 @@ export const COMPLETION_PINYIN_SEARCH = {
   full: "full",
   abbr: "abbr",
   both: "both"
-};
+} as const;
 
 export type CompletionPinyinSearch = (typeof COMPLETION_PINYIN_SEARCH)[keyof typeof COMPLETION_PINYIN_SEARCH];
 
 export const KEY_GENERATION_FILL_SCOPE = {
   minimal: "minimal",
   all: "all"
-};
+} as const;
 
 export type KeyGenerationFillScope = (typeof KEY_GENERATION_FILL_SCOPE)[keyof typeof KEY_GENERATION_FILL_SCOPE];
 
@@ -142,7 +141,7 @@ export const QUOTE_STYLE_4_KEY = {
   single: "single",
   double: "double",
   auto: "auto"
-};
+} as const;
 
 export type QuoteStyle4Key = (typeof QUOTE_STYLE_4_KEY)[keyof typeof QUOTE_STYLE_4_KEY];
 
@@ -150,6 +149,13 @@ export const QUOTE_STYLE_4_VALUE = {
   single: "single",
   double: "double",
   auto: "auto"
-};
+} as const;
 
 export type QuoteStyle4Value = (typeof QUOTE_STYLE_4_VALUE)[keyof typeof QUOTE_STYLE_4_VALUE];
+
+export const ACCESS_MODE = {
+  function: "function",
+  object: "object"
+} as const;
+
+export type AccessMode = (typeof ACCESS_MODE)[keyof typeof ACCESS_MODE];

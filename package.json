@@ -124,7 +124,6 @@
               "react-i18next",
               "i18next",
               "vscode-l10n",
-              "variable-name",
               "none"
             ],
             "enumDescriptions": [
@@ -133,7 +132,6 @@
               "%config.i18nFramework.reactI18next%",
               "%config.i18nFramework.i18next%",
               "%config.i18nFramework.vscodeL10n%",
-              "%config.i18nFramework.variableName%",
               "%config.i18nFramework.none%"
             ]
           },
@@ -200,6 +198,29 @@
             "type": "string",
             "default": "translation",
             "description": "%config.defaultNamespace.desc%"
+          },
+          "i18n-mage.i18nFeatures.accessMode": {
+            "order": 15,
+            "type": "string",
+            "default": "function",
+            "description": "%config.accessMode.desc%",
+            "enum": [
+              "function",
+              "object"
+            ],
+            "enumDescriptions": [
+              "%config.accessMode.function%",
+              "%config.accessMode.object%"
+            ]
+          },
+          "i18n-mage.i18nFeatures.translationObjectIdentifiers": {
+            "order": 18,
+            "type": "array",
+            "default": [],
+            "description": "%config.translationObjectIdentifiers.desc%",
+            "items": {
+              "type": "string"
+            }
           }
         }
       },
