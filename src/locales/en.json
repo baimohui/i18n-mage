@@ -1,4 +1,5 @@
 {
+  "command.check.fileSizeExceedsThresholdSkipParsing": "The file size exceeds the configured inspection threshold ({0} KB), skipping parsing.",
   "command.check.progress": "Checking...",
   "command.copy.success": "Copied: {0}",
   "command.copyKeyValue.selectEntry": "Select the entry to copy",
@@ -100,12 +101,12 @@
   "command.rewriteEntry.rewriteValueOf0In1AndSyncToAllLanguages": "Rewrite the value of {0} in {1} and synchronize the semantics to other languages",
   "command.rewriteEntry.rewriting": "Rewriting",
   "command.rewriteEntry.selectEntryToRewrite": "Select the entry to rewrite",
+  "command.searchEntry.placeHolder": "Enter search keyword",
+  "command.searchEntry.prompt": "Search for entries in all languages",
   "command.selectLangPath.error": "Invalid translation file directory",
   "command.selectLangPath.success": "Selected translation file directory: {0}",
   "command.selectLangPath.title": "Select Translation File Directory",
   "command.selectSingleFile.dialogTitle": "Select file",
-  "command.searchEntry.placeHolder": "Enter search keyword",
-  "command.searchEntry.prompt": "Search for entries in all languages",
   "command.setProjectPath.invalidFolder": "Invalid project root directory",
   "command.setProjectPath.open": "Select the project root directory",
   "command.sort.progress": "Sorting...",
@@ -181,6 +182,9 @@
   "tree.dictionary.title": "Entry Structure",
   "tree.getChildren.error": "An error occurred while retrieving child nodes in the tree view: {0}",
   "tree.init.error": "Tree view initialization failed: {0}",
+  "tree.search.noResults": "No results found for \"{0}\"",
+  "tree.search.status": "Searching for: {0}",
+  "tree.search.title": "Search Results",
   "tree.syncInfo.baseline": "Reference Language",
   "tree.syncInfo.display": "Display Language",
   "tree.syncInfo.extra": "Extra",
@@ -203,8 +207,5 @@
   "tree.usedInfo.undefinedPossibleVariable": "Suspected variable",
   "tree.usedInfo.undefinedValidLang": "Unsupported language for auto-gen-key",
   "tree.usedInfo.unused": "Unused",
-  "tree.usedInfo.used": "Used",
-  "tree.search.title": "Search Results",
-  "tree.search.noResults": "No results found for \"{0}\"",
-  "tree.search.status": "Searching for: {0}"
+  "tree.usedInfo.used": "Used"
 }

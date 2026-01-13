@@ -1,4 +1,5 @@
 {
+  "command.check.fileSizeExceedsThresholdSkipParsing": "文件大小超出所配置的检查阈值（{0} KB），跳过解析",
   "command.check.progress": "检查中",
   "command.copy.success": "已复制：{0}",
   "command.copyKeyValue.selectEntry": "选择要复制的词条",
@@ -100,12 +101,12 @@
   "command.rewriteEntry.rewriteValueOf0In1AndSyncToAllLanguages": "重写 {0} 的 {1} 文案，并同步语义到其他语言",
   "command.rewriteEntry.rewriting": "重写中",
   "command.rewriteEntry.selectEntryToRewrite": "选择要重写的词条",
+  "command.searchEntry.placeHolder": "输入搜索关键词",
+  "command.searchEntry.prompt": "在所有语言中搜索词条",
   "command.selectLangPath.error": "无效的翻译文件目录",
   "command.selectLangPath.success": "已选择翻译文件目录：{0}",
   "command.selectLangPath.title": "选择翻译文件目录",
   "command.selectSingleFile.dialogTitle": "选择文件",
-  "command.searchEntry.placeHolder": "输入搜索关键词",
-  "command.searchEntry.prompt": "在所有语言中搜索词条",
   "command.setProjectPath.invalidFolder": "无效的项目根路径",
   "command.setProjectPath.open": "选择项目根目录",
   "command.sort.progress": "排序中",
@@ -181,6 +182,9 @@
   "tree.dictionary.title": "词条结构",
   "tree.getChildren.error": "树视图获取子节点时发生错误：{0}",
   "tree.init.error": "树视图初始化失败：{0}",
+  "tree.search.noResults": "未找到\"{0}\"的结果",
+  "tree.search.status": "搜索中: {0}",
+  "tree.search.title": "搜索结果",
   "tree.syncInfo.baseline": "基准语言",
   "tree.syncInfo.display": "显示语言",
   "tree.syncInfo.extra": "多余",
@@ -203,8 +207,5 @@
   "tree.usedInfo.undefinedPossibleVariable": "文本疑似变量",
   "tree.usedInfo.undefinedValidLang": "文本不符合要求，无法生成键",
   "tree.usedInfo.unused": "未使用",
-  "tree.usedInfo.used": "已使用",
-  "tree.search.title": "搜索结果",
-  "tree.search.noResults": "未找到\"{0}\"的结果",
-  "tree.search.status": "搜索中: {0}"
+  "tree.usedInfo.used": "已使用"
 }

@@ -1,4 +1,5 @@
 import * as fs from "fs/promises";
+import * as fsSync from "fs";
 import path from "path";
 import * as vscode from "vscode";
 import { t } from "@/utils/i18n";
@@ -267,8 +268,9 @@ export function isSamePath(absolutePath: string, relativePath: string): boolean 
 }
 
 // 检测文件大小是否超过 50KB（可调整）
-export async function isFileTooLarge(filePath: string): Promise<boolean> {
-  const stats = await fs.stat(filePath);
+export function isFileTooLarge(filePath: string): boolean {
+  // const stats = await fs.stat(filePath);
+  const stats = fsSync.statSync(filePath);
   const fileSizeSkipThresholdKB = getCacheConfig<number>("analysis.fileSizeSkipThresholdKB");
   return stats.size > fileSizeSkipThresholdKB * 1024;
 }

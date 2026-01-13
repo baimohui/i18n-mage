@@ -2,9 +2,11 @@ import * as vscode from "vscode";
 import LangMage from "@/core/LangMage";
 import { getValueByAmbiguousEntryName, displayToInternalName, escapeMarkdown, formatEscapeChar, unescapeString } from "@/utils/regex";
 import { ActiveEditorState } from "@/utils/activeEditorState";
+import { isFileTooLarge } from "@/utils/fs";
 
 export class HoverProvider implements vscode.HoverProvider {
   provideHover(document: vscode.TextDocument, position: vscode.Position): vscode.ProviderResult<vscode.Hover> {
+    if (isFileTooLarge(document.uri.fsPath)) return;
     const entry = ActiveEditorState.getEntryAtPosition(document, position);
     if (entry) {
       const entryKeys: string[] = [];

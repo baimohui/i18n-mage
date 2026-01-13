@@ -68,7 +68,7 @@ export class ReadHandler {
     }
   }
 
-  public async startCensus(): Promise<void> {
+  public startCensus() {
     const totalEntryList = Object.keys(this.ctx.langDictionary).map(key => unescapeString(key));
     if (!this.ctx.globalFlag || totalEntryList.length === 0) return;
     const filePaths = this._readAllFiles(this.ctx.projectPath);
@@ -77,7 +77,7 @@ export class ReadHandler {
     this.ctx.undefinedEntryMap = {};
     const usedLiteralsNameSet = new Set<string>();
     for (const filePath of filePaths) {
-      if (await isFileTooLarge(filePath)) continue;
+      if (isFileTooLarge(filePath)) continue;
       const fileContent = fs.readFileSync(filePath, "utf8");
       const tItems = catchTEntries(fileContent);
       let usedEntryList: { name: string; pos: string }[] = [];

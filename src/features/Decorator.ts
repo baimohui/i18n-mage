@@ -5,6 +5,7 @@ import { getValueByAmbiguousEntryName, formatEscapeChar } from "@/utils/regex";
 import { getCacheConfig } from "@/utils/config";
 import { INLINE_HINTS_DISPLAY_MODE, InlineHintsDisplayMode } from "@/types";
 import { ActiveEditorState } from "@/utils/activeEditorState";
+import { isFileTooLarge } from "@/utils/fs";
 
 export class DecoratorController implements vscode.Disposable {
   private static instance: DecoratorController;
@@ -53,6 +54,7 @@ export class DecoratorController implements vscode.Disposable {
       editor.setDecorations(this.hiddenKeyDecoration, []);
       return;
     }
+    if (isFileTooLarge(editor.document.uri.fsPath)) return;
     this.currentEditor = editor;
     const mage = LangMage.getInstance();
     const { tree, countryMap } = mage.langDetail;
