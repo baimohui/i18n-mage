@@ -369,16 +369,20 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
   private getRootChildren(): ExtendedTreeItem[] {
     const rootSections: ExtendedTreeItem[] = [];
 
-    // Add search status indicator at the top when searching
     if (this.isSearching) {
       rootSections.push({
         level: 0,
-        label: t("tree.search.status", this.globalFilter.text),
+        label: `${t("tree.search.label")}: ${this.globalFilter.text}`,
         id: "SEARCH_STATUS",
         root: "SEARCH_STATUS",
         iconPath: new vscode.ThemeIcon("search"),
         collapsibleState: vscode.TreeItemCollapsibleState.None,
-        description: ""
+        description: "",
+        tooltip: t("tree.search.tooltip", this.globalFilter.text),
+        command: {
+          command: "i18nMage.searchEntry",
+          title: t("tree.search.title")
+        }
       });
     }
 
@@ -635,16 +639,10 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
 
   private async getUsageInfoChildren(element: ExtendedTreeItem): Promise<ExtendedTreeItem[]> {
     if (element.level === 0) {
-      const types = ["used", "unused", "undefined"];
+      const usageData = this.getUsageData();
+      const types = ["used", "unused", "undefined"] as const;
       return types.map(type => {
-        let keys: string[] = [];
-        if (type === "undefined") {
-          keys = Object.keys(this.undefinedEntryMap);
-        } else {
-          keys = Array.from(type === "used" ? this.usedKeySet : this.unusedKeySet);
-        }
-        keys = keys.filter(key => this.matchesSearch(key));
-
+        const keys = usageData[type].keys;
         const num = keys.length;
         let description = String(num);
         let tooltip = "";
@@ -863,9 +861,30 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
   }
 
   private getUsagePercent(): string {
+    if (this.isSearching) {
+      const usageData = this.getUsageData();
+      const totalCount = usageData.used.keys.length + usageData.unused.keys.length + usageData.undefined.keys.length;
+      return String(totalCount);
+    }
     const total = Object.keys(this.dictionary).length;
-    if (total === 0 || this.isSearching) return "";
+    if (total === 0) return "";
     return Math.floor(Number(((this.usedKeySet.size / total) * 10000).toFixed(0))) / 100 + "%";
+  }
+
+  private getUsageData() {
+    const types = ["used", "unused", "undefined"] as const;
+    const data: Record<string, { keys: string[] }> = { used: { keys: [] }, unused: { keys: [] }, undefined: { keys: [] } };
+    for (const type of types) {
+      let keys: string[] = [];
+      if (type === "undefined") {
+        keys = Object.keys(this.undefinedEntryMap);
+      } else {
+        keys = Array.from(type === "used" ? this.usedKeySet : this.unusedKeySet);
+      }
+      keys = keys.filter(key => this.matchesSearch(key));
+      data[type].keys = keys;
+    }
+    return data as { used: { keys: string[] }; unused: { keys: string[] }; undefined: { keys: string[] } };
   }
 
   private createUsageTreeItem(key: string, type: string, root: string, element: ExtendedTreeItem): ExtendedTreeItem {
