@@ -1235,57 +1235,57 @@
       "view/title": [
         {
           "command": "i18nMage.checkUsage",
-          "when": "view == treeProvider && i18nMage.hasValidLangPath && !i18nMage.isSearching",
+          "when": "view == i18nMage.grimoire && i18nMage.hasValidLangPath && !i18nMage.isSearching",
           "group": "navigation@5"
         },
         {
           "command": "i18nMage.searchEntry",
-          "when": "view == treeProvider && i18nMage.hasValidLangPath",
+          "when": "view == i18nMage.grimoire && i18nMage.hasValidLangPath",
           "group": "navigation@7"
         },
         {
           "command": "i18nMage.cancelSearch",
-          "when": "view == treeProvider && i18nMage.hasValidLangPath && i18nMage.isSearching",
+          "when": "view == i18nMage.grimoire && i18nMage.hasValidLangPath && i18nMage.isSearching",
           "group": "navigation@8"
         },
         {
           "command": "i18nMage.export",
-          "when": "view == treeProvider && i18nMage.hasValidLangPath && !i18nMage.isSearching",
+          "when": "view == i18nMage.grimoire && i18nMage.hasValidLangPath && !i18nMage.isSearching",
           "group": "navigation@10"
         },
         {
           "command": "i18nMage.import",
-          "when": "view == treeProvider && i18nMage.hasValidLangPath && !i18nMage.isSearching",
+          "when": "view == i18nMage.grimoire && i18nMage.hasValidLangPath && !i18nMage.isSearching",
           "group": "navigation@15"
         },
         {
           "command": "i18nMage.sort",
-          "when": "view == treeProvider && i18nMage.hasValidLangPath && i18nMage.allowSort && !i18nMage.isSearching",
+          "when": "view == i18nMage.grimoire && i18nMage.hasValidLangPath && i18nMage.allowSort && !i18nMage.isSearching",
           "group": "navigation@20"
         },
         {
           "command": "i18nMage.fix",
-          "when": "view == treeProvider && i18nMage.hasValidLangPath && !i18nMage.isSearching",
+          "when": "view == i18nMage.grimoire && i18nMage.hasValidLangPath && !i18nMage.isSearching",
           "group": "navigation@25"
         },
         {
           "command": "i18nMage.openDocs",
-          "when": "view == treeProvider && !i18nMage.isSearching",
+          "when": "view == i18nMage.grimoire && !i18nMage.isSearching",
           "group": "view@1"
         },
         {
           "command": "i18nMage.openSettings",
-          "when": "view == treeProvider && !i18nMage.isSearching",
+          "when": "view == i18nMage.grimoire && !i18nMage.isSearching",
           "group": "view@2"
         },
         {
           "command": "i18nMage.feedback",
-          "when": "view == treeProvider && !i18nMage.isSearching",
+          "when": "view == i18nMage.grimoire && !i18nMage.isSearching",
           "group": "view@3"
         },
         {
           "command": "i18nMage.star",
-          "when": "view == treeProvider && !i18nMage.isSearching",
+          "when": "view == i18nMage.grimoire && !i18nMage.isSearching",
           "group": "view@4"
         }
       ],
@@ -1444,7 +1444,7 @@
       "i18nMage": [
         {
           "icon": "images/i18nMage.png",
-          "id": "treeProvider",
+          "id": "i18nMage.grimoire",
           "name": "Grimoire",
           "when": "i18nMage.initialized && workspaceFolderCount != 0 && i18nMage.enabled"
         }
@@ -1452,7 +1452,7 @@
     },
     "viewsWelcome": [
       {
-        "view": "treeProvider",
+        "view": "i18nMage.grimoire",
         "contents": "%view.welcome.title%",
         "when": "i18nMage.initialized && !i18nMage.hasValidLangPath"
       }

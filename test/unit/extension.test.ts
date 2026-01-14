@@ -42,7 +42,7 @@
 //     await activate(mockContext);
 
 //     assert.ok(NotificationManager.init.calledOnce);
-//     assert.ok(vscode.window.registerTreeDataProvider.calledWith("treeProvider", treeInstance));
+//     assert.ok(vscode.window.registerTreeDataProvider.calledWith("i18nMage.grimoire", treeInstance));
 //     assert.ok(treeInstance.initTree.calledOnce);
 //   });
 

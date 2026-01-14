@@ -67,6 +67,6 @@ export function registerAllCommands(context: vscode.ExtensionContext) {
   registerStarCommand();
   registerBrowseTranslationsInFileCommand();
   registerRewriteEntryCommand();
-  registerSearchEntryCommand(context);
-  registerCancelSearchCommand(context);
+  registerSearchEntryCommand();
+  registerCancelSearchCommand();
 }

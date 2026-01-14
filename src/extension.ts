@@ -55,7 +55,7 @@ class ExtensionState {
   public async activateExtensions() {
     if (!this._context) return;
     NotificationManager.init();
-    vscode.window.registerTreeDataProvider("treeProvider", treeInstance);
+    vscode.window.registerTreeDataProvider("i18nMage.grimoire", treeInstance);
     registerAllCommands(this._context);
     registerAllListeners();
     registerDisposable(vscode.languages.registerHoverProvider("*", new HoverProvider()));
