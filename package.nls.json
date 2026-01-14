@@ -187,7 +187,7 @@
   "command.searchEntry.title": "Search Entry",
   "command.searchEntry.placeHolder": "Enter search keyword",
   "command.searchEntry.prompt": "Search for entries in all languages",
-  "command.clearSearch.title": "Clear Search",
+  "command.cancelSearch.title": "Cancel Search",
   "view.welcome.title": "No translation directory detected\n[Select translation directory](command:i18nMage.selectLangPath)",
   "view.search.title": "Search",
   "command.search.title": "Search",

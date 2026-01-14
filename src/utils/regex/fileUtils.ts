@@ -471,8 +471,8 @@ export function detectQuoteStyle(code: string): {
   key: QuoteStyle4Key;
   value: QuoteStyle4Value;
 } {
-  const keyCount: Record<QuoteStyle4Key, number> = { single: 0, double: 0, none: 0 };
-  const valueCount: Record<QuoteStyle4Value, number> = { single: 0, double: 0, none: 0 };
+  const keyCount: Record<QuoteStyle4Key, number> = { single: 0, double: 0, none: 0, auto: 0 };
+  const valueCount: Record<QuoteStyle4Value, number> = { single: 0, double: 0, auto: 0 };
   const pairRegex = /(?<key>'[^']*'|"[^"]*"|[a-zA-Z0-9_]+)\s*:\s*(?<value>'[^']*'|"[^"]*")/g;
   let match: RegExpExecArray | null = null;
   while ((match = pairRegex.exec(code)) !== null) {
@@ -483,10 +483,14 @@ export function detectQuoteStyle(code: string): {
     if (value.startsWith('"')) valueCount["double"]++;
     else if (value.startsWith("'")) valueCount["single"]++;
   }
-  const mostUsed = (counts: Record<QuoteStyle4Key, number>): QuoteStyle4Key => Object.entries(counts).sort((a, b) => b[1] - a[1])[0][0];
+  const mostUsed = (counts: Record<QuoteStyle4Key, number>): QuoteStyle4Key =>
+    Object.entries(counts).sort((a, b) => b[1] - a[1])[0][0] as QuoteStyle4Key;
+
+  const mostUsedValue = (counts: Record<QuoteStyle4Value, number>): QuoteStyle4Value =>
+    Object.entries(counts).sort((a, b) => b[1] - a[1])[0][0] as QuoteStyle4Value;
   return {
     key: mostUsed(keyCount),
-    value: mostUsed(valueCount)
+    value: mostUsedValue(valueCount)
   };
 }
 

@@ -1184,20 +1184,20 @@
         }
       },
       {
-        "command": "i18nMage.clearSearch",
+        "command": "i18nMage.cancelSearch",
         "category": "%extension.name%",
-        "title": "%command.clearSearch.title%",
+        "title": "%command.cancelSearch.title%",
         "icon": {
-          "light": "./images/filter-off-light.svg",
-          "dark": "./images/filter-off-dark.svg"
+          "light": "./images/exit-light.svg",
+          "dark": "./images/exit-dark.svg"
         }
       }
     ],
     "keybindings": [
       {
         "command": "i18nMage.searchEntry",
-        "key": "ctrl+shift+s",
-        "mac": "cmd+shift+s",
+        "key": "ctrl+alt+s",
+        "mac": "cmd+alt+s",
         "when": "i18nMage.enabled && i18nMage.hasValidLangPath"
       },
       {
@@ -1223,63 +1223,69 @@
         "key": "ctrl+alt+t",
         "mac": "cmd+alt+t",
         "when": "i18nMage.enabled && i18nMage.hasValidLangPath && i18nMage.hasDefinedEntriesInFile"
+      },
+      {
+        "command": "i18nMage.cancelSearch",
+        "key": "escape",
+        "mac": "escape",
+        "when": "i18nMage.enabled && i18nMage.hasValidLangPath && i18nMage.isSearching"
       }
     ],
     "menus": {
       "view/title": [
         {
-          "command": "i18nMage.searchEntry",
-          "when": "view == treeProvider && i18nMage.hasValidLangPath",
-          "group": "navigation@1"
-        },
-        {
-          "command": "i18nMage.clearSearch",
-          "when": "view == treeProvider && i18nMage.hasValidLangPath && i18nMage.isSearching",
-          "group": "navigation@2"
-        },
-        {
           "command": "i18nMage.checkUsage",
-          "when": "view == treeProvider && i18nMage.hasValidLangPath",
+          "when": "view == treeProvider && i18nMage.hasValidLangPath && !i18nMage.isSearching",
           "group": "navigation@5"
         },
         {
-          "command": "i18nMage.export",
+          "command": "i18nMage.searchEntry",
           "when": "view == treeProvider && i18nMage.hasValidLangPath",
+          "group": "navigation@7"
+        },
+        {
+          "command": "i18nMage.cancelSearch",
+          "when": "view == treeProvider && i18nMage.hasValidLangPath && i18nMage.isSearching",
+          "group": "navigation@8"
+        },
+        {
+          "command": "i18nMage.export",
+          "when": "view == treeProvider && i18nMage.hasValidLangPath && !i18nMage.isSearching",
           "group": "navigation@10"
         },
         {
           "command": "i18nMage.import",
-          "when": "view == treeProvider && i18nMage.hasValidLangPath",
+          "when": "view == treeProvider && i18nMage.hasValidLangPath && !i18nMage.isSearching",
           "group": "navigation@15"
         },
         {
           "command": "i18nMage.sort",
-          "when": "view == treeProvider && i18nMage.hasValidLangPath && i18nMage.allowSort",
+          "when": "view == treeProvider && i18nMage.hasValidLangPath && i18nMage.allowSort && !i18nMage.isSearching",
           "group": "navigation@20"
         },
         {
           "command": "i18nMage.fix",
-          "when": "view == treeProvider && i18nMage.hasValidLangPath",
+          "when": "view == treeProvider && i18nMage.hasValidLangPath && !i18nMage.isSearching",
           "group": "navigation@25"
         },
         {
           "command": "i18nMage.openDocs",
-          "when": "view == treeProvider",
+          "when": "view == treeProvider && !i18nMage.isSearching",
           "group": "view@1"
         },
         {
           "command": "i18nMage.openSettings",
-          "when": "view == treeProvider",
+          "when": "view == treeProvider && !i18nMage.isSearching",
           "group": "view@2"
         },
         {
           "command": "i18nMage.feedback",
-          "when": "view == treeProvider",
+          "when": "view == treeProvider && !i18nMage.isSearching",
           "group": "view@3"
         },
         {
           "command": "i18nMage.star",
-          "when": "view == treeProvider",
+          "when": "view == treeProvider && !i18nMage.isSearching",
           "group": "view@4"
         }
       ],

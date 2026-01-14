@@ -12,10 +12,11 @@ export function registerSearchEntryCommand(context: vscode.ExtensionContext) {
       const keyword = await vscode.window.showInputBox({
         placeHolder: t("command.searchEntry.placeHolder"),
         prompt: t("command.searchEntry.prompt"),
-        value: treeInstance.searchKeyword // Pre-fill with current search keyword
+        value: treeInstance.globalFilter.text
       });
-      if (keyword !== undefined) {
-        treeInstance.setSearch(keyword);
+      if (keyword !== undefined && keyword.trim() !== "") {
+        treeInstance.setSearch(keyword.trim());
+        vscode.commands.executeCommand("workbench.view.extension.i18nMage");
       }
     })
   );

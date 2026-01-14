@@ -187,7 +187,7 @@
   "command.searchEntry.title": "搜索词条",
   "command.searchEntry.placeHolder": "输入搜索关键词",
   "command.searchEntry.prompt": "在所有语言中搜索词条",
-  "command.clearSearch.title": "清除搜索",
+  "command.cancelSearch.title": "退出搜索",
   "view.welcome.title": "未检测到翻译文件目录\n[选择翻译文件目录](command:i18nMage.selectLangPath)",
   "view.search.title": "搜索",
   "command.search.title": "搜索",

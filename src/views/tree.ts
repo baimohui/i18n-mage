@@ -71,45 +71,15 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
   usedEntries: TEntry[] = [];
   definedEntriesInCurrentFile: TEntry[] = [];
   undefinedEntriesInCurrentFile: TEntry[] = [];
-  private globalFilter: { text: string; scope: string[] } = { text: "", scope: ["defined", "undefined", "used", "unused"] };
-  private sectionFilters = new Map<string, string>();
-  // Search state
-  searchKeyword = "";
+  globalFilter: { text: string } = { text: "" };
   isSearching = false;
 
-  public setFilter(filter: { text: string; scope: string[] }) {
-    this.globalFilter = filter;
-    this.refresh();
-  }
   private _onDidChangeTreeData = new vscode.EventEmitter<void>();
   readonly onDidChangeTreeData = this._onDidChangeTreeData.event;
 
   constructor() {
     this.#mage = LangMage.getInstance();
     this.publicCtx = this.#mage.getPublicContext();
-  }
-
-  public updateSectionFilter(section: string, text: string) {
-    this.sectionFilters.set(section, text);
-    this.refresh();
-  }
-
-  public setSearch(keyword: string) {
-    this.searchKeyword = keyword;
-    this.isSearching = keyword.trim() !== "";
-    // Set the global filter text to use existing filter logic
-    this.globalFilter.text = keyword;
-    vscode.commands.executeCommand("setContext", "i18nMage.isSearching", this.isSearching);
-    this.refresh();
-  }
-
-  public clearSearch() {
-    this.searchKeyword = "";
-    this.isSearching = false;
-    // Clear the global filter text
-    this.globalFilter.text = "";
-    vscode.commands.executeCommand("setContext", "i18nMage.isSearching", false);
-    this.refresh();
   }
 
   get langInfo() {
@@ -184,6 +154,13 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
         }
       }
       this.undefinedEntriesInCurrentFile = Array.from(ActiveEditorState.undefinedEntries.values()).map(item => item[0]);
+      if (this.isSearching) {
+        this.definedEntriesInCurrentFile = this.definedEntriesInCurrentFile.filter(item => {
+          const key = getValueByAmbiguousEntryName(this.tree, item.nameInfo.name) ?? item.nameInfo.name;
+          return this.matchesSearch(key);
+        });
+        this.undefinedEntriesInCurrentFile = this.undefinedEntriesInCurrentFile.filter(item => this.matchesSearch(item.nameInfo.text));
+      }
       const decorator = DecoratorController.getInstance();
       decorator.update(editor);
       const diagnostics = Diagnostics.getInstance();
@@ -193,6 +170,19 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
     const statusBarItemManager = StatusBarItemManager.getInstance();
     statusBarItemManager.update();
     this._onDidChangeTreeData.fire();
+  }
+
+  setSearch(keyword: string) {
+    this.isSearching = true;
+    this.globalFilter.text = keyword;
+    vscode.commands.executeCommand("setContext", "i18nMage.isSearching", this.isSearching);
+    this.refresh();
+  }
+
+  cancelSearch() {
+    this.isSearching = false;
+    vscode.commands.executeCommand("setContext", "i18nMage.isSearching", false);
+    this.refresh();
   }
 
   getTreeItem(element: vscode.TreeItem): vscode.TreeItem {
@@ -377,26 +367,13 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
   }
 
   private getRootChildren(): ExtendedTreeItem[] {
-    const filterText = this.globalFilter.text;
-    const filterScope = this.globalFilter.scope;
-
-    if (filterText && filterScope.includes("defined")) {
-      this.definedEntriesInCurrentFile = this.definedEntriesInCurrentFile.filter(item => {
-        return (
-          item.nameInfo.text.toLowerCase().includes(filterText.toLowerCase()) ||
-          this.dictionary[item.nameInfo?.name]?.value[this.displayLang]?.toLowerCase()?.includes(filterText.toLowerCase())
-        );
-      });
-    }
-
-    // Build the list of root sections
     const rootSections: ExtendedTreeItem[] = [];
 
     // Add search status indicator at the top when searching
     if (this.isSearching) {
       rootSections.push({
         level: 0,
-        label: t("tree.search.status", this.searchKeyword),
+        label: t("tree.search.status", this.globalFilter.text),
         id: "SEARCH_STATUS",
         root: "SEARCH_STATUS",
         iconPath: new vscode.ThemeIcon("search"),
@@ -405,7 +382,6 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
       });
     }
 
-    // Always show Current File
     rootSections.push({
       level: 0,
       label: t("tree.currentFile.title"),
@@ -416,7 +392,6 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
       description: String(this.definedEntriesInCurrentFile.length + this.undefinedEntriesInCurrentFile.length)
     });
 
-    // Hide Sync Info when searching
     if (!this.isSearching) {
       rootSections.push({
         level: 0,
@@ -430,7 +405,6 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
       });
     }
 
-    // Always show Usage Info
     rootSections.push({
       level: 0,
       label: t("tree.usedInfo.title"),
@@ -442,7 +416,6 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
       description: this.getUsagePercent()
     });
 
-    // Hide Entry Structure (Dictionary) when searching
     if (!this.isSearching) {
       rootSections.push({
         level: 0,
@@ -511,21 +484,10 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
         }
       ];
     } else if (element.level === 1) {
-      let entries = this[element.type === "defined" ? "definedEntriesInCurrentFile" : "undefinedEntriesInCurrentFile"];
-      const filterText = this.getFilterText("currentFile", element.type!);
-      const filterScope = this.globalFilter.scope;
-
-      if (filterText !== "" && element.type !== undefined && filterScope.includes(element.type)) {
-        const lowerFilter = filterText.toLowerCase();
-        entries = entries.filter(
-          item =>
-            (item.nameInfo?.text.toLowerCase()?.includes(lowerFilter) ?? false) ||
-            (this.dictionary[item.nameInfo?.name]?.value[this.displayLang]?.toLowerCase()?.includes(lowerFilter) ?? false)
-        );
-      }
-
-      return [...entries].map(entry => {
-        const entryInfo = this.dictionary[getValueByAmbiguousEntryName(this.tree, entry.nameInfo.name) as string]?.value ?? {};
+      const entries = this[element.type === "defined" ? "definedEntriesInCurrentFile" : "undefinedEntriesInCurrentFile"];
+      return entries.map(entry => {
+        const key = getValueByAmbiguousEntryName(this.tree, entry.nameInfo.name) ?? entry.nameInfo.name;
+        const entryInfo = this.dictionary[key]?.value ?? {};
         const contextValueList = ["COPY_NAME"];
         let description = "";
         if (element.type === "defined") {
@@ -548,7 +510,7 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
         }
         return {
           name: entry.nameInfo.name,
-          key: getValueByAmbiguousEntryName(this.tree, entry.nameInfo.name) ?? entry.nameInfo.name,
+          key,
           label: internalToDisplayName(entry.nameInfo.text),
           description,
           collapsibleState: vscode.TreeItemCollapsibleState[element.type === "defined" ? "Collapsed" : "None"],
@@ -672,26 +634,16 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
   }
 
   private async getUsageInfoChildren(element: ExtendedTreeItem): Promise<ExtendedTreeItem[]> {
-    const filterScope = this.globalFilter.scope;
-
     if (element.level === 0) {
       const types = ["used", "unused", "undefined"];
       return types.map(type => {
         let keys: string[] = [];
-        if (type === "used") {
-          keys = Array.from(this.usedKeySet);
-        } else if (type === "unused") {
-          keys = Array.from(this.unusedKeySet);
-        } else {
+        if (type === "undefined") {
           keys = Object.keys(this.undefinedEntryMap);
+        } else {
+          keys = Array.from(type === "used" ? this.usedKeySet : this.unusedKeySet);
         }
-
-        const filterText = this.getFilterText("usageInfo", type);
-        const shouldFilter = filterText !== "" && filterScope.includes(type);
-
-        if (shouldFilter) {
-          keys = this.filterKeys(keys, filterText);
-        }
+        keys = keys.filter(key => this.matchesSearch(key));
 
         const num = keys.length;
         let description = String(num);
@@ -802,6 +754,14 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
     }
   }
 
+  private matchesSearch(key: string) {
+    if (!this.isSearching) return true;
+    const name = unescapeString(key);
+    const lowerFilter = this.globalFilter.text.toLowerCase();
+    const entryInfo = this.dictionary[key]?.value ?? {};
+    return name.toLowerCase().includes(lowerFilter) || Object.values(entryInfo).some(value => value.toLowerCase().includes(lowerFilter));
+  }
+
   private checkLangSyncInfo(lang: string) {
     const contextValueList = ["checkSyncInfo"];
     let tooltip = getLangText(lang) || t("common.unknownLang");
@@ -904,25 +864,8 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
 
   private getUsagePercent(): string {
     const total = Object.keys(this.dictionary).length;
-    if (total === 0) return "";
+    if (total === 0 || this.isSearching) return "";
     return Math.floor(Number(((this.usedKeySet.size / total) * 10000).toFixed(0))) / 100 + "%";
-  }
-
-  private getFilterText(prefix: string, type: string): string {
-    const filterKey = `${prefix}.${type}`;
-    return this.globalFilter.text !== "" ? this.globalFilter.text : (this.sectionFilters.get(filterKey) ?? "");
-  }
-
-  private filterKeys(keys: string[], filterText: string): string[] {
-    if (!filterText) {
-      return keys;
-    }
-    const lowerFilter = filterText.toLowerCase();
-    return keys.filter(
-      key =>
-        key.toLowerCase().includes(lowerFilter) ||
-        (this.dictionary[key]?.value[this.displayLang]?.toLowerCase()?.includes(lowerFilter) ?? false)
-    );
   }
 
   private createUsageTreeItem(key: string, type: string, root: string, element: ExtendedTreeItem): ExtendedTreeItem {
