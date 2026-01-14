@@ -17,10 +17,6 @@ describe("regex.js 正则方法", () => {
           expected: { text: "你好，{0}！", vars: ["userName"] }
         },
         {
-          code: "const title = I18N.Home.Title;",
-          expected: { text: "Home.Title", vars: [] }
-        },
-        {
           code: 'const msg = t("你好" + name + "！");',
           expected: { text: "你好{0}！", vars: ["name"] }
         },

@@ -81,6 +81,13 @@
 
 ![Detect Unused Keys](https://raw.githubusercontent.com/baimohui/i18n-mage/refs/heads/main/doc-assets/checkUsage.gif)
 
+### 🔍 Search Translation Entries
+
+* Search translation entries by keywords in the tree view.
+* Filters entries across used, unused, and undefined categories.
+
+![Search Translation Entries](https://raw.githubusercontent.com/baimohui/i18n-mage/refs/heads/main/doc-assets/search.gif)
+
 ### 📊 Excel Import/Export
 
 * Export translation entries to Excel for translators.
