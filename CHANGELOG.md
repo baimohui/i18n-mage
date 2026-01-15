@@ -4,6 +4,18 @@ All notable changes to the i18n Mage VS Code extension will be documented in thi
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.0] - 2026-01-15
+
+### Added
+- **Cross-language Entry Search** (Contributed by [@Gur1a](https://github.com/Gur1a) ): Added search functionality to sidebar plugin view, accessible via search button or Ctrl+Alt+S shortcut, supporting translation search across current file and global scope in all languages.
+- **Object Property Translation Support** (Contributed by [@Gur1a](https://github.com/Gur1a) ): Introduced `accessMode` and `translationObjectIdentifiers` configurations to support translation access through object properties rather than translation functions.
+- **Large File User Guidance**: Implemented large file detection with clear notifications when opening oversized files, helping users understand extension's handling strategy.
+
+### Improved
+- **Multi-mode Definition Navigation**: Enhanced key definition navigation beyond F12 shortcut, now supporting Ctrl+click for more flexible operation.
+- **Smart Translation Completion**: Improved key selection interface during missing translation completion by displaying corresponding translations for clearer decision-making.
+- **Dynamic Entry Display Fix**: Corrected decoration and hover information display for dynamic entries containing dot notation keys, ensuring all dynamic entries properly show translations.
+
 ## [1.1.8] - 2025-12-22
 
 ### Improved
