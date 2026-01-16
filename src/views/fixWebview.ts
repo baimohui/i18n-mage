@@ -92,6 +92,36 @@ function buildWebviewHtml(
       ...data,
       language: vscode.env.language
     })};
+
+    // 确保 webview 获得焦点，以便能够监听键盘事件
+    const acquireVsCodeApi = (function() {
+      const originalPostMessage = window.parent.postMessage.bind(window.parent);
+      return {
+        postMessage: function(message) {
+          originalPostMessage({ command: message }, '*');
+        }
+      };
+    })();
+
+    // 在 webview 加载完成后主动获取焦点
+    window.addEventListener('load', function() {
+      // 短暂延迟确保 webview 完全加载
+      setTimeout(function() {
+        // 尝试多种方式获取焦点
+        document.body.focus();
+        window.focus();
+
+        // 添加一个可聚焦的元素并获取焦点
+        const focusElement = document.createElement('div');
+        focusElement.setAttribute('tabindex', '0');
+        focusElement.style.position = 'absolute';
+        focusElement.style.opacity = '0';
+        focusElement.style.width = '0';
+        focusElement.style.height = '0';
+        document.body.appendChild(focusElement);
+        focusElement.focus();
+      }, 100);
+    });
   </script>
   <script nonce="${nonce}" src="${scriptSrc}"></script>
 </body>
