@@ -190,6 +190,11 @@ export class RewriteHandler {
   private async applyGlobalFixes() {
     for (const fixPath in this.ctx.patchedEntryIdInfo) {
       const fixList = this.ctx.patchedEntryIdInfo[fixPath];
+      fixList.sort((a, b) => {
+        const aStartPos = parseInt(a.pos.split(",")[0], 10);
+        const bStartPos = parseInt(b.pos.split(",")[0], 10);
+        return aStartPos - bStartPos;
+      });
       const absolutePath = toAbsolutePath(fixPath);
       const fileContent = fs.readFileSync(absolutePath, "utf8");
       let lastEndPos = 0;
