@@ -120,6 +120,7 @@ export class FixHandler {
     if (genNameList.length > 0) {
       if (this.ctx.keyStrategy === KEY_STRATEGY.english) {
         if (referredLangCode !== "en" && this.ctx.fixQuery.fillWithOriginal !== true) {
+          NotificationManager.showProgress({ message: t("command.fix.generatingKeyForUndefinedText"), increment: 0 });
           const res = await translateTo({
             source: this.ctx.referredLang,
             target: "en",
