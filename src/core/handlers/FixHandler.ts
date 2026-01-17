@@ -56,7 +56,9 @@ export class FixHandler {
       }
       if (this.ctx.undefinedEntryList.length > 0 && this.ctx.fixQuery.entriesToGen !== false) {
         const res = await this.processUndefinedEntries();
-        if (!res.success) return res;
+        if (!res.success || (this.ctx.fixQuery.entriesToFill === false && Object.values(res?.data ?? {}).some(item => item > 0))) {
+          return res;
+        }
       }
       if (this.ctx.fixQuery.entriesToFill !== false) {
         return await this.fillMissingTranslations();

@@ -339,10 +339,12 @@ export function registerFixCommand(context: vscode.ExtensionContext) {
       tasks = tasks.filter(task => {
         const q = task.fixQuery;
         return (
-          (Array.isArray(q?.entriesToGen) && q.entriesToGen.length > 0) ||
-          q?.entriesToGen === true ||
-          (Array.isArray(q?.entriesToFill) && q.entriesToFill.length > 0) ||
-          q?.entriesToFill === true
+          q !== undefined &&
+          ((Array.isArray(q.entriesToGen) && q.entriesToGen.length > 0) ||
+            q.entriesToGen === true ||
+            (Array.isArray(q.entriesToFill) && q.entriesToFill.length > 0) ||
+            q.entriesToFill === true ||
+            (q.keyPatch !== undefined && Object.keys(q.keyPatch).length > 0))
         );
       });
       for (const task of tasks) {
