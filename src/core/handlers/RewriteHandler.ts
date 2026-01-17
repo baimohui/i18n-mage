@@ -66,7 +66,7 @@ export class RewriteHandler {
           }
           if (Object.hasOwn(this.ctx.langDictionary, oldKey)) {
             const oldInfo = this.ctx.langDictionary[oldKey];
-            if (this.ctx.fileStructure) this.ctx.langDictionary[newKey] = oldInfo;
+            this.ctx.langDictionary[newKey] = oldInfo;
             this.ctx.langDictionary[newKey].fileScope = filePos.after;
             this.ctx.langDictionary[newKey].fullPath = fullPath.after;
             delete this.ctx.langDictionary[oldKey];
