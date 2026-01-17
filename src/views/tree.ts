@@ -922,7 +922,7 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
         type,
         root,
         id: this.genId(element, key),
-        collapsibleState: vscode.TreeItemCollapsibleState.None
+        collapsibleState: vscode.TreeItemCollapsibleState.Collapsed
       };
     } else if (type === "used") {
       const usedNum = Object.values(this.usedEntryMap[name]).reduce((acc, cur) => acc + cur.size, 0);
