@@ -269,10 +269,16 @@ export function isSamePath(absolutePath: string, relativePath: string): boolean 
 
 // 检测文件大小是否超过 50KB（可调整）
 export function isFileTooLarge(filePath: string): boolean {
-  // const stats = await fs.stat(filePath);
-  const stats = fsSync.statSync(filePath);
-  const fileSizeSkipThresholdKB = getCacheConfig<number>("analysis.fileSizeSkipThresholdKB");
-  return stats.size > fileSizeSkipThresholdKB * 1024;
+  try {
+    const stats = fsSync.statSync(filePath);
+    if (!stats.isFile()) {
+      return false;
+    }
+    const fileSizeSkipThresholdKB = getCacheConfig<number>("analysis.fileSizeSkipThresholdKB");
+    return stats.size > fileSizeSkipThresholdKB * 1024;
+  } catch {
+    return false;
+  }
 }
 
 export async function checkPathExists(path: string) {
