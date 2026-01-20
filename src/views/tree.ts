@@ -380,7 +380,7 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
         description: "",
         tooltip: t("tree.search.tooltip", this.globalFilter.text),
         command: {
-          command: "i18nMage.searchEntry",
+          command: "i18nMage.search",
           title: t("tree.search.title")
         }
       });

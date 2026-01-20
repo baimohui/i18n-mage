@@ -7,8 +7,8 @@ import { registerDisposable } from "@/utils/dispose";
  * 注册搜索词条命令
  * @param context 插件上下文
  */
-export function registerSearchEntryCommand() {
-  const disposable = vscode.commands.registerCommand("i18nMage.searchEntry", async () => {
+export function registerSearchCommand() {
+  const disposable = vscode.commands.registerCommand("i18nMage.search", async () => {
     const keyword = await vscode.window.showInputBox({
       placeHolder: t("command.searchEntry.placeHolder"),
       prompt: t("command.searchEntry.prompt"),

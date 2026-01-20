@@ -38,7 +38,7 @@
 * Includes statistics (total keys, missing translations, etc.).
 * Sync status per language file.
 * Tree-structured view of translation entries.
-* Functional buttons: Export, Import, Sort, Fix.
+* Functional buttons: Search, Export, Import, Sort, Fix.
 
 ![Tree Provider](https://raw.githubusercontent.com/baimohui/i18n-mage/refs/heads/main/doc-assets/panelView.png)
 
@@ -156,6 +156,7 @@ See [Full Config Reference](#-full-config-reference) for all options.
 | ---------------------------------- | ------------------------------- | ---------- |
 | `i18nMage.check`                   | Check key information           | Ctrl+Alt+C |
 | `i18nMage.fix`                     | Fix                             | Ctrl+Alt+F |
+| `i18nMage.search`                  | Search                          | Ctrl+Alt+S |
 | `i18nMage.toggleInlineTranslation` | Toggle inline translation hints | Ctrl+Alt+D |
 | `i18nMage.export`                  | Export entries to Excel         | -          |
 | `i18nMage.import`                  | Import entries from Excel       | -          |

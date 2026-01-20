@@ -1170,12 +1170,7 @@
         "title": "%command.rewriteEntry.title%"
       },
       {
-        "command": "i18nMage.focusSearch",
-        "category": "%extension.name%",
-        "title": "%command.focusSearch.title%"
-      },
-      {
-        "command": "i18nMage.searchEntry",
+        "command": "i18nMage.search",
         "category": "%extension.name%",
         "title": "%command.searchEntry.title%",
         "icon": {
@@ -1195,7 +1190,7 @@
     ],
     "keybindings": [
       {
-        "command": "i18nMage.searchEntry",
+        "command": "i18nMage.search",
         "key": "ctrl+alt+s",
         "mac": "cmd+alt+s",
         "when": "i18nMage.enabled && i18nMage.hasValidLangPath"
@@ -1239,7 +1234,7 @@
           "group": "navigation@5"
         },
         {
-          "command": "i18nMage.searchEntry",
+          "command": "i18nMage.search",
           "when": "view == i18nMage.grimoire && i18nMage.hasValidLangPath",
           "group": "navigation@7"
         },

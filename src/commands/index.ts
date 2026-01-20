@@ -31,7 +31,7 @@ import { registerOpenDocsCommand } from "./guide/openDocsCommand";
 import { registerStarCommand } from "./guide/starCommand";
 import { registerBrowseTranslationsInFileCommand } from "./inspection/browseTranslationsInFileCommand";
 import { registerRewriteEntryCommand } from "./fix/rewriteEntryCommand";
-import { registerSearchEntryCommand } from "./search/searchEntryCommand";
+import { registerSearchCommand } from "./search/searchCommand";
 import { registerCancelSearchCommand } from "./search/cancelSearchCommand";
 
 export function registerAllCommands(context: vscode.ExtensionContext) {
@@ -67,6 +67,6 @@ export function registerAllCommands(context: vscode.ExtensionContext) {
   registerStarCommand();
   registerBrowseTranslationsInFileCommand();
   registerRewriteEntryCommand();
-  registerSearchEntryCommand();
+  registerSearchCommand();
   registerCancelSearchCommand();
 }
