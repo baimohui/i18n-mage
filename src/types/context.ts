@@ -22,7 +22,8 @@ import {
   LanguageStructure,
   ModifyQuery,
   QuoteStyle4Key,
-  QuoteStyle4Value
+  QuoteStyle4Value,
+  ExcelImportMode
 } from "@/types";
 
 // 外部模块可访问的公共上下文
@@ -94,4 +95,6 @@ export interface LangContextInternal extends LangContextPublic {
   exportExcelTo: string;
   trimKeyList: string[];
   nameSeparator: string;
+  importMode: ExcelImportMode;
+  baselineLanguage: string;
 }

@@ -35,7 +35,40 @@ export function registerImportCommand(context: vscode.ExtensionContext) {
       await wrapWithProgress({ title: t("command.import.progress") }, async () => {
         const previewChanges = getConfig<boolean>("general.previewChanges", true);
         const filePath = fileUri[0].fsPath;
-        const res = await mage.execute({ task: "import", importExcelFrom: filePath });
+
+        const modeOptions = [
+          { label: t("command.import.modeKey"), value: "key" },
+          { label: t("command.import.modeLanguage"), value: "language" }
+        ];
+        const selectedMode = await vscode.window.showQuickPick(modeOptions, {
+          placeHolder: t("command.import.selectMode")
+        });
+
+        if (!selectedMode) {
+          return;
+        }
+
+        let baselineLanguage: string | undefined;
+        if (selectedMode.value === "language") {
+          const baselineOptions = mage.detectedLangList.map(lang => ({
+            label: lang,
+            value: lang
+          }));
+          const selectedBaseline = await vscode.window.showQuickPick(baselineOptions, {
+            placeHolder: t("command.import.selectBaselineLanguage")
+          });
+          if (!selectedBaseline) {
+            return;
+          }
+          baselineLanguage = selectedBaseline.value;
+        }
+
+        const res = await mage.execute({
+          task: "import",
+          importExcelFrom: filePath,
+          importMode: selectedMode.value as "key" | "language",
+          baselineLanguage
+        });
         if (res.success) {
           const publicCtx = mage.getPublicContext();
           const { updatePayloads, patchedIds, countryMap } = mage.langDetail;

@@ -61,6 +61,8 @@ export const createLangContext = (): LangContextInternal => ({
   referredLang: "",
   defaultLang: "en",
   importExcelFrom: "",
+  importMode: "key",
+  baselineLanguage: "",
   importSheetData: "",
   exportExcelTo: "",
   syncBasedOnReferredEntries: false,

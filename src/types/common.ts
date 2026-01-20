@@ -93,7 +93,7 @@ export type EntryClassTree = {
 export type LackInfo = Record<LangName, EntryKey[]>;
 export type NullInfo = Record<LangName, EntryKey[]>;
 
-type Cell = string | number | boolean | Date | null | undefined;
+export type Cell = string | number | boolean | Date | null | undefined;
 
 export type ExcelData = {
   name: string; // 工作表名称
@@ -161,3 +161,5 @@ interface Comparison {
   before?: string; // 修改前（新增时无）
   after: string; // 修改后（删除时无）
 }
+
+export type ExcelImportMode = "key" | "language";

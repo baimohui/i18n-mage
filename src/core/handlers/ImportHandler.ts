@@ -1,6 +1,6 @@
 import fs from "fs";
 import xlsx from "node-xlsx";
-import { ExcelData } from "@/types";
+import { ExcelData, Cell } from "@/types";
 import { LangContextInternal } from "@/types";
 import { getLangIntro, getLangText } from "@/utils/langKey";
 import { getDetectedLangList } from "@/core/tools/contextTools";
@@ -25,6 +25,7 @@ export class ImportHandler {
           code: EXECUTION_RESULT_CODE.InvalidExportPath
         };
       }
+      const importMode = this.ctx.importMode || "key";
       const excelData = xlsx.parse(this.ctx.importExcelFrom) as ExcelData;
       for (let sheetIndex = 0; sheetIndex < excelData.length; sheetIndex++) {
         NotificationManager.logToOutput(t("command.import.sheetIndex", sheetIndex + 1));
@@ -56,38 +57,98 @@ export class ImportHandler {
             code: EXECUTION_RESULT_CODE.ImportNoKey
           };
         }
-        sheetData.forEach(item => {
-          let key = item[keyIndex] ?? "";
-          key = key.toString().trim();
-          if (key in this.ctx.langDictionary) {
-            this.detectedLangList.forEach(lang => {
-              const langIntro = getLangIntro(lang) || {};
-              const langAlias = Object.values(langIntro);
-              if (!langAlias.includes(lang)) {
-                langAlias.push(lang);
-              }
-              const oldLangText = this.ctx.langDictionary[key].value[lang];
-              const newLangText =
-                item[
-                  headInfo.findIndex(item => langAlias.some(alias => String(alias).toLowerCase() === String(item).toLowerCase()))
-                ]?.toString() ?? "";
-              if (newLangText.trim() && oldLangText !== newLangText) {
-                this.ctx.updatePayloads.push({
-                  type: "edit",
-                  key,
-                  valueChanges: {
-                    [lang]: { before: oldLangText, after: newLangText }
-                  }
-                });
-              }
-            });
-          }
-        });
+        if (importMode === "key") {
+          this.importByKey(sheetData, headInfo, keyIndex);
+        } else {
+          this.importByLanguage(sheetData, headInfo);
+        }
       }
       return { success: true, message: "", code: EXECUTION_RESULT_CODE.Success };
     } catch (e: unknown) {
       const errorMessage = t("common.progress.error", e instanceof Error ? e.message : (e as string));
       return { success: false, message: errorMessage, code: EXECUTION_RESULT_CODE.UnknownImportError };
     }
+  }
+
+  private importByKey(sheetData: Cell[][], headInfo: Cell[], keyIndex: number): void {
+    sheetData.forEach(item => {
+      let key = item[keyIndex] ?? "";
+      key = key.toString().trim();
+      if (key in this.ctx.langDictionary) {
+        this.detectedLangList.forEach(lang => {
+          const langIntro = getLangIntro(lang) || {};
+          const langAlias = Object.values(langIntro);
+          if (!langAlias.includes(lang)) {
+            langAlias.push(lang);
+          }
+          const oldLangText = this.ctx.langDictionary[key].value[lang];
+          const newLangText =
+            item[
+              headInfo.findIndex(item => langAlias.some(alias => String(alias).toLowerCase() === String(item).toLowerCase()))
+            ]?.toString() ?? "";
+          if (newLangText.trim() && oldLangText !== newLangText) {
+            this.ctx.updatePayloads.push({
+              type: "edit",
+              key,
+              valueChanges: {
+                [lang]: { before: oldLangText, after: newLangText }
+              }
+            });
+          }
+        });
+      }
+    });
+  }
+
+  private importByLanguage(sheetData: unknown[][], headInfo: Cell[]): void {
+    const baselineLang = this.ctx.baselineLanguage;
+    if (baselineLang === undefined) {
+      return;
+    }
+    const baselineLangIntro = getLangIntro(baselineLang) || {};
+    const baselineLangAlias = Object.values(baselineLangIntro);
+    if (!baselineLangAlias.includes(baselineLang)) {
+      baselineLangAlias.push(baselineLang);
+    }
+    const baselineLangIndex = headInfo.findIndex(item =>
+      baselineLangAlias.some(alias => String(alias).toLowerCase() === String(item).toLowerCase())
+    );
+    if (baselineLangIndex === -1) {
+      return;
+    }
+    sheetData.forEach(item => {
+      const baselineText = item[baselineLangIndex]?.toString().trim() ?? "";
+      if (!baselineText) {
+        return;
+      }
+      for (const [key, entry] of Object.entries(this.ctx.langDictionary)) {
+        if (entry.value[baselineLang] === baselineText) {
+          this.detectedLangList.forEach(lang => {
+            if (lang === baselineLang) {
+              return;
+            }
+            const langIntro = getLangIntro(lang) || {};
+            const langAlias = Object.values(langIntro);
+            if (!langAlias.includes(lang)) {
+              langAlias.push(lang);
+            }
+            const oldLangText = entry.value[lang];
+            const newLangText =
+              item[
+                headInfo.findIndex(item => langAlias.some(alias => String(alias).toLowerCase() === String(item).toLowerCase()))
+              ]?.toString() ?? "";
+            if (newLangText.trim() && oldLangText !== newLangText) {
+              this.ctx.updatePayloads.push({
+                type: "edit",
+                key,
+                valueChanges: {
+                  [lang]: { before: oldLangText, after: newLangText }
+                }
+              });
+            }
+          });
+        }
+      }
+    });
   }
 }
