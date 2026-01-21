@@ -402,6 +402,7 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
         label: t("tree.syncInfo.title"),
         id: "SYNC_INFO",
         root: "SYNC_INFO",
+        contextValue: "checkSync",
         tooltip: toRelativePath(this.publicCtx.langPath),
         iconPath: new vscode.ThemeIcon(this.isSyncing !== false ? "sync~spin" : "sync"),
         collapsibleState: vscode.TreeItemCollapsibleState.Expanded,

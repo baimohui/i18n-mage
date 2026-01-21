@@ -332,6 +332,11 @@ export class FixHandler {
     const referredLangMap = this.ctx.langCountryMap[this.ctx.referredLang];
     const fillScope = this.ctx.fixQuery.fillScope ?? Object.keys(lackInfo);
     const steps = fillScope.filter(lang => Object.hasOwn(lackInfo, lang) && lackInfo[lang].some(key => referredLangMap[key])).length;
+    for (const lang of fillScope) {
+      if (!Object.hasOwn(lackInfo, lang)) {
+        lackInfo[lang] = Object.keys(referredLangMap);
+      }
+    }
     for (const lang in lackInfo) {
       if (!fillScope.includes(lang)) continue;
       if (ExecutionContext.token.isCancellationRequested) {

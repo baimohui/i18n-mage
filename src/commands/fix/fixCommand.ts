@@ -6,7 +6,7 @@ import { wrapWithProgress } from "@/utils/wrapWithProgress";
 import { registerDisposable } from "@/utils/dispose";
 import { t } from "@/utils/i18n";
 import { NotificationManager } from "@/utils/notification";
-import { getConfig } from "@/utils/config";
+import { getConfig, setConfig } from "@/utils/config";
 import { genIdFromText, getCommonFilePaths, getParentKeys, isEnglishVariable, validateLang } from "@/utils/regex";
 import {
   EXECUTION_RESULT_CODE,
@@ -18,6 +18,7 @@ import {
   UnmatchedLanguageAction
 } from "@/types";
 import { isSamePath } from "@/utils/fs";
+import { getLangCode, getLangIntro, LANG_CODE_MAPPINGS } from "@/utils/langKey";
 
 export function registerFixCommand(context: vscode.ExtensionContext) {
   const mage = LangMage.getInstance();
@@ -467,8 +468,43 @@ export function registerFixCommand(context: vscode.ExtensionContext) {
       await fix(fixQuery);
     }
   );
+  const addLanguageDisposable = vscode.commands.registerCommand("i18nMage.addLanguage", async () => {
+    const reverseMap: Record<string, string> = {};
+    const publicCtx = mage.getPublicContext();
+    const nameKey = getLangCode(publicCtx.defaultLang) === "zh-CN" ? "cnName" : "enName";
+    const languageList = Object.entries(LANG_CODE_MAPPINGS)
+      .map(([key, info]) => {
+        reverseMap[info[nameKey]] = key;
+        return info[nameKey];
+      })
+      .filter(name => mage.detectedLangList.every(i => getLangIntro(i)?.[nameKey] !== name));
+    const selectedText = await vscode.window.showQuickPick(languageList, {
+      placeHolder: t("command.addLanguage.placeholder")
+    });
+    if (selectedText === undefined) return;
+    const selectedKey = reverseMap[selectedText];
+    const mappings = getConfig<Record<string, string[]>>("translationServices.langAliasCustomMappings", {});
+    const langAlias = await vscode.window.showInputBox({
+      prompt: t("command.addLanguage.prompt", selectedText),
+      value: selectedKey,
+      validateInput: value => {
+        if (value.includes(" ")) return t("common.validate.noSpace");
+        if (value === "") return t("common.validate.required");
+        if (mage.detectedLangList.includes(value)) return t("command.validate.addLanguageDuplicate");
+      }
+    });
+    if (langAlias === undefined) return;
+    const aliases = new Set(mappings[selectedKey] ?? []);
+    if (!aliases.has(langAlias)) {
+      aliases.add(langAlias);
+      await setConfig("translationServices.langAliasCustomMappings", { ...mappings, [selectedKey]: Array.from(aliases) }, "global");
+    }
+    const fixQuery = { entriesToGen: false, entriesToFill: true, fillScope: [langAlias] } as FixQuery;
+    await fix(fixQuery);
+  });
 
   registerDisposable(fixDisposable);
   registerDisposable(fixUndefinedEntriesDisposable);
   registerDisposable(fillMissingTranslationsDisposable);
+  registerDisposable(addLanguageDisposable);
 }

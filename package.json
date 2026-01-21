@@ -1186,6 +1186,15 @@
           "light": "./images/exit-light.svg",
           "dark": "./images/exit-dark.svg"
         }
+      },
+      {
+        "command": "i18nMage.addLanguage",
+        "category": "%extension.name%",
+        "title": "%command.addLanguage.title%",
+        "icon": {
+          "light": "./images/add-light.svg",
+          "dark": "./images/add-dark.svg"
+        }
       }
     ],
     "keybindings": [
@@ -1376,6 +1385,11 @@
         {
           "command": "i18nMage.rewriteEntry",
           "when": "viewItem =~ /REWRITE_ENTRY/"
+        },
+        {
+          "command": "i18nMage.addLanguage",
+          "when": "viewItem == checkSync",
+          "group": "inline@1"
         }
       ],
       "editor/context": [

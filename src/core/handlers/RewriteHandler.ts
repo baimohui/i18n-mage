@@ -25,6 +25,7 @@ export class RewriteHandler {
       const updateInfo: Record<string, Set<string>> = {};
       for (const payload of this.ctx.updatePayloads) {
         for (const lang in payload.valueChanges) {
+          this.ctx.langCountryMap[lang] ??= {};
           updateInfo[lang] ??= new Set<string>();
           const key = payload.key;
           const value = payload.valueChanges[lang].after ?? "";
