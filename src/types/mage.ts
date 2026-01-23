@@ -1,5 +1,4 @@
 import {
-  ExcelImportMode,
   FixQuery,
   I18nFramework,
   IndentType,
@@ -28,11 +27,11 @@ export interface LangMageOptions {
   exportDir?: string;
   cachePath?: string;
   importExcelFrom?: string;
-  importMode?: ExcelImportMode;
+  importMode?: "key" | "language";
+  baselineLanguage?: string;
   exportExcelTo?: string;
   syncBasedOnReferredEntries?: boolean;
   sortAfterFix?: boolean;
-  baselineLanguage?: string;
   sortingWriteMode?: SortMode;
   sortingExportMode?: SortMode;
   modifyQuery?: ModifyQuery | null;

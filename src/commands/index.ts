@@ -33,6 +33,7 @@ import { registerBrowseTranslationsInFileCommand } from "./inspection/browseTran
 import { registerRewriteEntryCommand } from "./fix/rewriteEntryCommand";
 import { registerSearchCommand } from "./search/searchCommand";
 import { registerCancelSearchCommand } from "./search/cancelSearchCommand";
+import { registerToggleWholeWordMatchCommand } from "./search/toggleWholeWordMatchCommand";
 
 export function registerAllCommands(context: vscode.ExtensionContext) {
   registerCheckUsageCommand();
@@ -69,4 +70,5 @@ export function registerAllCommands(context: vscode.ExtensionContext) {
   registerRewriteEntryCommand();
   registerSearchCommand();
   registerCancelSearchCommand();
+  registerToggleWholeWordMatchCommand();
 }

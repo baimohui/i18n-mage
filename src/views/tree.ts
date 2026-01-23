@@ -73,6 +73,7 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
   undefinedEntriesInCurrentFile: TEntry[] = [];
   globalFilter: { text: string } = { text: "" };
   isSearching = false;
+  isWholeWordMatch = false;
 
   private _onDidChangeTreeData = new vscode.EventEmitter<void>();
   readonly onDidChangeTreeData = this._onDidChangeTreeData.event;
@@ -182,6 +183,12 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
   cancelSearch() {
     this.isSearching = false;
     vscode.commands.executeCommand("setContext", "i18nMage.isSearching", false);
+    this.refresh();
+  }
+
+  toggleWholeWordMatch() {
+    this.isWholeWordMatch = !this.isWholeWordMatch;
+    vscode.commands.executeCommand("setContext", "i18nMage.isWholeWordMatch", this.isWholeWordMatch);
     this.refresh();
   }
 
@@ -758,7 +765,41 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
     const name = unescapeString(key);
     const lowerFilter = this.globalFilter.text.toLowerCase();
     const entryInfo = this.dictionary[key]?.value ?? {};
-    return name.toLowerCase().includes(lowerFilter) || Object.values(entryInfo).some(value => value.toLowerCase().includes(lowerFilter));
+
+    const matchesName = this.isWholeWordMatch
+      ? new RegExp(`\\b${lowerFilter}\\b`, "i").test(name)
+      : name.toLowerCase().includes(lowerFilter);
+
+    const matchesValue = Object.values(entryInfo).some(value =>
+      this.isWholeWordMatch ? this.wholeWordMatch(value.toLowerCase(), lowerFilter) : value.toLowerCase().includes(lowerFilter)
+    );
+
+    return matchesName || matchesValue;
+  }
+
+  private wholeWordMatch(text: string, searchTerm: string) {
+    if (!searchTerm || !text) {
+      return false;
+    }
+    // 构建正则表达式进行全词匹配
+    // 使用正则的单词边界 \b 不适用于中文，需要特殊处理
+    const escapedSearchTerm = searchTerm.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+    // 匹配规则：
+    // 1. 开头：字符串开头 或 非单词字符（包括中文）
+    // 2. 中间：精确的搜索词
+    // 3. 结尾：字符串结尾 或 非单词字符（包括中文）
+    // 单词字符包括：字母、数字、下划线
+    const pattern = `(?:^|[^\\w\\u4e00-\\u9fff])(${escapedSearchTerm})(?:$|[^\\w\\u4e00-\\u9fff])`;
+
+    try {
+      const regex = new RegExp(pattern, "i");
+      return regex.test(text);
+    } catch (e) {
+      // 如果正则构建失败（如无效字符），回退到简单包含检查
+      console.warn("正则构建失败，使用简单匹配：", e);
+      return text.includes(searchTerm);
+    }
   }
 
   private checkLangSyncInfo(lang: string) {

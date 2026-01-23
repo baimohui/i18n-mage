@@ -195,5 +195,6 @@
   "config.accessMode.function": "通过函数访问翻译",
   "config.accessMode.object": "通过对象访问翻译",
   "config.translationObjectIdentifiers.desc": "承载翻译数据的对象标识符",
-  "command.addLanguage.title": "添加语言"
+  "command.addLanguage.title": "添加语言",
+  "command.toggleWholeWordMatch.title": "全词匹配"
 }

@@ -1188,6 +1188,24 @@
         }
       },
       {
+        "command": "i18nMage.toggleWholeWordMatch",
+        "category": "%extension.name%",
+        "title": "%command.toggleWholeWordMatch.title%",
+        "icon": {
+          "light": "./images/wholeMatch-light.svg",
+          "dark": "./images/wholeMatch-dark.svg"
+        }
+      },
+      {
+        "command": "i18nMage.toggleWholeWordMatch.active",
+        "category": "%extension.name%",
+        "title": "%command.toggleWholeWordMatch.title%",
+        "icon": {
+          "light": "./images/wholeMatch-active-light.svg",
+          "dark": "./images/wholeMatch-active-dark.svg"
+        }
+      },
+      {
         "command": "i18nMage.addLanguage",
         "category": "%extension.name%",
         "title": "%command.addLanguage.title%",
@@ -1232,7 +1250,19 @@
         "command": "i18nMage.cancelSearch",
         "key": "escape",
         "mac": "escape",
-        "when": "i18nMage.enabled && i18nMage.hasValidLangPath && i18nMage.isSearching"
+        "when": "i18nMage.enabled && i18nMage.hasValidLangPath && i18nMage.isSearching && focusedView == i18nMage.grimoire"
+      },
+      {
+        "command": "i18nMage.toggleWholeWordMatch",
+        "key": "alt+w",
+        "mac": "alt+w",
+        "when": "i18nMage.enabled && i18nMage.hasValidLangPath && i18nMage.isSearching && !i18nMage.isWholeWordMatch && focusedView == i18nMage.grimoire"
+      },
+      {
+        "command": "i18nMage.toggleWholeWordMatch.active",
+        "key": "alt+w",
+        "mac": "alt+w",
+        "when": "i18nMage.enabled && i18nMage.hasValidLangPath && i18nMage.isSearching && i18nMage.isWholeWordMatch && focusedView == i18nMage.grimoire"
       }
     ],
     "menus": {
@@ -1248,9 +1278,19 @@
           "group": "navigation@7"
         },
         {
+          "command": "i18nMage.toggleWholeWordMatch",
+          "when": "view == i18nMage.grimoire && i18nMage.hasValidLangPath && i18nMage.isSearching && !i18nMage.isWholeWordMatch",
+          "group": "navigation@8"
+        },
+        {
+          "command": "i18nMage.toggleWholeWordMatch.active",
+          "when": "view == i18nMage.grimoire && i18nMage.hasValidLangPath && i18nMage.isSearching && i18nMage.isWholeWordMatch",
+          "group": "navigation@8"
+        },
+        {
           "command": "i18nMage.cancelSearch",
           "when": "view == i18nMage.grimoire && i18nMage.hasValidLangPath && i18nMage.isSearching",
-          "group": "navigation@8"
+          "group": "navigation@12"
         },
         {
           "command": "i18nMage.export",
