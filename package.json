@@ -1274,23 +1274,8 @@
         },
         {
           "command": "i18nMage.search",
-          "when": "view == i18nMage.grimoire && i18nMage.hasValidLangPath",
+          "when": "view == i18nMage.grimoire && i18nMage.hasValidLangPath && !i18nMage.isSearching",
           "group": "navigation@7"
-        },
-        {
-          "command": "i18nMage.toggleWholeWordMatch",
-          "when": "view == i18nMage.grimoire && i18nMage.hasValidLangPath && i18nMage.isSearching && !i18nMage.isWholeWordMatch",
-          "group": "navigation@8"
-        },
-        {
-          "command": "i18nMage.toggleWholeWordMatch.active",
-          "when": "view == i18nMage.grimoire && i18nMage.hasValidLangPath && i18nMage.isSearching && i18nMage.isWholeWordMatch",
-          "group": "navigation@8"
-        },
-        {
-          "command": "i18nMage.cancelSearch",
-          "when": "view == i18nMage.grimoire && i18nMage.hasValidLangPath && i18nMage.isSearching",
-          "group": "navigation@12"
         },
         {
           "command": "i18nMage.export",
@@ -1311,6 +1296,21 @@
           "command": "i18nMage.fix",
           "when": "view == i18nMage.grimoire && i18nMage.hasValidLangPath && !i18nMage.isSearching",
           "group": "navigation@25"
+        },
+        {
+          "command": "i18nMage.toggleWholeWordMatch",
+          "when": "view == i18nMage.grimoire && i18nMage.hasValidLangPath && i18nMage.isSearching && !i18nMage.isWholeWordMatch",
+          "group": "navigation@50"
+        },
+        {
+          "command": "i18nMage.toggleWholeWordMatch.active",
+          "when": "view == i18nMage.grimoire && i18nMage.hasValidLangPath && i18nMage.isSearching && i18nMage.isWholeWordMatch",
+          "group": "navigation@50"
+        },
+        {
+          "command": "i18nMage.cancelSearch",
+          "when": "view == i18nMage.grimoire && i18nMage.hasValidLangPath && i18nMage.isSearching",
+          "group": "navigation@52"
         },
         {
           "command": "i18nMage.openDocs",

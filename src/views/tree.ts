@@ -385,7 +385,7 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
         iconPath: new vscode.ThemeIcon("search"),
         collapsibleState: vscode.TreeItemCollapsibleState.None,
         description: "",
-        tooltip: t("tree.search.tooltip", this.globalFilter.text),
+        tooltip: t("tree.search.tooltip"),
         command: {
           command: "i18nMage.search",
           title: t("tree.search.title")
