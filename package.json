@@ -1206,6 +1206,24 @@
         }
       },
       {
+        "command": "i18nMage.toggleCaseSensitive",
+        "category": "%extension.name%",
+        "title": "%command.toggleCaseSensitive.title%",
+        "icon": {
+          "light": "./images/caseMatch-light.svg",
+          "dark": "./images/caseMatch-dark.svg"
+        }
+      },
+      {
+        "command": "i18nMage.toggleCaseSensitive.active",
+        "category": "%extension.name%",
+        "title": "%command.toggleCaseSensitive.title%",
+        "icon": {
+          "light": "./images/caseMatch-active-light.svg",
+          "dark": "./images/caseMatch-active-dark.svg"
+        }
+      },
+      {
         "command": "i18nMage.addLanguage",
         "category": "%extension.name%",
         "title": "%command.addLanguage.title%",
@@ -1263,6 +1281,18 @@
         "key": "alt+w",
         "mac": "alt+w",
         "when": "i18nMage.enabled && i18nMage.hasValidLangPath && i18nMage.isSearching && i18nMage.isWholeWordMatch && focusedView == i18nMage.grimoire"
+      },
+      {
+        "command": "i18nMage.toggleCaseSensitive",
+        "key": "alt+c",
+        "mac": "alt+c",
+        "when": "i18nMage.enabled && i18nMage.hasValidLangPath && i18nMage.isSearching && !i18nMage.isCaseSensitive && focusedView == i18nMage.grimoire"
+      },
+      {
+        "command": "i18nMage.toggleCaseSensitive.active",
+        "key": "alt+c",
+        "mac": "alt+c",
+        "when": "i18nMage.enabled && i18nMage.hasValidLangPath && i18nMage.isSearching && i18nMage.isCaseSensitive && focusedView == i18nMage.grimoire"
       }
     ],
     "menus": {
@@ -1296,6 +1326,16 @@
           "command": "i18nMage.fix",
           "when": "view == i18nMage.grimoire && i18nMage.hasValidLangPath && !i18nMage.isSearching",
           "group": "navigation@25"
+        },
+        {
+          "command": "i18nMage.toggleCaseSensitive",
+          "when": "view == i18nMage.grimoire && i18nMage.hasValidLangPath && i18nMage.isSearching && !i18nMage.isCaseSensitive",
+          "group": "navigation@45"
+        },
+        {
+          "command": "i18nMage.toggleCaseSensitive.active",
+          "when": "view == i18nMage.grimoire && i18nMage.hasValidLangPath && i18nMage.isSearching && i18nMage.isCaseSensitive",
+          "group": "navigation@46"
         },
         {
           "command": "i18nMage.toggleWholeWordMatch",

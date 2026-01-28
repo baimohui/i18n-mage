@@ -34,6 +34,7 @@ import { registerRewriteEntryCommand } from "./fix/rewriteEntryCommand";
 import { registerSearchCommand } from "./search/searchCommand";
 import { registerCancelSearchCommand } from "./search/cancelSearchCommand";
 import { registerToggleWholeWordMatchCommand } from "./search/toggleWholeWordMatchCommand";
+import { registerToggleCaseSensitiveCommand } from "./search/toggleCaseSensitiveCommand";
 
 export function registerAllCommands(context: vscode.ExtensionContext) {
   registerCheckUsageCommand();
@@ -71,4 +72,5 @@ export function registerAllCommands(context: vscode.ExtensionContext) {
   registerSearchCommand();
   registerCancelSearchCommand();
   registerToggleWholeWordMatchCommand();
+  registerToggleCaseSensitiveCommand();
 }

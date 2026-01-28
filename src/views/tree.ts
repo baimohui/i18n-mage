@@ -74,6 +74,7 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
   globalFilter: { text: string } = { text: "" };
   isSearching = false;
   isWholeWordMatch = false;
+  isCaseSensitive = false;
 
   private _onDidChangeTreeData = new vscode.EventEmitter<void>();
   readonly onDidChangeTreeData = this._onDidChangeTreeData.event;
@@ -189,6 +190,12 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
   toggleWholeWordMatch() {
     this.isWholeWordMatch = !this.isWholeWordMatch;
     vscode.commands.executeCommand("setContext", "i18nMage.isWholeWordMatch", this.isWholeWordMatch);
+    this.refresh();
+  }
+
+  toggleCaseSensitive() {
+    this.isCaseSensitive = !this.isCaseSensitive;
+    vscode.commands.executeCommand("setContext", "i18nMage.isCaseSensitive", this.isCaseSensitive);
     this.refresh();
   }
 
@@ -763,15 +770,17 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
   private matchesSearch(key: string) {
     if (!this.isSearching) return true;
     const name = unescapeString(key);
-    const lowerFilter = this.globalFilter.text.toLowerCase();
+    const filter = this.isCaseSensitive ? this.globalFilter.text : this.globalFilter.text.toLowerCase();
     const entryInfo = this.dictionary[key]?.value ?? {};
 
     const matchesName = this.isWholeWordMatch
-      ? new RegExp(`\\b${lowerFilter}\\b`, "i").test(name)
-      : name.toLowerCase().includes(lowerFilter);
+      ? new RegExp(`\\b${filter}\\b`, this.isCaseSensitive ? "" : "i").test(name)
+      : (this.isCaseSensitive ? name : name.toLowerCase()).includes(filter);
 
     const matchesValue = Object.values(entryInfo).some(value =>
-      this.isWholeWordMatch ? this.wholeWordMatch(value.toLowerCase(), lowerFilter) : value.toLowerCase().includes(lowerFilter)
+      this.isWholeWordMatch
+        ? this.wholeWordMatch(this.isCaseSensitive ? value : value.toLowerCase(), filter)
+        : (this.isCaseSensitive ? value : value.toLowerCase()).includes(filter)
     );
 
     return matchesName || matchesValue;
@@ -793,7 +802,7 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
     const pattern = `(?:^|[^\\w\\u4e00-\\u9fff])(${escapedSearchTerm})(?:$|[^\\w\\u4e00-\\u9fff])`;
 
     try {
-      const regex = new RegExp(pattern, "i");
+      const regex = new RegExp(pattern, this.isCaseSensitive ? "" : "i");
       return regex.test(text);
     } catch (e) {
       // 如果正则构建失败（如无效字符），回退到简单包含检查

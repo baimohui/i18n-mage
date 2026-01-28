@@ -196,5 +196,6 @@
   "config.accessMode.object": "Access translations via objects",
   "config.translationObjectIdentifiers.desc": "Identifiers of translation objects",
   "command.addLanguage.title": "Add Language",
-  "command.toggleWholeWordMatch.title": "Whole Word Match"
+  "command.toggleWholeWordMatch.title": "Match Whole Word",
+  "command.toggleCaseSensitive.title": "Match Case"
 }
