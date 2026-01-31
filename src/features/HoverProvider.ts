@@ -28,19 +28,22 @@ export class HoverProvider implements vscode.HoverProvider {
       if (entryKeys.length > 0) {
         const markdown = new vscode.MarkdownString();
         markdown.isTrusted = true;
+        const referredLang = publicCtx.referredLang;
+        const sortedLangList = [referredLang, ...mage.detectedLangList.filter(lang => lang !== referredLang)];
         for (const key of entryKeys) {
           const entryName = displayToInternalName(unescapeString(key));
           const entryInfo = dictionary[key]?.value ?? {};
-          const rewriteBtn = `[🔄](command:i18nMage.rewriteEntry?${encodeURIComponent(JSON.stringify({ name: entryName, key, value: entryInfo[publicCtx.referredLang] ?? "", meta: { scope: publicCtx.referredLang } }))})`;
-          markdown.appendMarkdown(`\`${entryName}\` ${rewriteBtn}\n\n`);
-          for (const lang of mage.detectedLangList) {
+          markdown.appendMarkdown(`\`${entryName}\`\n\n`);
+          for (const lang of sortedLangList) {
             const value = entryInfo[lang] ?? "";
             const args = encodeURIComponent(
               JSON.stringify({ name: entryName, key, data: [key], meta: { scope: lang }, description: value })
             );
+            const rewriteArgs = encodeURIComponent(JSON.stringify({ name: entryName, key, value: value, meta: { scope: lang } }));
+            const rewriteBtn = ` [🔄](command:i18nMage.rewriteEntry?${rewriteArgs})`;
             if (value) {
               markdown.appendMarkdown(
-                `[📍](command:i18nMage.goToDefinition?${args}) **${escapeMarkdown(lang)}:** ${escapeMarkdown(formatEscapeChar(value))} [📋](command:i18nMage.copyValue?${args}) [✏️](command:i18nMage.editValue?${args})  \n`
+                `[📍](command:i18nMage.goToDefinition?${args}) **${escapeMarkdown(lang)}:** ${escapeMarkdown(formatEscapeChar(value))} [📋](command:i18nMage.copyValue?${args}) [✏️](command:i18nMage.editValue?${args})${rewriteBtn}  \n`
               );
             } else {
               let translateBtn = "";
@@ -48,11 +51,14 @@ export class HoverProvider implements vscode.HoverProvider {
                 translateBtn = ` [🌐](command:i18nMage.fillMissingTranslations?${args})`;
               }
               markdown.appendMarkdown(
-                `[🎈](command:i18nMage.goToDefinition?${args}) **${escapeMarkdown(lang)}**${translateBtn} [✏️](command:i18nMage.editValue?${args})  \n`
+                `[🎈](command:i18nMage.goToDefinition?${args}) **${escapeMarkdown(lang)}**${translateBtn} [✏️](command:i18nMage.editValue?${args})${rewriteBtn}  \n`
               );
             }
           }
           markdown.appendMarkdown("\n");
+          if (key !== entryKeys[entryKeys.length - 1]) {
+            markdown.appendMarkdown("---\n\n");
+          }
         }
         return new vscode.Hover(markdown);
       }
