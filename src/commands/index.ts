@@ -17,6 +17,7 @@ import { registerExportCommand } from "./importExport/exportCommand";
 import { registerImportCommand } from "./importExport/importCommand";
 import { registerGoToDefinitionCommand } from "./inspection/goToDefinitionCommand";
 import { registerGoToReferenceCommand } from "./inspection/goToReferenceCommand";
+import { registerFindReferencesCommand } from "./inspection/findReferencesCommand";
 import { registerIgnoreFileCommand } from "./ignore/ignoreFileCommand";
 import { registerSetDisplayLangCommand } from "./config/setDisplayLangCommand";
 import { registerIgnoreDirectoryCommand } from "./ignore/ignoreDirectoryCommand";
@@ -55,6 +56,7 @@ export function registerAllCommands(context: vscode.ExtensionContext) {
   registerImportCommand(context);
   registerGoToDefinitionCommand();
   registerGoToReferenceCommand();
+  registerFindReferencesCommand();
   registerIgnoreFileCommand();
   registerSetDisplayLangCommand();
   registerIgnoreDirectoryCommand();

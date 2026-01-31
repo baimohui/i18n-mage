@@ -3,6 +3,7 @@ import LangMage from "@/core/LangMage";
 import { getValueByAmbiguousEntryName, displayToInternalName, escapeMarkdown, formatEscapeChar, unescapeString } from "@/utils/regex";
 import { ActiveEditorState } from "@/utils/activeEditorState";
 import { isFileTooLarge } from "@/utils/fs";
+import { t } from "@/utils/i18n";
 
 export class HoverProvider implements vscode.HoverProvider {
   provideHover(document: vscode.TextDocument, position: vscode.Position): vscode.ProviderResult<vscode.Hover> {
@@ -33,7 +34,16 @@ export class HoverProvider implements vscode.HoverProvider {
         for (const key of entryKeys) {
           const entryName = displayToInternalName(unescapeString(key));
           const entryInfo = dictionary[key]?.value ?? {};
-          markdown.appendMarkdown(`\`${entryName}\`\n\n`);
+          const usedInfo = mage.langDetail.used[entryName] ?? {};
+          const referenceCount = Object.values(usedInfo).reduce((total, posSet) => total + posSet.size, 0);
+          if (referenceCount > 0) {
+            const refArgs = encodeURIComponent(JSON.stringify({ key: entryName }));
+            markdown.appendMarkdown(
+              `\`${entryName}\` [🔗](command:i18nMage.findReferences?${refArgs}) ${t("hover.referenceCount", referenceCount)}\n\n`
+            );
+          } else {
+            markdown.appendMarkdown(`\`${entryName}\`\n\n`);
+          }
           for (const lang of sortedLangList) {
             const value = entryInfo[lang] ?? "";
             const args = encodeURIComponent(
