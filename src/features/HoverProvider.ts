@@ -36,36 +36,39 @@ export class HoverProvider implements vscode.HoverProvider {
           const entryInfo = dictionary[key]?.value ?? {};
           const usedInfo = mage.langDetail.used[entryName] ?? {};
           const referenceCount = Object.values(usedInfo).reduce((total, posSet) => total + posSet.size, 0);
+
+          markdown.appendMarkdown(`**\`${entryName}\`**`);
           if (referenceCount > 0) {
             const refArgs = encodeURIComponent(JSON.stringify({ key: entryName }));
-            markdown.appendMarkdown(
-              `\`${entryName}\` [🔗](command:i18nMage.findReferences?${refArgs}) ${t("hover.referenceCount", referenceCount)}\n\n`
-            );
-          } else {
-            markdown.appendMarkdown(`\`${entryName}\`\n\n`);
+            markdown.appendMarkdown(` [🔗](command:i18nMage.findReferences?${refArgs}) ${t("hover.referenceCount", referenceCount)}\n\n`);
           }
+          markdown.appendMarkdown("\n\n");
+
           for (const lang of sortedLangList) {
             const value = entryInfo[lang] ?? "";
             const args = encodeURIComponent(
               JSON.stringify({ name: entryName, key, data: [key], meta: { scope: lang }, description: value })
             );
             const rewriteArgs = encodeURIComponent(JSON.stringify({ name: entryName, key, value: value, meta: { scope: lang } }));
-            const rewriteBtn = ` [🔄](command:i18nMage.rewriteEntry?${rewriteArgs})`;
+
+            const isReferenceLang = lang === referredLang;
+            const langLabel = isReferenceLang ? `**${escapeMarkdown(lang)}** (${t("hover.referenceLanguage")})` : escapeMarkdown(lang);
+            const goToDefBtn = `[📍](command:i18nMage.goToDefinition?${args})`;
+            const copyBtn = value ? `[📋](command:i18nMage.copyValue?${args})` : "";
+            const editBtn = `[✏️](command:i18nMage.editValue?${args})`;
+            const rewriteBtn = `[🔄](command:i18nMage.rewriteEntry?${rewriteArgs})`;
+            const translateBtn =
+              !value && entryInfo[publicCtx.referredLang] ? `[🌐](command:i18nMage.fillMissingTranslations?${args})` : "";
+
+            markdown.appendMarkdown(`${goToDefBtn} ${langLabel}: `);
             if (value) {
-              markdown.appendMarkdown(
-                `[📍](command:i18nMage.goToDefinition?${args}) **${escapeMarkdown(lang)}:** ${escapeMarkdown(formatEscapeChar(value))} [📋](command:i18nMage.copyValue?${args}) [✏️](command:i18nMage.editValue?${args})${rewriteBtn}  \n`
-              );
+              markdown.appendMarkdown(`${escapeMarkdown(formatEscapeChar(value))}`);
             } else {
-              let translateBtn = "";
-              if (entryInfo[publicCtx.referredLang]) {
-                translateBtn = ` [🌐](command:i18nMage.fillMissingTranslations?${args})`;
-              }
-              markdown.appendMarkdown(
-                `[🎈](command:i18nMage.goToDefinition?${args}) **${escapeMarkdown(lang)}**${translateBtn} [✏️](command:i18nMage.editValue?${args})${rewriteBtn}  \n`
-              );
+              markdown.appendMarkdown(`*${t("hover.empty")}*`);
             }
+            markdown.appendMarkdown(` ${copyBtn}${translateBtn}${editBtn}${rewriteBtn}\n\n`);
           }
-          markdown.appendMarkdown("\n");
+
           if (key !== entryKeys[entryKeys.length - 1]) {
             markdown.appendMarkdown("---\n\n");
           }
