@@ -1559,7 +1559,7 @@
     "build:webviews": "vite build --mode production",
     "build:webviews:watch": "vite build --mode development --watch",
     "build": "npm run build:webviews && node esbuild.config.js",
-    "package": "npm run build && vsce package",
+    "package": "npm run build && vsce package --no-yarn",
     "format": "prettier --write \"*.{ts,tsx,js,jsx,md}\""
   },
   "mocha": {
