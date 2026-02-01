@@ -47,7 +47,7 @@ export function registerRewriteEntryCommand() {
         prompt: t("command.rewriteEntry.rewriteValueOf0In1AndSyncToAllLanguages", name, target.lang),
         value: formatEscapeChar(value)
       });
-      if (typeof newValue === "string" && newValue !== value && newValue.trim() !== "") {
+      if (typeof newValue === "string" && newValue.trim() !== "") {
         await wrapWithProgress({ title: t("command.rewriteEntry.rewriting"), cancellable: true, timeout: 1000 * 60 * 10 }, async () => {
           mage.setOptions({ task: "modify", modifyQuery: { type: "rewriteEntry", ...target, value: unFormatEscapeChar(newValue) } });
           const res = await mage.execute();
