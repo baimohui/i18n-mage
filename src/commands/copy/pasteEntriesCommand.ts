@@ -5,9 +5,17 @@ import { NotificationManager } from "@/utils/notification";
 import LangMage from "@/core/LangMage";
 import { EditValueQuery } from "@/types";
 import { treeInstance } from "@/views/tree";
+import { getLangCode } from "@/utils/langKey";
 
 export function registerPasteEntriesCommand() {
   const mage = LangMage.getInstance();
+  const resolveLang = (target: string) => {
+    if (mage.detectedLangList.length === 0) return target;
+    const targetCode = getLangCode(target);
+    return (
+      mage.detectedLangList.find(lang => lang === target) ?? mage.detectedLangList.find(lang => getLangCode(lang) === targetCode) ?? ""
+    );
+  };
   const disposable = vscode.commands.registerCommand("i18nMage.pasteEntries", async () => {
     const { dictionary } = mage.langDetail;
     const targetText = await vscode.env.clipboard.readText();
@@ -32,11 +40,12 @@ export function registerPasteEntriesCommand() {
           }
         }
         entries.forEach(([key, translation]) => {
-          if (skipExistedKeys && Object.hasOwn(dictionary, key)) {
-            return;
-          }
+          if (skipExistedKeys && Object.hasOwn(dictionary, key)) return;
           for (const [lang, value] of Object.entries(translation)) {
-            data.push({ key, value, lang });
+            const targetLang = resolveLang(lang);
+            if (targetLang) {
+              data.push({ key, value, lang: targetLang });
+            }
           }
         });
         if (data.length > 0) {
@@ -44,7 +53,7 @@ export function registerPasteEntriesCommand() {
           NotificationManager.showSuccess(
             t("command.pasteEntries.success", skipExistedKeys ? entries.length - existedKeys.length : entries.length)
           );
-          await mage.execute({ task: "check", globalFlag: true });
+          await mage.execute({ task: "check" });
           treeInstance.refresh();
           return;
         }

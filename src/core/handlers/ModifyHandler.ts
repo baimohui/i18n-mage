@@ -22,7 +22,7 @@ export class ModifyHandler {
       } else if (type === "renameKey") {
         this.handleRenameKey(this.ctx.modifyQuery);
       } else if (type === "rewriteEntry") {
-        const res = await this.handleRewrite(this.ctx.modifyQuery);
+        const res = await this.handleRewriteEntry(this.ctx.modifyQuery);
         await new RewriteHandler(this.ctx).run();
         return res;
       }
@@ -41,13 +41,13 @@ export class ModifyHandler {
         type: "edit",
         key,
         valueChanges: {
-          [lang]: { before: this.ctx.langCountryMap[lang][key], after: value }
+          [lang]: { before: this.ctx.langCountryMap[lang]?.[key] ?? "", after: value }
         }
       });
     }
   }
 
-  private async handleRewrite(query: RewriteEntryQuery) {
+  private async handleRewriteEntry(query: RewriteEntryQuery) {
     const { key, value, lang } = query;
     const sourceLang = lang ?? this.ctx.referredLang;
     const payload: I18nUpdatePayload = {
