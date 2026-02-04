@@ -1,4 +1,4 @@
-import { EditValueQuery, FixExecutionResult, I18nUpdatePayload, LangContextInternal, RenameKeyQuery } from "@/types";
+import { EditValueQuery, FixExecutionResult, I18nUpdatePayload, LangContextInternal, RenameKeyQuery, RewriteEntryQuery } from "@/types";
 import { RewriteHandler } from "./RewriteHandler";
 import { t } from "@/utils/i18n";
 import { ExecutionResult, EXECUTION_RESULT_CODE } from "@/types";
@@ -34,18 +34,20 @@ export class ModifyHandler {
   }
 
   private handleEditValue(query: EditValueQuery) {
-    const { key, value, lang } = query;
-    if (lang === undefined) return;
-    this.ctx.updatePayloads.push({
-      type: "edit",
-      key,
-      valueChanges: {
-        [lang]: { before: this.ctx.langCountryMap[lang][key], after: value }
-      }
-    });
+    for (const item of query.data) {
+      const { key, value, lang } = item;
+      if (lang === undefined) return;
+      this.ctx.updatePayloads.push({
+        type: "edit",
+        key,
+        valueChanges: {
+          [lang]: { before: this.ctx.langCountryMap[lang][key], after: value }
+        }
+      });
+    }
   }
 
-  private async handleRewrite(query: EditValueQuery) {
+  private async handleRewrite(query: RewriteEntryQuery) {
     const { key, value, lang } = query;
     const sourceLang = lang ?? this.ctx.referredLang;
     const payload: I18nUpdatePayload = {

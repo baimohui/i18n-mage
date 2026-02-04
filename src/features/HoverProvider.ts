@@ -46,10 +46,8 @@ export class HoverProvider implements vscode.HoverProvider {
 
           for (const lang of sortedLangList) {
             const value = entryInfo[lang] ?? "";
-            const args = encodeURIComponent(
-              JSON.stringify({ name: entryName, key, data: [key], meta: { scope: lang }, description: value })
-            );
-            const rewriteArgs = encodeURIComponent(JSON.stringify({ name: entryName, key, value: value, meta: { scope: lang } }));
+            const args = encodeURIComponent(JSON.stringify({ name: entryName, key, data: [key], meta: { lang }, description: value }));
+            const rewriteArgs = encodeURIComponent(JSON.stringify({ name: entryName, key, value: value, meta: { lang } }));
 
             const isReferenceLang = lang === referredLang;
             const langLabel = isReferenceLang ? `**${escapeMarkdown(lang)}** (${t("hover.referenceLanguage")})` : escapeMarkdown(lang);

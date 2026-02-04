@@ -161,7 +161,7 @@
   "command.ignoreFile.title": "Ignore File",
   "command.copyName.title": "Copy Entry Name",
   "command.copyValue.title": "Copy Entry Value",
-  "command.copyKeyValue.title": "Copy Key-Value Pair",
+  "command.copyEntries.title": "Copy Entries",
   "command.editValue.title": "Edit Entry Value",
   "command.deleteUnused.title": "Delete Unused Entry/Entries",
   "command.markAsUsed.title": "Mark as Used",
@@ -197,5 +197,6 @@
   "config.translationObjectIdentifiers.desc": "Identifiers of translation objects",
   "command.addLanguage.title": "Add Language",
   "command.toggleWholeWordMatch.title": "Match Whole Word",
-  "command.toggleCaseSensitive.title": "Match Case"
+  "command.toggleCaseSensitive.title": "Match Case",
+  "command.pasteEntries.title": "Paste Entries"
 }

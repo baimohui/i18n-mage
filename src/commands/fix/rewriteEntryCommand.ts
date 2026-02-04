@@ -11,7 +11,7 @@ export function registerRewriteEntryCommand() {
   const mage = LangMage.getInstance();
   const disposable = vscode.commands.registerCommand(
     "i18nMage.rewriteEntry",
-    async (e?: { name: string; key: string; description: string; meta: { scope: string } }) => {
+    async (e?: { name: string; key: string; description: string; meta: { lang?: string } }) => {
       let target: { name: string; key: string; value: string; lang: string } | undefined = undefined;
       const dictionary = mage.langDetail.dictionary;
       const publicCtx = mage.getPublicContext();
@@ -33,11 +33,12 @@ export function registerRewriteEntryCommand() {
         const value = dictionary?.[key]?.value?.[lang] ?? "";
         target = { name: unescapeString(key), key, value, lang };
       } else {
+        e.meta.lang ??= referredLang;
         target = {
           name: e.name,
           key: e.key,
-          lang: e.meta.scope,
-          value: dictionary?.[e.key]?.value?.[e.meta.scope] ?? ""
+          lang: e.meta.lang,
+          value: dictionary?.[e.key]?.value?.[e.meta.lang] ?? ""
         };
       }
       if (target === undefined) return;

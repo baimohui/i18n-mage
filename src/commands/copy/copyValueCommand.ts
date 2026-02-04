@@ -27,7 +27,7 @@ export function registerCopyValueCommand() {
     }
     const formattedEntryValue = formatEscapeChar(target);
     await vscode.env.clipboard.writeText(formattedEntryValue);
-    NotificationManager.showSuccess(t("command.copy.success", formattedEntryValue));
+    NotificationManager.setStatusBarMessage(t("command.copy.success", formattedEntryValue));
   });
 
   registerDisposable(disposable);

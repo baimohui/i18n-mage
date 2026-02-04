@@ -7,7 +7,7 @@ import { t } from "@/utils/i18n";
 
 export function registerGoToDefinitionCommand() {
   const mage = LangMage.getInstance();
-  const disposable = vscode.commands.registerCommand("i18nMage.goToDefinition", async (e?: { key: string; meta: { scope: string } }) => {
+  const disposable = vscode.commands.registerCommand("i18nMage.goToDefinition", async (e?: { key: string; meta: { lang: string } }) => {
     const publicCtx = mage.getPublicContext();
     let target: { key: string; lang: string } | undefined = undefined;
     const dictionary = mage.langDetail.dictionary;
@@ -24,7 +24,7 @@ export function registerGoToDefinitionCommand() {
       if (lang === undefined) return;
       target = { key, lang };
     } else {
-      target = { key: e.key, lang: e.meta.scope };
+      target = { key: e.key, lang: e.meta.lang };
     }
     const { key, lang } = target;
     const fullKey = dictionary[key].fullPath;

@@ -21,7 +21,7 @@ export function registerCopyNameCommand() {
       target = e.label;
     }
     await vscode.env.clipboard.writeText(target);
-    NotificationManager.showSuccess(t("command.copy.success", target));
+    NotificationManager.setStatusBarMessage(t("command.copy.success", target));
   });
 
   registerDisposable(disposable);

@@ -6,7 +6,7 @@ import { registerMarkAsUsedCommand } from "./mark/markAsUsedCommand";
 import { registerSelectLangPathCommand } from "./config/selectLangPathCommand";
 import { registerSetLangPathCommand } from "./config/setLangPathCommand";
 import { registerSetProjectPathCommand } from "./config/setProjectPathCommand";
-import { registerCopyKeyValueCommand } from "./copy/copyKeyValueCommand";
+import { registerCopyEntriesCommand } from "./copy/copyEntriesCommand";
 import { registerCopyNameCommand } from "./copy/copyNameCommand";
 import { registerCopyValueCommand } from "./copy/copyValueCommand";
 import { registerDeleteUnusedCommand } from "./fix/deleteUnusedCommand";
@@ -36,6 +36,7 @@ import { registerSearchCommand } from "./search/searchCommand";
 import { registerCancelSearchCommand } from "./search/cancelSearchCommand";
 import { registerToggleWholeWordMatchCommand } from "./search/toggleWholeWordMatchCommand";
 import { registerToggleCaseSensitiveCommand } from "./search/toggleCaseSensitiveCommand";
+import { registerPasteEntriesCommand } from "./copy/pasteEntriesCommand";
 
 export function registerAllCommands(context: vscode.ExtensionContext) {
   registerCheckUsageCommand();
@@ -45,7 +46,7 @@ export function registerAllCommands(context: vscode.ExtensionContext) {
   registerSelectLangPathCommand();
   registerSetLangPathCommand();
   registerSetProjectPathCommand();
-  registerCopyKeyValueCommand();
+  registerCopyEntriesCommand();
   registerCopyNameCommand();
   registerCopyValueCommand();
   registerDeleteUnusedCommand();
@@ -75,4 +76,5 @@ export function registerAllCommands(context: vscode.ExtensionContext) {
   registerCancelSearchCommand();
   registerToggleWholeWordMatchCommand();
   registerToggleCaseSensitiveCommand();
+  registerPasteEntriesCommand();
 }

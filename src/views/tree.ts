@@ -40,7 +40,7 @@ interface ExtendedTreeItem extends vscode.TreeItem {
   name?: string;
   key?: string;
   data?: string[];
-  meta?: { scope: string };
+  meta?: { lang?: string; file?: string };
   stack?: string[];
 }
 
@@ -441,6 +441,7 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
         label: t("tree.dictionary.title"),
         id: "DICTIONARY",
         root: "DICTIONARY",
+        contextValue: "PASTE_ENTRIES",
         iconPath: new vscode.ThemeIcon("notebook"),
         collapsibleState: vscode.TreeItemCollapsibleState.Collapsed,
         description: String(Object.keys(this.langInfo.dictionary).length)
@@ -453,7 +454,7 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
     if (element.level === 0) {
       const definedContextValueList = ["definedEntriesInCurFile"];
       if (this.definedEntriesInCurrentFile.length > 0) {
-        definedContextValueList.push("COPY_KEY_VALUE_LIST");
+        definedContextValueList.push("COPY_ENTRIES");
       }
       let undefinedTooltip = "";
       let undefinedDescription = String(this.undefinedEntriesInCurrentFile.length);
@@ -492,7 +493,7 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
           label: t("tree.currentFile.undefined"),
           contextValue: undefinedContextValueList.join(","),
           data: this.undefinedEntriesInCurrentFile.map(item => item.nameInfo.text),
-          meta: { scope: vscode.window.activeTextEditor?.document.uri.fsPath ?? "" },
+          meta: { file: vscode.window.activeTextEditor?.document.uri.fsPath ?? "" },
           tooltip: undefinedTooltip,
           description: undefinedDescription,
           collapsibleState: vscode.TreeItemCollapsibleState[this.undefinedEntriesInCurrentFile.length === 0 ? "None" : "Collapsed"],
@@ -510,7 +511,7 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
         const contextValueList = ["COPY_NAME"];
         let description = "";
         if (element.type === "defined") {
-          contextValueList.push("definedEntryInCurFile", "REWRITE_ENTRY");
+          contextValueList.push("definedEntryInCurFile", "COPY_ENTRIES", "REWRITE_ENTRY");
           description = entryInfo[this.displayLang] ?? "";
         } else {
           contextValueList.push("undefinedEntryInCurFile", "IGNORE_UNDEFINED");
@@ -535,7 +536,7 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
           collapsibleState: vscode.TreeItemCollapsibleState[element.type === "defined" ? "Collapsed" : "None"],
           level: 2,
           data: [entry.nameInfo.text],
-          meta: { scope: vscode.window.activeTextEditor?.document.uri.fsPath ?? "" },
+          meta: { file: vscode.window.activeTextEditor?.document.uri.fsPath ?? "" },
           contextValue: contextValueList.join(","),
           usedInfo:
             this[element.type === "defined" ? "usedEntryMap" : "undefinedEntryMap"][
@@ -551,7 +552,7 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
       return this.langInfo.langList
         .filter(lang => !this.publicCtx.ignoredLangs.includes(lang))
         .map(lang => {
-          const contextValueList = ["entryTranslationInCurFile", "EDIT_VALUE", "REWRITE_ENTRY"];
+          const contextValueList = ["entryTranslationInCurFile", "EDIT_VALUE", "REWRITE_ENTRY", "COPY_ENTRIES"];
           if (entryInfo[lang]) {
             contextValueList.push("COPY_VALUE");
           } else if (entryInfo[this.publicCtx.referredLang]) {
@@ -571,7 +572,7 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
             level: 3,
             key: key,
             data: [key],
-            meta: { scope: lang },
+            meta: { lang },
             contextValue: contextValueList.join(","),
             id: this.genId(element, lang),
             tooltip: getLangText(lang) || t("common.unknownLang")
@@ -592,7 +593,7 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
           root: element.root,
           tooltip,
           data,
-          meta: { scope: lang },
+          meta: { lang },
           id: this.genId(element, lang),
           contextValue: context,
           description: desc,
@@ -613,7 +614,7 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
       }));
     } else if (element.level === 2) {
       return (element.data as string[]).map(key => {
-        const contextValueList = ["syncInfoItem", "EDIT_VALUE", "REWRITE_ENTRY"];
+        const contextValueList = ["syncInfoItem", "EDIT_VALUE", "REWRITE_ENTRY", "COPY_ENTRIES"];
         if (element.type !== "lack") {
           contextValueList.push("GO_TO_DEFINITION");
         }
@@ -726,7 +727,7 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
     const res = (element.stack || []).reduce((acc, item) => acc[item] as LangTree, this.tree) as string | LangTree;
     if (typeof res === "string") {
       return Object.entries(this.dictionary[res].value).map(item => {
-        const contextValueList = ["dictionaryItem", "GO_TO_DEFINITION", "EDIT_VALUE", "REWRITE_ENTRY"];
+        const contextValueList = ["dictionaryItem", "GO_TO_DEFINITION", "EDIT_VALUE", "REWRITE_ENTRY", "COPY_ENTRIES"];
         if (item[1]) {
           contextValueList.push("COPY_VALUE");
         }
@@ -739,7 +740,7 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
           name: unescapeString(res),
           key: res,
           value: item[1],
-          meta: { scope: item[0] },
+          meta: { lang: item[0] },
           collapsibleState: vscode.TreeItemCollapsibleState.None
         };
       });

@@ -1064,13 +1064,18 @@
         }
       },
       {
-        "command": "i18nMage.copyKeyValue",
+        "command": "i18nMage.copyEntries",
         "category": "%extension.name%",
-        "title": "%command.copyKeyValue.title%",
+        "title": "%command.copyEntries.title%",
         "icon": {
           "light": "./images/copy-light.svg",
           "dark": "./images/copy-dark.svg"
         }
+      },
+      {
+        "command": "i18nMage.pasteEntries",
+        "category": "%extension.name%",
+        "title": "%command.pasteEntries.title%"
       },
       {
         "command": "i18nMage.goToReference",
@@ -1409,10 +1414,6 @@
           "group": "inline@1"
         },
         {
-          "command": "i18nMage.copyKeyValue",
-          "when": "viewItem =~ /COPY_KEY_VALUE_LIST/"
-        },
-        {
           "command": "i18nMage.goToReference",
           "when": "viewItem =~ /definedEntryInCurFile|undefinedEntryInCurFile/",
           "group": "inline@2"
@@ -1463,6 +1464,14 @@
           "group": "inline@5"
         },
         {
+          "command": "i18nMage.copyEntries",
+          "when": "viewItem =~ /COPY_ENTRIES/"
+        },
+        {
+          "command": "i18nMage.pasteEntries",
+          "when": "viewItem =~ /PASTE_ENTRIES/"
+        },
+        {
           "command": "i18nMage.rewriteEntry",
           "when": "viewItem =~ /REWRITE_ENTRY/"
         },
@@ -1479,7 +1488,7 @@
           "group": "2_i18n@1"
         },
         {
-          "command": "i18nMage.copyKeyValue",
+          "command": "i18nMage.copyEntries",
           "when": "i18nMage.hasDefinedEntriesInFile",
           "group": "2_i18n@2"
         },

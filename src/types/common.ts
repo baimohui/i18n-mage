@@ -122,10 +122,15 @@ export interface FixQuery {
   keyPatch?: Record<string, string>;
 }
 
-export type ModifyQuery = EditValueQuery | RenameKeyQuery;
+export type ModifyQuery = EditValueQuery | RewriteEntryQuery | RenameKeyQuery;
 
 export interface EditValueQuery {
-  type: "editValue" | "rewriteEntry";
+  type: "editValue";
+  data: { key: string; value: string; lang?: string }[];
+}
+
+export interface RewriteEntryQuery {
+  type: "rewriteEntry";
   key: string;
   value: string;
   lang?: string;

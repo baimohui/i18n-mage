@@ -10,7 +10,7 @@ export function registerEditValueCommand() {
   const mage = LangMage.getInstance();
   const disposable = vscode.commands.registerCommand(
     "i18nMage.editValue",
-    async (e?: { name: string; key: string; description: string; meta: { scope: string } }) => {
+    async (e?: { name: string; key: string; description: string; meta: { lang: string } }) => {
       let target: { name: string; key: string; value: string; lang: string } | undefined = undefined;
       const dictionary = mage.langDetail.dictionary;
       if (e === undefined) {
@@ -30,8 +30,8 @@ export function registerEditValueCommand() {
         target = {
           name: e.name,
           key: e.key,
-          value: dictionary?.[e.key]?.value?.[e.meta.scope] ?? "",
-          lang: e.meta.scope
+          value: dictionary?.[e.key]?.value?.[e.meta.lang] ?? "",
+          lang: e.meta.lang
         };
       }
       if (target === undefined) return;
@@ -42,7 +42,7 @@ export function registerEditValueCommand() {
         value: formatEscapeChar(value)
       });
       if (typeof newValue === "string" && newValue !== value && newValue.trim() !== "") {
-        mage.setOptions({ task: "modify", modifyQuery: { type: "editValue", ...target, value: unFormatEscapeChar(newValue) } });
+        mage.setOptions({ task: "modify", modifyQuery: { type: "editValue", data: [{ ...target, value: unFormatEscapeChar(newValue) }] } });
         const res = await mage.execute();
         if (res.success) {
           if (e) e.description = newValue;

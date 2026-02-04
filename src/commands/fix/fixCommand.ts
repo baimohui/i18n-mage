@@ -440,7 +440,7 @@ export function registerFixCommand(context: vscode.ExtensionContext) {
   });
   const fixUndefinedEntriesDisposable = vscode.commands.registerCommand(
     "i18nMage.fixUndefinedEntries",
-    async (query?: { data: string[]; meta?: { scope?: string } } | vscode.Uri) => {
+    async (query?: { data: string[]; meta?: { file?: string } } | vscode.Uri) => {
       const fixQuery = { entriesToGen: true, entriesToFill: false } as FixQuery;
       if (query instanceof vscode.Uri) {
         const fsPath = query.fsPath;
@@ -448,8 +448,8 @@ export function registerFixCommand(context: vscode.ExtensionContext) {
         fixQuery.genScope = [fsPath];
       } else if (query && Array.isArray(query.data)) {
         fixQuery.entriesToGen = query.data;
-        if (query.meta && typeof query.meta.scope === "string" && query.meta.scope.trim()) {
-          fixQuery.genScope = [query.meta.scope];
+        if (query.meta && typeof query.meta.file === "string" && query.meta.file.trim()) {
+          fixQuery.genScope = [query.meta.file];
         }
       }
       await fix(fixQuery);
@@ -457,12 +457,12 @@ export function registerFixCommand(context: vscode.ExtensionContext) {
   );
   const fillMissingTranslationsDisposable = vscode.commands.registerCommand(
     "i18nMage.fillMissingTranslations",
-    async (query?: { data: string[]; meta?: { scope?: string } }) => {
+    async (query?: { data: string[]; meta?: { lang?: string } }) => {
       const fixQuery = { entriesToGen: false, entriesToFill: true } as FixQuery;
       if (query && Array.isArray(query.data)) {
         fixQuery.entriesToFill = query.data;
-        if (query.meta && typeof query.meta.scope === "string" && query.meta.scope.trim()) {
-          fixQuery.fillScope = [query.meta.scope];
+        if (query.meta && typeof query.meta.lang === "string" && query.meta.lang.trim()) {
+          fixQuery.fillScope = [query.meta.lang];
         }
       }
       await fix(fixQuery);

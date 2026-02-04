@@ -30,7 +30,7 @@ export class CodeActionProvider implements vscode.CodeActionProvider {
         extractAction.command = {
           title: t("command.fix.extract"),
           command: "i18nMage.fixUndefinedEntries",
-          arguments: [{ data: [text], meta: { scope: document.uri.fsPath } }]
+          arguments: [{ data: [text], meta: { file: document.uri.fsPath } }]
         };
         extractAction.diagnostics = this.findDiagnosticsForRange(entryRange);
         extractAction.isPreferred = true; // VSCode 会优先显示
