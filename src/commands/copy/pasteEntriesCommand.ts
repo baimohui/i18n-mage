@@ -6,6 +6,7 @@ import LangMage from "@/core/LangMage";
 import { EditValueQuery } from "@/types";
 import { treeInstance } from "@/views/tree";
 import { getLangCode } from "@/utils/langKey";
+import { wrapWithProgress } from "@/utils/wrapWithProgress";
 
 export function registerPasteEntriesCommand() {
   const mage = LangMage.getInstance();
@@ -49,12 +50,16 @@ export function registerPasteEntriesCommand() {
           }
         });
         if (data.length > 0) {
-          await mage.execute({ task: "modify", modifyQuery: { type: "editValue", data } });
-          NotificationManager.showSuccess(
-            t("command.pasteEntries.success", skipExistedKeys ? entries.length - existedKeys.length : entries.length)
-          );
-          await mage.execute({ task: "check" });
-          treeInstance.refresh();
+          await wrapWithProgress({ title: t("command.rewrite.progress") }, async () => {
+            await mage.execute({ task: "modify", modifyQuery: { type: "editValue", data } });
+            await mage.execute({ task: "check" });
+            treeInstance.refresh();
+            setTimeout(() => {
+              NotificationManager.showSuccess(
+                t("command.pasteEntries.success", skipExistedKeys ? entries.length - existedKeys.length : entries.length)
+              );
+            }, 1000);
+          });
           return;
         }
       }

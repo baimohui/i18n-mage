@@ -39,8 +39,12 @@ export class HoverProvider implements vscode.HoverProvider {
 
           markdown.appendMarkdown(`**\`${entryName}\`**`);
           if (referenceCount > 0) {
-            const refArgs = encodeURIComponent(JSON.stringify({ key: entryName }));
-            markdown.appendMarkdown(` [🔗](command:i18nMage.findReferences?${refArgs}) ${t("hover.referenceCount", referenceCount)}\n\n`);
+            const copyNameArgs = encodeURIComponent(JSON.stringify({ label: entryName }));
+            markdown.appendMarkdown(` [📋](command:i18nMage.copyName?${copyNameArgs})`);
+            const copyEntryArgs = encodeURIComponent(JSON.stringify({ key }));
+            markdown.appendMarkdown(`[📦](command:i18nMage.copyEntries?${copyEntryArgs})`);
+            const refArgs = encodeURIComponent(JSON.stringify({ key }));
+            markdown.appendMarkdown(`[🔗${referenceCount}](command:i18nMage.findReferences?${refArgs})`);
           }
           markdown.appendMarkdown("\n\n");
 
@@ -50,7 +54,9 @@ export class HoverProvider implements vscode.HoverProvider {
             const rewriteArgs = encodeURIComponent(JSON.stringify({ name: entryName, key, value: value, meta: { lang } }));
 
             const isReferenceLang = lang === referredLang;
-            const langLabel = isReferenceLang ? `**${escapeMarkdown(lang)}** (${t("hover.referenceLanguage")})` : escapeMarkdown(lang);
+            const langLabel = isReferenceLang
+              ? `**${escapeMarkdown(lang)}** (${t("hover.referenceLanguage")})`
+              : `**${escapeMarkdown(lang)}**`;
             const goToDefBtn = `[📍](command:i18nMage.goToDefinition?${args})`;
             const copyBtn = value ? `[📋](command:i18nMage.copyValue?${args})` : "";
             const editBtn = `[✏️](command:i18nMage.editValue?${args})`;
