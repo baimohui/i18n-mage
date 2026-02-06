@@ -182,7 +182,7 @@
   "command.fixUndefinedEntries.title": "提取未定义文案",
   "command.fillMissingTranslations.title": "填充缺失翻译",
   "command.browseTranslationsInFile.title": "浏览文件翻译",
-  "command.rewriteEntry.title": "重写词条",
+  "command.rewriteEntry.title": "重写词条值",
   "command.searchEntry.title": "搜索",
   "command.searchEntry.placeHolder": "输入搜索关键词",
   "command.searchEntry.prompt": "在所有语言中搜索词条",

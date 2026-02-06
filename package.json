@@ -1068,8 +1068,8 @@
         "category": "%extension.name%",
         "title": "%command.copyEntries.title%",
         "icon": {
-          "light": "./images/copy-light.svg",
-          "dark": "./images/copy-dark.svg"
+          "light": "./images/pack-light.svg",
+          "dark": "./images/pack-dark.svg"
         }
       },
       {
@@ -1418,6 +1418,16 @@
           "group": "inline@1"
         },
         {
+          "command": "i18nMage.copyValue",
+          "when": "viewItem =~ /COPY_VALUE/",
+          "group": "inline@1"
+        },
+        {
+          "command": "i18nMage.copyEntries",
+          "when": "viewItem =~ /COPY_ENTRIES/",
+          "group": "inline@2"
+        },
+        {
           "command": "i18nMage.goToReference",
           "when": "viewItem =~ /definedEntryInCurFile|undefinedEntryInCurFile/",
           "group": "inline@2"
@@ -1428,63 +1438,54 @@
           "group": "inline@2"
         },
         {
-          "command": "i18nMage.copyValue",
-          "when": "viewItem =~ /COPY_VALUE/",
-          "group": "inline@1"
-        },
-        {
           "command": "i18nMage.editValue",
           "when": "viewItem =~ /EDIT_VALUE/",
-          "group": "inline@3"
+          "group": "op@1"
+        },
+        {
+          "command": "i18nMage.rewriteEntry",
+          "when": "viewItem =~ /REWRITE_ENTRY/",
+          "group": "op@2"
         },
         {
           "command": "i18nMage.markAsUsed",
           "when": "viewItem == unusedGroupHeader || viewItem =~ /unusedGroupItem/",
-          "group": "inline@2"
-        },
-        {
-          "command": "i18nMage.deleteUnused",
-          "when": "viewItem == unusedGroupHeader || viewItem =~ /unusedGroupItem/",
-          "group": "inline@3"
+          "group": "handleUnused@1"
         },
         {
           "command": "i18nMage.unmarkAsUsed",
           "when": "viewItem == usedGroupItem-None",
-          "group": "inline@1"
+          "group": "handleUnused@1"
+        },
+        {
+          "command": "i18nMage.deleteUnused",
+          "when": "viewItem == unusedGroupHeader || viewItem =~ /unusedGroupItem/",
+          "group": "handleUnused@2"
         },
         {
           "command": "i18nMage.ignoreUndefined",
           "when": "viewItem == undefinedGroupHeader || viewItem =~ /IGNORE_UNDEFINED/",
-          "group": "inline@3"
+          "group": "handleUndefined@1"
         },
         {
           "command": "i18nMage.fixUndefinedEntries",
           "when": "viewItem =~ /GEN_KEY/",
-          "group": "inline@5"
+          "group": "handleUndefined@2"
         },
         {
           "command": "i18nMage.fillMissingTranslations",
           "when": "viewItem =~ /FILL_VALUE/",
-          "group": "inline@5"
-        },
-        {
-          "command": "i18nMage.copyEntries",
-          "when": "viewItem =~ /COPY_ENTRIES/",
-          "group": "inline@1"
+          "group": "handleMissing@1"
         },
         {
           "command": "i18nMage.pasteEntries",
           "when": "viewItem =~ /PASTE_ENTRIES/",
-          "group": "inline@1"
-        },
-        {
-          "command": "i18nMage.rewriteEntry",
-          "when": "viewItem =~ /REWRITE_ENTRY/"
+          "group": "op@1"
         },
         {
           "command": "i18nMage.addLanguage",
           "when": "viewItem == checkSync",
-          "group": "inline@1"
+          "group": "op@1"
         }
       ],
       "editor/context": [
