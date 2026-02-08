@@ -1,6 +1,6 @@
 import fs from "fs";
 import path from "path";
-import { LangContextInternal, EntryTree, FileExtraInfo, INDENT_TYPE, LANGUAGE_STRUCTURE } from "@/types";
+import { LangContextInternal, EntryTree, FileExtraInfo, INDENT_TYPE, LANGUAGE_STRUCTURE, NAMESPACE_STRATEGY } from "@/types";
 import {
   getFileLocationFromId,
   getContentAtLocation,
@@ -27,20 +27,35 @@ export class RewriteHandler {
         for (const lang in payload.valueChanges) {
           this.ctx.langCountryMap[lang] ??= {};
           updateInfo[lang] ??= new Set<string>();
-          const key = payload.key;
           const value = payload.valueChanges[lang].after ?? "";
           switch (payload.type) {
             case "add":
             case "fill":
             case "edit":
               if (value) {
-                if (Object.hasOwn(this.ctx.langDictionary, key)) {
-                  this.ctx.langDictionary[key].value[lang] = value;
+                if (Object.hasOwn(this.ctx.langDictionary, payload.key)) {
+                  this.ctx.langDictionary[payload.key].value[lang] = value;
                 } else {
-                  this.ctx.langDictionary[key] = { fullPath: "", fileScope: "", value: { [lang]: value } };
+                  let fullPath = payload.key;
+                  let fileScope = "";
+                  if (this.ctx.fileStructure) {
+                    const filePos = getFileLocationFromId(fullPath, this.ctx.fileStructure);
+                    if (Array.isArray(filePos) && filePos.length > 0) {
+                      fileScope = filePos.join(".");
+                    } else {
+                      fullPath = `${this.ctx.missingEntryFile}.${payload.key}`;
+                      fileScope = this.ctx.missingEntryFile;
+                    }
+                    if (this.ctx.namespaceStrategy === NAMESPACE_STRATEGY.full) {
+                      payload.key = fullPath;
+                    } else if (this.ctx.namespaceStrategy === NAMESPACE_STRATEGY.file) {
+                      payload.key = `${this.ctx.missingEntryFile.replace(/^.*\./, "")}.${payload.key}`;
+                    }
+                  }
+                  this.ctx.langDictionary[payload.key] = { fullPath, fileScope, value: { [lang]: value } };
                 }
-                this.ctx.langCountryMap[lang][key] = value;
-                setValueByEscapedEntryName(this.ctx.entryTree, key, key);
+                this.ctx.langCountryMap[lang][payload.key] = value;
+                setValueByEscapedEntryName(this.ctx.entryTree, payload.key, payload.key);
               }
               break;
             case "delete":
@@ -49,7 +64,6 @@ export class RewriteHandler {
               setValueByEscapedEntryName(this.ctx.entryTree, payload.key, undefined);
               break;
           }
-          if (!this.ctx.fileStructure) continue;
           const filePos = getFileLocationFromId(this.ctx.langDictionary[payload.key].fullPath, this.ctx.fileStructure);
           if (Array.isArray(filePos) && filePos.length > 0) updateInfo[lang].add(filePos.join("."));
         }

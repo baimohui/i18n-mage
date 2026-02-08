@@ -76,5 +76,5 @@ export function registerAllCommands(context: vscode.ExtensionContext) {
   registerCancelSearchCommand();
   registerToggleWholeWordMatchCommand();
   registerToggleCaseSensitiveCommand();
-  registerPasteEntriesCommand();
+  registerPasteEntriesCommand(context);
 }

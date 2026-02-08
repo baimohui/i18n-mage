@@ -14,7 +14,6 @@ import { getLangCode, getLangText } from "@/utils/langKey";
 import {
   LangContextPublic,
   TEntry,
-  LangTree,
   EntryTree,
   SORT_MODE,
   I18N_FRAMEWORK,
@@ -292,7 +291,7 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
           vscode.commands.executeCommand(
             "setContext",
             "i18nMage.allowSort",
-            this.langInfo.multiFileMode !== 0 && this.langInfo.languageStructure === LANGUAGE_STRUCTURE.flat && sortMode !== SORT_MODE.None
+            this.langInfo.multiFileMode === 0 && this.langInfo.languageStructure === LANGUAGE_STRUCTURE.flat && sortMode !== SORT_MODE.None
           );
           this.publicCtx = this.#mage.getPublicContext();
           const langPath = toRelativePath(this.publicCtx.langPath);
@@ -727,15 +726,13 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
 
   private getDictionaryChildren(element: ExtendedTreeItem): ExtendedTreeItem[] {
     const dictionaryTree = this.isSearching ? this.getFilteredDictionaryTreeNode(this.tree) : this.tree;
-    if (!dictionaryTree) return [];
-    const res = (element.stack || []).reduce((acc, item) => (acc as EntryTree)[item] as EntryTree, dictionaryTree) as
-      | string
-      | EntryTree;
+    if (dictionaryTree === null) return [];
+    const res = (element.stack || []).reduce((acc, item) => (acc as EntryTree)[item] as EntryTree, dictionaryTree);
     if (typeof res === "string") {
       return Object.entries(this.dictionary[res].value).map(item => {
-        const contextValueList = ["dictionaryItem", "GO_TO_DEFINITION", "EDIT_VALUE", "REWRITE_ENTRY", "COPY_ENTRIES"];
+        const contextValueList = ["dictionaryItem", "GO_TO_DEFINITION", "EDIT_VALUE", "REWRITE_ENTRY"];
         if (item[1]) {
-          contextValueList.push("COPY_VALUE");
+          contextValueList.push("COPY_VALUE", "COPY_ENTRIES");
         }
         return {
           label: internalToDisplayName(item[0]),
@@ -761,11 +758,15 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
         })
         .map(item => {
           const stack = (element.stack || []).concat(item[0]);
+          const key = typeof item[1] === "string" ? item[1] : undefined;
+          const contextValueList = ["COPY_ENTRIES"];
           return {
             label: internalToDisplayName(item[0]),
-            description: typeof item[1] === "string" ? this.dictionary[item[1]].value[this.displayLang] : false,
+            description: key !== undefined ? this.dictionary[key].value[this.displayLang] : false,
             root: element.root,
             id: this.genId(element, item[0]),
+            contextValue: contextValueList.join(","),
+            key,
             stack,
             tooltip: stack.join("."),
             collapsibleState: vscode.TreeItemCollapsibleState.Collapsed
@@ -791,7 +792,7 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
   }
 
   private countDictionaryLeaves(node: string | EntryTree | string[] | null): number {
-    if (!node) return 0;
+    if (node === null) return 0;
     if (typeof node === "string") return 1;
     if (Array.isArray(node)) return 0;
     return Object.values(node).reduce((acc, value) => acc + this.countDictionaryLeaves(value), 0);
@@ -1009,7 +1010,7 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
       const usedNum = Object.values(this.usedEntryMap[name]).reduce((acc, cur) => acc + cur.size, 0);
       const entryInfo = this.dictionary[key];
       description = `<${usedNum || "?"}>${entryInfo.value[this.displayLang]}`;
-      contextValueList.push(usedNum === 0 ? "usedGroupItem-None" : "usedGroupItem");
+      contextValueList.push(usedNum === 0 ? "usedGroupItem-None" : "usedGroupItem", "COPY_ENTRIES");
       collapsibleState = usedNum === 0 ? vscode.TreeItemCollapsibleState.None : vscode.TreeItemCollapsibleState.Collapsed;
 
       return {
@@ -1026,7 +1027,7 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
       };
     } else {
       const entryInfo = this.dictionary[key];
-      contextValueList.push("unusedGroupItem", "COPY_NAME");
+      contextValueList.push("unusedGroupItem", "COPY_NAME", "COPY_ENTRIES");
       description = entryInfo.value[this.displayLang];
 
       return {
@@ -1034,6 +1035,7 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
         description,
         level: 2,
         root,
+        key,
         data: [key],
         contextValue: contextValueList.join(","),
         id: this.genId(element, key),

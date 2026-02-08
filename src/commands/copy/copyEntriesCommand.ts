@@ -10,7 +10,7 @@ export function registerCopyEntriesCommand() {
   const mage = LangMage.getInstance();
   const disposable = vscode.commands.registerCommand(
     "i18nMage.copyEntries",
-    async (e: vscode.Uri | { key: string; meta?: { lang?: string } } | undefined) => {
+    async (e: vscode.Uri | { key?: string; meta?: { lang?: string }; stack?: string[] } | undefined) => {
       const { dictionary, tree } = mage.langDetail;
       let target: Record<string, Record<string, string>> | null = null;
       if (e === undefined) {
@@ -37,6 +37,13 @@ export function registerCopyEntriesCommand() {
             [key]: dictionary[key].value
           };
         }
+      } else if (!(e instanceof vscode.Uri) && typeof e === "object" && e.stack !== undefined) {
+        const keyPrefix = e.stack.join(".");
+        target = Object.fromEntries(
+          Object.entries(dictionary)
+            .filter(([key]) => key.startsWith(keyPrefix))
+            .map(([key, value]) => [key, value.value])
+        );
       } else {
         target = treeInstance.definedEntriesInCurrentFile.reduce(
           (acc, item) => {

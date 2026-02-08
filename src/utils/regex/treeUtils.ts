@@ -112,7 +112,8 @@ export function getParentKeys(obj: Record<string, any>, nameSeparator = ".", par
   return keys;
 }
 
-export function getFileLocationFromId(id: string, fileStructure: EntryNode): string[] | null {
+export function getFileLocationFromId(id: string, fileStructure: EntryNode | null): string[] | null {
+  if (!fileStructure) return null;
   const segments = getPathSegsFromId(id);
   const pathSegs: string[] = [];
   let node: EntryNode = fileStructure;

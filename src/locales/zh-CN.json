@@ -40,6 +40,7 @@
   "command.fix.progress": "修复中",
   "command.fix.progressDetail": "对 {0} 调用 {1} API，新增翻译：{2}",
   "command.fix.selectAction": "请选择对这些非源语言文案的操作：{0}",
+  "command.fix.selectFileToPaste": "选择词条的粘贴位置",
   "command.fix.selectFileToWrite": "选择新提取词条的存储位置",
   "command.fix.selectInvalidUndefinedKeys": "存在如下非源语言的未定义 key，请选择 key 以进行下一步操作",
   "command.fix.selectKeyToWrite": "选择写入键的类别",
