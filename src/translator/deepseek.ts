@@ -7,9 +7,11 @@ const baseUrl = "https://api.deepseek.com/v1/chat/completions";
 
 let deepseekApiKey = "";
 
-export default async function translateTo({ source, target, sourceTextList, apiKey }: TranslateParams): Promise<TranslateResult> {
+export default async function translateTo({ source, target, sourceTextList, apiKey, customPrompt = "" }: TranslateParams): Promise<TranslateResult> {
   deepseekApiKey = apiKey;
-  return batchTranslate(source, target, sourceTextList, { maxLen: 2000, batchSize: 10, interval: 1100 }, send);
+  return batchTranslate(source, target, sourceTextList, { maxLen: 2000, batchSize: 10, interval: 1100 }, (sourceCode, targetCode, sourceList) =>
+    send(sourceCode, targetCode, sourceList, customPrompt)
+  );
 }
 
 interface DeepSeekAPIResponse {
@@ -32,14 +34,15 @@ interface DeepSeekAPIResponse {
   };
 }
 
-async function send(source: string, target: string, sourceTextList: string[]): Promise<TranslateResult> {
+async function send(source: string, target: string, sourceTextList: string[], customPrompt = ""): Promise<TranslateResult> {
   try {
     const SEP = "[[[SEP]]]";
     const sourceText = sourceTextList.join(SEP);
+    const prompt = customPrompt.trim();
     const messages = [
       {
         role: "system",
-        content: `你是专业翻译助手，请直接翻译用户提供的文本，${sourceTextList.length > 1 ? "保持分隔符 " + SEP + " 不变，" : ""}不要输出任何额外内容。`
+        content: `你是专业翻译助手，请直接翻译用户提供的文本，${sourceTextList.length > 1 ? "保持分隔符 " + SEP + " 不变，" : ""}不要输出任何额外内容。${prompt ? "\n" + prompt : ""}`
       },
       {
         role: "user",

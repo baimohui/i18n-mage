@@ -293,6 +293,10 @@ Set the ChatGPT API key.
 
 Set the DeepSeek API key.
 
+#### `i18n-mage.translationServices.aiCustomPrompt`
+
+Set a custom instruction prompt appended to AI translation requests (applies to ChatGPT and DeepSeek). Use this to provide domain terminology or style constraints before translation.
+
 #### `i18n-mage.translationServices.baiduAppId`
 
 Set the Baidu Translate Open Platform developer app ID.

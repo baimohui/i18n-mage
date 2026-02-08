@@ -7,9 +7,11 @@ const baseUrl = "https://api.openai.com/v1/chat/completions";
 
 let openaiApiKey = "";
 
-export default async function translateTo({ source, target, sourceTextList, apiKey }: TranslateParams): Promise<TranslateResult> {
+export default async function translateTo({ source, target, sourceTextList, apiKey, customPrompt = "" }: TranslateParams): Promise<TranslateResult> {
   openaiApiKey = apiKey;
-  return batchTranslate(source, target, sourceTextList, { maxLen: 4000, batchSize: 20, interval: 800 }, send);
+  return batchTranslate(source, target, sourceTextList, { maxLen: 4000, batchSize: 20, interval: 800 }, (sourceCode, targetCode, sourceList) =>
+    send(sourceCode, targetCode, sourceList, customPrompt)
+  );
 }
 
 interface OpenAIAPIResponse {
@@ -32,16 +34,17 @@ interface OpenAIAPIResponse {
   };
 }
 
-async function send(source: string, target: string, sourceTextList: string[]): Promise<TranslateResult> {
+async function send(source: string, target: string, sourceTextList: string[], customPrompt = ""): Promise<TranslateResult> {
   try {
     const SEP = "[[[SEP]]]";
     const sourceText = sourceTextList.join(SEP);
+    const prompt = customPrompt.trim();
     const messages = [
       {
         role: "system",
         content: `You are a professional translation assistant. Translate the given text accurately from ${source} to ${target}. ${
           sourceTextList.length > 1 ? "Keep the separator " + SEP + " unchanged, and do not add or remove it." : ""
-        } Do not add any explanations or extra output.`
+        } Do not add any explanations or extra output.${prompt ? "\n" + prompt : ""}`
       },
       {
         role: "user",

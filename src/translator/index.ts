@@ -43,6 +43,7 @@ export default async function translateTo(data: TranslateData, startIndex = 0): 
   const youdaoAppId = getCacheConfig<string>("translationServices.youdaoAppId");
   const youdaoAppKey = getCacheConfig<string>("translationServices.youdaoAppKey");
   const translateApiPriority = getCacheConfig<string[]>("translationServices.translateApiPriority");
+  const aiCustomPrompt = getCacheConfig<string>("translationServices.aiCustomPrompt");
 
   const apiMap: ApiMap = {
     google: googleApiKey ? ["none", googleApiKey] : [],
@@ -109,7 +110,8 @@ export default async function translateTo(data: TranslateData, startIndex = 0): 
     target: targetLangCode,
     sourceTextList,
     apiId: apiMap[availableApi][0] ?? "",
-    apiKey: apiMap[availableApi][1] ?? ""
+    apiKey: apiMap[availableApi][1] ?? "",
+    customPrompt: aiCustomPrompt
   };
 
   const res = await doTranslate(availableApi, params);
