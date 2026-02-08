@@ -15,6 +15,7 @@ import {
   LangContextPublic,
   TEntry,
   LangTree,
+  EntryTree,
   SORT_MODE,
   I18N_FRAMEWORK,
   UNMATCHED_LANGUAGE_ACTION,
@@ -435,18 +436,19 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
       description: this.getUsagePercent()
     });
 
-    if (!this.isSearching) {
-      rootSections.push({
-        level: 0,
-        label: t("tree.dictionary.title"),
-        id: "DICTIONARY",
-        root: "DICTIONARY",
-        contextValue: "PASTE_ENTRIES",
-        iconPath: new vscode.ThemeIcon("notebook"),
-        collapsibleState: vscode.TreeItemCollapsibleState.Collapsed,
-        description: String(Object.keys(this.langInfo.dictionary).length)
-      });
-    }
+    const dictionaryCount = this.isSearching
+      ? this.countDictionaryLeaves(this.getFilteredDictionaryTreeNode(this.tree))
+      : Object.keys(this.langInfo.dictionary).length;
+    rootSections.push({
+      level: 0,
+      label: t("tree.dictionary.title"),
+      id: "DICTIONARY",
+      root: "DICTIONARY",
+      contextValue: "PASTE_ENTRIES",
+      iconPath: new vscode.ThemeIcon("notebook"),
+      collapsibleState: vscode.TreeItemCollapsibleState.Collapsed,
+      description: String(dictionaryCount)
+    });
 
     return rootSections;
   }
@@ -724,7 +726,11 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
   }
 
   private getDictionaryChildren(element: ExtendedTreeItem): ExtendedTreeItem[] {
-    const res = (element.stack || []).reduce((acc, item) => acc[item] as LangTree, this.tree) as string | LangTree;
+    const dictionaryTree = this.isSearching ? this.getFilteredDictionaryTreeNode(this.tree) : this.tree;
+    if (!dictionaryTree) return [];
+    const res = (element.stack || []).reduce((acc, item) => (acc as EntryTree)[item] as EntryTree, dictionaryTree) as
+      | string
+      | EntryTree;
     if (typeof res === "string") {
       return Object.entries(this.dictionary[res].value).map(item => {
         const contextValueList = ["dictionaryItem", "GO_TO_DEFINITION", "EDIT_VALUE", "REWRITE_ENTRY", "COPY_ENTRIES"];
@@ -766,6 +772,29 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
           };
         });
     }
+  }
+
+  private getFilteredDictionaryTreeNode(node: string | EntryTree | string[]): string | EntryTree | null {
+    if (typeof node === "string") {
+      return this.matchesSearch(node) ? node : null;
+    }
+    if (Array.isArray(node)) {
+      return null;
+    }
+    const filteredEntries = Object.entries(node)
+      .map(([key, value]) => [key, this.getFilteredDictionaryTreeNode(value)] as const)
+      .filter(([, value]) => value !== null);
+    if (filteredEntries.length === 0) {
+      return null;
+    }
+    return Object.fromEntries(filteredEntries) as EntryTree;
+  }
+
+  private countDictionaryLeaves(node: string | EntryTree | string[] | null): number {
+    if (!node) return 0;
+    if (typeof node === "string") return 1;
+    if (Array.isArray(node)) return 0;
+    return Object.values(node).reduce((acc, value) => acc + this.countDictionaryLeaves(value), 0);
   }
 
   private matchesSearch(key: string) {
