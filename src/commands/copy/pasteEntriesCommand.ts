@@ -3,7 +3,7 @@ import { registerDisposable } from "@/utils/dispose";
 import { t } from "@/utils/i18n";
 import { NotificationManager } from "@/utils/notification";
 import LangMage from "@/core/LangMage";
-import { EditValueQuery, LANGUAGE_STRUCTURE } from "@/types";
+import { EditValueQuery, LANGUAGE_STRUCTURE, NAMESPACE_STRATEGY } from "@/types";
 import { treeInstance } from "@/views/tree";
 import { getLangCode } from "@/utils/langKey";
 import { wrapWithProgress } from "@/utils/wrapWithProgress";
@@ -29,7 +29,7 @@ export function registerPasteEntriesCommand(context: vscode.ExtensionContext) {
       const entries = Object.entries(target).map(([key, translation]) => {
         if (languageStructure === LANGUAGE_STRUCTURE.flat) {
           key = key.replace(/(?<!\\)\./g, "\\.");
-        } else if (allowDotInNestedKey) {
+        } else if (!allowDotInNestedKey) {
           key = key.replace(/\\\./g, ".");
         }
         return [key, translation] as [string, Record<string, string>];
@@ -38,7 +38,13 @@ export function registerPasteEntriesCommand(context: vscode.ExtensionContext) {
       if (entries.length > 0) {
         let missingEntryFile: string | undefined = undefined;
         if (avgFileNestedLevel && publicCtx.fileStructure) {
-          const isFilePosUnsure = entries.some(([key, _]) => getFileLocationFromId(key, publicCtx.fileStructure) === null);
+          const countUnescapedDots = (str: string) => (str.match(/(?<!\\)\./g) || []).length;
+          const minFileNestedLevel = Math.floor(avgFileNestedLevel);
+          const isFilePosUnsure = entries.some(
+            ([key, _]) =>
+              (getFileLocationFromId(key, publicCtx.fileStructure) === null && countUnescapedDots(key) < minFileNestedLevel) ||
+              publicCtx.namespaceStrategy === NAMESPACE_STRATEGY.none
+          );
           if (isFilePosUnsure) {
             const commonFiles = getCommonFilePaths(publicCtx.fileStructure);
             if (commonFiles.length > 1) {

@@ -1,6 +1,6 @@
 import fs from "fs";
 import path from "path";
-import { LangContextInternal, EntryTree, FileExtraInfo, INDENT_TYPE, LANGUAGE_STRUCTURE, NAMESPACE_STRATEGY } from "@/types";
+import { LangContextInternal, EntryTree, FileExtraInfo, INDENT_TYPE, LANGUAGE_STRUCTURE, NAMESPACE_STRATEGY, DirNode } from "@/types";
 import {
   getFileLocationFromId,
   getContentAtLocation,
@@ -40,16 +40,21 @@ export class RewriteHandler {
                   let fileScope = "";
                   if (this.ctx.fileStructure) {
                     const filePos = getFileLocationFromId(fullPath, this.ctx.fileStructure);
+                    const keySegments = payload.key.split(/(?<!\\)\./);
+                    const minFileNestedLevel = Math.floor(this.ctx.avgFileNestedLevel);
                     if (Array.isArray(filePos) && filePos.length > 0) {
                       fileScope = filePos.join(".");
+                    } else if (this.ctx.namespaceStrategy !== NAMESPACE_STRATEGY.none && keySegments.length - 1 >= minFileNestedLevel) {
+                      fileScope = keySegments.slice(0, minFileNestedLevel).join(".");
+                      this.ensureFileScopeInStructure(fileScope);
                     } else {
                       fullPath = `${this.ctx.missingEntryFile}.${payload.key}`;
                       fileScope = this.ctx.missingEntryFile;
-                    }
-                    if (this.ctx.namespaceStrategy === NAMESPACE_STRATEGY.full) {
-                      payload.key = fullPath;
-                    } else if (this.ctx.namespaceStrategy === NAMESPACE_STRATEGY.file) {
-                      payload.key = `${this.ctx.missingEntryFile.replace(/^.*\./, "")}.${payload.key}`;
+                      if (this.ctx.namespaceStrategy === NAMESPACE_STRATEGY.full) {
+                        payload.key = fullPath;
+                      } else if (this.ctx.namespaceStrategy === NAMESPACE_STRATEGY.file) {
+                        payload.key = `${this.ctx.missingEntryFile.replace(/^.*\./, "")}.${payload.key}`;
+                      }
                     }
                   }
                   this.ctx.langDictionary[payload.key] = { fullPath, fileScope, value: { [lang]: value } };
@@ -199,6 +204,32 @@ export class RewriteHandler {
       // 类似： /…/langPath/zh-CN/demos/textA + ".json"
       const withoutExt = path.join(this.ctx.langPath, lang, ...pathSegs);
       return withoutExt + `.${this.ctx.langFileType}`;
+    }
+  }
+
+  private ensureFileScopeInStructure(fileScope: string): void {
+    if (!this.ctx.fileStructure || !fileScope) return;
+    const pathSegs = getPathSegsFromId(fileScope);
+    if (pathSegs.length === 0) return;
+    let node: DirNode = this.ctx.fileStructure;
+    for (let i = 0; i < pathSegs.length; i++) {
+      const seg = pathSegs[i];
+      const isLast = i === pathSegs.length - 1;
+      const existing = node.children[seg];
+      if (existing === undefined) {
+        node.children[seg] = isLast ? { type: "file", ext: this.ctx.langFileType || "json" } : { type: "directory", children: {} };
+      } else if (isLast) {
+        if (existing.type !== "file") {
+          node.children[seg] = { type: "file", ext: this.ctx.langFileType || "json" };
+        } else if (!existing.ext && this.ctx.langFileType) {
+          existing.ext = this.ctx.langFileType;
+        }
+      } else if (existing.type !== "directory") {
+        node.children[seg] = { type: "directory", children: {} };
+      }
+      if (!isLast) {
+        node = node.children[seg] as DirNode;
+      }
     }
   }
 

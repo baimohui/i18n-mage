@@ -199,5 +199,5 @@
   "command.toggleWholeWordMatch.title": "全词匹配",
   "command.toggleCaseSensitive.title": "区分大小写",
   "command.pasteEntries.title": "粘贴词条",
-  "config.aiCustomPrompt.desc": "AI 翻译时附加的自定义提示词（适用于 ChatGPT/DeepSeek）"
+  "config.aiCustomPrompt.desc": "AI 翻译时附加的自定义提示词"
 }
