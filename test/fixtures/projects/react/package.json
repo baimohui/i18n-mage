@@ -1,0 +1,6 @@
+{
+  "name": "proj-react",
+  "dependencies": {
+    "react-i18next": "^13.0.0"
+  }
+}

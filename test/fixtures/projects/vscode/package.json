@@ -1,0 +1,6 @@
+{
+  "name": "proj-vscode",
+  "engines": {
+    "vscode": "^1.89.0"
+  }
+}

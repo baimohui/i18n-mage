@@ -7,10 +7,20 @@ const baseUrl = "https://api.deepseek.com/v1/chat/completions";
 
 let deepseekApiKey = "";
 
-export default async function translateTo({ source, target, sourceTextList, apiKey, customPrompt = "" }: TranslateParams): Promise<TranslateResult> {
+export default async function translateTo({
+  source,
+  target,
+  sourceTextList,
+  apiKey,
+  customPrompt = ""
+}: TranslateParams): Promise<TranslateResult> {
   deepseekApiKey = apiKey;
-  return batchTranslate(source, target, sourceTextList, { maxLen: 2000, batchSize: 10, interval: 1100 }, (sourceCode, targetCode, sourceList) =>
-    send(sourceCode, targetCode, sourceList, customPrompt)
+  return batchTranslate(
+    source,
+    target,
+    sourceTextList,
+    { maxLen: 2000, batchSize: 10, interval: 1100 },
+    (sourceCode, targetCode, sourceList) => send(sourceCode, targetCode, sourceList, customPrompt)
   );
 }
 

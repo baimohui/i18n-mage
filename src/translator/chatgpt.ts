@@ -7,10 +7,20 @@ const baseUrl = "https://api.openai.com/v1/chat/completions";
 
 let openaiApiKey = "";
 
-export default async function translateTo({ source, target, sourceTextList, apiKey, customPrompt = "" }: TranslateParams): Promise<TranslateResult> {
+export default async function translateTo({
+  source,
+  target,
+  sourceTextList,
+  apiKey,
+  customPrompt = ""
+}: TranslateParams): Promise<TranslateResult> {
   openaiApiKey = apiKey;
-  return batchTranslate(source, target, sourceTextList, { maxLen: 4000, batchSize: 20, interval: 800 }, (sourceCode, targetCode, sourceList) =>
-    send(sourceCode, targetCode, sourceList, customPrompt)
+  return batchTranslate(
+    source,
+    target,
+    sourceTextList,
+    { maxLen: 4000, batchSize: 20, interval: 800 },
+    (sourceCode, targetCode, sourceList) => send(sourceCode, targetCode, sourceList, customPrompt)
   );
 }
 

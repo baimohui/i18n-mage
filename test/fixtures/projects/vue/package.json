@@ -1,0 +1,6 @@
+{
+  "name": "proj-vue",
+  "dependencies": {
+    "vue-i18n": "^9.0.0"
+  }
+}

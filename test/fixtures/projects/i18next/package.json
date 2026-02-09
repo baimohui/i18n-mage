@@ -1,0 +1,6 @@
+{
+  "name": "proj-i18next",
+  "dependencies": {
+    "i18next": "^23.0.0"
+  }
+}
