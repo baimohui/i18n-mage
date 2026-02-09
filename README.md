@@ -97,7 +97,8 @@
 
 ### 📋 Copy Translation Data
 
-* One-click copy of all keys/values on the current page.
+* One-click copy for a single entry or all entries on the current page.
+* Paste in another project's plugin sidebar dictionary (right-click → paste) to migrate all language translations for the copied entries.
 
 ![Copy Translation Data](https://raw.githubusercontent.com/baimohui/i18n-mage/refs/heads/main/doc-assets/copyCurrentPage.gif)
 
