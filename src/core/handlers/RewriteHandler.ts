@@ -97,7 +97,7 @@ export class RewriteHandler {
           }
         }
       }
-      if (rewriteAll && this.ctx.multiFileMode === 0 && this.ctx.languageStructure === LANGUAGE_STRUCTURE.flat) {
+      if (rewriteAll && this.ctx.avgFileNestedLevel === 0 && this.ctx.languageStructure === LANGUAGE_STRUCTURE.flat) {
         for (const lang of this.detectedLangList) {
           updateInfo[lang] ??= new Set<string>();
           updateInfo[lang].add("");
@@ -139,7 +139,7 @@ export class RewriteHandler {
         }
       }
     };
-    if (this.ctx.multiFileMode === 0 && this.ctx.languageStructure === LANGUAGE_STRUCTURE.flat) {
+    if (this.ctx.avgFileNestedLevel === 0 && this.ctx.languageStructure === LANGUAGE_STRUCTURE.flat) {
       langObj = translation;
     } else {
       const entryTree = getContentAtLocation(filePos, this.ctx.entryTree, this.ctx.langDictionary, this.ctx.namespaceStrategy);

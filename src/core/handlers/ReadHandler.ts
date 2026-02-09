@@ -39,8 +39,8 @@ export class ReadHandler {
     this.ctx.langFileExtraInfo = langData.fileExtraInfo;
     this.ctx.langFileType = langData.fileType;
     this.ctx.fileStructure = stripLanguageLayer(langData.fileStructure);
-    this.ctx.multiFileMode = langData.fileNestedLevel;
-    if (this.ctx.multiFileMode > 0) {
+    this.ctx.avgFileNestedLevel = langData.fileNestedLevel;
+    if (this.ctx.avgFileNestedLevel > 0) {
       const { treeData, keyMap } = this.processLanguageData(langTree, this.ctx.namespaceStrategy);
       langTree = treeData;
       keyPathMap = keyMap;

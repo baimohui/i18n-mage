@@ -52,7 +52,7 @@ export const createLangContext = (): LangContextInternal => ({
   usedKeySet: new Set<string>(),
   usedLiteralKeySet: new Set<string>(),
   unusedKeySet: new Set<string>(),
-  multiFileMode: 0,
+  avgFileNestedLevel: 0,
   langFileExtraInfo: {},
   isVacant: true,
   entryTree: {},

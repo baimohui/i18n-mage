@@ -8,7 +8,7 @@ export class SortHandler {
   public async run() {
     if (
       this.ctx.sortingWriteMode !== SORT_MODE.None &&
-      this.ctx.multiFileMode === 0 &&
+      this.ctx.avgFileNestedLevel === 0 &&
       this.ctx.languageStructure === LANGUAGE_STRUCTURE.flat
     ) {
       Object.keys(this.ctx.langCountryMap).forEach(lang => {

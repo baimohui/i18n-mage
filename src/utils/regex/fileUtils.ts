@@ -319,13 +319,15 @@ export interface ExtractResult {
   langTree: LangTree; // 语言数据树
   fileExtraInfo: Record<string, FileExtraInfo>;
   fileStructure: DirNode; // 带 type 标记的文件树
-  fileNestedLevel: number; // 文件树最大嵌套层级
+  fileNestedLevel: number; // 文件树平均嵌套层级（保留两位小数）
 }
 
 export function extractLangDataFromDir(langPath: string): ExtractResult | null {
   let validFileType = "";
   const fileExtraInfo: Record<string, FileExtraInfo> = {};
   let fileNestedLevel = 0;
+  let totalFileNestedLevel = 0;
+  let fileCount = 0;
 
   function traverse(
     dir: string,
@@ -348,7 +350,6 @@ export function extractLangDataFromDir(langPath: string): ExtractResult | null {
         if (ok) {
           tree[dirent.name] = subTree;
           node.children[dirent.name] = subNode;
-          fileNestedLevel = Math.max(fileNestedLevel, subPathSegs.length);
           hasData = true;
         }
       } else {
@@ -369,6 +370,9 @@ export function extractLangDataFromDir(langPath: string): ExtractResult | null {
         // 在结构树中标记为文件
         node.children[base] = { type: "file", ext };
         hasData = true;
+        // 统计文件嵌套层级（目录深度）
+        totalFileNestedLevel += pathSegs.length;
+        fileCount++;
         // 生成位置键：pathSegs + base
         const locationKey = [...pathSegs, base].join(".");
         fileExtraInfo[locationKey] = extraInfo;
@@ -379,6 +383,9 @@ export function extractLangDataFromDir(langPath: string): ExtractResult | null {
 
   const { tree: langTree, node: fileStructure, hasData } = traverse(langPath, []);
   if (!hasData) return null;
+  if (fileCount > 0) {
+    fileNestedLevel = Number((totalFileNestedLevel / fileCount).toFixed(2));
+  }
 
   return {
     fileType: validFileType,

@@ -291,7 +291,9 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
           vscode.commands.executeCommand(
             "setContext",
             "i18nMage.allowSort",
-            this.langInfo.multiFileMode === 0 && this.langInfo.languageStructure === LANGUAGE_STRUCTURE.flat && sortMode !== SORT_MODE.None
+            this.langInfo.avgFileNestedLevel === 0 &&
+              this.langInfo.languageStructure === LANGUAGE_STRUCTURE.flat &&
+              sortMode !== SORT_MODE.None
           );
           this.publicCtx = this.#mage.getPublicContext();
           const langPath = toRelativePath(this.publicCtx.langPath);
@@ -318,7 +320,10 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
                 NotificationManager.logToOutput(`Failed to set config for referenceLanguage: ${error}`, "error");
               });
             }
-            if (getCacheConfig("i18nFeatures.namespaceStrategy") !== this.publicCtx.namespaceStrategy && this.langInfo.multiFileMode > 0) {
+            if (
+              getCacheConfig("i18nFeatures.namespaceStrategy") !== this.publicCtx.namespaceStrategy &&
+              this.langInfo.avgFileNestedLevel > 0
+            ) {
               setConfig("i18nFeatures.namespaceStrategy", this.publicCtx.namespaceStrategy).catch(error => {
                 NotificationManager.logToOutput(`Failed to set config for namespaceStrategy: ${error}`, "error");
               });

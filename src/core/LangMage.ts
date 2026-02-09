@@ -195,7 +195,7 @@ class LangMage {
       usedKeySet: this.ctx.usedKeySet,
       usedLiteralKeySet: this.ctx.usedLiteralKeySet,
       unusedKeySet: this.ctx.unusedKeySet,
-      multiFileMode: this.ctx.multiFileMode,
+      avgFileNestedLevel: this.ctx.avgFileNestedLevel,
       languageStructure: this.ctx.languageStructure,
       tree: this.ctx.entryTree,
       classTree: this.ctx.entryClassTree,
@@ -217,9 +217,9 @@ class LangMage {
       const strategyList = [NAMESPACE_STRATEGY.full, NAMESPACE_STRATEGY.file, NAMESPACE_STRATEGY.none];
       for (const strategy of strategyList) {
         this.ctx.namespaceStrategy = strategy;
-        if (this.ctx.multiFileMode === 1 && strategy === NAMESPACE_STRATEGY.file) continue;
+        if (this.ctx.avgFileNestedLevel === 1 && strategy === NAMESPACE_STRATEGY.file) continue;
         detect();
-        if (this.ctx.multiFileMode === 0 || !this.ctx.globalFlag || this.ctx.usedKeySet.size > 0) {
+        if (this.ctx.avgFileNestedLevel === 0 || !this.ctx.globalFlag || this.ctx.usedKeySet.size > 0) {
           break;
         }
       }
@@ -262,7 +262,7 @@ class LangMage {
     this.ctx.langFileExtraInfo = {};
     this.ctx.usedKeySet = new Set();
     this.ctx.unusedKeySet = new Set();
-    this.ctx.multiFileMode = 0;
+    this.ctx.avgFileNestedLevel = 0;
     this.ctx.isVacant = true;
     this.ctx.entryTree = {};
     this.ctx.updatePayloads = [];

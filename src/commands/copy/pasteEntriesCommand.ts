@@ -20,7 +20,7 @@ export function registerPasteEntriesCommand(context: vscode.ExtensionContext) {
     );
   };
   const disposable = vscode.commands.registerCommand("i18nMage.pasteEntries", async () => {
-    const { dictionary, languageStructure, multiFileMode } = mage.langDetail;
+    const { dictionary, languageStructure, avgFileNestedLevel } = mage.langDetail;
     const publicCtx = mage.getPublicContext();
     const targetText = await vscode.env.clipboard.readText();
     try {
@@ -37,7 +37,7 @@ export function registerPasteEntriesCommand(context: vscode.ExtensionContext) {
       const data: EditValueQuery["data"] = [];
       if (entries.length > 0) {
         let missingEntryFile: string | undefined = undefined;
-        if (multiFileMode && publicCtx.fileStructure) {
+        if (avgFileNestedLevel && publicCtx.fileStructure) {
           const isFilePosUnsure = entries.some(([key, _]) => getFileLocationFromId(key, publicCtx.fileStructure) === null);
           if (isFilePosUnsure) {
             const commonFiles = getCommonFilePaths(publicCtx.fileStructure);

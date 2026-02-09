@@ -41,7 +41,7 @@ export function registerFixCommand(context: vscode.ExtensionContext) {
     await wrapWithProgress({ title: t("command.fix.progress"), cancellable: true, timeout: 1000 * 60 * 10 }, async (_, token) => {
       await mage.execute({ task: "check" });
       const publicCtx = mage.getPublicContext();
-      const { multiFileMode, nameSeparator, undefined: undefinedMap, classTree } = mage.langDetail;
+      const { avgFileNestedLevel, nameSeparator, undefined: undefinedMap, classTree } = mage.langDetail;
       // 修复未定义词条
       let undefinedKeys = Object.keys(undefinedMap).filter(key => {
         const { entriesToGen, genScope } = fixQuery;
@@ -158,7 +158,7 @@ export function registerFixCommand(context: vscode.ExtensionContext) {
         fixQuery.entriesToGen = undefinedKeys;
         const writeFlag = tasks.length > 1 || undefinedKeys.length > 0;
         let missingEntryFile: string | undefined = undefined;
-        if (writeFlag && multiFileMode && publicCtx.fileStructure) {
+        if (writeFlag && avgFileNestedLevel && publicCtx.fileStructure) {
           const commonFiles = getCommonFilePaths(publicCtx.fileStructure);
           if (commonFiles.length > 1) {
             NotificationManager.showProgress({ message: t("command.fix.waitForFileSelection"), increment: 0 });

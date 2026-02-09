@@ -49,7 +49,7 @@ export function registerOnConfigChange() {
               vscode.commands.executeCommand(
                 "setContext",
                 "i18nMage.allowSort",
-                mage.langDetail.multiFileMode === 0 &&
+                mage.langDetail.avgFileNestedLevel === 0 &&
                   mage.langDetail.languageStructure === LANGUAGE_STRUCTURE.flat &&
                   sortMode !== SORT_MODE.None
               );
