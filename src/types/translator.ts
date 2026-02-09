@@ -6,6 +6,7 @@ export interface TranslateParams {
   sourceTextList: string[];
   apiId: string;
   apiKey: string;
+  customPrompt?: string;
 }
 
 export interface TranslateResult {

@@ -435,6 +435,12 @@
               "https"
             ],
             "description": "%config.proxyProtocol.desc%"
+          },
+          "i18n-mage.translationServices.aiCustomPrompt": {
+            "order": 26,
+            "type": "string",
+            "default": "",
+            "description": "%config.aiCustomPrompt.desc%"
           }
         }
       },

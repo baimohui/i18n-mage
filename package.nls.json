@@ -198,5 +198,6 @@
   "command.addLanguage.title": "Add Language",
   "command.toggleWholeWordMatch.title": "Whole Word Match",
   "command.toggleCaseSensitive.title": "Case Sensitive",
-  "command.pasteEntries.title": "Paste Entries"
+  "command.pasteEntries.title": "Paste Entries",
+  "config.aiCustomPrompt.desc": "Custom instruction prepended to AI translation context (applies to ChatGPT/DeepSeek)"
 }
