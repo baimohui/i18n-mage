@@ -4,6 +4,18 @@ All notable changes to the i18n Mage VS Code extension will be documented in thi
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.4] - 2026-02-10
+
+### Added
+- **Cross-project Entry Migration**: Added copy-paste functionality for entry data, supporting seamless migration of individual or current page entries between projects via direct paste into dictionary modules.
+- **Smart Search Filtering**: Enhanced search functionality with dictionary module filtering support for more precise search results.
+- **AI Translation Customization**: New configuration allowing injection of custom domain terms or style instructions into AI translation workflows for specialized translation needs.
+
+### Improved
+- **Interface Operation Logic Restructuring**: Optimized sidebar plugin view layout by placing read-only commands as inline buttons and write-related commands in right-click context menus, improving operational clarity.
+- **Distraction-free Copy Experience**: Removed success notifications when copying entry names/values to reduce visual interruptions and maintain editing flow continuity.
+- **UI Element Display Fix**: Fixed sorting button display issues to ensure proper interface element presentation.
+
 ## [1.2.3] - 2026-02-02
 
 ### Added
