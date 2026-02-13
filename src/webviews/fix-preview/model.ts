@@ -10,8 +10,30 @@ function deepClonePayloads(payloads: I18nUpdatePayload[]) {
   return JSON.parse(JSON.stringify(payloads)) as I18nUpdatePayload[];
 }
 
-function replaceDisplayKeyInFixedRaw(fixedRaw: string, key: string) {
-  return fixedRaw.replace(/(["'`])(?:\\.|(?!\1).)*\1/, `$1${key}$1`);
+function escapeRegExp(str: string) {
+  return str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+function unescapeKey(str: string) {
+  return str.replace(/\\\./g, ".").replace(/\\\\/g, "\\");
+}
+
+export function getDisplayNameFromKey(data: FixPreviewData, key: string) {
+  let name = unescapeKey(key);
+  const { framework, defaultNamespace } = data.displayNameConfig;
+  let { namespaceSeparator } = data.displayNameConfig;
+  if (framework === "i18next" || framework === "react-i18next") {
+    if (namespaceSeparator !== ".") {
+      namespaceSeparator = ":";
+      name = name.replace(".", namespaceSeparator);
+    }
+    name = name.replace(new RegExp(`^${escapeRegExp(defaultNamespace)}${escapeRegExp(namespaceSeparator)}`), "");
+  }
+  return name;
+}
+
+export function replaceDisplayKeyInFixedRaw(fixedRaw: string, displayName: string) {
+  return fixedRaw.replace(/(["'`])(?:\\.|(?!\1).)*\1/, `$1${displayName}$1`);
 }
 
 function classifyKind(hasAdd: boolean, hasFill: boolean, hasPatch: boolean) {
@@ -62,9 +84,8 @@ export function buildUnits(data: FixPreviewData) {
     });
 
     unitMap.set(key, unit);
-    if (payload.name !== undefined && payload.name !== "") {
-      displayNameToKey.set(payload.name, key);
-    }
+    const displayName = payload.name ?? getDisplayNameFromKey(data, key);
+    if (displayName !== "") displayNameToKey.set(displayName, key);
   });
 
   Object.entries(idPatches).forEach(([file, patches]) => {
@@ -129,6 +150,7 @@ export function exportPreviewData(initialData: FixPreviewData, units: EntryChang
 
   units.forEach(unit => {
     const key = unit.keyDraft.trim() || unit.key;
+    const displayName = getDisplayNameFromKey(initialData, key);
     const includeUnit = unit.selected;
 
     unit.payloadIndices.forEach(index => {
@@ -159,8 +181,8 @@ export function exportPreviewData(initialData: FixPreviewData, units: EntryChang
         id: patch.id,
         raw: patch.raw,
         pos: patch.pos,
-        fixedRaw: replaceDisplayKeyInFixedRaw(patch.fixedRaw, key),
-        fixedKey: key,
+        fixedRaw: replaceDisplayKeyInFixedRaw(patch.fixedRaw, displayName),
+        fixedKey: displayName,
         addedVars: patch.addedVars
       });
     });

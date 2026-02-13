@@ -1,4 +1,5 @@
 import { FixedTEntry, I18nUpdatePayload } from "@/types";
+import { I18nFramework } from "@/types/config";
 
 export type EntryValueUpdates = Record<string, Record<string, string | undefined>>;
 export type EntryIdPatches = Record<string, FixedTEntry[]>;
@@ -9,6 +10,11 @@ export interface FixPreviewData {
   idPatches: EntryIdPatches;
   localeMap: LocaleMap;
   baseLocale: string;
+  displayNameConfig: {
+    framework: I18nFramework;
+    defaultNamespace: string;
+    namespaceSeparator: "." | ":" | "auto";
+  };
 }
 
 export interface CheckboxState {

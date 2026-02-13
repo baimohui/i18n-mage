@@ -5,6 +5,11 @@ import { FixPreviewData } from "@/webviews/fix-preview/types";
 function createData(): FixPreviewData {
   return {
     baseLocale: "en",
+    displayNameConfig: {
+      framework: "vue-i18n",
+      defaultNamespace: "translation",
+      namespaceSeparator: "auto"
+    },
     localeMap: {
       en: {
         "app.title": "Hello",

@@ -1,7 +1,7 @@
 import { createContext } from "preact";
 import { useMemo, useState } from "preact/hooks";
 import { EntryChangeUnit, FixPreviewData } from "../types";
-import { ExportedPreviewData, buildUnits, exportPreviewData } from "../model";
+import { ExportedPreviewData, buildUnits, exportPreviewData, getDisplayNameFromKey, replaceDisplayKeyInFixedRaw } from "../model";
 
 interface FixPreviewContextValue {
   units: EntryChangeUnit[];
@@ -11,6 +11,8 @@ interface FixPreviewContextValue {
   setValueAfter: (id: string, locale: string, value: string) => void;
   setPatchSelected: (id: string, file: string, index: number, checked: boolean) => void;
   setUnitKey: (id: string, key: string) => void;
+  getDisplayName: (key: string) => string;
+  getPatchFixedRaw: (unitId: string, file: string, index: number) => string;
   exportData: () => ExportedPreviewData;
 }
 
@@ -104,6 +106,18 @@ export function FixPreviewProvider({ initialData, children }: { initialData: Fix
     return exportPreviewData(initialData, units);
   };
 
+  const getDisplayName = (key: string) => getDisplayNameFromKey(initialData, key);
+
+  const getPatchFixedRaw = (unitId: string, file: string, index: number) => {
+    const unit = units.find(item => item.id === unitId);
+    if (unit === undefined) return "";
+    const patch = unit.patches.find(item => item.file === file && item.index === index);
+    if (patch === undefined) return "";
+    const draftKey = unit.keyDraft.trim() || unit.key;
+    const displayName = getDisplayName(draftKey);
+    return replaceDisplayKeyInFixedRaw(patch.fixedRaw, displayName);
+  };
+
   return (
     <FixPreviewContext.Provider
       value={{
@@ -114,6 +128,8 @@ export function FixPreviewProvider({ initialData, children }: { initialData: Fix
         setValueAfter,
         setPatchSelected,
         setUnitKey,
+        getDisplayName,
+        getPatchFixedRaw,
         exportData
       }}
     >

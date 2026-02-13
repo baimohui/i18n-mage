@@ -151,7 +151,8 @@ function AppInner() {
                       <label className="patch-label">
                         <strong>{patch.file}</strong>
                         <span>
-                          <span className="old">{patch.raw}</span> {" -> "} <span className="new">{patch.fixedRaw}</span>
+                          <span className="old">{patch.raw}</span> {" -> "}{" "}
+                          <span className="new">{ctx.getPatchFixedRaw(unit.id, patch.file, patch.index)}</span>
                         </span>
                       </label>
                     </div>

@@ -4,6 +4,8 @@ import { t } from "@/utils/i18n";
 import { EntryIdPatches, LocaleMap } from "@/webviews/fix-preview/types";
 import { I18nUpdatePayload } from "@/types";
 import { internalToDisplayName, unescapeString } from "@/utils/regex";
+import { getConfig } from "@/utils/config";
+import { I18nFramework } from "@/types/config";
 
 type WebviewMessage = {
   type: "apply" | "cancel";
@@ -14,7 +16,7 @@ type WebviewMessage = {
 };
 
 export default function launchFixWebview(
-  context: vscode.ExtensionContext, // 娣诲姞 extensionContext 鍙傛暟
+  context: vscode.ExtensionContext,
   updatePayloads: I18nUpdatePayload[],
   idPatches: EntryIdPatches,
   localeMap: LocaleMap,
@@ -29,7 +31,7 @@ export default function launchFixWebview(
   });
 
   updatePayloads.forEach(payload => {
-    payload.name = internalToDisplayName(unescapeString(payload.key));
+    payload.name = getDisplayName(payload.key);
   });
 
   const webviewHtml = buildWebviewHtml(context, panel.webview, {
@@ -53,6 +55,10 @@ export default function launchFixWebview(
   });
 
   panel.reveal(vscode.ViewColumn.One);
+}
+
+function getDisplayName(key: string) {
+  return internalToDisplayName(unescapeString(key));
 }
 
 function buildWebviewHtml(
@@ -90,7 +96,12 @@ function buildWebviewHtml(
     // 将数据传递给 Preact 应用
     window.webviewData = ${JSON.stringify({
       ...data,
-      language: vscode.env.language
+      language: vscode.env.language,
+      displayNameConfig: {
+        framework: getConfig<I18nFramework>("i18nFeatures.framework", "auto"),
+        defaultNamespace: getConfig<string>("i18nFeatures.defaultNamespace", "translation"),
+        namespaceSeparator: getConfig<"." | ":" | "auto">("i18nFeatures.namespaceSeparator", "auto")
+      }
     })};
 
     // 确保 webview 获得焦点，以便能够监听键盘事件
