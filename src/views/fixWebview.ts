@@ -1,4 +1,4 @@
-import * as vscode from "vscode";
+﻿import * as vscode from "vscode";
 import * as path from "path";
 import { t } from "@/utils/i18n";
 import { EntryIdPatches, LocaleMap } from "@/webviews/fix-preview/types";
@@ -9,12 +9,12 @@ type WebviewMessage = {
   type: "apply" | "cancel";
   data: {
     updatePayloads: I18nUpdatePayload[];
-    idPatches: Record<string, number[]>;
+    idPatches: EntryIdPatches;
   };
 };
 
 export default function launchFixWebview(
-  context: vscode.ExtensionContext, // 添加 extensionContext 参数
+  context: vscode.ExtensionContext, // 娣诲姞 extensionContext 鍙傛暟
   updatePayloads: I18nUpdatePayload[],
   idPatches: EntryIdPatches,
   localeMap: LocaleMap,
@@ -306,6 +306,79 @@ details[open] summary::before {
   transform: translateY(-50%) rotate(90deg);
 }
 
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.toolbar select {
+  min-width: 220px;
+  padding: 4px 8px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--input-bg);
+  color: var(--input-fg);
+}
+
+.entry-card {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 12px;
+  margin-bottom: 12px;
+  background: var(--bg);
+}
+
+.entry-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.kind-tag {
+  padding: 2px 8px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  font-size: 12px;
+}
+
+.key-input,
+.key-code {
+  flex: 1;
+}
+
+.key-input {
+  padding: 4px 8px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--input-bg);
+  color: var(--input-fg);
+}
+
+.key-code {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 4px;
+  background: var(--vscode-editor-background);
+}
+
+.entry-block {
+  margin-top: 8px;
+}
+
+.block-title {
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.patch-label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
 .app {
   display: flex;
   flex-direction: column;
@@ -337,21 +410,13 @@ function applyValueUpdates(origin: I18nUpdatePayload[], updates: I18nUpdatePaylo
   origin.splice(0, origin.length, ...updates);
 }
 
-function applyIdPatches(origin: EntryIdPatches, patches: Record<string, number[]>): void {
-  let fileIndex = 0;
-  for (const file in origin) {
-    if (patches[fileIndex] != null) {
-      origin[file] = origin[file].filter((_, idx) => patches[fileIndex].includes(idx));
-    } else {
-      origin[file] = [];
+function applyIdPatches(origin: EntryIdPatches, patches: EntryIdPatches): void {
+  Object.keys(origin).forEach(file => {
+    delete origin[file];
+  });
+  Object.entries(patches).forEach(([file, entries]) => {
+    if (entries.length > 0) {
+      origin[file] = entries;
     }
-    fileIndex++;
-  }
-
-  // 清理空数组
-  for (const file in origin) {
-    if (origin[file].length === 0) {
-      delete origin[file];
-    }
-  }
+  });
 }

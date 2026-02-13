@@ -1,53 +1,122 @@
 import { createContext } from "preact";
-import { useState } from "preact/hooks";
-import { I18nUpdatePayload } from "@/types";
-import { FixPreviewData } from "../types";
+import { useMemo, useState } from "preact/hooks";
+import { EntryChangeUnit, FixPreviewData } from "../types";
+import { ExportedPreviewData, buildUnits, exportPreviewData } from "../model";
 
 interface FixPreviewContextValue {
-  updatePayloads: I18nUpdatePayload[];
-  setValueUpdate: (updates: { key: string; value?: string; locale: string }) => void;
-
-  idPatches: Record<string, Set<number>>;
-  setIdPatch: (patch: { file: string; index: number; checked: boolean }) => void;
-
-  keyNameMap: Record<string, string>;
-  setKeyNameMap: (map: Record<string, string>) => void;
+  units: EntryChangeUnit[];
+  selectedCount: number;
+  setUnitSelected: (id: string, checked: boolean) => void;
+  setValueSelected: (id: string, locale: string, checked: boolean) => void;
+  setValueAfter: (id: string, locale: string, value: string) => void;
+  setPatchSelected: (id: string, file: string, index: number, checked: boolean) => void;
+  setUnitKey: (id: string, key: string) => void;
+  exportData: () => ExportedPreviewData;
 }
 
 export const FixPreviewContext = createContext<FixPreviewContextValue | null>(null);
 
 export function FixPreviewProvider({ initialData, children }: { initialData: FixPreviewData; children: preact.ComponentChildren }) {
-  const [updatePayloads, setUpdatePayloads] = useState<I18nUpdatePayload[]>(initialData.updatePayloads);
-  const [idPatches, setIdPatches] = useState<Record<string, Set<number>>>({});
-  const [keyNameMap, setKeyNameMap] = useState<Record<string, string>>({});
+  const [units, setUnits] = useState<EntryChangeUnit[]>(() => buildUnits(initialData));
 
-  const setValueUpdate = (update: { key: string; value?: string; locale: string }) => {
-    setUpdatePayloads(prevPayloads => {
-      const payloads = [...prevPayloads];
-      for (const payload of payloads) {
-        if (payload.key === update.key && payload.valueChanges && Object.hasOwn(payload.valueChanges, update.locale)) {
-          payload.valueChanges[update.locale].after = update.value ?? "";
-        }
-      }
-      return payloads;
-    });
+  const selectedCount = useMemo(() => {
+    return units.reduce((sum, unit) => {
+      if (!unit.selected) return sum;
+      const valueCount = Object.values(unit.values).filter(item => item.selected).length;
+      const patchCount = unit.patches.filter(item => item.selected).length;
+      return sum + valueCount + patchCount;
+    }, 0);
+  }, [units]);
+
+  const setUnitSelected = (id: string, checked: boolean) => {
+    setUnits(prev =>
+      prev.map(unit => {
+        if (unit.id !== id) return unit;
+        return {
+          ...unit,
+          selected: checked
+        };
+      })
+    );
   };
 
-  const setIdPatch = (update: { file: string; index: number; checked: boolean }) => {
-    setIdPatches(prevPatches => {
-      const patches = { ...prevPatches };
-      patches[update.file] ??= new Set<number>();
-      if (update.checked) {
-        patches[update.file].add(update.index);
-      } else {
-        patches[update.file].delete(update.index);
-      }
-      return patches;
-    });
+  const setValueSelected = (id: string, locale: string, checked: boolean) => {
+    setUnits(prev =>
+      prev.map(unit => {
+        if (unit.id !== id || unit.values[locale] === undefined) return unit;
+        return {
+          ...unit,
+          values: {
+            ...unit.values,
+            [locale]: {
+              ...unit.values[locale],
+              selected: checked
+            }
+          }
+        };
+      })
+    );
+  };
+
+  const setValueAfter = (id: string, locale: string, value: string) => {
+    setUnits(prev =>
+      prev.map(unit => {
+        if (unit.id !== id || unit.values[locale] === undefined) return unit;
+        return {
+          ...unit,
+          values: {
+            ...unit.values,
+            [locale]: {
+              ...unit.values[locale],
+              after: value
+            }
+          }
+        };
+      })
+    );
+  };
+
+  const setPatchSelected = (id: string, file: string, index: number, checked: boolean) => {
+    setUnits(prev =>
+      prev.map(unit => {
+        if (unit.id !== id) return unit;
+        return {
+          ...unit,
+          patches: unit.patches.map(patch => {
+            if (patch.file !== file || patch.index !== index) return patch;
+            return { ...patch, selected: checked };
+          })
+        };
+      })
+    );
+  };
+
+  const setUnitKey = (id: string, key: string) => {
+    setUnits(prev =>
+      prev.map(unit => {
+        if (unit.id !== id || !unit.keyEditable) return unit;
+        return { ...unit, keyDraft: key };
+      })
+    );
+  };
+
+  const exportData = () => {
+    return exportPreviewData(initialData, units);
   };
 
   return (
-    <FixPreviewContext.Provider value={{ updatePayloads, setValueUpdate, idPatches, setIdPatch, keyNameMap, setKeyNameMap }}>
+    <FixPreviewContext.Provider
+      value={{
+        units,
+        selectedCount,
+        setUnitSelected,
+        setValueSelected,
+        setValueAfter,
+        setPatchSelected,
+        setUnitKey,
+        exportData
+      }}
+    >
       {children}
     </FixPreviewContext.Provider>
   );
