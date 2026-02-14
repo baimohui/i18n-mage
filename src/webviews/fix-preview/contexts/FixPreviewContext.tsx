@@ -13,6 +13,10 @@ import {
 
 interface FixPreviewContextValue {
   units: EntryChangeUnit[];
+  changedLocales: string[];
+  isLocaleSelected: (locale: string) => boolean;
+  setLocaleSelected: (locale: string, checked: boolean) => void;
+  setAllLocalesSelected: (checked: boolean) => void;
   selectedCount: number;
   setUnitSelected: (id: string, checked: boolean) => void;
   setValueSelected: (id: string, locale: string, checked: boolean) => void;
@@ -30,17 +34,47 @@ export const FixPreviewContext = createContext<FixPreviewContextValue | null>(nu
 
 export function FixPreviewProvider({ initialData, children }: { initialData: FixPreviewData; children: preact.ComponentChildren }) {
   const [units, setUnits] = useState<EntryChangeUnit[]>(() => buildUnits(initialData));
+  const [selectedLocales, setSelectedLocales] = useState<Set<string>>(() => {
+    const localeSet = new Set<string>();
+    buildUnits(initialData).forEach(unit => {
+      Object.keys(unit.values).forEach(locale => localeSet.add(locale));
+    });
+    return localeSet;
+  });
+
+  const changedLocales = useMemo(() => {
+    const localeSet = new Set<string>();
+    units.forEach(unit => {
+      Object.keys(unit.values).forEach(locale => localeSet.add(locale));
+    });
+    return Array.from(localeSet).sort();
+  }, [units]);
 
   const selectedCount = useMemo(() => {
     return units.reduce((sum, unit) => {
       if (!unit.selected) return sum;
       const effectiveKey = unit.keyDraft.trim() || unit.key;
       if (!isValidEntryKey(effectiveKey)) return sum;
-      const valueCount = Object.values(unit.values).filter(item => item.selected).length;
+      const valueCount = Object.values(unit.values).filter(item => item.selected && selectedLocales.has(item.locale)).length;
       const patchCount = unit.patches.filter(item => item.selected).length;
       return sum + valueCount + patchCount;
     }, 0);
-  }, [units]);
+  }, [units, selectedLocales]);
+
+  const isLocaleSelected = (locale: string) => selectedLocales.has(locale);
+
+  const setLocaleSelected = (locale: string, checked: boolean) => {
+    setSelectedLocales(prev => {
+      const next = new Set(prev);
+      if (checked) next.add(locale);
+      else next.delete(locale);
+      return next;
+    });
+  };
+
+  const setAllLocalesSelected = (checked: boolean) => {
+    setSelectedLocales(() => (checked ? new Set(changedLocales) : new Set<string>()));
+  };
 
   const setUnitSelected = (id: string, checked: boolean) => {
     setUnits(prev =>
@@ -118,7 +152,7 @@ export function FixPreviewProvider({ initialData, children }: { initialData: Fix
   };
 
   const exportData = () => {
-    return exportPreviewData(initialData, units);
+    return exportPreviewData(initialData, units, selectedLocales);
   };
 
   const isUnitKeyValid = (unitId: string) => {
@@ -132,7 +166,7 @@ export function FixPreviewProvider({ initialData, children }: { initialData: Fix
     if (unit === undefined) return false;
     const value = unit.values[locale];
     if (value === undefined) return false;
-    return hasSelectableValue(value.after);
+    return selectedLocales.has(locale) && hasSelectableValue(value.after);
   };
 
   const getDisplayName = (key: string) => getDisplayNameFromKey(initialData, key);
@@ -151,6 +185,10 @@ export function FixPreviewProvider({ initialData, children }: { initialData: Fix
     <FixPreviewContext.Provider
       value={{
         units,
+        changedLocales,
+        isLocaleSelected,
+        setLocaleSelected,
+        setAllLocalesSelected,
         selectedCount,
         setUnitSelected,
         setValueSelected,

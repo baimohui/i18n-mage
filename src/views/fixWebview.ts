@@ -333,6 +333,25 @@ details[open] summary::before {
   color: var(--input-fg);
 }
 
+.locale-scope {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 12px;
+  margin-bottom: 12px;
+}
+
+.locale-list {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.locale-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
 .entry-card {
   border: 1px solid var(--border);
   border-radius: 8px;

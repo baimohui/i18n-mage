@@ -161,6 +161,7 @@
   "preview.enterNewValue": "Enter new value...",
   "preview.filter": "Type",
   "preview.filterAll": "All",
+  "preview.localeScope": "Apply Locales",
   "preview.invalidKey": "Invalid key. This entry will not be applied.",
   "preview.itemsSelected": "{0} items selected",
   "preview.kindFillMissing": "Fill missing translations",

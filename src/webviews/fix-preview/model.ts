@@ -177,7 +177,11 @@ export function buildUnits(data: FixPreviewData) {
   });
 }
 
-export function exportPreviewData(initialData: FixPreviewData, units: EntryChangeUnit[]): ExportedPreviewData {
+export function exportPreviewData(
+  initialData: FixPreviewData,
+  units: EntryChangeUnit[],
+  selectedLocales?: Set<string>
+): ExportedPreviewData {
   const nextPayloads = deepClonePayloads(initialData.updatePayloads);
   const nextPatches: Record<string, FixedTEntry[]> = {};
 
@@ -196,10 +200,11 @@ export function exportPreviewData(initialData: FixPreviewData, units: EntryChang
 
     Object.entries(unit.localePayloadRefs).forEach(([locale, refs]) => {
       const valueState = unit.values[locale];
+      const localeAllowed = selectedLocales?.has(locale) ?? true;
       refs.forEach(index => {
         const payload = nextPayloads[index];
         if (!payload?.valueChanges) return;
-        if (!includeUnit || !valueState?.selected || !hasSelectableValue(valueState.after)) {
+        if (!includeUnit || !localeAllowed || !valueState?.selected || !hasSelectableValue(valueState.after)) {
           delete payload.valueChanges[locale];
           return;
         }

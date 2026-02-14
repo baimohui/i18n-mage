@@ -30,7 +30,7 @@ function AppInner() {
   const [kindFilter, setKindFilter] = useState<"all" | ChangeKind>("all");
 
   if (!ctx) return null;
-  const { units, selectedCount } = ctx;
+  const { units, selectedCount, changedLocales } = ctx;
 
   const filteredUnits = useMemo(() => {
     const list = kindFilter === "all" ? units : units.filter(unit => unit.kind === kindFilter);
@@ -84,6 +84,31 @@ function AppInner() {
           <option value="import-edit">{t("preview.kindImportEdit")}</option>
         </select>
       </div>
+      {changedLocales.length > 0 ? (
+        <div className="locale-scope">
+          <div className="block-title">{t("preview.localeScope")}</div>
+          <div className="locale-list">
+            <label className="locale-item">
+              <input
+                type="checkbox"
+                checked={changedLocales.every(locale => ctx.isLocaleSelected(locale))}
+                onChange={e => ctx.setAllLocalesSelected((e.target as HTMLInputElement).checked)}
+              />
+              <span>{t("preview.filterAll")}</span>
+            </label>
+            {changedLocales.map(locale => (
+              <label key={locale} className="locale-item">
+                <input
+                  type="checkbox"
+                  checked={ctx.isLocaleSelected(locale)}
+                  onChange={e => ctx.setLocaleSelected(locale, (e.target as HTMLInputElement).checked)}
+                />
+                <span>{locale}</span>
+              </label>
+            ))}
+          </div>
+        </div>
+      ) : null}
 
       <div className="content">
         {filteredUnits.map(unit => {
