@@ -28,20 +28,23 @@ interface FixPreviewContextValue {
   getValueStatus: (unitId: string, locale: string) => "ok" | "empty" | "localeFiltered";
   getDisplayName: (key: string) => string;
   getPatchFixedRaw: (unitId: string, file: string, index: number) => string;
+  resetDraft: () => void;
   exportData: () => ExportedPreviewData;
 }
 
 export const FixPreviewContext = createContext<FixPreviewContextValue | null>(null);
 
+function collectLocales(units: EntryChangeUnit[]) {
+  const localeSet = new Set<string>();
+  units.forEach(unit => {
+    Object.keys(unit.values).forEach(locale => localeSet.add(locale));
+  });
+  return localeSet;
+}
+
 export function FixPreviewProvider({ initialData, children }: { initialData: FixPreviewData; children: preact.ComponentChildren }) {
   const [units, setUnits] = useState<EntryChangeUnit[]>(() => buildUnits(initialData));
-  const [selectedLocales, setSelectedLocales] = useState<Set<string>>(() => {
-    const localeSet = new Set<string>();
-    buildUnits(initialData).forEach(unit => {
-      Object.keys(unit.values).forEach(locale => localeSet.add(locale));
-    });
-    return localeSet;
-  });
+  const [selectedLocales, setSelectedLocales] = useState<Set<string>>(() => collectLocales(buildUnits(initialData)));
 
   const changedLocales = useMemo(() => {
     const localeSet = new Set<string>();
@@ -192,6 +195,12 @@ export function FixPreviewProvider({ initialData, children }: { initialData: Fix
     return replaceDisplayKeyInFixedRaw(patch.fixedRaw, displayName);
   };
 
+  const resetDraft = () => {
+    const nextUnits = buildUnits(initialData);
+    setUnits(nextUnits);
+    setSelectedLocales(collectLocales(nextUnits));
+  };
+
   return (
     <FixPreviewContext.Provider
       value={{
@@ -211,6 +220,7 @@ export function FixPreviewProvider({ initialData, children }: { initialData: Fix
         getValueStatus,
         getDisplayName,
         getPatchFixedRaw,
+        resetDraft,
         exportData
       }}
     >

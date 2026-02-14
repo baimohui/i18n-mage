@@ -266,6 +266,10 @@ select:focus {
   min-width: 0;
 }
 
+.value-hint {
+  color: var(--muted);
+}
+
 .old {
   color: var(--warn);
 }
@@ -333,39 +337,39 @@ button:hover:not(:disabled) {
 .filters-panel {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
   margin-bottom: 8px;
-  border: 1px solid var(--border);
+  border: 1px solid color-mix(in srgb, var(--border) 60%, transparent);
   border-radius: var(--radius);
-  background: color-mix(in srgb, var(--panel) 72%, var(--panel-soft));
-  padding: 9px 10px;
+  background: color-mix(in srgb, var(--panel-soft) 28%, transparent);
+  padding: 7px 8px;
 }
 
 .filter-row {
   display: grid;
-  grid-template-columns: 110px 1fr;
-  gap: 10px;
+  grid-template-columns: 82px 1fr;
+  gap: 8px;
   align-items: start;
-  padding: 2px 0;
+  padding: 1px 0;
 }
 
 .filter-row + .filter-row {
-  margin-top: 0;
-  padding-top: 8px;
-  border-top: 1px solid color-mix(in srgb, var(--border) 65%, transparent);
+  margin-top: 2px;
+  padding-top: 4px;
+  border-top: none;
 }
 
 .filter-label {
   color: var(--muted);
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.3px;
-  padding-top: 6px;
+  letter-spacing: 0.25px;
+  padding-top: 5px;
 }
 
 .filter-select {
-  max-width: 360px;
+  max-width: 320px;
   background: var(--input-bg) !important;
   color: var(--input-fg) !important;
   border: 1px solid var(--border) !important;
@@ -380,6 +384,13 @@ button:hover:not(:disabled) {
   background-size: 6px 6px, 6px 6px;
   background-repeat: no-repeat;
   padding-right: 28px;
+}
+
+.filter-main {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px 10px;
 }
 
 .filter-select option {
@@ -403,6 +414,110 @@ button:hover:not(:disabled) {
   background: var(--panel-soft);
   font-size: 12px;
   font-weight: 600;
+}
+
+.quick-filter-group {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.filter-chip {
+  padding: 3px 9px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--muted);
+  background: transparent;
+  border-color: color-mix(in srgb, var(--border) 50%, transparent);
+}
+
+.filter-chip.active {
+  color: var(--fg);
+  border-color: color-mix(in srgb, var(--btn-bg) 62%, var(--border));
+  background: color-mix(in srgb, var(--btn-bg) 16%, transparent);
+}
+
+.filter-chip.ghost {
+  border-color: transparent;
+  padding-inline: 6px;
+  color: color-mix(in srgb, var(--muted) 84%, var(--fg));
+}
+
+.view-controls {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: auto;
+  position: relative;
+}
+
+.more-trigger {
+  min-width: 64px;
+}
+
+.view-controls.open .more-trigger {
+  border-color: color-mix(in srgb, var(--btn-bg) 62%, var(--border));
+  background: color-mix(in srgb, var(--btn-bg) 16%, transparent);
+  color: var(--fg);
+}
+
+.more-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  z-index: 4;
+  min-width: 180px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 6px;
+  border: 1px solid color-mix(in srgb, var(--border) 70%, transparent);
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--panel) 90%, var(--bg));
+  box-shadow:
+    0 8px 24px color-mix(in srgb, var(--bg) 78%, black 22%),
+    0 1px 0 color-mix(in srgb, var(--border) 65%, transparent);
+}
+
+.more-menu .filter-chip {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  justify-content: flex-start;
+  text-align: left;
+  border-radius: 8px;
+  padding: 6px 8px;
+}
+
+.more-menu .view-stat {
+  margin: 4px 2px 0;
+  font-size: 10px;
+}
+
+.view-stat {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--muted);
+  margin-left: 6px;
+}
+
+.virtual-space {
+  position: relative;
+  width: 100%;
+}
+
+.entry-virtual-item {
+  position: absolute;
+  left: 0;
+  right: 0;
+  box-sizing: border-box;
+  padding-bottom: 12px;
+}
+
+.entry-virtual-item .entry-card {
+  margin-bottom: 0;
 }
 
 .entry-card {
@@ -742,6 +857,15 @@ select:focus-visible {
 
   .filter-label {
     padding-top: 0;
+  }
+
+  .view-controls {
+    margin-left: 0;
+  }
+
+  .more-menu {
+    right: auto;
+    left: 0;
   }
 }
 `;
