@@ -29,6 +29,7 @@ export default function launchFixWebview(
     retainContextWhenHidden: true,
     localResourceRoots: [vscode.Uri.file(path.join(context.extensionPath, "dist", "webviews"))]
   });
+  panel.iconPath = vscode.Uri.file(path.join(context.extensionPath, "images", "icon.png"));
 
   updatePayloads.forEach(payload => {
     payload.name = getDisplayName(payload.key);
