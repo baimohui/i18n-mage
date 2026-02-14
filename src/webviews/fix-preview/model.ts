@@ -6,6 +6,39 @@ export interface ExportedPreviewData {
   idPatches: Record<string, FixedTEntry[]>;
 }
 
+export function hasSelectableValue(value: string) {
+  return value.trim().length > 0;
+}
+
+export function isValidEntryKey(key: string) {
+  const text = key.trim();
+  if (text.length === 0) return false;
+  if (/\s/.test(text)) return false;
+
+  let escaping = false;
+  let segmentLength = 0;
+  for (const ch of text) {
+    if (escaping) {
+      segmentLength++;
+      escaping = false;
+      continue;
+    }
+    if (ch === "\\") {
+      escaping = true;
+      continue;
+    }
+    if (ch === ".") {
+      if (segmentLength === 0) return false;
+      segmentLength = 0;
+      continue;
+    }
+    segmentLength++;
+  }
+  if (escaping) return false;
+  if (segmentLength === 0) return false;
+  return true;
+}
+
 function deepClonePayloads(payloads: I18nUpdatePayload[]) {
   return JSON.parse(JSON.stringify(payloads)) as I18nUpdatePayload[];
 }
@@ -78,7 +111,7 @@ export function buildUnits(data: FixPreviewData) {
         before: change.before ?? oldValue,
         after: change.after ?? "",
         base: baseValue,
-        selected: true
+        selected: hasSelectableValue(change.after ?? "")
       };
       unit.values[locale] = existing === undefined ? valueData : { ...existing, ...valueData };
     });
@@ -150,12 +183,14 @@ export function exportPreviewData(initialData: FixPreviewData, units: EntryChang
 
   units.forEach(unit => {
     const key = unit.keyDraft.trim() || unit.key;
+    const keyValid = isValidEntryKey(key);
     const displayName = getDisplayNameFromKey(initialData, key);
-    const includeUnit = unit.selected;
+    const includeUnit = unit.selected && keyValid;
 
     unit.payloadIndices.forEach(index => {
       const payload = nextPayloads[index];
       if (payload === undefined) return;
+      if (!includeUnit) return;
       payload.key = key;
     });
 
@@ -164,7 +199,7 @@ export function exportPreviewData(initialData: FixPreviewData, units: EntryChang
       refs.forEach(index => {
         const payload = nextPayloads[index];
         if (!payload?.valueChanges) return;
-        if (!includeUnit || !valueState?.selected) {
+        if (!includeUnit || !valueState?.selected || !hasSelectableValue(valueState.after)) {
           delete payload.valueChanges[locale];
           return;
         }

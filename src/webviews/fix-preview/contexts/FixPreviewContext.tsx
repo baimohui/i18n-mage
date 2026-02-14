@@ -1,7 +1,15 @@
 import { createContext } from "preact";
 import { useMemo, useState } from "preact/hooks";
 import { EntryChangeUnit, FixPreviewData } from "../types";
-import { ExportedPreviewData, buildUnits, exportPreviewData, getDisplayNameFromKey, replaceDisplayKeyInFixedRaw } from "../model";
+import {
+  ExportedPreviewData,
+  buildUnits,
+  exportPreviewData,
+  getDisplayNameFromKey,
+  hasSelectableValue,
+  isValidEntryKey,
+  replaceDisplayKeyInFixedRaw
+} from "../model";
 
 interface FixPreviewContextValue {
   units: EntryChangeUnit[];
@@ -11,6 +19,8 @@ interface FixPreviewContextValue {
   setValueAfter: (id: string, locale: string, value: string) => void;
   setPatchSelected: (id: string, file: string, index: number, checked: boolean) => void;
   setUnitKey: (id: string, key: string) => void;
+  isUnitKeyValid: (unitId: string) => boolean;
+  isValueSelectable: (unitId: string, locale: string) => boolean;
   getDisplayName: (key: string) => string;
   getPatchFixedRaw: (unitId: string, file: string, index: number) => string;
   exportData: () => ExportedPreviewData;
@@ -24,6 +34,8 @@ export function FixPreviewProvider({ initialData, children }: { initialData: Fix
   const selectedCount = useMemo(() => {
     return units.reduce((sum, unit) => {
       if (!unit.selected) return sum;
+      const effectiveKey = unit.keyDraft.trim() || unit.key;
+      if (!isValidEntryKey(effectiveKey)) return sum;
       const valueCount = Object.values(unit.values).filter(item => item.selected).length;
       const patchCount = unit.patches.filter(item => item.selected).length;
       return sum + valueCount + patchCount;
@@ -46,6 +58,7 @@ export function FixPreviewProvider({ initialData, children }: { initialData: Fix
     setUnits(prev =>
       prev.map(unit => {
         if (unit.id !== id || unit.values[locale] === undefined) return unit;
+        if (checked && !hasSelectableValue(unit.values[locale].after)) return unit;
         return {
           ...unit,
           values: {
@@ -64,13 +77,15 @@ export function FixPreviewProvider({ initialData, children }: { initialData: Fix
     setUnits(prev =>
       prev.map(unit => {
         if (unit.id !== id || unit.values[locale] === undefined) return unit;
+        const selectable = hasSelectableValue(value);
         return {
           ...unit,
           values: {
             ...unit.values,
             [locale]: {
               ...unit.values[locale],
-              after: value
+              after: value,
+              selected: selectable ? true : false
             }
           }
         };
@@ -106,6 +121,20 @@ export function FixPreviewProvider({ initialData, children }: { initialData: Fix
     return exportPreviewData(initialData, units);
   };
 
+  const isUnitKeyValid = (unitId: string) => {
+    const unit = units.find(item => item.id === unitId);
+    if (unit === undefined) return false;
+    return isValidEntryKey(unit.keyDraft.trim() || unit.key);
+  };
+
+  const isValueSelectable = (unitId: string, locale: string) => {
+    const unit = units.find(item => item.id === unitId);
+    if (unit === undefined) return false;
+    const value = unit.values[locale];
+    if (value === undefined) return false;
+    return hasSelectableValue(value.after);
+  };
+
   const getDisplayName = (key: string) => getDisplayNameFromKey(initialData, key);
 
   const getPatchFixedRaw = (unitId: string, file: string, index: number) => {
@@ -128,6 +157,8 @@ export function FixPreviewProvider({ initialData, children }: { initialData: Fix
         setValueAfter,
         setPatchSelected,
         setUnitKey,
+        isUnitKeyValid,
+        isValueSelectable,
         getDisplayName,
         getPatchFixedRaw,
         exportData

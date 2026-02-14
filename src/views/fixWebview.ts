@@ -368,6 +368,18 @@ details[open] summary::before {
   color: var(--input-fg);
 }
 
+.key-input.invalid,
+textarea.invalid {
+  border-color: var(--vscode-inputValidation-errorBorder, #c00);
+}
+
+.field-error {
+  color: var(--vscode-inputValidation-errorForeground, #c00);
+  font-size: 12px;
+  margin-top: -6px;
+  margin-bottom: 8px;
+}
+
 .key-code {
   display: inline-block;
   padding: 2px 8px;

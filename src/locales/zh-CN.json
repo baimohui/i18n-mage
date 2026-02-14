@@ -161,6 +161,7 @@
   "preview.enterNewValue": "输入新的值...",
   "preview.filter": "变更类型",
   "preview.filterAll": "全部",
+  "preview.invalidKey": "词条 key 无效，此词条不会被应用。",
   "preview.itemsSelected": "已选中 {0} 项",
   "preview.kindFillMissing": "缺失翻译补充",
   "preview.kindImportEdit": "导入修改",

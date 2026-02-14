@@ -1,7 +1,7 @@
 export interface VSCodeAPI {
-  postMessage(message: any): void;
-  setState(state: any): void;
-  getState(): any;
+  postMessage(message: unknown): void;
+  setState(state: unknown): void;
+  getState(): unknown;
 }
 
 declare global {

@@ -86,82 +86,91 @@ function AppInner() {
       </div>
 
       <div className="content">
-        {filteredUnits.map(unit => (
-          <div key={unit.id} className="entry-card">
-            <div className="entry-head">
-              <input
-                type="checkbox"
-                checked={unit.selected}
-                onChange={e => ctx.setUnitSelected(unit.id, (e.target as HTMLInputElement).checked)}
-              />
-              <span className="kind-tag">{getKindLabel(t, unit.kind)}</span>
-              {unit.keyEditable ? (
+        {filteredUnits.map(unit => {
+          const keyValid = ctx.isUnitKeyValid(unit.id);
+          return (
+            <div key={unit.id} className="entry-card">
+              <div className="entry-head">
                 <input
-                  className="key-input"
-                  type="text"
-                  value={unit.keyDraft}
-                  onInput={e => ctx.setUnitKey(unit.id, (e.target as HTMLInputElement).value)}
+                  type="checkbox"
+                  checked={unit.selected}
+                  disabled={!keyValid}
+                  onChange={e => ctx.setUnitSelected(unit.id, (e.target as HTMLInputElement).checked)}
                 />
-              ) : (
-                <code className="key-code">{unit.keyDraft}</code>
-              )}
+                <span className="kind-tag">{getKindLabel(t, unit.kind)}</span>
+                {unit.keyEditable ? (
+                  <input
+                    className={`key-input${keyValid ? "" : " invalid"}`}
+                    type="text"
+                    value={unit.keyDraft}
+                    onInput={e => ctx.setUnitKey(unit.id, (e.target as HTMLInputElement).value)}
+                  />
+                ) : (
+                  <code className="key-code">{unit.keyDraft}</code>
+                )}
+              </div>
+              {!keyValid ? <div className="field-error">{t("preview.invalidKey")}</div> : null}
+
+              {Object.values(unit.values).length > 0 ? (
+                <div className="entry-block">
+                  <div className="block-title">{t("preview.termValueUpdate")}</div>
+                  <div className="group">
+                    {Object.values(unit.values).map(value => {
+                      const selectable = ctx.isValueSelectable(unit.id, value.locale);
+                      return (
+                        <div key={`${unit.id}:${value.locale}`} className="item">
+                          <input
+                            type="checkbox"
+                            checked={value.selected}
+                            disabled={!unit.selected || !keyValid || !selectable}
+                            onChange={e => ctx.setValueSelected(unit.id, value.locale, (e.target as HTMLInputElement).checked)}
+                          />
+                          <label>{value.locale}</label>
+                          <textarea
+                            className={selectable ? "" : "invalid"}
+                            rows={1}
+                            value={value.after}
+                            onInput={e => ctx.setValueAfter(unit.id, value.locale, (e.target as HTMLTextAreaElement).value)}
+                          />
+                          {value.before !== undefined && value.before !== "" && value.before !== value.after ? (
+                            <span className="old">{value.before}</span>
+                          ) : value.base !== undefined && value.base !== "" ? (
+                            <span>{value.base}</span>
+                          ) : null}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              ) : null}
+
+              {unit.patches.length > 0 ? (
+                <div className="entry-block">
+                  <div className="block-title">{t("preview.termIdPatch")}</div>
+                  <div className="group">
+                    {unit.patches.map(patch => (
+                      <div key={`${unit.id}:${patch.file}:${patch.index}`} className="item">
+                        <input
+                          type="checkbox"
+                          checked={patch.selected}
+                          disabled={!unit.selected || !keyValid}
+                          onChange={e => ctx.setPatchSelected(unit.id, patch.file, patch.index, (e.target as HTMLInputElement).checked)}
+                        />
+                        <label className="patch-label">
+                          <strong>{patch.file}</strong>
+                          <span>
+                            <span className="old">{patch.raw}</span> {" -> "}{" "}
+                            <span className="new">{ctx.getPatchFixedRaw(unit.id, patch.file, patch.index)}</span>
+                          </span>
+                        </label>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ) : null}
             </div>
-
-            {Object.values(unit.values).length > 0 ? (
-              <div className="entry-block">
-                <div className="block-title">{t("preview.termValueUpdate")}</div>
-                <div className="group">
-                  {Object.values(unit.values).map(value => (
-                    <div key={`${unit.id}:${value.locale}`} className="item">
-                      <input
-                        type="checkbox"
-                        checked={value.selected}
-                        disabled={!unit.selected}
-                        onChange={e => ctx.setValueSelected(unit.id, value.locale, (e.target as HTMLInputElement).checked)}
-                      />
-                      <label>{value.locale}</label>
-                      <textarea
-                        rows={1}
-                        value={value.after}
-                        onInput={e => ctx.setValueAfter(unit.id, value.locale, (e.target as HTMLTextAreaElement).value)}
-                      />
-                      {value.before !== undefined && value.before !== "" && value.before !== value.after ? (
-                        <span className="old">{value.before}</span>
-                      ) : value.base !== undefined && value.base !== "" ? (
-                        <span>{value.base}</span>
-                      ) : null}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            ) : null}
-
-            {unit.patches.length > 0 ? (
-              <div className="entry-block">
-                <div className="block-title">{t("preview.termIdPatch")}</div>
-                <div className="group">
-                  {unit.patches.map(patch => (
-                    <div key={`${unit.id}:${patch.file}:${patch.index}`} className="item">
-                      <input
-                        type="checkbox"
-                        checked={patch.selected}
-                        disabled={!unit.selected}
-                        onChange={e => ctx.setPatchSelected(unit.id, patch.file, patch.index, (e.target as HTMLInputElement).checked)}
-                      />
-                      <label className="patch-label">
-                        <strong>{patch.file}</strong>
-                        <span>
-                          <span className="old">{patch.raw}</span> {" -> "}{" "}
-                          <span className="new">{ctx.getPatchFixedRaw(unit.id, patch.file, patch.index)}</span>
-                        </span>
-                      </label>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            ) : null}
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       <div className="actions">
