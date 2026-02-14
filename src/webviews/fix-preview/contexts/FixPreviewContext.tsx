@@ -25,6 +25,7 @@ interface FixPreviewContextValue {
   setUnitKey: (id: string, key: string) => void;
   isUnitKeyValid: (unitId: string) => boolean;
   isValueSelectable: (unitId: string, locale: string) => boolean;
+  getValueStatus: (unitId: string, locale: string) => "ok" | "empty" | "localeFiltered";
   getDisplayName: (key: string) => string;
   getPatchFixedRaw: (unitId: string, file: string, index: number) => string;
   exportData: () => ExportedPreviewData;
@@ -169,6 +170,16 @@ export function FixPreviewProvider({ initialData, children }: { initialData: Fix
     return selectedLocales.has(locale) && hasSelectableValue(value.after);
   };
 
+  const getValueStatus = (unitId: string, locale: string) => {
+    const unit = units.find(item => item.id === unitId);
+    if (unit === undefined) return "empty" as const;
+    const value = unit.values[locale];
+    if (value === undefined) return "empty" as const;
+    if (!selectedLocales.has(locale)) return "localeFiltered" as const;
+    if (!hasSelectableValue(value.after)) return "empty" as const;
+    return "ok" as const;
+  };
+
   const getDisplayName = (key: string) => getDisplayNameFromKey(initialData, key);
 
   const getPatchFixedRaw = (unitId: string, file: string, index: number) => {
@@ -197,6 +208,7 @@ export function FixPreviewProvider({ initialData, children }: { initialData: Fix
         setUnitKey,
         isUnitKeyValid,
         isValueSelectable,
+        getValueStatus,
         getDisplayName,
         getPatchFixedRaw,
         exportData
