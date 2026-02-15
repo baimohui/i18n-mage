@@ -7,32 +7,27 @@ import { INLINE_HINTS_DISPLAY_MODE, InlineHintsDisplayMode } from "@/types";
 import { ActiveEditorState } from "@/utils/activeEditorState";
 import { isFileTooLarge } from "@/utils/fs";
 
+type DecorationData = {
+  startPos: number;
+  endPos: number;
+  value: string;
+  isLooseMatch: boolean;
+};
+
 export class DecoratorController implements vscode.Disposable {
   private static instance: DecoratorController;
-  // 核心装饰器类型
   private translationDecoration: vscode.TextEditorDecorationType;
   private looseTranslationDecoration: vscode.TextEditorDecorationType;
   private hiddenKeyDecoration: vscode.TextEditorDecorationType;
   private disposed = false;
 
-  // 状态管理
-  private currentDecorations = new Map<
-    string,
-    {
-      startPos: number;
-      endPos: number;
-      value: string;
-      isLooseMatch: boolean;
-    }
-  >();
-  private lastCursorLine: number = -1;
-  private currentEditor?: vscode.TextEditor;
+  private decorationsByEditor = new Map<string, DecorationData[]>();
+  private lastCursorLineByEditor = new Map<string, number>();
+  private visibleEditorKeys = new Set<string>();
 
   constructor() {
-    // 初始化翻译文本装饰器
     this.translationDecoration = this.setTranslationDecoration();
     this.looseTranslationDecoration = this.setTranslationDecoration(true);
-    // 初始化隐藏原始 key 的装饰器
     this.hiddenKeyDecoration = vscode.window.createTextEditorDecorationType({
       textDecoration: "none; opacity: 0; position: absolute; width: 0; height: 0; overflow: hidden;"
     });
@@ -45,21 +40,54 @@ export class DecoratorController implements vscode.Disposable {
     return DecoratorController.instance;
   }
 
+  public updateVisibleEditors(
+    editors: readonly vscode.TextEditor[] = vscode.window.visibleTextEditors,
+    options: { force?: boolean } = {}
+  ): void {
+    if (this.disposed) return;
+    const { force = true } = options;
+    const nextVisibleKeys = new Set(editors.map(editor => this.getEditorKey(editor)));
+    this.visibleEditorKeys.forEach(key => {
+      if (!nextVisibleKeys.has(key)) {
+        this.decorationsByEditor.delete(key);
+        this.lastCursorLineByEditor.delete(key);
+      }
+    });
+    this.visibleEditorKeys = nextVisibleKeys;
+    editors.forEach(editor => {
+      const editorKey = this.getEditorKey(editor);
+      if (!force && this.decorationsByEditor.has(editorKey)) return;
+      ActiveEditorState.update(editor);
+      this.update(editor);
+    });
+    const activeEditor = vscode.window.activeTextEditor;
+    if (activeEditor) {
+      ActiveEditorState.update(activeEditor);
+    }
+  }
+
   public update(editor: vscode.TextEditor | undefined): void {
-    this.currentDecorations.clear();
     if (this.disposed || !editor) return;
+    const editorKey = this.getEditorKey(editor);
+
     if (!getCacheConfig<boolean>("translationHints.enable")) {
-      editor.setDecorations(this.translationDecoration, []);
-      editor.setDecorations(this.looseTranslationDecoration, []);
-      editor.setDecorations(this.hiddenKeyDecoration, []);
+      this.clearEditorDecorations(editor, editorKey);
       return;
     }
-    if (isFileTooLarge(editor.document.uri.fsPath)) return;
-    this.currentEditor = editor;
+
+    if (isFileTooLarge(editor.document.uri.fsPath)) {
+      this.clearEditorDecorations(editor, editorKey);
+      return;
+    }
+
     const mage = LangMage.getInstance();
     const { tree, countryMap } = mage.langDetail;
     const translations = countryMap[treeInstance.displayLang];
-    if (translations === undefined) return;
+    if (translations === undefined) {
+      this.clearEditorDecorations(editor, editorKey);
+      return;
+    }
+
     const entries = Array.from(ActiveEditorState.definedEntries.values())
       .flat()
       .filter(item => item.visible);
@@ -67,14 +95,20 @@ export class DecoratorController implements vscode.Disposable {
     const enableLooseKeyMatch = getCacheConfig<boolean>("translationHints.enableLooseKeyMatch");
     const dynamicMatchInfo = ActiveEditorState.dynamicMatchInfo;
     const applyToStringLiterals = getCacheConfig<boolean>("translationHints.applyToStringLiterals");
+
+    const currentDecorations: DecorationData[] = [];
+
     entries.forEach(entry => {
       if (!applyToStringLiterals && !entry.funcCall) return;
+
       let [startPos, endPos] = entry.pos.split(",").map(Number);
       startPos++;
       endPos--;
+
       let entryKey = "";
       let entryValue = "";
       let isLooseMatch = false;
+
       if (entry.dynamic && dynamicMatchInfo.has(entry.nameInfo.name)) {
         if (!enableLooseKeyMatch) return;
         isLooseMatch = true;
@@ -87,64 +121,74 @@ export class DecoratorController implements vscode.Disposable {
         entryKey = getValueByAmbiguousEntryName(tree, entry.nameInfo.name) ?? "";
         entryValue = entryKey ? translations[entryKey] : "";
       }
+
       if (!entryValue) return;
-      const uniqueId = `${startPos}:${entry.nameInfo.name}`;
-      const formattedEntryValue = this.formatEntryValue(entryValue, maxLen);
-      this.currentDecorations.set(uniqueId, {
+
+      currentDecorations.push({
         startPos,
         endPos,
-        value: formattedEntryValue,
+        value: this.formatEntryValue(entryValue, maxLen),
         isLooseMatch
       });
     });
-    this.applyDecorations(editor);
+
+    this.decorationsByEditor.set(editorKey, currentDecorations);
+    this.applyDecorations(editor, currentDecorations);
   }
 
-  // 处理光标移动
   public handleCursorMove(event: vscode.TextEditorSelectionChangeEvent): void {
-    if (event.textEditor !== this.currentEditor) return;
+    const editor = event.textEditor;
+    const editorKey = this.getEditorKey(editor);
     const cursorLine = event.selections[0].active.line;
-    // 只有跨行移动时才更新（性能优化）
-    if (cursorLine === this.lastCursorLine) return;
-    this.lastCursorLine = cursorLine;
-    // 更新装饰器状态
-    this.applyDecorations(this.currentEditor);
+
+    if (cursorLine === this.lastCursorLineByEditor.get(editorKey)) return;
+
+    this.lastCursorLineByEditor.set(editorKey, cursorLine);
+    const decorations = this.decorationsByEditor.get(editorKey);
+    if (!decorations) return;
+
+    this.applyDecorations(editor, decorations);
   }
 
-  // 文档变化处理
   public handleDocumentChange(event: vscode.TextDocumentChangeEvent): void {
     if (event.contentChanges.length === 0) return;
-    const editor = vscode.window.activeTextEditor;
-    if (!editor || editor.document !== event.document) return;
-    let affected = false;
-    const changedTextSnippets: string[] = [];
-    const visibleRanges = editor.visibleRanges;
-    const visibleStart = Math.min(...visibleRanges.map(r => r.start.line));
-    const visibleEnd = Math.max(...visibleRanges.map(r => r.end.line));
-    for (const change of event.contentChanges) {
-      const startLine = change.range.start.line;
-      const endLine = change.range.end.line;
-      if (!change.range.isSingleLine || (endLine >= visibleStart && startLine <= visibleEnd)) {
-        affected = true;
+
+    const editors = vscode.window.visibleTextEditors.filter(editor => editor.document === event.document);
+    if (editors.length === 0) return;
+
+    editors.forEach(editor => {
+      let affected = false;
+      const changedTextSnippets: string[] = [];
+      const visibleRanges = editor.visibleRanges;
+      const visibleStart = Math.min(...visibleRanges.map(r => r.start.line));
+      const visibleEnd = Math.max(...visibleRanges.map(r => r.end.line));
+
+      for (const change of event.contentChanges) {
+        const startLine = change.range.start.line;
+        const endLine = change.range.end.line;
+        if (!change.range.isSingleLine || (endLine >= visibleStart && startLine <= visibleEnd)) {
+          affected = true;
+        }
+        changedTextSnippets.push(change.text);
       }
-      changedTextSnippets.push(change.text);
-    }
-    // 如果改动在可视区域内 或者包含换行/潜在 TEntry，触发更新
-    const fullText = changedTextSnippets.join("\n");
-    if (
-      affected ||
-      fullText.includes("\n") ||
-      Array.from(ActiveEditorState.definedEntries.values())
-        .flat()
-        .some(item => item.visible)
-    ) {
-      this.update(editor);
-    }
+
+      const fullText = changedTextSnippets.join("\n");
+      if (
+        affected ||
+        fullText.includes("\n") ||
+        Array.from(ActiveEditorState.definedEntries.values())
+          .flat()
+          .some(item => item.visible)
+      ) {
+        ActiveEditorState.update(editor);
+        this.update(editor);
+      }
+    });
   }
 
   public handleVisibleRangesChange(event: vscode.TextEditorVisibleRangesChangeEvent): void {
-    if (event.textEditor !== this.currentEditor) return;
-    this.update(this.currentEditor);
+    ActiveEditorState.update(event.textEditor);
+    this.update(event.textEditor);
   }
 
   public updateTranslationDecoration() {
@@ -152,6 +196,7 @@ export class DecoratorController implements vscode.Disposable {
     this.looseTranslationDecoration.dispose();
     this.translationDecoration = this.setTranslationDecoration();
     this.looseTranslationDecoration = this.setTranslationDecoration(true);
+    this.updateVisibleEditors();
   }
 
   private formatEntryValue(entryValue: string, maxLen?: number): string {
@@ -160,23 +205,24 @@ export class DecoratorController implements vscode.Disposable {
     return formattedEntryValue.slice(0, maxLen) + "...";
   }
 
-  // 应用装饰器（根据光标位置切换状态）
-  private applyDecorations(editor: vscode.TextEditor): void {
-    if (!this.currentEditor) return;
-    const cursorLine = this.currentEditor.selection.active.line;
+  private applyDecorations(editor: vscode.TextEditor, decorations: DecorationData[]): void {
+    const cursorLine = editor.selection.active.line;
     const translationDecorations: vscode.DecorationOptions[] = [];
     const looseTranslationDecorations: vscode.DecorationOptions[] = [];
     const hiddenKeyDecorations: vscode.DecorationOptions[] = [];
     const isInline = getCacheConfig<InlineHintsDisplayMode>("translationHints.displayMode") === INLINE_HINTS_DISPLAY_MODE.inline;
     const isItalic = getCacheConfig<boolean>("translationHints.italic");
-    this.currentDecorations.forEach(({ startPos, endPos, value, isLooseMatch }) => {
+
+    decorations.forEach(({ startPos, endPos, value, isLooseMatch }) => {
       if (isLooseMatch) {
         startPos--;
         endPos++;
       }
+
       const globalStartPos = editor.document.positionAt(startPos);
       let globalEndPos = editor.document.positionAt(endPos);
       const isOnCursorLine = globalStartPos.line <= cursorLine && globalEndPos.line >= cursorLine;
+
       if (isInline || isOnCursorLine) {
         if (isLooseMatch) {
           const document = editor.document;
@@ -194,8 +240,9 @@ export class DecoratorController implements vscode.Disposable {
             globalEndPos = document.positionAt(quotePosition);
           }
         }
+
         const range = new vscode.Range(globalEndPos, globalEndPos);
-        const appendedDec = {
+        const appendedDec: vscode.DecorationOptions = {
           range,
           renderOptions: { before: { contentText: ` → ${value}`, fontStyle: isItalic ? "italic" : "normal" } }
         };
@@ -215,14 +262,25 @@ export class DecoratorController implements vscode.Disposable {
         } else {
           translationDecorations.push(overlayDec);
         }
-        const hiddenKeyDec: vscode.DecorationOptions = { range: new vscode.Range(globalStartPos, globalEndPos) };
-        hiddenKeyDecorations.push(hiddenKeyDec);
+        hiddenKeyDecorations.push({ range: new vscode.Range(globalStartPos, globalEndPos) });
       }
     });
-    // 设置装饰器
+
     editor.setDecorations(this.translationDecoration, translationDecorations);
     editor.setDecorations(this.looseTranslationDecoration, looseTranslationDecorations);
     editor.setDecorations(this.hiddenKeyDecoration, hiddenKeyDecorations);
+  }
+
+  private getEditorKey(editor: vscode.TextEditor): string {
+    return `${editor.document.uri.toString()}::${editor.viewColumn ?? "NA"}`;
+  }
+
+  private clearEditorDecorations(editor: vscode.TextEditor, editorKey: string): void {
+    editor.setDecorations(this.translationDecoration, []);
+    editor.setDecorations(this.looseTranslationDecoration, []);
+    editor.setDecorations(this.hiddenKeyDecoration, []);
+    this.decorationsByEditor.delete(editorKey);
+    this.lastCursorLineByEditor.delete(editorKey);
   }
 
   private setTranslationDecoration(isLooseMatch: boolean = false) {
@@ -269,7 +327,9 @@ export class DecoratorController implements vscode.Disposable {
     this.translationDecoration.dispose();
     this.looseTranslationDecoration.dispose();
     this.hiddenKeyDecoration.dispose();
-    this.currentDecorations.clear();
+    this.decorationsByEditor.clear();
+    this.lastCursorLineByEditor.clear();
+    this.visibleEditorKeys.clear();
     this.disposed = true;
   }
 }

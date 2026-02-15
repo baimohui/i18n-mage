@@ -123,7 +123,7 @@ export function buildUnits(data: FixPreviewData) {
 
   Object.entries(idPatches).forEach(([file, patches]) => {
     patches.forEach((patch, index) => {
-      const key = patch.fixedKey;
+      const key = patch.id;
       const mappedKey = displayNameToKey.get(key);
       const existing = unitMap.get(key) ?? (mappedKey !== undefined ? unitMap.get(mappedKey) : undefined);
       const patchData: UnitPatchRef = {

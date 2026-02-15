@@ -164,7 +164,7 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
         this.undefinedEntriesInCurrentFile = this.undefinedEntriesInCurrentFile.filter(item => this.matchesSearch(item.nameInfo.text));
       }
       const decorator = DecoratorController.getInstance();
-      decorator.update(editor);
+      decorator.updateVisibleEditors();
       const diagnostics = Diagnostics.getInstance();
       diagnostics.update(editor.document);
       // vscode.workspace.textDocuments.forEach(doc => diagnostics.update(doc));

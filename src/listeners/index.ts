@@ -6,6 +6,7 @@ import { registerOnFileChange } from "./onFileChange";
 import { registerOnEditorVisibleRangesChange } from "./onEditorVisibleRangesChange";
 import { registerOnDocumentOpen } from "./onDocumentOpen";
 import { registerOnDocumentClose } from "./onDocumentClose";
+import { registerOnVisibleEditorsChange } from "./onVisibleEditorsChange";
 
 export function registerAllListeners() {
   registerOnFileSave();
@@ -14,6 +15,7 @@ export function registerAllListeners() {
   registerOnEditorSelectionChange();
   registerOnFileChange();
   registerOnEditorVisibleRangesChange();
+  registerOnVisibleEditorsChange();
   registerOnDocumentOpen();
   registerOnDocumentClose();
 }
