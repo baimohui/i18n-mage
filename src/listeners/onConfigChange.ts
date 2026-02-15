@@ -40,10 +40,18 @@ export function registerOnConfigChange() {
             ) {
               treeInstance.refresh();
             } else if (
-              ["translationHints.maxLength", "translationHints.enableLooseKeyMatch"].includes(key) ||
+              [
+                "translationHints.maxLength",
+                "translationHints.enableLooseKeyMatch",
+                "translationHints.realtimeVisibleRangeUpdate"
+              ].includes(key) ||
               ["translationHints.light", "translationHints.dark"].some(i => key.startsWith(i))
             ) {
-              decorator.updateTranslationDecoration();
+              if (key === "translationHints.realtimeVisibleRangeUpdate") {
+                decorator.updateVisibleEditors();
+              } else {
+                decorator.updateTranslationDecoration();
+              }
             } else if (key === "writeRules.sortRule") {
               const sortMode = subConfig[name] as SortMode;
               vscode.commands.executeCommand(

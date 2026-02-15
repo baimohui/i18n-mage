@@ -136,6 +136,7 @@
   "config.translationHintsDisplayMode.desc": "翻译装饰的呈现方式",
   "config.translationHintsDisplayMode.overlay": "将翻译文本覆盖显示在原始文本上",
   "config.translationHintsDisplayMode.inline": "将翻译文本与原始文本并行显示",
+  "config.translationHintsRealtimeVisibleRangeUpdate.desc": "滚动时立即更新可见区域的翻译装饰（可能增加 CPU 占用）",
   "config.applyToStringLiterals.desc": "启用后，插件将对普通字符串也应用内联翻译装饰，而不仅限于国际化函数中的字符串",
   "config.invalidKeyStrategy.desc": "当生成的词条 key 无效（为空或超出最大长度）时使用的回退策略",
   "config.invalidKeyStrategy.fallback": "使用默认回退策略，即 \"文件名+text+ 数字\" 的形式，例如 appText01",

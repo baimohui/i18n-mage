@@ -136,6 +136,7 @@
   "config.translationHintsDisplayMode.desc": "Translation hint display mode",
   "config.translationHintsDisplayMode.overlay": "Overlay on original text",
   "config.translationHintsDisplayMode.inline": "Inline with original text",
+  "config.translationHintsRealtimeVisibleRangeUpdate.desc": "Update visible-range translation hints immediately while scrolling (may increase CPU usage)",
   "config.applyToStringLiterals.desc": "Apply inline translation hints to plain strings, not only i18n functions",
   "config.invalidKeyStrategy.desc": "Fallback strategy when generated key is invalid",
   "config.invalidKeyStrategy.fallback": "Default fallback (e.g. appText01)",

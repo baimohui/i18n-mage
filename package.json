@@ -738,14 +738,20 @@
             ],
             "description": "%config.translationHintsDisplayMode.desc%"
           },
-          "i18n-mage.translationHints.applyToStringLiterals": {
+          "i18n-mage.translationHints.realtimeVisibleRangeUpdate": {
             "order": 2,
+            "type": "boolean",
+            "default": false,
+            "description": "%config.translationHintsRealtimeVisibleRangeUpdate.desc%"
+          },
+          "i18n-mage.translationHints.applyToStringLiterals": {
+            "order": 3,
             "type": "boolean",
             "default": false,
             "description": "%config.applyToStringLiterals.desc%"
           },
           "i18n-mage.translationHints.enableLooseKeyMatch": {
-            "order": 3,
+            "order": 4,
             "type": "boolean",
             "default": true,
             "description": "%config.translateHintsEnableLooseKeyMatch.desc%"
