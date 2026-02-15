@@ -4,7 +4,11 @@
     {
       "label": "watch-all",
       "type": "shell",
-      "command": "npm run build:webviews:watch & npx esbuild src/extension.ts --bundle --outfile=dist/extension.js --platform=node --target=node18 --external:vscode --sourcemap --watch",
+      "command": "npm run build:webviews:watch",
+      "dependsOrder": "parallel",
+      "dependsOn": [
+        "watch-extension"
+      ],
       "isBackground": true,
       "problemMatcher": {
         "owner": "custom",
@@ -19,7 +23,7 @@
         "background": {
           "activeOnStart": true,
           "beginsPattern": ".",
-          "endsPattern": "waiting for changes|watching for changes"
+          "endsPattern": "watching for changes|watching for file changes"
         }
       },
       "presentation": {
@@ -27,10 +31,46 @@
       }
     },
     {
-      "label": "terminate-watchers",
+      "label": "watch-extension",
+      "type": "shell",
+      "command": "npx esbuild src/extension.ts --bundle --outfile=dist/extension.js --platform=node --target=node18 --external:vscode --sourcemap --watch",
+      "isBackground": true,
+      "problemMatcher": {
+        "owner": "custom",
+        "pattern": [
+          {
+            "regexp": ".*",
+            "file": 1,
+            "location": 2,
+            "message": 3
+          }
+        ],
+        "background": {
+          "activeOnStart": true,
+          "beginsPattern": ".",
+          "endsPattern": "watching for changes"
+        }
+      },
+      "presentation": {
+        "reveal": "never"
+      }
+    },
+    {
+      "label": "terminate-watchers-auto",
       "type": "process",
-      "command": "${command:workbench.action.tasks.terminate}",
-      "problemMatcher": []
+      "command": "powershell",
+      "args": [
+        "-NoProfile",
+        "-ExecutionPolicy",
+        "Bypass",
+        "-Command",
+        "$workspace='${workspaceFolder}'.ToLowerInvariant(); $targets=Get-CimInstance Win32_Process | Where-Object { $_.CommandLine -and $_.CommandLine.ToLowerInvariant().Contains($workspace) -and ( $_.Name -match '^(node|esbuild)(\\.exe)?$' ) -and ( $_.CommandLine -match '--watch' -or $_.CommandLine -match '--service=.*--ping' ) -and ( $_.CommandLine -match 'vite(\\.js)?\\\"?\\s+build\\s+--mode\\s+development\\s+--watch' -or $_.CommandLine -match 'src[\\\\/]extension\\.ts.*--watch' -or $_.CommandLine -match '@esbuild[\\\\/]win32-x64[\\\\/]esbuild\\.exe\\s+--service=.*--ping' ) }; foreach($p in $targets){ Stop-Process -Id $p.ProcessId -Force -ErrorAction SilentlyContinue }; Write-Host ('terminated watcher processes: ' + $targets.Count)"
+      ],
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "never",
+        "close": true
+      }
     }
   ]
 }
