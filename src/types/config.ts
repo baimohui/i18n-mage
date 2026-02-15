@@ -121,6 +121,13 @@ export const INLINE_HINTS_DISPLAY_MODE = {
 
 export type InlineHintsDisplayMode = (typeof INLINE_HINTS_DISPLAY_MODE)[keyof typeof INLINE_HINTS_DISPLAY_MODE];
 
+export const DECORATION_SCOPE = {
+  visible: "visible",
+  file: "file"
+} as const;
+
+export type DecorationScope = (typeof DECORATION_SCOPE)[keyof typeof DECORATION_SCOPE];
+
 export const INVALID_KEY_STRATEGY = {
   fallback: "fallback",
   ai: "ai"

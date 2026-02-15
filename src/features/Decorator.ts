@@ -3,7 +3,7 @@ import LangMage from "@/core/LangMage";
 import { treeInstance } from "@/views/tree";
 import { getValueByAmbiguousEntryName, formatEscapeChar } from "@/utils/regex";
 import { getCacheConfig } from "@/utils/config";
-import { INLINE_HINTS_DISPLAY_MODE, InlineHintsDisplayMode } from "@/types";
+import { DECORATION_SCOPE, DecorationScope, INLINE_HINTS_DISPLAY_MODE, InlineHintsDisplayMode } from "@/types";
 import { ActiveEditorState } from "@/utils/activeEditorState";
 import { isFileTooLarge } from "@/utils/fs";
 
@@ -87,10 +87,10 @@ export class DecoratorController implements vscode.Disposable {
       this.clearEditorDecorations(editor, editorKey);
       return;
     }
-
+    const decorationScope = getCacheConfig<DecorationScope>("translationHints.decorationScope", DECORATION_SCOPE.visible);
     const entries = Array.from(ActiveEditorState.definedEntries.values())
       .flat()
-      .filter(item => item.visible);
+      .filter(item => decorationScope === DECORATION_SCOPE.file || item.visible);
     const maxLen = getCacheConfig<number>("translationHints.maxLength");
     const enableLooseKeyMatch = getCacheConfig<boolean>("translationHints.enableLooseKeyMatch");
     const dynamicMatchInfo = ActiveEditorState.dynamicMatchInfo;
@@ -152,11 +152,17 @@ export class DecoratorController implements vscode.Disposable {
 
   public handleDocumentChange(event: vscode.TextDocumentChangeEvent): void {
     if (event.contentChanges.length === 0) return;
+    const decorationScope = getCacheConfig<DecorationScope>("translationHints.decorationScope", DECORATION_SCOPE.visible);
 
     const editors = vscode.window.visibleTextEditors.filter(editor => editor.document === event.document);
     if (editors.length === 0) return;
 
     editors.forEach(editor => {
+      if (decorationScope === DECORATION_SCOPE.file) {
+        ActiveEditorState.update(editor);
+        this.update(editor);
+        return;
+      }
       let affected = false;
       const changedTextSnippets: string[] = [];
       const visibleRanges = editor.visibleRanges;

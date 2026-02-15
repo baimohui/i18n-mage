@@ -4,6 +4,7 @@ import { DecoratorController } from "@/features/Decorator";
 import { debounce } from "@/utils/common";
 import { ActiveEditorState } from "@/utils/activeEditorState";
 import { getCacheConfig } from "@/utils/config";
+import { DECORATION_SCOPE, DecorationScope } from "@/types";
 
 export function registerOnEditorVisibleRangesChange() {
   const decorator = DecoratorController.getInstance();
@@ -13,6 +14,10 @@ export function registerOnEditorVisibleRangesChange() {
   };
   const debouncedHandler = debounce(refresh, 200);
   const disposable = vscode.window.onDidChangeTextEditorVisibleRanges(event => {
+    const decorationScope = getCacheConfig<DecorationScope>("translationHints.decorationScope", DECORATION_SCOPE.visible);
+    if (decorationScope === DECORATION_SCOPE.file) {
+      return;
+    }
     const realtime = getCacheConfig<boolean>("translationHints.realtimeVisibleRangeUpdate", false);
     if (realtime) {
       refresh(event);

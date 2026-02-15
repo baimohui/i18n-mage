@@ -43,11 +43,12 @@ export function registerOnConfigChange() {
               [
                 "translationHints.maxLength",
                 "translationHints.enableLooseKeyMatch",
-                "translationHints.realtimeVisibleRangeUpdate"
+                "translationHints.realtimeVisibleRangeUpdate",
+                "translationHints.decorationScope"
               ].includes(key) ||
               ["translationHints.light", "translationHints.dark"].some(i => key.startsWith(i))
             ) {
-              if (key === "translationHints.realtimeVisibleRangeUpdate") {
+              if (["translationHints.realtimeVisibleRangeUpdate", "translationHints.decorationScope"].includes(key)) {
                 decorator.updateVisibleEditors();
               } else {
                 decorator.updateTranslationDecoration();
