@@ -38,7 +38,7 @@ export default async function translateTo(data: TranslateData, startIndex = 0): 
   const tencentSecretId = getCacheConfig<string>("translationServices.tencentSecretId");
   const tencentSecretKey = getCacheConfig<string>("translationServices.tencentSecretKey");
   const deepseekApiKey = getCacheConfig<string>("translationServices.deepseekApiKey");
-  const chatgptApiKey = getCacheConfig<string>("translationServices.chatgptApiKey");
+  const openaiApiKey = getCacheConfig<string>("translationServices.openaiApiKey", "");
   const googleApiKey = getCacheConfig<string>("translationServices.googleApiKey");
   const youdaoAppId = getCacheConfig<string>("translationServices.youdaoAppId");
   const youdaoAppKey = getCacheConfig<string>("translationServices.youdaoAppKey");
@@ -50,7 +50,7 @@ export default async function translateTo(data: TranslateData, startIndex = 0): 
     baidu: [baiduAppId, baiduSecretKey],
     tencent: [tencentSecretId, tencentSecretKey],
     deepseek: ["none", deepseekApiKey],
-    chatgpt: ["none", chatgptApiKey],
+    chatgpt: ["none", openaiApiKey],
     deepl: ["none", deeplApiKey],
     youdao: [youdaoAppId, youdaoAppKey]
   };

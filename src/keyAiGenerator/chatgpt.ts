@@ -2,8 +2,9 @@ import axios from "axios";
 import { GenKeyParams, GenKeyResult } from "../types";
 import { batchGenerate } from "./utils/batchGenerate";
 import { t } from "@/utils/i18n";
+import { getProxyAgent } from "@/utils/proxy";
 
-const baseUrl = "https://api.deepseek.com/v1/chat/completions";
+const baseUrl = "https://api.openai.com/v1/chat/completions";
 
 let openaiApiKey = "";
 
@@ -34,6 +35,7 @@ interface OpenAIAPIResponse {
 
 async function send(sourceTextList: string[], style: string, maxLength: number): Promise<GenKeyResult> {
   try {
+    const agent = getProxyAgent();
     const SEP = "[[[SEP]]]";
     const sourceText = sourceTextList.join(SEP);
     const messages = [
@@ -67,7 +69,8 @@ async function send(sourceTextList: string[], style: string, maxLength: number):
         headers: {
           Authorization: `Bearer ${openaiApiKey}`,
           "Content-Type": "application/json"
-        }
+        },
+        httpsAgent: agent
       }
     );
     const result = response.data.choices[0].message.content.split(SEP).map(line => line.trim());

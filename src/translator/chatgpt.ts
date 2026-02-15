@@ -2,6 +2,7 @@ import axios from "axios";
 import { TranslateParams, TranslateResult } from "../types";
 import { batchTranslate } from "./utils/batchTranslate";
 import { t } from "@/utils/i18n";
+import { getProxyAgent } from "@/utils/proxy";
 
 const baseUrl = "https://api.openai.com/v1/chat/completions";
 
@@ -46,6 +47,7 @@ interface OpenAIAPIResponse {
 
 async function send(source: string, target: string, sourceTextList: string[], customPrompt = ""): Promise<TranslateResult> {
   try {
+    const agent = getProxyAgent();
     const SEP = "[[[SEP]]]";
     const sourceText = sourceTextList.join(SEP);
     const prompt = customPrompt.trim();
@@ -73,7 +75,8 @@ async function send(source: string, target: string, sourceTextList: string[], cu
         headers: {
           Authorization: `Bearer ${openaiApiKey}`,
           "Content-Type": "application/json"
-        }
+        },
+        httpsAgent: agent
       }
     );
 

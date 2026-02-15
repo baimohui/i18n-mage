@@ -360,11 +360,11 @@
             "default": "",
             "description": "%config.googleApiKey.desc%"
           },
-          "i18n-mage.translationServices.chatgptApiKey": {
+          "i18n-mage.translationServices.openaiApiKey": {
             "order": 22,
             "type": "string",
             "default": "",
-            "description": "%config.chatgptApiKey.desc%"
+            "description": "%config.openaiApiKey.desc%"
           },
           "i18n-mage.translationServices.deepseekApiKey": {
             "order": 25,

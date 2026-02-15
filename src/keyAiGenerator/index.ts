@@ -22,12 +22,12 @@ export default async function generateKeyFrom(data: TranslateData, startIndex = 
   const { style, maxLen, sourceTextList = [] } = data;
 
   const deepseekApiKey = getCacheConfig<string>("translationServices.deepseekApiKey");
-  const chatgptApiKey = getCacheConfig<string>("translationServices.chatgptApiKey");
+  const openaiApiKey = getCacheConfig<string>("translationServices.openaiApiKey", "");
   const translateApiPriority = getCacheConfig<string[]>("translationServices.translateApiPriority");
 
   const apiMap: ApiMap = {
     deepseek: ["none", deepseekApiKey],
-    chatgpt: ["none", chatgptApiKey]
+    chatgpt: ["none", openaiApiKey]
   };
 
   const availableApiList = translateApiPriority.filter(
