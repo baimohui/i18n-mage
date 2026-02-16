@@ -452,13 +452,13 @@
           "i18n-mage.analysis.languageFileParser": {
             "order": 2,
             "enum": [
-              "json5",
-              "eval",
+              "json",
+              "yaml",
               "auto"
             ],
             "enumDescriptions": [
-              "%config.jsonParser.json5%",
-              "%config.jsonParser.eval%",
+              "%config.languageFileParser.json%",
+              "%config.languageFileParser.yaml%",
               "%config.jsonParser.auto%"
             ],
             "default": "auto",
@@ -1628,6 +1628,7 @@
     "@vitalets/google-translate-api": "^9.2.0",
     "axios": "^1.13.5",
     "js-md5": "^0.7.3",
+    "js-yaml": "^4.1.1",
     "json5": "^2.2.3",
     "node-xlsx": "^0.24.0",
     "tencentcloud-sdk-nodejs-tmt": "^4.0.791",
@@ -1640,6 +1641,7 @@
     "@babel/preset-env": "^7.24.8",
     "@preact/preset-vite": "^2.10.2",
     "@types/chai": "^5.2.2",
+    "@types/js-yaml": "^4.0.9",
     "@types/mocha": "^10.0.10",
     "@types/mock-require": "^3.0.0",
     "@types/node": "^20.19.21",

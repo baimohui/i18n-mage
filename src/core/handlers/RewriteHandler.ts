@@ -171,10 +171,11 @@ export class RewriteHandler {
         break;
       }
     }
-    if (this.ctx.quoteStyleForKey !== "auto") {
+    const isYamlFile = this.ctx.langFileType === "yaml" || this.ctx.langFileType === "yml";
+    if (!isYamlFile && this.ctx.quoteStyleForKey !== "auto") {
       extraInfo.keyQuotes = this.ctx.quoteStyleForKey;
     }
-    if (this.ctx.quoteStyleForValue !== "auto") {
+    if (!isYamlFile && this.ctx.quoteStyleForValue !== "auto") {
       extraInfo.valueQuotes = this.ctx.quoteStyleForValue;
     }
     if (this.ctx.indentSize !== null) {

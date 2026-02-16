@@ -1,5 +1,6 @@
 import fs from "fs";
 import * as vscode from "vscode";
+import YAML from "js-yaml";
 import { getLangCode } from "@/utils/langKey";
 import { EntryTree, FileExtraInfo } from "@/types";
 import { unescapeString } from "./stringUtils";
@@ -127,7 +128,10 @@ export function formatObjectToString(tree: EntryTree, filePath: string, extraInf
     valueQuotes = "double"
   } = extraInfo;
   const match = filePath.match(/^.*\.([^.]+)$/);
-  const fileType = match ? match[1] : "";
+  const fileType = match ? match[1].toLowerCase() : "";
+  if (fileType === "yaml" || fileType === "yml") {
+    return formatYamlToString(tree, filePath, extraInfo);
+  }
   function needsQuotes(key: string): boolean {
     const validIdentifier = /^[a-zA-Z_$][a-zA-Z0-9_$]*$/;
     return !validIdentifier.test(key);
@@ -177,6 +181,21 @@ export function formatObjectToString(tree: EntryTree, filePath: string, extraInf
   }
   output.push(suffix ? `}${suffix}` : "}");
   return output.join(lineEnding);
+}
+
+export function formatYamlToString(tree: EntryTree, filePath: string, extraInfo: FileExtraInfo): string {
+  const { isFlat = true } = extraInfo;
+  const lineEnding = getLineEnding(filePath);
+  if (isFlat) {
+    tree = flattenNestedObj(tree, true);
+  } else if (!getCacheConfig<boolean>("writeRules.allowDotInNestedKey", true)) {
+    tree = expandDotKeys(tree);
+  }
+  const yamlText = YAML.dump(tree, {
+    noRefs: true,
+    lineWidth: -1
+  });
+  return yamlText.replace(/\n/g, lineEnding);
 }
 
 export function formatForFile(str: string, doubleQuotes = true): string {

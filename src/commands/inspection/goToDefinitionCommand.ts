@@ -27,9 +27,11 @@ export function registerGoToDefinitionCommand() {
       target = { key: e.key, lang: e.meta.lang };
     }
     const { key, lang } = target;
-    const fullKey = dictionary[key].fullPath;
+    const entry = dictionary[key];
+    if (entry === undefined) return;
+    const fullKey = entry.fullPath;
     let filePathSegs: string[] = [];
-    if (publicCtx.fileStructure) {
+    if (publicCtx.fileStructure !== null) {
       filePathSegs = getFileLocationFromId(fullKey, publicCtx.fileStructure) ?? [];
     }
     const realKey = filePathSegs.length > 0 ? fullKey.replace(`${filePathSegs.join(".")}.`, "") : fullKey;

@@ -87,6 +87,7 @@
   "command.modify.title": "修改词条",
   "command.parseLangFile.evalError": "语言文件 eval 解析失败：{0}",
   "command.parseLangFile.json5Error": "语言文件 JSON5 解析失败：{0}",
+  "command.parseLangFile.yamlError": "语言文件 YAML 解析失败：{0}",
   "command.parseLangFile.success": "语言文件解析成功，生成文件额外信息：{0}",
   "command.parseLangFile.title": "正在读取语言文件：{0}",
   "command.pasteEntries.confirm": "{0} 个词条已存在，是否覆盖？",

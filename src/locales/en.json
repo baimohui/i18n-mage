@@ -87,6 +87,7 @@
   "command.modify.title": "Modify Entry",
   "command.parseLangFile.evalError": "Failed to parse language file with eval: {0}",
   "command.parseLangFile.json5Error": "Failed to parse language file with JSON5: {0}",
+  "command.parseLangFile.yamlError": "Failed to parse language file with YAML: {0}",
   "command.parseLangFile.success": "Language file parsed successfully, extra info generated: {0}",
   "command.parseLangFile.title": "Reading language file: {0}",
   "command.pasteEntries.confirm": "{0} entries already exist. Overwrite?",

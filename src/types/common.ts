@@ -4,7 +4,7 @@ export type LangName = string;
 export type EntryValue = string;
 export type EntryKeySeg = string;
 export type EntryKey = string;
-export type LangFileType = "js" | "ts" | "json" | "json5" | "mjs" | "cjs";
+export type LangFileType = "js" | "ts" | "json" | "json5" | "mjs" | "cjs" | "yaml" | "yml";
 
 export interface FileExtraInfo {
   indentType: IndentType;

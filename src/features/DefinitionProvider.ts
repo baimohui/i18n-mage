@@ -12,15 +12,17 @@ export class KeyDefinitionProvider implements vscode.DefinitionProvider {
     const publicCtx = mage.getPublicContext();
     const referredLang = publicCtx.referredLang;
     const dictionary = mage.langDetail.dictionary;
+    const entry = dictionary[keyAtCursor];
+    if (entry === undefined) return null;
     let filePathSegs: string[] = [];
-    const fullKey = dictionary[keyAtCursor].fullPath;
-    if (publicCtx.fileStructure) {
+    const fullKey = entry.fullPath;
+    if (publicCtx.fileStructure !== null) {
       filePathSegs = getFileLocationFromId(fullKey, publicCtx.fileStructure) ?? [];
     }
     const realKey = filePathSegs.length > 0 ? fullKey.replace(`${filePathSegs.join(".")}.`, "") : fullKey;
     const resourceUri = vscode.Uri.file(path.join(publicCtx.langPath, referredLang, ...filePathSegs) + `.${publicCtx.langFileType}`);
     const range = await getPropertyRange(resourceUri, realKey);
-    if (range) {
+    if (range !== null) {
       return new vscode.Location(resourceUri, range);
     }
     return null;

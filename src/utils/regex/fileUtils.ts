@@ -2,6 +2,7 @@ import fs from "fs";
 import vm from "node:vm";
 import path from "path";
 import JSON5 from "json5";
+import YAML from "js-yaml";
 import { escapeString } from "./stringUtils";
 import {
   LangTree,
@@ -20,6 +21,8 @@ import { isPathInsideDirectory, isSamePath, toRelativePath } from "../fs";
 import { getCacheConfig } from "../config";
 import { NotificationManager } from "../notification";
 import { t } from "../i18n";
+
+type LanguageFileParserMode = "auto" | "json" | "yaml";
 
 export function isValidI18nCallablePath(inputPath: string): boolean {
   const ignoredFiles = getCacheConfig<string[]>("workspace.ignoredFiles");
@@ -57,32 +60,21 @@ export function getLangFileInfo(filePath: string): LangFileInfo | null {
   try {
     NotificationManager.logToOutput(t("command.parseLangFile.title", filePath), "info");
     const fileContent = fs.readFileSync(filePath, "utf-8");
-    const [prefix, content, suffix] = extractContent(fileContent);
-    if (content) {
-      let jsonObj = content;
-      const { key: keyQuotes, value: valueQuotes } = detectQuoteStyle(jsonObj);
-      const { type, size } = detectIndent(jsonObj);
-      let tree = jsonParse(jsonObj);
-      let innerVar = "";
-      if (tree === null) {
-        const varMatch = jsonObj.match(/^{\s*([^"']*,[^]*?)\r?\n/);
-        if (varMatch) {
-          innerVar = varMatch[1];
-          jsonObj = jsonObj.replace(innerVar, "");
-          tree = jsonParse(jsonObj);
-        }
-      }
+    const ext = path.extname(filePath).replace(/^\./, "").toLowerCase();
+    if (ext === "yaml" || ext === "yml") {
+      const tree = parseLanguageContent(fileContent, ext);
       if (tree === null) return null;
+      const { type, size } = detectIndent(fileContent);
       const isFlat = Object.keys(tree).every(key => typeof tree[key] !== "object");
       const extraInfo = {
         indentType: type,
         indentSize: size,
-        prefix,
-        suffix,
-        innerVar,
-        keyQuotes,
+        prefix: "",
+        suffix: "",
+        innerVar: "",
+        keyQuotes: "none" as const,
         isFlat,
-        valueQuotes
+        valueQuotes: "double" as const
       };
       NotificationManager.logToOutput(t("command.parseLangFile.success", JSON.stringify(extraInfo)), "info");
       return {
@@ -90,27 +82,88 @@ export function getLangFileInfo(filePath: string): LangFileInfo | null {
         extraInfo
       };
     }
-    return null;
+
+    const [prefix, content, suffix] = extractContent(fileContent);
+    if (!content) return null;
+    let jsonObj = content;
+    const { key: keyQuotes, value: valueQuotes } = detectQuoteStyle(jsonObj);
+    const { type, size } = detectIndent(jsonObj);
+    let tree = parseLanguageContent(jsonObj, ext);
+    let innerVar = "";
+    if (tree === null) {
+      const varMatch = jsonObj.match(/^{\s*([^"']*,[^]*?)\r?\n/);
+      if (varMatch) {
+        innerVar = varMatch[1];
+        jsonObj = jsonObj.replace(innerVar, "");
+        tree = parseLanguageContent(jsonObj, ext);
+      }
+    }
+    if (tree === null) return null;
+    const isFlat = Object.keys(tree).every(key => typeof tree[key] !== "object");
+    const extraInfo = {
+      indentType: type,
+      indentSize: size,
+      prefix,
+      suffix,
+      innerVar,
+      keyQuotes,
+      isFlat,
+      valueQuotes
+    };
+    NotificationManager.logToOutput(t("command.parseLangFile.success", JSON.stringify(extraInfo)), "info");
+    return {
+      data: tree,
+      extraInfo
+    };
   } catch (e) {
     NotificationManager.logToOutput((e as Error).message, "error");
     return null;
   }
 }
 
-export function jsonParse(content: string) {
-  const languageFileParser = getCacheConfig<"auto" | "json5" | "eval">("analysis.languageFileParser");
-  if (languageFileParser === "json5") {
-    return json5Parse(content);
-  } else if (languageFileParser === "eval") {
-    return safeEvalParse(content);
+export function parseLanguageContent(content: string, ext: string): EntryTree | null {
+  const languageFileParser = resolveLanguageFileParserMode(getCacheConfig<string>("analysis.languageFileParser"));
+  if (languageFileParser === "yaml") {
+    return yamlParse(content);
+  } else if (languageFileParser === "json") {
+    return jsonParse(content);
   } else if (languageFileParser === "auto") {
-    let result = json5Parse(content);
-    if (result === null) {
-      result = safeEvalParse(content);
+    if (ext === "yaml" || ext === "yml") {
+      return yamlParse(content);
     }
-    return result;
+    return jsonParse(content);
   }
   return null;
+}
+
+export function resolveLanguageFileParserMode(mode: string): LanguageFileParserMode {
+  if (mode === "yaml" || mode === "json" || mode === "auto") return mode;
+  // backward compatibility: old values map to json mode
+  if (mode === "json5" || mode === "eval") return "json";
+  return "auto";
+}
+
+export function jsonParse(content: string): EntryTree | null {
+  let result = json5Parse(content);
+  if (result === null) {
+    result = safeEvalParse(content);
+  }
+  return result;
+}
+
+export function yamlParse(content: string): EntryTree | null {
+  try {
+    const parsed = YAML.load(content);
+    if (parsed == null) return {};
+    if (typeof parsed !== "object" || Array.isArray(parsed)) {
+      NotificationManager.logToOutput(t("command.parseLangFile.yamlError", "Root node must be an object"), "error");
+      return null;
+    }
+    return parsed as EntryTree;
+  } catch (e) {
+    NotificationManager.logToOutput(t("command.parseLangFile.yamlError", (e as Error).message), "error");
+    return null;
+  }
 }
 
 export function json5Parse(content: string): EntryTree | null {
@@ -122,7 +175,7 @@ export function json5Parse(content: string): EntryTree | null {
   }
 }
 
-export function safeEvalParse(content: string) {
+export function safeEvalParse(content: string): EntryTree | null {
   try {
     const script = new vm.Script(`(${content})`);
     const sandbox: Record<string, unknown> = {};
@@ -353,8 +406,11 @@ export function extractLangDataFromDir(langPath: string): ExtractResult | null {
           hasData = true;
         }
       } else {
-        const [, base, ext] = dirent.name.match(/^(.*)\.([^.]+)$/) as RegExpMatchArray;
-        if (!/^(json|js|ts|json5|mjs|cjs)$/.test(ext) || (validFileType && ext !== validFileType) || base === "index") {
+        const fileNameMatch = dirent.name.match(/^(.*)\.([^.]+)$/);
+        if (fileNameMatch === null) continue;
+        const [, base, extRaw] = fileNameMatch;
+        const ext = extRaw.toLowerCase();
+        if (!/^(json|js|ts|json5|mjs|cjs|yaml|yml)$/.test(ext) || (validFileType && ext !== validFileType) || base === "index") {
           // 非法或不一致的后缀、跳过
           continue;
         }

@@ -179,7 +179,7 @@ Here’s a comparison of some popular translation services for your reference:
 
 ### Q: Supported language file formats?
 
-`.json`, `.json5`, `.js`, `.ts`
+`.json`, `.json5`, `.js`, `.ts`, `.yaml`, `.yml`
 
 ### Q: Supported i18n function usage?
 
@@ -353,7 +353,11 @@ Enable ignoring possible variables: When enabled, the plugin will ignore terms t
 
 #### `i18n-mage.analysis.languageFileParser`
 
-Used to select the parsing method of language files. You can choose from three modes: strictly secure JSON5, relaxed but risky eval, and automatic degradation, based on your needs for security and leniency.
+Used to select the parsing mode of language files:
+
+* `json`: Parse as JSON (prefer JSON5, fallback to eval)
+* `yaml`: Parse as YAML
+* `auto`: Detect JSON or YAML by file extension (`.yaml` / `.yml` use YAML, others use JSON)
 
 #### `i18n-mage.analysis.onSave`
 

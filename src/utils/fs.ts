@@ -9,7 +9,7 @@ import { getCacheConfig } from "./config";
 
 const langPathRegex = /^(lang|language|i18n|l10n|locale|translation|translate|message|intl|fanyi)s?$/i;
 const localeCodeRegex = /(^|^\w.*\b)[a-z]{2,3}([-_][a-z]{2,4})?$/i;
-const localeFileRegex = /(^|^\w.*\b)([a-z]{2,3}(?:[-_][a-z]{2,4})?)\.(js|ts|json|json5|mjs|cjs)$/i;
+const localeFileRegex = /(^|^\w.*\b)([a-z]{2,3}(?:[-_][a-z]{2,4})?)\.(js|ts|json|json5|mjs|cjs|yaml|yml)$/i;
 
 const MIN_ENTRIES = 1;
 
