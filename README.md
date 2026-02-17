@@ -161,7 +161,9 @@ See [Full Config Reference](#-full-config-reference) for all options.
 | `i18nMage.toggleInlineTranslation` | Toggle inline translation hints | Ctrl+Alt+D |
 | `i18nMage.excel`                   | Open Excel action menu          | -          |
 | `i18nMage.export`                  | Export entries to Excel         | -          |
+| `i18nMage.exportDiff`              | Export version diff to Excel    | -          |
 | `i18nMage.import`                  | Import entries from Excel       | -          |
+| `i18nMage.importDiff`              | Import version diff from Excel  | -          |
 | `i18nMage.sort`                    | Sort entries                    | -          |
 
 > 💡 All commands are accessible via the Command Palette (`Ctrl+Shift+P`).

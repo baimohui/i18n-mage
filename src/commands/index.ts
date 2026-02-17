@@ -16,6 +16,8 @@ import { registerSortCommand } from "./fix/sortCommand";
 import { registerExportCommand } from "./excel/exportCommand";
 import { registerImportCommand } from "./excel/importCommand";
 import { registerExcelCommand } from "./excel/excelCommand";
+import { registerExportDiffCommand } from "./excel/exportDiffCommand";
+import { registerImportDiffCommand } from "./excel/importDiffCommand";
 import { registerGoToDefinitionCommand } from "./inspection/goToDefinitionCommand";
 import { registerGoToReferenceCommand } from "./inspection/goToReferenceCommand";
 import { registerFindReferencesCommand } from "./inspection/findReferencesCommand";
@@ -56,7 +58,9 @@ export function registerAllCommands(context: vscode.ExtensionContext) {
   registerSortCommand();
   registerExcelCommand();
   registerExportCommand();
+  registerExportDiffCommand();
   registerImportCommand(context);
+  registerImportDiffCommand(context);
   registerGoToDefinitionCommand();
   registerGoToReferenceCommand();
   registerFindReferencesCommand();

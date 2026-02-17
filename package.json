@@ -1022,6 +1022,11 @@
         }
       },
       {
+        "command": "i18nMage.exportDiff",
+        "category": "%extension.name%",
+        "title": "%command.exportDiff.title%"
+      },
+      {
         "command": "i18nMage.import",
         "category": "%extension.name%",
         "title": "%command.import.title%",
@@ -1029,6 +1034,11 @@
           "light": "./images/import-light.svg",
           "dark": "./images/import-dark.svg"
         }
+      },
+      {
+        "command": "i18nMage.importDiff",
+        "category": "%extension.name%",
+        "title": "%command.importDiff.title%"
       },
       {
         "command": "i18nMage.ignoreFile",
