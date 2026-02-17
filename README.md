@@ -159,6 +159,7 @@ See [Full Config Reference](#-full-config-reference) for all options.
 | `i18nMage.fix`                     | Fix                             | Ctrl+Alt+F |
 | `i18nMage.search`                  | Search                          | Ctrl+Alt+S |
 | `i18nMage.toggleInlineTranslation` | Toggle inline translation hints | Ctrl+Alt+D |
+| `i18nMage.excel`                   | Open Excel action menu          | -          |
 | `i18nMage.export`                  | Export entries to Excel         | -          |
 | `i18nMage.import`                  | Import entries from Excel       | -          |
 | `i18nMage.sort`                    | Sort entries                    | -          |

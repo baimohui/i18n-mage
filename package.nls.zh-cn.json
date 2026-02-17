@@ -156,6 +156,7 @@
   "command.refresh.title": "刷新",
   "command.fix.title": "修复",
   "command.sort.title": "排序",
+  "command.excel.title": "Excel",
   "command.export.title": "导出 Excel",
   "command.import.title": "导入 Excel",
   "command.ignoreFile.title": "忽略文件",

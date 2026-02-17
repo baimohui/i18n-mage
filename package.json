@@ -1004,6 +1004,15 @@
         }
       },
       {
+        "command": "i18nMage.excel",
+        "category": "%extension.name%",
+        "title": "%command.excel.title%",
+        "icon": {
+          "light": "./images/xlsx-light.svg",
+          "dark": "./images/xlsx-dark.svg"
+        }
+      },
+      {
         "command": "i18nMage.export",
         "category": "%extension.name%",
         "title": "%command.export.title%",
@@ -1328,14 +1337,9 @@
           "group": "navigation@7"
         },
         {
-          "command": "i18nMage.export",
+          "command": "i18nMage.excel",
           "when": "view == i18nMage.grimoire && i18nMage.hasValidLangPath && !i18nMage.isSearching",
           "group": "navigation@10"
-        },
-        {
-          "command": "i18nMage.import",
-          "when": "view == i18nMage.grimoire && i18nMage.hasValidLangPath && !i18nMage.isSearching",
-          "group": "navigation@15"
         },
         {
           "command": "i18nMage.sort",

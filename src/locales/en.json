@@ -18,6 +18,8 @@
   "command.editValue.selectEntry": "Select entry to edit",
   "command.editValue.selectLang": "Select language to edit",
   "command.editValue.success": "Written: {0}",
+  "command.excel.selectAction": "Select an Excel action",
+  "command.excel.title": "Excel",
   "command.export.dialogTitle": "Save as Excel file",
   "command.export.error": "Export failed: {0}",
   "command.export.pathDetected": "Export path detected: {0}",

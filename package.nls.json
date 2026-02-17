@@ -156,6 +156,7 @@
   "command.refresh.title": "Refresh",
   "command.fix.title": "Fix",
   "command.sort.title": "Sort",
+  "command.excel.title": "Excel",
   "command.export.title": "Export Excel",
   "command.import.title": "Import Excel",
   "command.ignoreFile.title": "Ignore File",
