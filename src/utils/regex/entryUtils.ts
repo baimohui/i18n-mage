@@ -36,6 +36,7 @@ export function catchLiteralEntries(fileContent: string, entryTree: EntryTree, f
   let res: RegExpExecArray | null = null;
   const entryInfoList: PEntry[] = [];
   const regex = /(["'`])(?:\\[\s\S]|(?!\1)[^\\])*?\1/g;
+  const commentRanges = getCommentRanges(fileContent);
   while ((res = regex.exec(withoutTContent)) !== null) {
     let entryName = displayToInternalName(res[0].slice(1, -1));
     let entryValue = "";
@@ -49,7 +50,7 @@ export function catchLiteralEntries(fileContent: string, entryTree: EntryTree, f
     }
     if (
       !entryValue &&
-      (isPositionInComment(fileContent, res.index) ||
+      (isPositionInComment(fileContent, res.index, commentRanges) ||
         !isValidI18nVarName(entryName) ||
         getValueByAmbiguousEntryName(entryTree, entryName) === undefined)
     )
@@ -75,10 +76,11 @@ export function catchTEntries(fileContent: string): TEntry[] {
   const funcNamePattern = tFuncNames.map(fn => `\\b${fn}\\b`).join("|");
   const tReg = new RegExp(`(?<=[$\\s.[({:="']{1})(${funcNamePattern})\\s*\\(\\s*(\\S)`, "g");
   const entryInfoList: TEntry[] = [];
+  const commentRanges = getCommentRanges(fileContent);
 
   if (accessMode === ACCESS_MODE.object) {
     const identifiers = getCacheConfig<string[]>("i18nFeatures.translationObjectIdentifiers", []);
-    const propertyEntries = catchVariableEntries(fileContent, identifiers);
+    const propertyEntries = catchVariableEntries(fileContent, identifiers, commentRanges);
     entryInfoList.push(...propertyEntries);
     return entryInfoList;
   }
@@ -87,7 +89,7 @@ export function catchTEntries(fileContent: string): TEntry[] {
   while ((tRes = tReg.exec(fileContent)) !== null) {
     const startPos = tRes.index - 1; // 起始位
     const offset = tRes[0].length; // 起始位离 t 函数内首个有效字符的距离
-    const entry = parseTEntry(fileContent, startPos, offset);
+    const entry = parseTEntry(fileContent, startPos, offset, commentRanges);
     if (entry) {
       entryInfoList.push(entry);
     }
@@ -96,7 +98,7 @@ export function catchTEntries(fileContent: string): TEntry[] {
 }
 
 /** 捕获对象属性访问形式的国际化键  前缀rootNames */
-export function catchVariableEntries(fileContent: string, rootNames: string[]): TEntry[] {
+export function catchVariableEntries(fileContent: string, rootNames: string[], commentRanges?: [number, number][]): TEntry[] {
   const entries: TEntry[] = [];
 
   /** 匹配对象属性访问形式  前缀rootNames */
@@ -117,7 +119,7 @@ export function catchVariableEntries(fileContent: string, rootNames: string[]): 
     let endPos = match.index + fullMatch.length + 1 + fullMatchDifLength;
 
     // 检查是否在注释中
-    if (isPositionInComment(fileContent, match.index)) continue;
+    if (isPositionInComment(fileContent, match.index, commentRanges)) continue;
 
     let vars: string[] = [];
     // 检查后面是否紧跟括号，如果有，解析参数作为变量
@@ -204,7 +206,7 @@ function parseFunctionArgs(fileContent: string, openParenIndex: number): { vars:
   return { vars, endPos: curPos + 2 };
 }
 
-export function parseTEntry(fileContent: string, startPos: number, offset: number): TEntry | null {
+export function parseTEntry(fileContent: string, startPos: number, offset: number, commentRanges?: [number, number][]): TEntry | null {
   let curPos = startPos + offset;
   const nameStartPos = curPos;
   let nameEndPos = curPos;
@@ -265,7 +267,7 @@ export function parseTEntry(fileContent: string, startPos: number, offset: numbe
   if (entryNameForm.every(item => !["text", "varText"].includes(item.type))) return null;
   if (entryNameForm.some(item => item.type === "logic")) return null;
   const entryRaw = fileContent.slice(startPos, curPos + 1);
-  if (isPositionInComment(fileContent, startPos)) return null;
+  if (isPositionInComment(fileContent, startPos, commentRanges)) return null;
   const nameInfo = getEntryNameInfoByForm(entryNameForm, entryVarList);
   if (!nameInfo) return null;
   return {
@@ -501,7 +503,7 @@ export function matchBrackets(str: string, startPos = 0, open = "{", close = "}"
   return null;
 }
 
-export function isPositionInComment(code: string, index: number): boolean {
+function getCommentRanges(code: string): [number, number][] {
   const ignoreCommentedCode = getCacheConfig<boolean>("analysis.ignoreCommentedCode");
   const commentRanges: [number, number][] = [];
   if (ignoreCommentedCode) {
@@ -533,6 +535,11 @@ export function isPositionInComment(code: string, index: number): boolean {
       commentRanges.push([match.index, match.index + match[0].length]);
     }
   }
+  return commentRanges;
+}
+
+export function isPositionInComment(code: string, index: number, precomputedCommentRanges?: [number, number][]): boolean {
+  const commentRanges = precomputedCommentRanges ?? getCommentRanges(code);
   // 判断 index 是否在任何区间内
   return commentRanges.some(([start, end]) => index >= start && index < end);
 }

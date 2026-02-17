@@ -22,19 +22,21 @@ import { getCacheConfig } from "../config";
 import { NotificationManager } from "../notification";
 import { t } from "../i18n";
 
-export function isValidI18nCallablePath(inputPath: string): boolean {
+export function isValidI18nCallablePath(inputPath: string, isDirectoryHint?: boolean): boolean {
   const ignoredFiles = getCacheConfig<string[]>("workspace.ignoredFiles");
   const ignoredDirectories = getCacheConfig<string[]>("workspace.ignoredDirectories");
   const languagePath = getCacheConfig<string>("workspace.languagePath");
   const fileExtensions = getCacheConfig<string[]>("general.fileExtensions");
   const normalizedPath = path.normalize(inputPath);
   // 判断是否是文件或目录
-  let isDirectory = false;
-  try {
-    isDirectory = fs.statSync(normalizedPath).isDirectory();
-  } catch {
-    // 路径不存在时默认按文件处理
-    isDirectory = false;
+  let isDirectory = isDirectoryHint ?? false;
+  if (isDirectoryHint === undefined) {
+    try {
+      isDirectory = fs.statSync(normalizedPath).isDirectory();
+    } catch {
+      // 路径不存在时默认按文件处理
+      isDirectory = false;
+    }
   }
   // 检查是否被忽略
   if (

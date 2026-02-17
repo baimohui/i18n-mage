@@ -26,10 +26,12 @@ import { getDetectedLangList } from "@/core/tools/contextTools";
 import { getLangCode } from "@/utils/langKey";
 import { t } from "@/utils/i18n";
 import { getCacheConfig } from "@/utils/config";
+import { NotificationManager } from "@/utils/notification";
 
 class LangMage {
   private static instance: LangMage;
   private ctx: LangContextInternal;
+  private preferredAutoNamespaceStrategy: NamespaceStrategy | null = null;
 
   private constructor(options?: LangMageOptions) {
     this.ctx = createLangContext();
@@ -96,10 +98,24 @@ class LangMage {
       let res = { success: true, message: "", code: EXECUTION_RESULT_CODE.Success };
       switch (this.ctx.task) {
         case "check":
-          if (!this.read()) {
-            return { success: true, message: t("common.noLangPathDetectedWarn"), code: EXECUTION_RESULT_CODE.NoLangPathDetected };
+          {
+            const checkStart = Date.now();
+            const readStart = Date.now();
+            const readSuccess = this.read();
+            const readElapsed = Date.now() - readStart;
+            if (!readSuccess) {
+              NotificationManager.logToOutput(`[check] read=${readElapsed}ms, no language path detected`, "info");
+              return { success: true, message: t("common.noLangPathDetectedWarn"), code: EXECUTION_RESULT_CODE.NoLangPathDetected };
+            }
+            const verifyStart = Date.now();
+            res = new CheckHandler(this.ctx).run();
+            const verifyElapsed = Date.now() - verifyStart;
+            const totalElapsed = Date.now() - checkStart;
+            NotificationManager.logToOutput(
+              `[check] pipeline: read=${readElapsed}ms, verify=${verifyElapsed}ms, total=${totalElapsed}ms`,
+              "info"
+            );
           }
-          res = new CheckHandler(this.ctx).run();
           break;
         case "fix":
           res = await new FixHandler(this.ctx).run();
@@ -214,12 +230,18 @@ class LangMage {
       reader.startCensus();
     };
     if (this.ctx.namespaceStrategy === NAMESPACE_STRATEGY.auto) {
-      const strategyList = [NAMESPACE_STRATEGY.full, NAMESPACE_STRATEGY.file, NAMESPACE_STRATEGY.none];
+      const strategyList = [
+        this.preferredAutoNamespaceStrategy,
+        NAMESPACE_STRATEGY.full,
+        NAMESPACE_STRATEGY.file,
+        NAMESPACE_STRATEGY.none
+      ].filter((item, index, arr): item is NamespaceStrategy => Boolean(item) && arr.indexOf(item) === index);
       for (const strategy of strategyList) {
         this.ctx.namespaceStrategy = strategy;
         if (this.ctx.avgFileNestedLevel === 1 && strategy === NAMESPACE_STRATEGY.file) continue;
         detect();
         if (this.ctx.avgFileNestedLevel === 0 || !this.ctx.globalFlag || this.ctx.usedKeySet.size > 0) {
+          this.preferredAutoNamespaceStrategy = strategy;
           break;
         }
       }

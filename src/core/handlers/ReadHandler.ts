@@ -22,10 +22,22 @@ import {
   stripLanguageLayer,
   getCommonFilePaths
 } from "@/utils/regex";
-import { EntryTree, LangDictionary, LangTree } from "@/types";
+import { EntryTree, LangDictionary, LangTree, PEntry, TEntry } from "@/types";
 import { isFileTooLarge } from "@/utils/fs";
+import { getCacheConfig } from "@/utils/config";
+import { NotificationManager } from "@/utils/notification";
+
+type CensusParseCache = {
+  fingerprint: string;
+  signature: string;
+  tItems: TEntry[];
+  literalItems: PEntry[];
+};
 
 export class ReadHandler {
+  private static readonly MAX_CENSUS_PARSE_CACHE_SIZE = 3000;
+  private static readonly censusParseCache = new Map<string, CensusParseCache>();
+
   constructor(private ctx: LangContextInternal) {}
 
   public readLangFiles(): void {
@@ -69,25 +81,74 @@ export class ReadHandler {
   }
 
   public startCensus() {
+    const censusStart = Date.now();
     const totalEntryList = Object.keys(this.ctx.langDictionary).map(key => unescapeString(key));
     if (!this.ctx.globalFlag || totalEntryList.length === 0) return;
+    const collectStart = Date.now();
     const filePaths = this._readAllFiles(this.ctx.projectPath);
+    const collectElapsed = Date.now() - collectStart;
     this.ctx.usedEntryMap = {};
     this.ctx.undefinedEntryList = [];
     this.ctx.undefinedEntryMap = {};
     const usedLiteralsNameSet = new Set<string>();
+    const dynamicEntryMatchCache = new Map<string, string[]>();
+    const ambiguousNameCache = new Map<string, string | undefined>();
+    const resolveAmbiguousName = (name: string) => {
+      if (!ambiguousNameCache.has(name)) {
+        ambiguousNameCache.set(name, getValueByAmbiguousEntryName(this.ctx.entryTree, name));
+      }
+      return ambiguousNameCache.get(name);
+    };
+    const parseSignature = this.getCensusParseSignature();
+    let parseElapsed = 0;
+    let matchElapsed = 0;
+    let finalizeElapsed = 0;
+    let skippedLargeFileCount = 0;
+    let cacheHitCount = 0;
+    let parsedFileCount = 0;
+    let tEntryCount = 0;
+    let literalEntryCount = 0;
+
     for (const filePath of filePaths) {
-      if (isFileTooLarge(filePath)) continue;
-      const fileContent = fs.readFileSync(filePath, "utf8");
-      const tItems = catchTEntries(fileContent);
+      if (isFileTooLarge(filePath)) {
+        skippedLargeFileCount++;
+        continue;
+      }
+      const parseStart = Date.now();
+      let tItems: TEntry[] = [];
+      let literalItems: PEntry[] = [];
+      const stat = fs.statSync(filePath);
+      const fingerprint = `${stat.mtimeMs}:${stat.size}`;
+      const cached = ReadHandler.censusParseCache.get(filePath);
+      if (cached && cached.fingerprint === fingerprint && cached.signature === parseSignature) {
+        tItems = cached.tItems;
+        literalItems = cached.literalItems;
+        cacheHitCount++;
+      } else {
+        const fileContent = fs.readFileSync(filePath, "utf8");
+        tItems = catchTEntries(fileContent);
+        if (this.ctx.scanStringLiterals) {
+          literalItems = catchLiteralEntries(fileContent, this.ctx.entryTree, path.basename(filePath));
+        }
+        this.setCensusParseCache(filePath, {
+          fingerprint,
+          signature: parseSignature,
+          tItems,
+          literalItems
+        });
+        parsedFileCount++;
+      }
+      parseElapsed += Date.now() - parseStart;
       let usedEntryList: { name: string; pos: string }[] = [];
+      const matchStart = Date.now();
       if (this.ctx.scanStringLiterals) {
-        const existedItems = catchLiteralEntries(fileContent, this.ctx.entryTree, path.basename(filePath));
-        existedItems.forEach(item => {
+        literalItems.forEach(item => {
           usedLiteralsNameSet.add(item.name);
         });
-        usedEntryList = existedItems.slice();
+        usedEntryList = literalItems.slice();
       }
+      tEntryCount += tItems.length;
+      literalEntryCount += literalItems.length;
       for (const item of tItems) {
         const nameInfo = item.nameInfo;
         let usedEntryNameList: string[] = [];
@@ -95,9 +156,16 @@ export class ReadHandler {
           (this.ctx.i18nFramework === I18N_FRAMEWORK.i18nNext || this.ctx.i18nFramework === I18N_FRAMEWORK.reactI18next) &&
           item.vars.length > 0;
         if (nameInfo.vars.length > 0 || isEntryWithContext) {
-          usedEntryNameList = totalEntryList.filter(entry => nameInfo.regex.test(entry));
+          const dynamicCacheKey = `${nameInfo.regex.source}::${nameInfo.regex.flags}`;
+          if (!dynamicEntryMatchCache.has(dynamicCacheKey)) {
+            dynamicEntryMatchCache.set(
+              dynamicCacheKey,
+              totalEntryList.filter(entry => nameInfo.regex.test(entry))
+            );
+          }
+          usedEntryNameList = dynamicEntryMatchCache.get(dynamicCacheKey) ?? [];
         } else {
-          usedEntryNameList = getValueByAmbiguousEntryName(this.ctx.entryTree, nameInfo.name) === undefined ? [] : [nameInfo.name];
+          usedEntryNameList = resolveAmbiguousName(nameInfo.name) === undefined ? [] : [nameInfo.name];
         }
         if (usedEntryNameList.length === 0) {
           if (this.ctx.ignoredUndefinedEntries.includes(nameInfo.text)) continue;
@@ -116,7 +184,9 @@ export class ReadHandler {
           this.ctx.usedEntryMap[entry.name][filePath] ??= new Set<string>();
           this.ctx.usedEntryMap[entry.name][filePath].add(entry.pos);
         });
+      matchElapsed += Date.now() - matchStart;
     }
+    const finalizeStart = Date.now();
     this.ctx.manuallyMarkedUsedEntries.forEach(entryName => {
       if (!Object.hasOwn(this.ctx.usedEntryMap, entryName)) {
         this.ctx.usedEntryMap[entryName] = {};
@@ -126,7 +196,7 @@ export class ReadHandler {
     this.ctx.unusedKeySet = new Set<string>();
     this.ctx.usedLiteralKeySet = new Set<string>();
     for (const name in this.ctx.usedEntryMap) {
-      const key = getValueByAmbiguousEntryName(this.ctx.entryTree, name);
+      const key = resolveAmbiguousName(name);
       if (key !== undefined) {
         this.ctx.usedKeySet.add(key);
         if (usedLiteralsNameSet.has(name)) {
@@ -140,6 +210,12 @@ export class ReadHandler {
         this.ctx.unusedKeySet.add(key);
       }
     }
+    finalizeElapsed = Date.now() - finalizeStart;
+    const totalElapsed = Date.now() - censusStart;
+    NotificationManager.logToOutput(
+      `[check][census] files=${filePaths.length}, parsed=${parsedFileCount}, cacheHits=${cacheHitCount}, skippedLarge=${skippedLargeFileCount}, tEntries=${tEntryCount}, literalEntries=${literalEntryCount}, dynamicPatterns=${dynamicEntryMatchCache.size}, ms={collect:${collectElapsed},parse:${parseElapsed},match:${matchElapsed},finalize:${finalizeElapsed},total:${totalElapsed}}`,
+      "info"
+    );
   }
 
   private _readAllFiles(dir: string): string[] {
@@ -148,8 +224,9 @@ export class ReadHandler {
     for (let i = 0; i < results.length; i++) {
       const targetName = results[i].name;
       const tempPath = path.join(dir, targetName);
-      if (isValidI18nCallablePath(tempPath)) {
-        if (results[i].isDirectory()) {
+      const isDirectory = results[i].isDirectory();
+      if (isValidI18nCallablePath(tempPath, isDirectory)) {
+        if (isDirectory) {
           const tempPathList = this._readAllFiles(tempPath);
           pathList.push(...tempPathList);
         } else {
@@ -158,6 +235,55 @@ export class ReadHandler {
       }
     }
     return pathList;
+  }
+
+  private getCensusParseSignature(): string {
+    const translationFunctionNames = getCacheConfig<string[]>("i18nFeatures.translationFunctionNames", []);
+    const translationObjectIdentifiers = getCacheConfig<string[]>("i18nFeatures.translationObjectIdentifiers", []);
+    const accessMode = getCacheConfig<string>("i18nFeatures.accessMode", "function");
+    const interpolationBrackets = getCacheConfig<string>("i18nFeatures.interpolationBrackets", "auto");
+    const defaultNamespace = getCacheConfig<string>("i18nFeatures.defaultNamespace", "translation");
+    const namespaceSeparator = getCacheConfig<string>("i18nFeatures.namespaceSeparator", "auto");
+    const ignoreCommentedCode = getCacheConfig<boolean>("analysis.ignoreCommentedCode", false);
+    const enableKeyTagRule = getCacheConfig<boolean>("writeRules.enableKeyTagRule", false);
+    const enablePrefixTagRule = getCacheConfig<boolean>("writeRules.enablePrefixTagRule", false);
+    const dictionaryStamp = this.getDictionaryStamp();
+    return [
+      this.ctx.i18nFramework,
+      this.ctx.scanStringLiterals ? "1" : "0",
+      accessMode,
+      interpolationBrackets,
+      defaultNamespace,
+      namespaceSeparator,
+      ignoreCommentedCode ? "1" : "0",
+      enableKeyTagRule ? "1" : "0",
+      enablePrefixTagRule ? "1" : "0",
+      translationFunctionNames.join(","),
+      translationObjectIdentifiers.join(","),
+      dictionaryStamp
+    ].join("|");
+  }
+
+  private getDictionaryStamp(): string {
+    const keys = Object.keys(this.ctx.langDictionary);
+    let hash = 2166136261;
+    for (const key of keys) {
+      for (let i = 0; i < key.length; i++) {
+        hash ^= key.charCodeAt(i);
+        hash = Math.imul(hash, 16777619);
+      }
+    }
+    return `${keys.length}:${hash >>> 0}`;
+  }
+
+  private setCensusParseCache(filePath: string, item: CensusParseCache): void {
+    if (ReadHandler.censusParseCache.size >= ReadHandler.MAX_CENSUS_PARSE_CACHE_SIZE) {
+      const oldestKey = ReadHandler.censusParseCache.keys().next().value;
+      if (oldestKey !== undefined) {
+        ReadHandler.censusParseCache.delete(oldestKey);
+      }
+    }
+    ReadHandler.censusParseCache.set(filePath, item);
   }
 
   private buildEntryTreeAndDictionary(langTree: LangTree, keyPathMap: Record<string, { fullPath: string; fileScope: string }> | null) {
