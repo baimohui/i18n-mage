@@ -22,8 +22,6 @@ import { getCacheConfig } from "../config";
 import { NotificationManager } from "../notification";
 import { t } from "../i18n";
 
-type LanguageFileParserMode = "auto" | "json" | "yaml";
-
 export function isValidI18nCallablePath(inputPath: string): boolean {
   const ignoredFiles = getCacheConfig<string[]>("workspace.ignoredFiles");
   const ignoredDirectories = getCacheConfig<string[]>("workspace.ignoredDirectories");
@@ -122,25 +120,10 @@ export function getLangFileInfo(filePath: string): LangFileInfo | null {
 }
 
 export function parseLanguageContent(content: string, ext: string): EntryTree | null {
-  const languageFileParser = resolveLanguageFileParserMode(getCacheConfig<string>("analysis.languageFileParser"));
-  if (languageFileParser === "yaml") {
+  if (ext === "yaml" || ext === "yml") {
     return yamlParse(content);
-  } else if (languageFileParser === "json") {
-    return jsonParse(content);
-  } else if (languageFileParser === "auto") {
-    if (ext === "yaml" || ext === "yml") {
-      return yamlParse(content);
-    }
-    return jsonParse(content);
   }
-  return null;
-}
-
-export function resolveLanguageFileParserMode(mode: string): LanguageFileParserMode {
-  if (mode === "yaml" || mode === "json" || mode === "auto") return mode;
-  // backward compatibility: old values map to json mode
-  if (mode === "json5" || mode === "eval") return "json";
-  return "auto";
+  return jsonParse(content);
 }
 
 export function jsonParse(content: string): EntryTree | null {

@@ -351,14 +351,6 @@ Enable ignoring possible variables: When enabled, the plugin will ignore terms t
 
 ### Checking Rules
 
-#### `i18n-mage.analysis.languageFileParser`
-
-Used to select the parsing mode of language files:
-
-* `json`: Parse as JSON (prefer JSON5, fallback to eval)
-* `yaml`: Parse as YAML
-* `auto`: Detect JSON or YAML by file extension (`.yaml` / `.yml` use YAML, others use JSON)
-
 #### `i18n-mage.analysis.onSave`
 
 When enabled, global term checking will be triggered every time a file is saved. A built-in debounce mechanism is included to prevent frequent triggering.

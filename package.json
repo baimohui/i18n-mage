@@ -449,21 +449,6 @@
         "type": "object",
         "title": "%config.analysis.title%",
         "properties": {
-          "i18n-mage.analysis.languageFileParser": {
-            "order": 2,
-            "enum": [
-              "json",
-              "yaml",
-              "auto"
-            ],
-            "enumDescriptions": [
-              "%config.languageFileParser.json%",
-              "%config.languageFileParser.yaml%",
-              "%config.jsonParser.auto%"
-            ],
-            "default": "auto",
-            "description": "%config.languageFileParser.desc%"
-          },
           "i18n-mage.analysis.onSave": {
             "order": 4,
             "type": "boolean",

@@ -24,7 +24,7 @@ describe("utils/regex/fileUtils", () => {
     clearConfigCache("");
   });
 
-  it("extractContent 应提取对象主体并保留前后缀", () => {
+  it("extractContent should extract object body with prefix and suffix", () => {
     const content = `// comment\nexport default {\n  "a": 1,\n  "b": "x"\n};\n`;
     const [prefix, body, suffix] = extractContent(content);
     assert.ok(prefix.includes("export default"));
@@ -32,18 +32,13 @@ describe("utils/regex/fileUtils", () => {
     assert.ok(suffix.trim().startsWith(";"));
   });
 
-  it("jsonParse 应支持 json5/eval/auto", () => {
-    setCacheConfig("analysis.languageFileParser", "json5");
+  it("jsonParse should parse JSON5 and fallback to eval", () => {
     assert.deepStrictEqual(jsonParse("{a:1}"), { a: 1 });
-
-    setCacheConfig("analysis.languageFileParser", "eval");
     assert.deepStrictEqual(jsonParse("{ a: 2, b: 'x' }"), { a: 2, b: "x" });
-
-    setCacheConfig("analysis.languageFileParser", "auto");
     assert.deepStrictEqual(jsonParse("{a:3}"), { a: 3 });
   });
 
-  it("getLangFileInfo 应解析语言文件并返回 extraInfo", () => {
+  it("getLangFileInfo should parse language file and return extra info", () => {
     const filePath = path.join(fixturesRoot, "en", "common.json");
     const info = getLangFileInfo(filePath);
     assert.strictEqual(info !== null, true);
@@ -51,7 +46,7 @@ describe("utils/regex/fileUtils", () => {
     assert.strictEqual(info?.extraInfo.keyQuotes, "double");
   });
 
-  it("isValidI18nCallablePath 应过滤扩展名与忽略目录", () => {
+  it("isValidI18nCallablePath should filter by extension and ignored dirs", () => {
     setCacheConfig("workspace.ignoredFiles", []);
     setCacheConfig("workspace.ignoredDirectories", []);
     setCacheConfig("workspace.languagePath", "");
@@ -62,7 +57,7 @@ describe("utils/regex/fileUtils", () => {
     assert.strictEqual(isValidI18nCallablePath(badExt), false);
   });
 
-  it("getNestedValues/flattenNestedObj/expandDotKeys 应保持一致性", () => {
+  it("getNestedValues/flattenNestedObj/expandDotKeys should stay consistent", () => {
     const obj = { a: { b: "x" }, "c.d": "y" };
     const flat = flattenNestedObj(obj);
     assert.deepStrictEqual(flat, { "a.b": "x", "c\\.d": "y" });
@@ -72,7 +67,7 @@ describe("utils/regex/fileUtils", () => {
     assert.deepStrictEqual(values.sort(), ["x", "y"]);
   });
 
-  it("extractLangDataFromDir 应扫描目录并返回结构信息", () => {
+  it("extractLangDataFromDir should scan dir and return structure", () => {
     const res = extractLangDataFromDir(fixturesRoot);
     assert.notStrictEqual(res, null);
     const nonNull = res as NonNullable<typeof res>;
@@ -81,7 +76,7 @@ describe("utils/regex/fileUtils", () => {
     assert.strictEqual(nonNull.fileExtraInfo["en.common"] !== undefined, true);
   });
 
-  it("stripLanguageLayer 应移除语言层级", () => {
+  it("stripLanguageLayer should remove language level", () => {
     const root = {
       type: "directory" as const,
       children: {
@@ -94,20 +89,20 @@ describe("utils/regex/fileUtils", () => {
     assert.strictEqual(res?.children.common !== undefined, true);
   });
 
-  it("detectQuoteStyle 应返回使用频率最高的引号", () => {
+  it("detectQuoteStyle should return most used quote style", () => {
     const code = `{"a":"x","b":"y",'c':'z'}`;
     const res = detectQuoteStyle(code);
     assert.strictEqual(res.key, "double");
     assert.strictEqual(res.value, "double");
   });
 
-  it("detectIndent 应识别常见缩进", () => {
+  it("detectIndent should detect common indentation", () => {
     const content = `{\n  "a": 1,\n  "b": {\n    "c": 2\n  }\n}`;
     const res = detectIndent(content);
     assert.deepStrictEqual(res, { type: "space", size: 2 });
   });
 
-  it("detectI18nFramework 应根据依赖判断框架", () => {
+  it("detectI18nFramework should infer framework from dependencies", () => {
     const root = path.join(__dirname, "..", "..", "fixtures", "projects");
     assert.strictEqual(detectI18nFramework(path.join(root, "vue")), I18N_FRAMEWORK.vueI18n);
     assert.strictEqual(detectI18nFramework(path.join(root, "react")), I18N_FRAMEWORK.reactI18next);
