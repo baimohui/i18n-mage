@@ -169,7 +169,16 @@ export class ReadHandler {
         }
         if (usedEntryNameList.length === 0) {
           if (this.ctx.ignoredUndefinedEntries.includes(nameInfo.text)) continue;
-          this.ctx.undefinedEntryList.push({ ...item, path: filePath });
+          // Detach mutable nameInfo from parser/cache objects.
+          // FixHandler mutates nameInfo.boundKey during preview generation.
+          this.ctx.undefinedEntryList.push({
+            ...item,
+            path: filePath,
+            nameInfo: {
+              ...item.nameInfo,
+              vars: [...item.nameInfo.vars]
+            }
+          });
           this.ctx.undefinedEntryMap[nameInfo.text] ??= {};
           this.ctx.undefinedEntryMap[nameInfo.text][filePath] ??= new Set<string>();
           this.ctx.undefinedEntryMap[nameInfo.text][filePath].add(item.pos);

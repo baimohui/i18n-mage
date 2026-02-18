@@ -140,7 +140,7 @@ export class FixHandler {
           enTextList = genNameList;
         }
       } else if (this.ctx.keyStrategy === KEY_STRATEGY.pinyin) {
-        genNameList = genNameList.map(name => pinyin.convertToPinyin(name));
+        genNameList = genNameList.map(name => pinyin.convertToPinyin(name, " ").replace(/\s+/g, " ").trim());
       }
       genNameList = genNameList.map(name => genKeyFromText(name, genKeyInfo));
       if (this.ctx.invalidKeyStrategy === INVALID_KEY_STRATEGY.ai) {
@@ -148,15 +148,17 @@ export class FixHandler {
         const invalidNameIndexList = genNameList
           .map((name, index) => (name.length === 0 || name.length > maxLen ? index : -1))
           .filter(index => index !== -1);
-        const res = await generateKeyFrom({
-          sourceTextList: invalidNameIndexList.map(index => needTranslateList[index].nameInfo.text),
-          style: genKeyInfo.keyStyle,
-          maxLen: maxLen
-        });
-        if (res.success && res.data) {
-          invalidNameIndexList.forEach((index, i) => {
-            genNameList[index] = res.data?.[i] ?? "";
+        if (invalidNameIndexList.length > 0) {
+          const res = await generateKeyFrom({
+            sourceTextList: invalidNameIndexList.map(index => needTranslateList[index].nameInfo.text),
+            style: genKeyInfo.keyStyle,
+            maxLen: maxLen
           });
+          if (res.success && res.data) {
+            invalidNameIndexList.forEach((index, i) => {
+              genNameList[index] = res.data?.[i] ?? "";
+            });
+          }
         }
       }
     }
