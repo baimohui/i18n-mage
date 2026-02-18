@@ -10,13 +10,20 @@ const PREFIX = "";
 export class NotificationManager {
   private static outputChannel: vscode.OutputChannel;
 
+  private static ensureOutputChannel() {
+    if (this.outputChannel === undefined) {
+      this.outputChannel = vscode.window.createOutputChannel("i18n Mage");
+    }
+    return this.outputChannel;
+  }
+
   // 初始化输出通道
   static init() {
     this.outputChannel = vscode.window.createOutputChannel("i18n Mage");
   }
 
   static showOutputChannel() {
-    this.outputChannel.show();
+    this.ensureOutputChannel().show();
   }
 
   static setStatusBarMessage(message: string, time: number = 3000) {
@@ -26,9 +33,10 @@ export class NotificationManager {
   // 显示主标题
   static showTitle(title: string): void {
     const divider = "=".repeat(title.length + 4);
-    this.outputChannel.appendLine(`\n${divider}`);
-    this.outputChannel.appendLine(`  ${title}  `);
-    this.outputChannel.appendLine(`${divider}\n`);
+    const output = this.ensureOutputChannel();
+    output.appendLine(`\n${divider}`);
+    output.appendLine(`  ${title}  `);
+    output.appendLine(`${divider}\n`);
     NotificationManager.setStatusBarMessage(title);
   }
 
@@ -70,7 +78,7 @@ export class NotificationManager {
 
   // 错误信息
   static showError(message: string, ...items: string[]): Thenable<string | undefined> {
-    this.outputChannel.show();
+    this.ensureOutputChannel().show();
     this.logToOutput(message, "error");
     return vscode.window.showErrorMessage(`${PREFIX}${message}`, ...items);
   }
@@ -93,6 +101,6 @@ export class NotificationManager {
     } else if (type === "success") {
       prefix = "✅";
     }
-    this.outputChannel.appendLine(`[${timestamp}] ${prefix}${message}`);
+    this.ensureOutputChannel().appendLine(`[${timestamp}] ${prefix}${message}`);
   }
 }

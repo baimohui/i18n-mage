@@ -25,10 +25,11 @@ export class RewriteHandler {
     try {
       const updateInfo: Record<string, Set<string>> = {};
       for (const payload of this.ctx.updatePayloads) {
-        for (const lang in payload.valueChanges) {
+        const valueChanges = payload.valueChanges ?? {};
+        for (const lang in valueChanges) {
           this.ctx.langCountryMap[lang] ??= {};
           updateInfo[lang] ??= new Set<string>();
-          const value = payload.valueChanges[lang].after ?? "";
+          const value = valueChanges[lang].after ?? "";
           switch (payload.type) {
             case "add":
             case "fill":
@@ -105,10 +106,10 @@ export class RewriteHandler {
       }
       if (rewriteAll) {
         for (const lang of this.detectedLangList) {
-          updateInfo[lang] ??= new Set<string>();
           if (this.ctx.avgFileNestedLevel === 0 && this.ctx.languageStructure === LANGUAGE_STRUCTURE.flat) {
-            updateInfo[lang].add("");
+            updateInfo[lang] = new Set<string>([""]);
           } else {
+            updateInfo[lang] ??= new Set<string>();
             getCommonFilePaths(this.ctx.fileStructure).forEach(filePath => {
               updateInfo[lang].add(filePath.replaceAll("/", "."));
             });

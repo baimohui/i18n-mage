@@ -239,7 +239,7 @@ describe("core/handlers/ModifyHandler", () => {
     const rel = "src/index.ts";
     assert.ok(ctx.patchedEntryIdInfo[rel]);
     const fixed = ctx.patchedEntryIdInfo[rel][0];
-    assert.strictEqual(fixed.fixedKey, "newTitle");
+    assert.strictEqual(fixed.fixedKey, "app.newTitle");
     assert.strictEqual(rewriteCalled, true);
   });
 });

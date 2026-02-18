@@ -124,8 +124,9 @@ export function buildUnits(data: FixPreviewData) {
   Object.entries(idPatches).forEach(([file, patches]) => {
     patches.forEach((patch, index) => {
       const key = patch.id;
+      const fixedKey = patch.fixedKey;
       const mappedKey = displayNameToKey.get(key);
-      const existing = unitMap.get(key) ?? (mappedKey !== undefined ? unitMap.get(mappedKey) : undefined);
+      const existing = unitMap.get(fixedKey) ?? unitMap.get(key) ?? (mappedKey !== undefined ? unitMap.get(mappedKey) : undefined);
       const patchData: UnitPatchRef = {
         id: patch.id,
         pos: patch.pos,
@@ -142,10 +143,11 @@ export function buildUnits(data: FixPreviewData) {
         existing.keyEditable ||= existing.payloadIndices.some(i => updatePayloads[i]?.type === "add");
         unitMap.set(existing.key, existing);
       } else {
-        unitMap.set(key, {
+        const fallbackKey = fixedKey || key;
+        unitMap.set(fallbackKey, {
           id: `patch:${file}:${index}`,
-          key,
-          keyDraft: key,
+          key: fallbackKey,
+          keyDraft: fallbackKey,
           keyEditable: false,
           kind: "patch-existing-key",
           selected: true,

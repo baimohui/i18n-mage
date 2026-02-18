@@ -98,6 +98,38 @@ export class FixHandler {
         }
         entry.nameInfo.boundKey = entryKey;
         patchedEntryIdList.push({ ...entry, ...this.getFixedInfo(entry, entryKey) });
+        if (!Object.hasOwn(this.ctx.langDictionary, entryKey)) {
+          referredLangMap[entryKey] = nameInfo.text;
+          let fullPath = entryKey;
+          if (this.ctx.missingEntryFile) {
+            if (this.ctx.namespaceStrategy === NAMESPACE_STRATEGY.none) {
+              fullPath = `${this.ctx.missingEntryFile}.${entryKey}`;
+            } else if (this.ctx.namespaceStrategy === NAMESPACE_STRATEGY.file) {
+              fullPath = `${this.ctx.missingEntryFile}.${entryKey.replace(/^.*?\./, "")}`;
+            }
+          }
+          this.ctx.langDictionary[entryKey] = {
+            fullPath,
+            fileScope: this.ctx.missingEntryFile,
+            value: {
+              [this.ctx.referredLang]: nameInfo.text
+            }
+          };
+          const updatePayload: I18nUpdatePayload = {
+            type: "add",
+            key: entryKey,
+            valueChanges: {
+              [this.ctx.referredLang]: { after: nameInfo.text }
+            }
+          };
+          this.detectedLangList.forEach(lang => {
+            if (lang !== this.ctx.referredLang) {
+              this.lackInfoFromUndefined[lang] ??= [];
+              this.lackInfoFromUndefined[lang].push(entryKey);
+            }
+          });
+          this.ctx.updatePayloads.push(updatePayload);
+        }
         continue;
       }
       if (entriesToGen !== true) {

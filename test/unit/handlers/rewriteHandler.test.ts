@@ -21,6 +21,7 @@ describe("core/handlers/RewriteHandler", () => {
     mockRequire.stop("fs");
     mockRequire.stop("@/utils/fs");
     mockRequire.stop("@/utils/regex");
+    mockRequire.stop("@/core/handlers/RewriteHandler");
     resetHandlerModule("@/core/handlers/RewriteHandler");
   });
 

@@ -18,12 +18,16 @@ export class ExecutionContext {
   }
 
   static get progress(): vscode.Progress<{ message?: string }> {
-    if (!this._current.progress) throw new Error("Progress not bound");
-    return this._current.progress;
+    if (this._current.progress) return this._current.progress;
+    return {
+      report: () => undefined
+    } as vscode.Progress<{ message?: string }>;
   }
 
   static get token(): vscode.CancellationToken {
-    if (!this._current.token) throw new Error("CancellationToken not bound");
-    return this._current.token;
+    if (this._current.token) return this._current.token;
+    return {
+      isCancellationRequested: false
+    } as vscode.CancellationToken;
   }
 }

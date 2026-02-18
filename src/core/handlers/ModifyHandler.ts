@@ -1,5 +1,5 @@
 import { EditValueQuery, FixExecutionResult, I18nUpdatePayload, LangContextInternal, RenameKeyQuery, RewriteEntryQuery } from "@/types";
-import { RewriteHandler } from "./RewriteHandler";
+import { RewriteHandler } from "@/core/handlers/RewriteHandler";
 import { t } from "@/utils/i18n";
 import { ExecutionResult, EXECUTION_RESULT_CODE } from "@/types";
 import translateTo from "@/translator/index";
