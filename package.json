@@ -73,6 +73,12 @@
             "default": "",
             "description": "%config.displayLanguage.desc%"
           },
+          "i18n-mage.general.enableDebugLog": {
+            "order": 10,
+            "type": "boolean",
+            "default": false,
+            "description": "%config.enableDebugLog.desc%"
+          },
           "i18n-mage.general.fileExtensions": {
             "order": 12,
             "type": "array",

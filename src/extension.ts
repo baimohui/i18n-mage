@@ -1,27 +1,26 @@
-import * as vscode from "vscode";
+﻿import * as vscode from "vscode";
 import { treeInstance } from "@/views/tree";
 import { DecoratorController } from "@/features/Decorator";
 import { wrapWithProgress } from "@/utils/wrapWithProgress";
 import { registerAllCommands } from "@/commands";
 import { registerAllListeners } from "@/listeners";
-import { bindDisposablesToContext } from "@/utils/dispose";
+import { bindDisposablesToContext, registerDisposable } from "@/utils/dispose";
 import { NotificationManager } from "@/utils/notification";
 import { getConfig } from "@/utils/config";
 import { HoverProvider } from "./features/HoverProvider";
 import { I18nCompletionProvider } from "./features/CompletionProvider";
-import { registerDisposable } from "@/utils/dispose";
 import { StatusBarItemManager } from "./features/StatusBarItemManager";
 import { CodeActionProvider } from "./features/CodeActionProvider";
 import { RenameKeyProvider } from "./features/RenameProvider";
 import { KeyDefinitionProvider } from "./features/DefinitionProvider";
 import { KeyReferenceProvider } from "./features/ReferenceProvider";
 
-// 全局状态管理
 class ExtensionState {
   private static instance: ExtensionState | null = null;
-  private _enabled: boolean = true;
+  private _enabled = true;
   private _context: vscode.ExtensionContext | null = null;
-  private _extensionSubscriptions: vscode.Disposable[] = []; // 单独保存插件功能相关的订阅
+  private _extensionSubscriptions: vscode.Disposable[] = [];
+  private _restoreRegisterCommand: (() => void) | null = null;
 
   private constructor() {}
 
@@ -44,22 +43,30 @@ class ExtensionState {
 
   public async setEnabled(enabled: boolean): Promise<void> {
     if (this._enabled === enabled) return;
+
     this._enabled = enabled;
     vscode.commands.executeCommand("setContext", "i18nMage.enabled", enabled);
+
     if (enabled) {
       await this.activateExtensions();
-    } else {
-      this.deactivateExtensions();
+      return;
     }
+
+    this.deactivateExtensions();
   }
 
   public async activateExtensions() {
     if (!this._context) return;
+
     NotificationManager.init();
     vscode.window.registerTreeDataProvider("i18nMage.grimoire", treeInstance);
+
+    this.hookCommandRegistration();
     registerAllCommands(this._context);
     registerAllListeners();
+
     registerDisposable(vscode.languages.registerHoverProvider("*", new HoverProvider()));
+
     const selector = [
       { language: "javascript", scheme: "file" },
       { language: "typescript", scheme: "file" },
@@ -67,49 +74,80 @@ class ExtensionState {
       { language: "javascriptreact", scheme: "file" },
       { language: "typescriptreact", scheme: "file" }
     ];
+
     registerDisposable(vscode.languages.registerCompletionItemProvider(selector, new I18nCompletionProvider(), '"', "'", "`"));
     registerDisposable(vscode.languages.registerCodeActionsProvider(selector, new CodeActionProvider()));
     registerDisposable(vscode.languages.registerRenameProvider(selector, new RenameKeyProvider()));
     registerDisposable(vscode.languages.registerDefinitionProvider(selector, new KeyDefinitionProvider()));
     registerDisposable(vscode.languages.registerReferenceProvider(selector, new KeyReferenceProvider()));
+
     const statusBarItemManager = StatusBarItemManager.getInstance();
     statusBarItemManager.createStatusBarItem();
     registerDisposable(statusBarItemManager);
+
     this._extensionSubscriptions = bindDisposablesToContext(this._context);
+
     await wrapWithProgress({ title: "" }, async () => {
       await treeInstance.initTree();
     });
   }
 
   public deactivateExtensions() {
-    // 清理所有资源
     if (this._context) {
-      // 这里手动触发清理
-      this._extensionSubscriptions.forEach(d => {
-        d.dispose();
+      this._extensionSubscriptions.forEach(disposable => {
+        disposable.dispose();
       });
-      this._extensionSubscriptions.length = 0; // 清空订阅
+      this._extensionSubscriptions.length = 0;
     }
-    // 隐藏树视图
+
     vscode.commands.executeCommand("setContext", "i18nMage.enabled", false);
-    // 清除装饰器
+
     const decorator = DecoratorController.getInstance();
     decorator.dispose();
+
+    this._restoreRegisterCommand?.();
+    this._restoreRegisterCommand = null;
+  }
+
+  private hookCommandRegistration() {
+    if (this._restoreRegisterCommand) return;
+
+    type CommandApi = typeof vscode.commands & {
+      registerCommand: typeof vscode.commands.registerCommand;
+    };
+
+    const commandApi = vscode.commands as CommandApi;
+    const originalRegisterCommand = commandApi.registerCommand.bind(vscode.commands);
+
+    commandApi.registerCommand = ((command: string, callback: (...args: unknown[]) => unknown, thisArg?: unknown) => {
+      const wrappedCallback = function (this: unknown, ...args: unknown[]): unknown {
+        if (command.startsWith("i18nMage.")) {
+          NotificationManager.logCommandExecution(command, args);
+        }
+        const result = Reflect.apply(callback as (...invokeArgs: unknown[]) => unknown, this, args);
+        return result;
+      };
+      return originalRegisterCommand(command, wrappedCallback as (...invokeArgs: unknown[]) => unknown, thisArg);
+    }) as typeof vscode.commands.registerCommand;
+
+    this._restoreRegisterCommand = () => {
+      commandApi.registerCommand = originalRegisterCommand;
+    };
   }
 }
 
 export async function activate(context: vscode.ExtensionContext) {
   const extensionState = ExtensionState.getInstance();
   extensionState.initialize(context);
-  // 监听配置变化
+
   context.subscriptions.push(
-    vscode.workspace.onDidChangeConfiguration(async e => {
-      if (e.affectsConfiguration("i18n-mage.general.enable")) {
+    vscode.workspace.onDidChangeConfiguration(async event => {
+      if (event.affectsConfiguration("i18n-mage.general.enable")) {
         await extensionState.setEnabled(getConfig<boolean>("general.enable", true));
       }
     })
   );
-  // 初始激活
+
   if (extensionState.enabled) {
     await extensionState.activateExtensions();
   }

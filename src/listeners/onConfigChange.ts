@@ -5,6 +5,7 @@ import LangMage from "@/core/LangMage";
 import { clearConfigCache } from "@/utils/config";
 import { treeInstance } from "@/views/tree";
 import { LANGUAGE_STRUCTURE, SORT_MODE, SortMode } from "@/types";
+import { NotificationManager } from "@/utils/notification";
 
 export function registerOnConfigChange() {
   const mage = LangMage.getInstance();
@@ -62,6 +63,9 @@ export function registerOnConfigChange() {
                   ((mage.langDetail.avgFileNestedLevel === 0 && mage.langDetail.languageStructure === LANGUAGE_STRUCTURE.flat) ||
                     (mage.langDetail.languageStructure === LANGUAGE_STRUCTURE.nested && sortMode === SORT_MODE.ByKey))
               );
+            } else if (key === "general.enableDebugLog") {
+              const enabled = Boolean(subConfig[name]);
+              NotificationManager.logToOutput(`Debug mode ${enabled ? "enabled" : "disabled"}`, "info");
             }
           }
         }

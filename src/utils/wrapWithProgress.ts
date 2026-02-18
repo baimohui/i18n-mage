@@ -1,4 +1,4 @@
-import * as vscode from "vscode";
+﻿import * as vscode from "vscode";
 import { t } from "@/utils/i18n";
 import { ExecutionContext } from "./context";
 import { NotificationManager } from "@/utils/notification";
@@ -16,20 +16,31 @@ export async function wrapWithProgress(
   options: ProgressOptions,
   callback: (progress: vscode.Progress<{ message?: string; increment?: number }>, token: vscode.CancellationToken) => Promise<void>
 ): Promise<void> {
+  const timeout = options.timeout ?? 1000 * 60 * 3;
+  const startedAt = Date.now();
+  NotificationManager.logDebug(
+    `Progress started: title="${options.title}", cancellable=${Boolean(options.cancellable)}, reportProgress=${Boolean(
+      options.reportProgress
+    )}, timeout=${timeout}ms`
+  );
+
   if (isProcessing) {
     NotificationManager.setStatusBarMessage(t("common.progress.processing"), 2000);
+    NotificationManager.logDebug("Progress skipped because another task is already running");
     return;
   }
+
   isProcessing = true;
   const abortController = new AbortController();
   let timeoutId: NodeJS.Timeout | undefined;
+
   try {
-    // 设置超时
-    const timeout = options.timeout ?? 1000 * 60 * 3;
     timeoutId = setTimeout(() => {
       abortController.abort();
+      NotificationManager.logDebug(`Progress aborted by timeout after ${timeout}ms`);
       NotificationManager.showError(t("common.progress.timeout", timeout));
     }, timeout);
+
     await vscode.window.withProgress(
       {
         location: vscode.ProgressLocation.Notification,
@@ -37,33 +48,40 @@ export async function wrapWithProgress(
         cancellable: options.cancellable ?? false
       },
       async (progress, token) => {
-        // 创建合并的取消令牌
         const combinedTokenSource = new vscode.CancellationTokenSource();
-        // 监听原始 token 的取消
+
         token.onCancellationRequested(() => {
           combinedTokenSource.cancel();
+          NotificationManager.logDebug("Progress cancelled by user");
           NotificationManager.showSuccess(t("common.progress.cancelledByUser"));
         });
-        // 监听超时取消
+
         abortController.signal.addEventListener("abort", () => {
           combinedTokenSource.cancel();
+          NotificationManager.logDebug("Progress cancellation propagated from timeout signal");
           NotificationManager.showSuccess(t("common.progress.cancelledByTimeout"));
         });
+
         const combinedToken = combinedTokenSource.token;
-        // 绑定合并后的 Token 和 Progress
-        ExecutionContext.bind(progress, combinedTokenSource.token);
+        ExecutionContext.bind(progress, combinedToken);
+
         try {
-          const res = await callback(options.reportProgress === true ? progress : { report: () => {} }, combinedToken);
+          const res = await callback(options.reportProgress === true ? progress : { report: () => undefined }, combinedToken);
+
           if (combinedToken.isCancellationRequested) {
-            return; // 操作已被取消，不需要抛出错误
+            NotificationManager.logDebug("Progress finished early due to cancellation");
+            return;
           }
+
           if (options.reportProgress === true) {
             progress.report({ message: t("common.progress.completed"), increment: 100 });
           }
+
           return res;
         } catch (error) {
           if (!combinedToken.isCancellationRequested) {
             const errorMessage = error instanceof Error ? error.message : String(error);
+            NotificationManager.logDebug(`Progress failed: ${errorMessage}`);
             NotificationManager.showError(t("common.progress.error", errorMessage));
           }
           throw error;
@@ -78,5 +96,6 @@ export async function wrapWithProgress(
       clearTimeout(timeoutId);
     }
     isProcessing = false;
+    NotificationManager.logDebug(`Progress ended in ${Date.now() - startedAt}ms: title="${options.title}"`);
   }
 }

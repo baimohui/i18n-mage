@@ -6,6 +6,7 @@
   "config.i18nFramework.desc": "国际化框架",
   "config.referenceLanguage.desc": "翻译源语言",
   "config.displayLanguage.desc": "显示语言",
+  "config.enableDebugLog.desc": "启用调试模式：在 i18n Mage 输出通道中记录用户操作与执行结果",
   "config.previewChanges.desc": "应用修改前预览",
   "config.translationFunctionNames.desc": "自定义国际化函数名",
   "config.syncBasedOnReferredEntries.desc": "统计同步时以翻译源语言文件为基准，否则以所有语言文件为基准",

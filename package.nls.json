@@ -6,6 +6,7 @@
   "config.i18nFramework.desc": "I18n framework",
   "config.referenceLanguage.desc": "Source language",
   "config.displayLanguage.desc": "Display language",
+  "config.enableDebugLog.desc": "Enable debug mode: log user operations and outcomes to the i18n Mage output channel",
   "config.previewChanges.desc": "Preview changes before applying",
   "config.translationFunctionNames.desc": "Custom i18n function names",
   "config.syncBasedOnReferredEntries.desc": "Use source language file as baseline when syncing; otherwise use all language files",
