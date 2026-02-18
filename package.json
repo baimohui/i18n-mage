@@ -79,23 +79,6 @@
             "default": false,
             "description": "%config.enableDebugLog.desc%"
           },
-          "i18n-mage.general.fileExtensions": {
-            "order": 12,
-            "type": "array",
-            "default": [
-              ".js",
-              ".ts",
-              ".jsx",
-              ".tsx",
-              ".vue",
-              ".html",
-              ".json"
-            ],
-            "description": "%config.fileExtensions.desc%",
-            "items": {
-              "type": "string"
-            }
-          },
           "i18n-mage.general.sortOnExport": {
             "order": 16,
             "type": "string",
@@ -455,6 +438,22 @@
         "type": "object",
         "title": "%config.analysis.title%",
         "properties": {
+          "i18n-mage.analysis.fileExtensions": {
+            "order": 2,
+            "type": "array",
+            "default": [
+              ".js",
+              ".ts",
+              ".jsx",
+              ".tsx",
+              ".vue",
+              ".html"
+            ],
+            "description": "%config.fileExtensions.desc%",
+            "items": {
+              "type": "string"
+            }
+          },
           "i18n-mage.analysis.onSave": {
             "order": 4,
             "type": "boolean",

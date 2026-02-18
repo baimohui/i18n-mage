@@ -50,7 +50,7 @@ describe("utils/regex/fileUtils", () => {
     setCacheConfig("workspace.ignoredFiles", []);
     setCacheConfig("workspace.ignoredDirectories", []);
     setCacheConfig("workspace.languagePath", "");
-    setCacheConfig("general.fileExtensions", [".json", ".js"]);
+    setCacheConfig("analysis.fileExtensions", [".json", ".js"]);
     const okFile = path.join(fixturesRoot, "en", "common.json");
     const badExt = path.join(fixturesRoot, "en", "common.txt");
     assert.strictEqual(isValidI18nCallablePath(okFile), true);

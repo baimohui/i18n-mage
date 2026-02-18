@@ -23,7 +23,7 @@
   "i18n-mage.workspace.ignoredDirectories": [
     "test"
   ],
-  "i18n-mage.general.fileExtensions": [
+  "i18n-mage.analysis.fileExtensions": [
     ".ts",
     ".tsx"
   ],

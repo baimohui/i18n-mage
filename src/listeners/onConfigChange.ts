@@ -25,7 +25,7 @@ export function registerOnConfigChange() {
                 "i18nFeatures.namespaceStrategy",
                 "analysis.syncBasedOnReferredEntries",
                 "analysis.scanStringLiterals",
-                "general.fileExtensions",
+                "analysis.fileExtensions",
                 "analysis.fileSizeSkipThresholdKB",
                 "analysis.ignoreCommentedCode",
                 "workspace.ignoredUndefinedEntries"

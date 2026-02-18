@@ -216,9 +216,9 @@ Enable diagnostics to underline undefined keys in code.
 
 Specifies the default language source for inline translation tooltips and the information panel.
 
-#### `i18n-mage.general.fileExtensions`
+#### `i18n-mage.analysis.fileExtensions`
 
-Specifies the file extensions to be scanned.
+Specifies which code file extensions are scanned to detect i18n key usage (used/unused/undefined).
 
 #### `i18n-mage.general.sortOnExport`
 

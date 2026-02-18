@@ -95,7 +95,7 @@
   "config.autoTranslateEmptyKey.desc": "Automatically translate entries with empty values when fixing",
   "config.sorting.writeBehavior": "Sort language files after fixing",
   "config.ignoredUndefinedEntries.desc": "Ignored undefined entries",
-  "config.fileExtensions.desc": "File extensions to scan",
+  "config.fileExtensions.desc": "Code file extensions to scan for i18n key usage (used/unused/undefined detection)",
   "config.deeplVersion.desc": "Select DeepL version: free or pro",
   "config.deeplApiKey.desc": "DeepL API Key (based on selected version)",
   "config.googleApiKey.desc": "Google Translate API Key",

@@ -12,7 +12,7 @@ describe("core/handlers/ReadHandler", () => {
 
   beforeEach(() => {
     clearConfigCache("");
-    setCacheConfig("general.fileExtensions", [".ts", ".js", ".json"]);
+    setCacheConfig("analysis.fileExtensions", [".ts", ".js", ".json"]);
     setCacheConfig("workspace.ignoredFiles", []);
     setCacheConfig("workspace.ignoredDirectories", []);
     setCacheConfig("workspace.languagePath", "");

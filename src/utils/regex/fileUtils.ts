@@ -26,7 +26,7 @@ export function isValidI18nCallablePath(inputPath: string, isDirectoryHint?: boo
   const ignoredFiles = getCacheConfig<string[]>("workspace.ignoredFiles");
   const ignoredDirectories = getCacheConfig<string[]>("workspace.ignoredDirectories");
   const languagePath = getCacheConfig<string>("workspace.languagePath");
-  const fileExtensions = getCacheConfig<string[]>("general.fileExtensions");
+  const fileExtensions = getCacheConfig<string[]>("analysis.fileExtensions");
   const normalizedPath = path.normalize(inputPath);
   // 判断是否是文件或目录
   let isDirectory = isDirectoryHint ?? false;

@@ -95,7 +95,7 @@
   "config.autoTranslateEmptyKey.desc": "修复时自动翻译空值词条",
   "config.sorting.writeBehavior": "修复后根据配置规则统一排序语言文件",
   "config.ignoredUndefinedEntries.desc": "忽略未定义检测的词条列表",
-  "config.fileExtensions.desc": "需要扫描的文件扩展名",
+  "config.fileExtensions.desc": "用于扫描 i18n 词条 key 在代码中使用情况（已用/未用/未定义）的文件扩展名",
   "config.deeplVersion.desc": "选择 DeepL 版本：免费版（free）或专业版（pro）",
   "config.deeplApiKey.desc": "DeepL API Key（根据所选版本填写对应的 Key）",
   "config.googleApiKey.desc": "谷歌翻译 API Key",
