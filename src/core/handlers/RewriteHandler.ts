@@ -6,7 +6,8 @@ import {
   getContentAtLocation,
   formatObjectToString,
   getPathSegsFromId,
-  setValueByEscapedEntryName
+  setValueByEscapedEntryName,
+  getCommonFilePaths
 } from "@/utils/regex";
 import { t } from "@/utils/i18n";
 import { ExecutionResult, EXECUTION_RESULT_CODE } from "@/types";
@@ -102,10 +103,16 @@ export class RewriteHandler {
           }
         }
       }
-      if (rewriteAll && this.ctx.avgFileNestedLevel === 0 && this.ctx.languageStructure === LANGUAGE_STRUCTURE.flat) {
+      if (rewriteAll) {
         for (const lang of this.detectedLangList) {
           updateInfo[lang] ??= new Set<string>();
-          updateInfo[lang].add("");
+          if (this.ctx.avgFileNestedLevel === 0 && this.ctx.languageStructure === LANGUAGE_STRUCTURE.flat) {
+            updateInfo[lang].add("");
+          } else {
+            getCommonFilePaths(this.ctx.fileStructure).forEach(filePath => {
+              updateInfo[lang].add(filePath.replaceAll("/", "."));
+            });
+          }
         }
       }
       for (const [lang, filePosSet] of Object.entries(updateInfo)) {

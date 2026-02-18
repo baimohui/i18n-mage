@@ -6,11 +6,9 @@ export class SortHandler {
   constructor(private ctx: LangContextInternal) {}
 
   public async run() {
-    if (
-      this.ctx.sortingWriteMode !== SORT_MODE.None &&
-      this.ctx.avgFileNestedLevel === 0 &&
-      this.ctx.languageStructure === LANGUAGE_STRUCTURE.flat
-    ) {
+    const canSortFlat = this.ctx.avgFileNestedLevel === 0 && this.ctx.languageStructure === LANGUAGE_STRUCTURE.flat;
+    const canSortNestedByKey = this.ctx.languageStructure === LANGUAGE_STRUCTURE.nested && this.ctx.sortingWriteMode === SORT_MODE.ByKey;
+    if (this.ctx.sortingWriteMode !== SORT_MODE.None && (canSortFlat || canSortNestedByKey)) {
       Object.keys(this.ctx.langCountryMap).forEach(lang => {
         if (this.ctx.ignoredLangs.includes(lang)) return;
         const sortedTree = {};
@@ -28,6 +26,9 @@ export class SortHandler {
         });
         this.ctx.langCountryMap[lang] = sortedTree;
       });
+      if (canSortNestedByKey) {
+        this.ctx.entryTree = this.getKeySortedEntryTree(this.ctx.entryTree);
+      }
       return await new RewriteHandler(this.ctx).run(true);
     }
     return { code: EXECUTION_RESULT_CODE.NoSortingApplied, success: false, message: t("command.sort.sortNotPerformed") };
@@ -61,5 +62,22 @@ export class SortHandler {
       }
     });
     return sortedTree;
+  }
+
+  private getKeySortedEntryTree(tree: EntryTree): EntryTree {
+    const sorted: EntryTree = {};
+    Object.keys(tree)
+      .sort((a, b) => a.localeCompare(b))
+      .forEach(key => {
+        const value = tree[key];
+        if (Array.isArray(value)) {
+          sorted[key] = [...value];
+        } else if (typeof value === "object" && value !== null) {
+          sorted[key] = this.getKeySortedEntryTree(value);
+        } else {
+          sorted[key] = value;
+        }
+      });
+    return sorted;
   }
 }

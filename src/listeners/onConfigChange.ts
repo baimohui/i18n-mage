@@ -58,9 +58,9 @@ export function registerOnConfigChange() {
               vscode.commands.executeCommand(
                 "setContext",
                 "i18nMage.allowSort",
-                mage.langDetail.avgFileNestedLevel === 0 &&
-                  mage.langDetail.languageStructure === LANGUAGE_STRUCTURE.flat &&
-                  sortMode !== SORT_MODE.None
+                sortMode !== SORT_MODE.None &&
+                  ((mage.langDetail.avgFileNestedLevel === 0 && mage.langDetail.languageStructure === LANGUAGE_STRUCTURE.flat) ||
+                    (mage.langDetail.languageStructure === LANGUAGE_STRUCTURE.nested && sortMode === SORT_MODE.ByKey))
               );
             }
           }

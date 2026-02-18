@@ -83,7 +83,9 @@ export async function initTreeWithDeps(params: InitTreeParams): Promise<boolean>
       vscode.commands.executeCommand(
         "setContext",
         "i18nMage.allowSort",
-        langInfo.avgFileNestedLevel === 0 && langInfo.languageStructure === LANGUAGE_STRUCTURE.flat && sortMode !== SORT_MODE.None
+        sortMode !== SORT_MODE.None &&
+          ((langInfo.avgFileNestedLevel === 0 && langInfo.languageStructure === LANGUAGE_STRUCTURE.flat) ||
+            (langInfo.languageStructure === LANGUAGE_STRUCTURE.nested && sortMode === SORT_MODE.ByKey))
       );
 
       const publicCtx = params.mage.getPublicContext();

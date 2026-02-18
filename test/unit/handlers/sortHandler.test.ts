@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-require-imports, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/require-await */
+﻿/* eslint-disable @typescript-eslint/no-require-imports, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/require-await */
 import * as assert from "assert";
 import mockRequire from "mock-require";
 import { createLangContext } from "@/core/context";
@@ -18,10 +18,11 @@ function resetHandlerModule(modulePath: string) {
 describe("core/handlers/SortHandler", () => {
   beforeEach(() => {
     mockRequire.stop("@/core/handlers/RewriteHandler");
+    resetHandlerModule("@/core/handlers/RewriteHandler");
     resetHandlerModule("@/core/handlers/SortHandler");
   });
 
-  it("getSortedKeys 应按 key 排序", () => {
+  it("getSortedKeys should sort by key", () => {
     const { SortHandler } = require("@/core/handlers/SortHandler");
     const ctx = createLangContext();
     ctx.langDictionary = {
@@ -33,7 +34,7 @@ describe("core/handlers/SortHandler", () => {
     assert.deepStrictEqual(keys, ["a.key", "b.key"]);
   });
 
-  it("getSortedKeys 应按 position 顺序", () => {
+  it("getSortedKeys should sort by position", () => {
     const { SortHandler } = require("@/core/handlers/SortHandler");
     const ctx = createLangContext();
     ctx.usedKeySet = new Set(["b.key"]);
@@ -43,9 +44,10 @@ describe("core/handlers/SortHandler", () => {
     assert.deepStrictEqual(keys, ["b.key", "a.key"]);
   });
 
-  it("run 在满足条件时应调用 RewriteHandler", async () => {
+  it("run should call RewriteHandler for flat byKey", async () => {
     let called = false;
-    mockRequire("@/core/handlers/RewriteHandler", {
+    const rewriteHandlerPath = require.resolve("@/core/handlers/RewriteHandler");
+    mockRequire(rewriteHandlerPath, {
       RewriteHandler: class {
         constructor(_ctx: unknown) {}
         async run(_silent: boolean) {
@@ -63,5 +65,34 @@ describe("core/handlers/SortHandler", () => {
     const handler = new SortHandler(ctx);
     await handler.run();
     assert.strictEqual(called, true);
+  });
+
+  it("run should support nested byKey sorting", async () => {
+    let called = false;
+    const rewriteHandlerPath = require.resolve("@/core/handlers/RewriteHandler");
+    mockRequire(rewriteHandlerPath, {
+      RewriteHandler: class {
+        constructor(_ctx: unknown) {}
+        async run(_silent: boolean) {
+          called = true;
+          return { success: true, message: "", code: 200 };
+        }
+      }
+    });
+    const { SortHandler } = require("@/core/handlers/SortHandler");
+    const ctx = createLangContext();
+    ctx.sortingWriteMode = SORT_MODE.ByKey;
+    ctx.avgFileNestedLevel = 1;
+    ctx.languageStructure = "nested";
+    ctx.langCountryMap = { en: { "z.key": "Z", "a.key": "A" } };
+    ctx.entryTree = {
+      z: { c: "z.c", a: "z.a" },
+      a: { b: "a.b" }
+    };
+    const handler = new SortHandler(ctx);
+    await handler.run();
+    assert.strictEqual(called, true);
+    assert.deepStrictEqual(Object.keys(ctx.entryTree), ["a", "z"]);
+    assert.deepStrictEqual(Object.keys(ctx.entryTree.z as Record<string, string>), ["a", "c"]);
   });
 });
