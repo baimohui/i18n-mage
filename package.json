@@ -991,6 +991,15 @@
         }
       },
       {
+        "command": "i18nMage.extractHardcodedTexts",
+        "category": "%extension.name%",
+        "title": "%command.extractHardcodedTexts.title%",
+        "icon": {
+          "light": "./images/genKey-light.svg",
+          "dark": "./images/genKey-dark.svg"
+        }
+      },
+      {
         "command": "i18nMage.fillMissingTranslations",
         "category": "%extension.name%",
         "title": "%command.fillMissingTranslations.title%",
@@ -1367,6 +1376,11 @@
           "group": "navigation@25"
         },
         {
+          "command": "i18nMage.extractHardcodedTexts",
+          "when": "view == i18nMage.grimoire && i18nMage.enabled && !i18nMage.isSearching",
+          "group": "navigation@24"
+        },
+        {
           "command": "i18nMage.toggleCaseSensitive",
           "when": "view == i18nMage.grimoire && i18nMage.hasValidLangPath && i18nMage.isSearching && !i18nMage.isCaseSensitive",
           "group": "navigation@45"
@@ -1533,6 +1547,11 @@
           "command": "i18nMage.fixUndefinedEntries",
           "when": "i18nMage.hasUndefinedEntriesInFile",
           "group": "2_i18n@3"
+        },
+        {
+          "command": "i18nMage.extractHardcodedTexts",
+          "when": "i18nMage.enabled",
+          "group": "2_i18n@4"
         }
       ],
       "explorer/context": [

@@ -21,7 +21,16 @@ import { SortHandler } from "./handlers/SortHandler";
 import { TrimHandler } from "./handlers/TrimHandler";
 import { ModifyHandler } from "./handlers/ModifyHandler";
 import { ReadHandler } from "./handlers/ReadHandler";
-import { LangMageOptions, ExecutionResult, EXECUTION_RESULT_CODE, KeyStyle, NAMESPACE_STRATEGY, KeyStrategy } from "@/types";
+import {
+  LangMageOptions,
+  ExecutionResult,
+  EXECUTION_RESULT_CODE,
+  KeyStyle,
+  NAMESPACE_STRATEGY,
+  KeyStrategy,
+  FixedTEntry,
+  I18nUpdatePayload
+} from "@/types";
 import { getDetectedLangList } from "@/core/tools/contextTools";
 import { getLangCode } from "@/utils/langKey";
 import { t } from "@/utils/i18n";
@@ -220,6 +229,11 @@ class LangMage {
       patchedIds: this.ctx.patchedEntryIdInfo,
       fileExtraInfo: this.ctx.langFileExtraInfo
     };
+  }
+
+  public setPendingChanges(updatePayloads: I18nUpdatePayload[], patchedEntryIdInfo: Record<string, FixedTEntry[]> = {}) {
+    this.ctx.updatePayloads = updatePayloads;
+    this.ctx.patchedEntryIdInfo = patchedEntryIdInfo;
   }
 
   private read() {

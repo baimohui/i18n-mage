@@ -1,4 +1,4 @@
-import { defineConfig } from "vite";
+﻿import { defineConfig } from "vite";
 import preact from "@preact/preset-vite";
 import { resolve } from "path";
 
@@ -22,22 +22,14 @@ export default defineConfig(({ mode }) => {
       emptyOutDir: false,
       sourcemap: true,
       minify: isDev ? false : "esbuild",
-      lib: {
-        entry: resolve(__dirname, "src/webviews/fix-preview/main.tsx"),
-        name: "FixPreview",
-        formats: ["umd"],
-        fileName: () => "fix-preview.js"
-      },
       rollupOptions: {
-        external: [],
+        input: {
+          "fix-preview": resolve(__dirname, "src/webviews/fix-preview/main.tsx"),
+          "extract-setup": resolve(__dirname, "src/webviews/extract-setup/main.tsx")
+        },
         output: {
-          inlineDynamicImports: true,
-          globals: {},
-          format: "umd",
-          sourcemapPathTransform: () => {
-            // 返回相对于 JS 文件的 sourcemap 路径
-            return `fix-preview.js.map`;
-          }
+          format: "es",
+          entryFileNames: "[name].js"
         }
       }
     }

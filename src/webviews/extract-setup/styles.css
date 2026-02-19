@@ -1,0 +1,169 @@
+﻿:root {
+  --bg: var(--vscode-editor-background);
+  --panel: color-mix(in srgb, var(--vscode-editorWidget-background) 84%, var(--bg));
+  --panel-soft: color-mix(in srgb, var(--vscode-editorWidget-background) 60%, var(--bg));
+  --fg: var(--vscode-editor-foreground);
+  --muted: var(--vscode-descriptionForeground);
+  --input-bg: var(--vscode-input-background);
+  --input-fg: var(--vscode-input-foreground);
+  --border: color-mix(in srgb, var(--vscode-input-border) 70%, var(--vscode-panel-border));
+  --ring: var(--vscode-focusBorder);
+  --btn-bg: var(--vscode-button-background);
+  --btn-fg: var(--vscode-button-foreground);
+  --btn-hover: var(--vscode-button-hoverBackground);
+  --danger: var(--vscode-inputValidation-errorBorder, #c00);
+  --radius: 12px;
+}
+
+body {
+  font-family: var(--vscode-font-family, "Segoe UI", sans-serif);
+  margin: 0;
+  color: var(--fg);
+  background:
+    radial-gradient(1200px 420px at -10% -20%, color-mix(in srgb, var(--btn-bg) 14%, transparent), transparent 60%),
+    radial-gradient(900px 300px at 110% -15%, color-mix(in srgb, var(--vscode-terminal-ansiGreen) 10%, transparent), transparent 62%),
+    var(--bg);
+}
+
+.app {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  padding: 16px;
+}
+
+.page-head h1 {
+  margin: 0;
+  font-size: 20px;
+  line-height: 1.2;
+}
+
+.hint {
+  margin-top: 6px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.content {
+  flex: 1;
+  overflow-y: auto;
+  margin-top: 12px;
+  padding-right: 2px;
+}
+
+.entry-card {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 12px;
+  margin-bottom: 12px;
+  background: var(--panel);
+  box-shadow: 0 1px 0 color-mix(in srgb, var(--border) 70%, transparent), 0 10px 24px color-mix(in srgb, var(--bg) 80%, black 12%);
+}
+
+.entry-card h3 {
+  margin: 0 0 10px;
+  color: var(--muted);
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.35px;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  gap: 8px 12px;
+  align-items: center;
+}
+
+label {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+input,
+select {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 7px 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--input-bg);
+  color: var(--input-fg);
+  outline: none;
+}
+
+input:focus,
+select:focus {
+  border-color: var(--ring);
+  box-shadow: 0 0 0 1px var(--ring);
+}
+
+.bool-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--panel-soft);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.bool-row input[type="checkbox"] {
+  width: auto;
+  inline-size: 14px;
+  block-size: 14px;
+  accent-color: var(--btn-bg);
+}
+
+.actions {
+  margin-top: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 8px;
+  position: sticky;
+  bottom: 0;
+  background: linear-gradient(to top, var(--bg) 70%, transparent);
+  padding: 12px 0 4px;
+  border-top: 1px solid color-mix(in srgb, var(--border) 60%, transparent);
+}
+
+button {
+  padding: 8px 14px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  cursor: pointer;
+}
+
+.btn-primary {
+  background: var(--btn-bg);
+  color: var(--btn-fg);
+  border-color: color-mix(in srgb, var(--btn-bg) 70%, var(--border));
+}
+
+.btn-primary:hover {
+  background: var(--btn-hover);
+}
+
+.btn-secondary {
+  background: var(--panel-soft);
+  color: var(--fg);
+}
+
+.error {
+  margin-left: auto;
+  color: var(--danger);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+@media (max-width: 920px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+}

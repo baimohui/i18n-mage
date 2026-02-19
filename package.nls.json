@@ -184,6 +184,7 @@
   "command.openSettings.title": "Open Settings",
   "command.feedback.title": "Feedback",
   "command.fixUndefinedEntries.title": "Extract Undefined Text",
+  "command.extractHardcodedTexts.title": "Extract Hardcoded Text",
   "command.fillMissingTranslations.title": "Fill Missing Translations",
   "command.browseTranslationsInFile.title": "Browse File Translations",
   "command.rewriteEntry.title": "Rewrite Entry",

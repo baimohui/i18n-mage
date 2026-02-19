@@ -184,6 +184,7 @@
   "command.openSettings.title": "打开设置",
   "command.feedback.title": "反馈",
   "command.fixUndefinedEntries.title": "提取未定义文案",
+  "command.extractHardcodedTexts.title": "提取硬编码文案",
   "command.fillMissingTranslations.title": "填充缺失翻译",
   "command.browseTranslationsInFile.title": "浏览文件翻译",
   "command.rewriteEntry.title": "重写词条值",

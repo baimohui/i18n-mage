@@ -133,7 +133,7 @@ function buildWebviewHtml(
       }, 100);
     });
   </script>
-  <script nonce="${nonce}" src="${scriptSrc}"></script>
+  <script nonce="${nonce}" type="module" src="${scriptSrc}"></script>
 </body>
 </html>`;
 }
