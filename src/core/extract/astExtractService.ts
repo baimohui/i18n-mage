@@ -61,7 +61,7 @@ function scanVueScriptCandidates(
   cjkOnly = false
 ): ExtractCandidate[] {
   const candidates: ExtractCandidate[] = [];
-  const scriptRegex = /<script\b[^>]*>[\s\S]*?<\/script>/gi;
+  const scriptRegex = /<script\b[^>]*>[\s\S]*?<\/script\b[^>]*>/gi;
   let match: RegExpExecArray | null = null;
 
   while ((match = scriptRegex.exec(fileContent)) !== null) {
