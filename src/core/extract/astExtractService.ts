@@ -4,12 +4,14 @@ import * as ts from "typescript";
 import { isValidI18nCallablePath } from "@/utils/regex";
 import { getLangCode } from "@/utils/langKey";
 import { getCacheConfig } from "@/utils/config";
+import { validateLang } from "@/utils/regex/formatUtils";
 import { ExtractCandidate, ExtractScanResult } from "./types";
 
 interface ScanOptions {
   projectPath: string;
   sourceLanguage?: string;
   scopePath?: string;
+  onlyExtractSourceLanguageText?: boolean;
 }
 
 export function scanHardcodedTextCandidates(options: ScanOptions): ExtractScanResult {
@@ -17,13 +19,15 @@ export function scanHardcodedTextCandidates(options: ScanOptions): ExtractScanRe
   const filePaths = readAllFiles(scanRoot);
   const candidates: ExtractCandidate[] = [];
   const translationFunctionNames = getTranslationFunctionNames();
-  const cjkOnly = shouldExtractCjkOnly(options.sourceLanguage);
+  const sourceLanguageGuard = shouldUseSourceLanguageGuard(options.sourceLanguage, options.onlyExtractSourceLanguageText);
 
   for (const filePath of filePaths) {
     const ext = path.extname(filePath).toLowerCase();
     if (ext === ".vue") {
       const fileContent = fs.readFileSync(filePath, "utf8");
-      candidates.push(...scanVueScriptCandidates(filePath, fileContent, translationFunctionNames, cjkOnly));
+      candidates.push(
+        ...scanVueScriptCandidates(filePath, fileContent, translationFunctionNames, options.sourceLanguage, sourceLanguageGuard)
+      );
       continue;
     }
 
@@ -33,7 +37,16 @@ export function scanHardcodedTextCandidates(options: ScanOptions): ExtractScanRe
 
     const fileContent = fs.readFileSync(filePath, "utf8");
     candidates.push(
-      ...scanSourceCandidates(filePath, fileContent, getScriptKindByExt(ext), 0, "js-string", translationFunctionNames, cjkOnly)
+      ...scanSourceCandidates(
+        filePath,
+        fileContent,
+        getScriptKindByExt(ext),
+        0,
+        "js-string",
+        translationFunctionNames,
+        options.sourceLanguage,
+        sourceLanguageGuard
+      )
     );
   }
 
@@ -58,7 +71,8 @@ function scanVueScriptCandidates(
   filePath: string,
   fileContent: string,
   translationFunctionNames: Set<string>,
-  cjkOnly = false
+  sourceLanguage?: string,
+  sourceLanguageGuard = false
 ): ExtractCandidate[] {
   const candidates: ExtractCandidate[] = [];
   const scriptRegex = /<script\b[^>]*>[\s\S]*?<\/script\b[^>]*>/gi;
@@ -76,7 +90,16 @@ function scanVueScriptCandidates(
     const isTs = /lang\s*=\s*["']ts["']/i.test(block) || /lang\s*=\s*["']tsx["']/i.test(block);
     const kind = isTs ? ts.ScriptKind.TS : ts.ScriptKind.JS;
     candidates.push(
-      ...scanSourceCandidates(filePath, scriptContent, kind, contentStart, "vue-script-string", translationFunctionNames, cjkOnly)
+      ...scanSourceCandidates(
+        filePath,
+        scriptContent,
+        kind,
+        contentStart,
+        "vue-script-string",
+        translationFunctionNames,
+        sourceLanguage,
+        sourceLanguageGuard
+      )
     );
   }
 
@@ -90,7 +113,8 @@ function scanSourceCandidates(
   offset: number,
   context: ExtractCandidate["context"],
   translationFunctionNames: Set<string>,
-  cjkOnly = false
+  sourceLanguage?: string,
+  sourceLanguageGuard = false
 ): ExtractCandidate[] {
   const sourceFile = ts.createSourceFile(filePath, code, ts.ScriptTarget.Latest, true, scriptKind);
   const results: ExtractCandidate[] = [];
@@ -101,7 +125,7 @@ function scanSourceCandidates(
         return;
       }
       const text = node.text.trim();
-      if (!isExtractableText(text, cjkOnly)) {
+      if (!isExtractableText(text, sourceLanguage, sourceLanguageGuard)) {
         return;
       }
       const start = node.getStart(sourceFile) + offset;
@@ -181,7 +205,7 @@ function getCallExpressionName(expression: ts.Expression): string {
   return "";
 }
 
-function isExtractableText(text: string, cjkOnly = false) {
+function isExtractableText(text: string, sourceLanguage?: string, sourceLanguageGuard = false) {
   if (text.length === 0) return false;
   if (/^\s+$/.test(text)) return false;
   if (/^[./@_\w-]+$/.test(text)) return false;
@@ -191,14 +215,27 @@ function isExtractableText(text: string, cjkOnly = false) {
   if (/^-?\d+(?:\.\d+)?(?:px|r?em|vh|vw|vmin|vmax|%)$/i.test(text)) return false;
   if (/^\d+(?:\.\d+)?$/.test(text)) return false;
   if (!/[\p{L}]/u.test(text)) return false;
-  if (cjkOnly && !/[\u3400-\u9FFF\u3040-\u30FF\uAC00-\uD7AF]/.test(text)) return false;
+  if (sourceLanguageGuard && typeof sourceLanguage === "string" && sourceLanguage.trim().length > 0) {
+    return validateLang(text, sourceLanguage);
+  }
   return true;
 }
 
-function shouldExtractCjkOnly(sourceLanguage?: string) {
+function shouldUseSourceLanguageGuard(sourceLanguage?: string, onlyExtractSourceLanguageText?: boolean) {
+  if (onlyExtractSourceLanguageText !== true) return false;
   if (typeof sourceLanguage !== "string" || sourceLanguage.trim().length === 0) return false;
   const code = getLangCode(sourceLanguage);
-  return code === "zh-CN" || code === "zh-TW" || code === "ja" || code === "ko";
+  return (
+    code === "zh-CN" ||
+    code === "zh-TW" ||
+    code === "ja" ||
+    code === "ko" ||
+    code === "ru" ||
+    code === "ar" ||
+    code === "th" ||
+    code === "hi" ||
+    code === "vi"
+  );
 }
 
 function readAllFiles(dir: string): string[] {

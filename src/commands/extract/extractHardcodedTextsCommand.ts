@@ -147,11 +147,11 @@ export function registerExtractHardcodedTextsCommand(context: vscode.ExtensionCo
       NotificationManager.showWarning(t("command.extractHardcodedTexts.noProjectPath"));
       return;
     }
-
+    const langDetected = mage.detectedLangList.length > 0;
     const bootstrap = await ensureBootstrapConfig({
       context,
       projectPath,
-      hasDetectedLangs: mage.detectedLangList.length > 0
+      hasDetectedLangs: langDetected
     });
     if (bootstrap === null) return;
 
@@ -186,7 +186,8 @@ export function registerExtractHardcodedTextsCommand(context: vscode.ExtensionCo
       const result = scanHardcodedTextCandidates({
         projectPath,
         sourceLanguage: publicCtx.referredLang,
-        scopePath: bootstrap.extractScopePath
+        scopePath: bootstrap.extractScopePath,
+        onlyExtractSourceLanguageText: bootstrap.onlyExtractSourceLanguageText
       });
 
       if (result.candidates.length === 0) {
@@ -343,8 +344,12 @@ export function registerExtractHardcodedTextsCommand(context: vscode.ExtensionCo
           mage.setPendingChanges(updatePayloads, {});
           await mage.execute({ task: "rewrite" });
           await applyCodePatches(codePatches, { importStatement: bootstrap.importStatement });
-          await mage.execute({ task: "check" });
-          treeInstance.refresh();
+          if (langDetected) {
+            await mage.execute({ task: "check" });
+            treeInstance.refresh();
+          } else {
+            await treeInstance.initTree();
+          }
           NotificationManager.showSuccess(
             t(
               "command.extractHardcodedTexts.applied",

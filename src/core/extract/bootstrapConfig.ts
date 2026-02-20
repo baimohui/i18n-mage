@@ -5,6 +5,7 @@ import { createHash } from "crypto";
 import { clearConfigCache, getConfig, setConfig } from "@/utils/config";
 import { toRelativePath } from "@/utils/fs";
 import { t } from "@/utils/i18n";
+import { getLangCode, LANG_CODE_MAPPINGS } from "@/utils/langKey";
 
 const BOOTSTRAP_KEY_PREFIX = "extract.bootstrapConfig.v2";
 
@@ -37,11 +38,18 @@ export interface ExtractBootstrapConfig {
   stopWords: string[];
   stopPrefixes: string[];
   ignorePossibleVariables: boolean;
+  onlyExtractSourceLanguageText: boolean;
   referenceLanguage: string;
   translationFileType: "json" | "json5" | "js" | "ts" | "yaml" | "yml";
   importStatement: string;
   extractScopePath: string;
   targetLanguages: string[];
+}
+
+function getDefaultTargetLanguages() {
+  const uiLangCode = getLangCode(vscode.env.language) ?? "";
+  const values = ["en", uiLangCode].filter((item): item is string => item.trim().length > 0);
+  return Array.from(new Set(values));
 }
 
 function defaultBootstrapConfig(): ExtractBootstrapConfig {
@@ -50,7 +58,7 @@ function defaultBootstrapConfig(): ExtractBootstrapConfig {
     languagePath: "src/i18n",
     fileExtensions: [".js", ".ts", ".jsx", ".tsx", ".vue"],
     translationFunctionNames: ["t"],
-    vueTemplateFunctionName: "$t",
+    vueTemplateFunctionName: "t",
     vueScriptFunctionName: "t",
     keyPrefix: "auto-path",
     languageStructure: "flat",
@@ -66,11 +74,12 @@ function defaultBootstrapConfig(): ExtractBootstrapConfig {
     stopWords: [],
     stopPrefixes: [],
     ignorePossibleVariables: true,
+    onlyExtractSourceLanguageText: true,
     referenceLanguage: vscode.env.language || "en",
     translationFileType: "json",
     importStatement: 'import { t } from "@/i18n";',
     extractScopePath: "",
-    targetLanguages: ["en", "zh-CN"]
+    targetLanguages: getDefaultTargetLanguages()
   };
 }
 
@@ -152,6 +161,8 @@ function sanitizeBootstrapConfig(raw: BootstrapRaw | undefined): ExtractBootstra
     stopPrefixes,
     ignorePossibleVariables:
       typeof raw.ignorePossibleVariables === "boolean" ? raw.ignorePossibleVariables : defaults.ignorePossibleVariables,
+    onlyExtractSourceLanguageText:
+      typeof raw.onlyExtractSourceLanguageText === "boolean" ? raw.onlyExtractSourceLanguageText : defaults.onlyExtractSourceLanguageText,
     referenceLanguage:
       typeof raw.referenceLanguage === "string" && raw.referenceLanguage.trim() ? raw.referenceLanguage.trim() : defaults.referenceLanguage,
     translationFileType:
@@ -232,6 +243,7 @@ function getDetectedProjectDefaults(context: vscode.ExtensionContext, projectPat
     ...inferred,
     importStatement: stored.importStatement || inferred.importStatement,
     extractScopePath: stored.extractScopePath || inferred.extractScopePath,
+    onlyExtractSourceLanguageText: stored.onlyExtractSourceLanguageText ?? inferred.onlyExtractSourceLanguageText,
     vueTemplateFunctionName: stored.vueTemplateFunctionName || inferred.vueTemplateFunctionName,
     vueScriptFunctionName: stored.vueScriptFunctionName || inferred.vueScriptFunctionName
   });
@@ -360,7 +372,19 @@ function openBootstrapWebview(
 <body>
   <div id="root"></div>
   <script nonce="${nonce}">
-    window.webviewData = ${JSON.stringify({ language: vscode.env.language, hasDetectedLangs, defaults }).replace(/</g, "\\u003c")};
+    window.webviewData = ${JSON.stringify({
+      language: vscode.env.language,
+      hasDetectedLangs,
+      defaults,
+      availableLanguages: Array.from(
+        new Map(
+          Object.entries(LANG_CODE_MAPPINGS).map(([key, info]) => {
+            const code = info.ggCode || key;
+            return [code, { code, label: `${info.cnName} (${code})` }];
+          })
+        ).values()
+      )
+    }).replace(/</g, "\\u003c")};
   </script>
   <script nonce="${nonce}" type="module" src="${scriptSrc}"></script>
 </body>

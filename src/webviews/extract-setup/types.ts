@@ -1,6 +1,7 @@
-﻿export interface ExtractSetupWebviewData {
+export interface ExtractSetupWebviewData {
   language: string;
   hasDetectedLangs: boolean;
+  availableLanguages: Array<{ code: string; label: string }>;
   defaults: {
     framework: string;
     languagePath: string;
@@ -22,6 +23,7 @@
     stopWords: string[];
     stopPrefixes: string[];
     ignorePossibleVariables: boolean;
+    onlyExtractSourceLanguageText: boolean;
     referenceLanguage: string;
     translationFileType: "json" | "json5" | "js" | "ts" | "yaml" | "yml";
     importStatement: string;
