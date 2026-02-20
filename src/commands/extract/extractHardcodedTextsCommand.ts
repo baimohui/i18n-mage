@@ -45,6 +45,17 @@ function getSafeKeyLen(maxKeyLength: number, prefix: string) {
   return Math.max(8, maxKeyLength - prefix.length);
 }
 
+function resolveVueTemplateFunctionName(value: string, fallback: string, framework: string) {
+  const normalized = value.trim();
+  if (/^[A-Za-z_$][A-Za-z0-9_$]*$/.test(normalized)) {
+    return normalized;
+  }
+  if (framework === "vue-i18n") {
+    return "$t";
+  }
+  return fallback;
+}
+
 async function ensureBootstrapLangFiles(
   projectPath: string,
   bootstrap: {
@@ -187,11 +198,15 @@ export function registerExtractHardcodedTextsCommand(context: vscode.ExtensionCo
         projectPath,
         sourceLanguage: publicCtx.referredLang,
         scopePath: bootstrap.extractScopePath,
-        onlyExtractSourceLanguageText: bootstrap.onlyExtractSourceLanguageText
+        onlyExtractSourceLanguageText: bootstrap.onlyExtractSourceLanguageText,
+        vueTemplateIncludeAttrs: bootstrap.vueTemplateIncludeAttrs,
+        vueTemplateExcludeAttrs: bootstrap.vueTemplateExcludeAttrs
       });
 
       if (result.candidates.length === 0) {
-        NotificationManager.showWarning(t("command.extractHardcodedTexts.empty", result.scannedFiles));
+        setTimeout(() => {
+          NotificationManager.showWarning(t("command.extractHardcodedTexts.empty", result.scannedFiles));
+        }, 1000);
         return;
       }
 
@@ -242,7 +257,9 @@ export function registerExtractHardcodedTextsCommand(context: vscode.ExtensionCo
           sourceTextList: uniqueTexts
         });
         if (!translated.success || !translated.data) {
-          NotificationManager.showWarning(translated.message ?? t("translator.noAvailableApi"));
+          setTimeout(() => {
+            NotificationManager.showWarning(translated.message ?? t("translator.noAvailableApi"));
+          }, 1000);
           return;
         }
         keySourceNames = translated.data;
@@ -325,11 +342,22 @@ export function registerExtractHardcodedTextsCommand(context: vscode.ExtensionCo
         const relativeFile = toRelativePath(candidate.file);
         const displayKey = internalToDisplayName(unescapeString(key));
         codePatches[relativeFile] ??= [];
-        const funcName = candidate.context === "vue-script-string" ? bootstrap.vueScriptFunctionName || defaultFuncName : defaultFuncName;
+        const templateFuncName = resolveVueTemplateFunctionName(bootstrap.vueTemplateFunctionName, defaultFuncName, bootstrap.framework);
+        const scriptFuncName = bootstrap.vueScriptFunctionName || defaultFuncName;
+        let fixedRaw = `${defaultFuncName}("${displayKey}")`;
+        if (candidate.context === "vue-script-string") {
+          fixedRaw = `${scriptFuncName}("${displayKey}")`;
+        } else if (candidate.context === "vue-template-attr") {
+          const normalizedAttrName = candidate.attrName?.trim();
+          const attrName = typeof normalizedAttrName === "string" && normalizedAttrName.length > 0 ? normalizedAttrName : "label";
+          fixedRaw = `:${attrName}="${templateFuncName}('${displayKey}')"`;
+        } else if (candidate.context === "vue-template-text") {
+          fixedRaw = `{{ ${templateFuncName}('${displayKey}') }}`;
+        }
         codePatches[relativeFile].push({
           id: textId,
           raw: candidate.raw,
-          fixedRaw: `${funcName}("${displayKey}")`,
+          fixedRaw,
           fixedKey: displayKey,
           addedVars: "",
           pos: `${candidate.start},${candidate.end}`
@@ -350,13 +378,15 @@ export function registerExtractHardcodedTextsCommand(context: vscode.ExtensionCo
           } else {
             await treeInstance.initTree();
           }
-          NotificationManager.showSuccess(
-            t(
-              "command.extractHardcodedTexts.applied",
-              Object.values(codePatches).reduce((acc, cur) => acc + cur.length, 0),
-              updatePayloads.length
-            )
-          );
+          setTimeout(() => {
+            NotificationManager.showSuccess(
+              t(
+                "command.extractHardcodedTexts.applied",
+                Object.values(codePatches).reduce((acc, cur) => acc + cur.length, 0),
+                updatePayloads.length
+              )
+            );
+          }, 1000);
         });
       };
       const onCancel = async () => {

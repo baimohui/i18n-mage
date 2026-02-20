@@ -1,4 +1,4 @@
-import { useMemo, useState } from "preact/hooks";
+import { useCallback, useEffect, useMemo, useState } from "preact/hooks";
 import { getVSCodeAPI } from "@/webviews/shared/utils";
 import { useTranslation } from "@/webviews/shared/hooks";
 import { ExtractSetupWebviewData } from "./types";
@@ -36,6 +36,8 @@ type FormState = {
   quoteStyleForValue: Defaults["quoteStyleForValue"];
   stopWordsText: string;
   stopPrefixesText: string;
+  vueTemplateIncludeAttrsText: string;
+  vueTemplateExcludeAttrsText: string;
   ignorePossibleVariables: boolean;
   onlyExtractSourceLanguageText: boolean;
 };
@@ -367,6 +369,8 @@ function toInitialState(data: ExtractSetupWebviewData): FormState {
     quoteStyleForValue: normalizedQuoteStyleForValue,
     stopWordsText: d.stopWords.join(", "),
     stopPrefixesText: d.stopPrefixes.join(", "),
+    vueTemplateIncludeAttrsText: d.vueTemplateIncludeAttrs.join(", "),
+    vueTemplateExcludeAttrsText: d.vueTemplateExcludeAttrs.join(", "),
     ignorePossibleVariables: d.ignorePossibleVariables,
     onlyExtractSourceLanguageText: d.onlyExtractSourceLanguageText
   };
@@ -692,6 +696,31 @@ export function App({ data }: Props) {
     vscode?.postMessage({ type: "save", value: form });
   };
 
+  const onCancel = useCallback(() => {
+    vscode?.postMessage({ type: "cancel" });
+  }, [vscode]);
+
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Enter" && (e.target as HTMLElement).tagName !== "TEXTAREA") {
+        e.preventDefault();
+        onSave();
+      } else if (e.key === "Escape") {
+        e.preventDefault();
+        onCancel();
+      }
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [onCancel, onSave]);
+
+  useEffect(() => {
+    const focusTarget = document.getElementById("root") ?? document.body;
+    focusTarget.setAttribute("tabindex", "-1");
+    focusTarget.focus();
+    window.focus();
+  }, []);
+
   return (
     <div className="app">
       <header className="page-head">
@@ -734,11 +763,23 @@ export function App({ data }: Props) {
               />
             </div>
           ) : null}
+          <div className="grid" style={{ marginTop: "10px" }}>
+            <label>{t("extractSetup.labelVueTemplateIncludeAttrs")}</label>
+            <input
+              value={form.vueTemplateIncludeAttrsText}
+              onInput={e => update("vueTemplateIncludeAttrsText", (e.target as HTMLInputElement).value)}
+            />
+            <label>{t("extractSetup.labelVueTemplateExcludeAttrs")}</label>
+            <input
+              value={form.vueTemplateExcludeAttrsText}
+              onInput={e => update("vueTemplateExcludeAttrsText", (e.target as HTMLInputElement).value)}
+            />
+          </div>
         </section>
       </main>
 
       <footer className="actions">
-        <button className="btn-secondary" onClick={() => vscode?.postMessage({ type: "cancel" })}>
+        <button className="btn-secondary" onClick={onCancel}>
           {t("extractSetup.cancel")}
         </button>
         <button className="btn-primary" onClick={onSave}>

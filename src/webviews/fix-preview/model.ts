@@ -66,6 +66,15 @@ export function getDisplayNameFromKey(data: FixPreviewData, key: string) {
 }
 
 export function replaceDisplayKeyInFixedRaw(fixedRaw: string, displayName: string) {
+  const callArgPattern = /\(\s*(["'`])(?:\\.|(?!\1).)*\1/;
+  if (callArgPattern.test(fixedRaw)) {
+    return fixedRaw.replace(callArgPattern, matched =>
+      matched.replace(/(["'`])(?:\\.|(?!\1).)*\1/, quoteWrapped => {
+        const quote = quoteWrapped[0] ?? "'";
+        return `${quote}${displayName}${quote}`;
+      })
+    );
+  }
   return fixedRaw.replace(/(["'`])(?:\\.|(?!\1).)*\1/, `$1${displayName}$1`);
 }
 

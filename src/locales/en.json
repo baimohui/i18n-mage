@@ -250,6 +250,8 @@
   "extractSetup.targetLanguagesEmpty": "No language selected",
   "extractSetup.errorTargetLanguagesRequired": "At least one target language is required",
   "extractSetup.labelOnlySourceLanguageText": "Only Extract Source-Language Text",
+  "extractSetup.labelVueTemplateIncludeAttrs": "Vue Template Include Attrs",
+  "extractSetup.labelVueTemplateExcludeAttrs": "Vue Template Exclude Attrs",
   "extractSetup.option.framework.none": "No Framework",
   "extractSetup.option.framework.auto": "Auto Detect",
   "extractSetup.option.framework.vueI18n": "Vue I18n",

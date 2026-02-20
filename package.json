@@ -1306,6 +1306,11 @@
         "when": "workspaceFolderCount != 0 && i18nMage.enabled"
       },
       {
+        "command": "i18nMage.extractHardcodedTexts",
+        "key": "ctrl+alt+e",
+        "mac": "cmd+alt+e"
+      },
+      {
         "command": "i18nMage.fix",
         "key": "ctrl+alt+f",
         "mac": "cmd+alt+f",
@@ -1378,7 +1383,7 @@
         {
           "command": "i18nMage.extractHardcodedTexts",
           "when": "view == i18nMage.grimoire && i18nMage.enabled && !i18nMage.isSearching",
-          "group": "navigation@24"
+          "group": "navigation@15"
         },
         {
           "command": "i18nMage.toggleCaseSensitive",

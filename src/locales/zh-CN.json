@@ -250,6 +250,8 @@
   "extractSetup.targetLanguagesEmpty": "未选择任何语言",
   "extractSetup.errorTargetLanguagesRequired": "至少需要选择一个目标语言",
   "extractSetup.labelOnlySourceLanguageText": "仅提取翻译源语言文本",
+  "extractSetup.labelVueTemplateIncludeAttrs": "Vue 模板属性白名单",
+  "extractSetup.labelVueTemplateExcludeAttrs": "Vue 模板属性黑名单",
   "extractSetup.option.framework.none": "不使用框架",
   "extractSetup.option.framework.auto": "自动检测",
   "extractSetup.option.framework.vueI18n": "Vue I18n",

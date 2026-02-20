@@ -175,10 +175,14 @@ function AppInner() {
         handleApply();
       }
       if (e.key === "Escape") {
-        setMoreOpen(false);
+        if (moreOpen) {
+          setMoreOpen(false);
+          return;
+        }
+        handleCancel();
       }
     },
-    [handleApply]
+    [handleApply, handleCancel, moreOpen]
   );
 
   useEffect(() => {

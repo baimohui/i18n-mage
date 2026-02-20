@@ -15,6 +15,8 @@ type BootstrapRaw = Partial<ExtractBootstrapConfig> & {
   stopWordsText?: string;
   stopPrefixesText?: string;
   targetLanguagesText?: string;
+  vueTemplateIncludeAttrsText?: string;
+  vueTemplateExcludeAttrsText?: string;
 };
 
 export interface ExtractBootstrapConfig {
@@ -44,6 +46,8 @@ export interface ExtractBootstrapConfig {
   importStatement: string;
   extractScopePath: string;
   targetLanguages: string[];
+  vueTemplateIncludeAttrs: string[];
+  vueTemplateExcludeAttrs: string[];
 }
 
 function getDefaultTargetLanguages() {
@@ -79,7 +83,9 @@ function defaultBootstrapConfig(): ExtractBootstrapConfig {
     translationFileType: "json",
     importStatement: 'import { t } from "@/i18n";',
     extractScopePath: "",
-    targetLanguages: getDefaultTargetLanguages()
+    targetLanguages: getDefaultTargetLanguages(),
+    vueTemplateIncludeAttrs: [],
+    vueTemplateExcludeAttrs: ["key", "ref", "prop", "value", "class", "style", "id", "for", "type", "name", "src", "href", "to"]
   };
 }
 
@@ -106,6 +112,12 @@ function sanitizeBootstrapConfig(raw: BootstrapRaw | undefined): ExtractBootstra
   const stopWords = Array.isArray(raw.stopWords) ? raw.stopWords : parseCsvText(raw.stopWordsText);
   const stopPrefixes = Array.isArray(raw.stopPrefixes) ? raw.stopPrefixes : parseCsvText(raw.stopPrefixesText);
   const targetLanguages = Array.isArray(raw.targetLanguages) ? raw.targetLanguages : parseCsvText(raw.targetLanguagesText);
+  const vueTemplateIncludeAttrs = Array.isArray(raw.vueTemplateIncludeAttrs)
+    ? raw.vueTemplateIncludeAttrs
+    : parseCsvText(raw.vueTemplateIncludeAttrsText);
+  const vueTemplateExcludeAttrs = Array.isArray(raw.vueTemplateExcludeAttrs)
+    ? raw.vueTemplateExcludeAttrs
+    : parseCsvText(raw.vueTemplateExcludeAttrsText);
 
   const config: ExtractBootstrapConfig = {
     framework: typeof raw.framework === "string" && raw.framework.trim() ? raw.framework.trim() : defaults.framework,
@@ -177,7 +189,10 @@ function sanitizeBootstrapConfig(raw: BootstrapRaw | undefined): ExtractBootstra
     importStatement:
       typeof raw.importStatement === "string" && raw.importStatement.trim() ? raw.importStatement.trim() : defaults.importStatement,
     extractScopePath: typeof raw.extractScopePath === "string" ? raw.extractScopePath.trim() : defaults.extractScopePath,
-    targetLanguages: targetLanguages.length > 0 ? targetLanguages : defaults.targetLanguages
+    targetLanguages: targetLanguages.length > 0 ? targetLanguages : defaults.targetLanguages,
+    vueTemplateIncludeAttrs: vueTemplateIncludeAttrs.map(item => item.toLowerCase()),
+    vueTemplateExcludeAttrs:
+      vueTemplateExcludeAttrs.length > 0 ? vueTemplateExcludeAttrs.map(item => item.toLowerCase()) : defaults.vueTemplateExcludeAttrs
   };
 
   if (config.languageStructure === "nested" && config.sortRule === "byPosition") {
@@ -245,7 +260,9 @@ function getDetectedProjectDefaults(context: vscode.ExtensionContext, projectPat
     extractScopePath: stored.extractScopePath || inferred.extractScopePath,
     onlyExtractSourceLanguageText: stored.onlyExtractSourceLanguageText ?? inferred.onlyExtractSourceLanguageText,
     vueTemplateFunctionName: stored.vueTemplateFunctionName || inferred.vueTemplateFunctionName,
-    vueScriptFunctionName: stored.vueScriptFunctionName || inferred.vueScriptFunctionName
+    vueScriptFunctionName: stored.vueScriptFunctionName || inferred.vueScriptFunctionName,
+    vueTemplateIncludeAttrs: stored.vueTemplateIncludeAttrs ?? inferred.vueTemplateIncludeAttrs,
+    vueTemplateExcludeAttrs: stored.vueTemplateExcludeAttrs ?? inferred.vueTemplateExcludeAttrs
   });
 }
 
@@ -385,6 +402,18 @@ function openBootstrapWebview(
         ).values()
       )
     }).replace(/</g, "\\u003c")};
+    window.addEventListener('load', () => {
+      setTimeout(() => {
+        const root = document.getElementById('root');
+        if (root) {
+          root.setAttribute('tabindex', '-1');
+          root.focus();
+        }
+        document.body.setAttribute('tabindex', '-1');
+        document.body.focus();
+        window.focus();
+      }, 100);
+    });
   </script>
   <script nonce="${nonce}" type="module" src="${scriptSrc}"></script>
 </body>
@@ -427,5 +456,7 @@ function openBootstrapWebview(
         resolve(null);
       }
     });
+
+    panel.reveal(vscode.ViewColumn.One);
   });
 }

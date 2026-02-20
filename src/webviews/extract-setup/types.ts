@@ -29,5 +29,7 @@ export interface ExtractSetupWebviewData {
     importStatement: string;
     extractScopePath: string;
     targetLanguages: string[];
+    vueTemplateIncludeAttrs: string[];
+    vueTemplateExcludeAttrs: string[];
   };
 }

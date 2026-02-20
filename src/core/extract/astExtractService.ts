@@ -12,6 +12,8 @@ interface ScanOptions {
   sourceLanguage?: string;
   scopePath?: string;
   onlyExtractSourceLanguageText?: boolean;
+  vueTemplateIncludeAttrs?: string[];
+  vueTemplateExcludeAttrs?: string[];
 }
 
 export function scanHardcodedTextCandidates(options: ScanOptions): ExtractScanResult {
@@ -25,6 +27,16 @@ export function scanHardcodedTextCandidates(options: ScanOptions): ExtractScanRe
     const ext = path.extname(filePath).toLowerCase();
     if (ext === ".vue") {
       const fileContent = fs.readFileSync(filePath, "utf8");
+      candidates.push(
+        ...scanVueTemplateCandidates(
+          filePath,
+          fileContent,
+          options.sourceLanguage,
+          sourceLanguageGuard,
+          options.vueTemplateIncludeAttrs,
+          options.vueTemplateExcludeAttrs
+        )
+      );
       candidates.push(
         ...scanVueScriptCandidates(filePath, fileContent, translationFunctionNames, options.sourceLanguage, sourceLanguageGuard)
       );
@@ -101,6 +113,83 @@ function scanVueScriptCandidates(
         sourceLanguageGuard
       )
     );
+  }
+
+  return candidates;
+}
+
+function scanVueTemplateCandidates(
+  filePath: string,
+  fileContent: string,
+  sourceLanguage?: string,
+  sourceLanguageGuard = false,
+  includeAttrs: string[] = [],
+  excludeAttrs: string[] = []
+): ExtractCandidate[] {
+  const candidates: ExtractCandidate[] = [];
+  const templateRegex = /<template\b[^>]*>[\s\S]*?<\/template>/gi;
+  let match: RegExpExecArray | null = null;
+  const includeSet = new Set(includeAttrs.map(item => item.toLowerCase()));
+  const excludeSet = new Set(excludeAttrs.map(item => item.toLowerCase()));
+
+  while ((match = templateRegex.exec(fileContent)) !== null) {
+    const block = match[0];
+    const openTagEnd = block.indexOf(">");
+    if (openTagEnd < 0) continue;
+    const closeTagStart = block.lastIndexOf("</template>");
+    if (closeTagStart <= openTagEnd) continue;
+    const contentStart = match.index + openTagEnd + 1;
+    const contentEnd = match.index + closeTagStart;
+    if (contentEnd <= contentStart) continue;
+    const templateContent = fileContent.slice(contentStart, contentEnd);
+
+    const attrRegex = /([:@]?[A-Za-z_][\w-]*)\s*=\s*("([^"]*)"|'([^']*)')/g;
+    let attrMatch: RegExpExecArray | null = null;
+    while ((attrMatch = attrRegex.exec(templateContent)) !== null) {
+      const attrName = attrMatch[1] ?? "";
+      if (attrName.startsWith(":") || attrName.startsWith("@") || attrName.startsWith("v-")) continue;
+      const normalizedAttrName = attrName.toLowerCase();
+      if (includeSet.size > 0 && !includeSet.has(normalizedAttrName)) continue;
+      if (excludeSet.has(normalizedAttrName)) continue;
+      const text = (attrMatch[3] ?? attrMatch[4] ?? "").trim();
+      if (!isExtractableText(text, sourceLanguage, sourceLanguageGuard)) continue;
+
+      const fullMatch = attrMatch[0];
+      const fullMatchStartInTemplate = attrMatch.index;
+      const start = contentStart + fullMatchStartInTemplate;
+      const end = start + fullMatch.length;
+      candidates.push({
+        id: `${filePath}:${start}:${end}`,
+        file: filePath,
+        text,
+        start,
+        end,
+        raw: fullMatch,
+        context: "vue-template-attr",
+        attrName
+      });
+    }
+
+    const textRegex = />([^<>{}\n][^<>{}]*)</g;
+    let textMatch: RegExpExecArray | null = null;
+    while ((textMatch = textRegex.exec(templateContent)) !== null) {
+      const rawText = textMatch[1] ?? "";
+      const text = rawText.trim();
+      if (!isExtractableText(text, sourceLanguage, sourceLanguageGuard)) continue;
+      const textOffset = rawText.indexOf(text);
+      if (textOffset < 0) continue;
+      const start = contentStart + textMatch.index + 1 + textOffset;
+      const end = start + text.length;
+      candidates.push({
+        id: `${filePath}:${start}:${end}`,
+        file: filePath,
+        text,
+        start,
+        end,
+        raw: text,
+        context: "vue-template-text"
+      });
+    }
   }
 
   return candidates;

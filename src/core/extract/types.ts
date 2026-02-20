@@ -5,7 +5,8 @@ export interface ExtractCandidate {
   start: number;
   end: number;
   raw: string;
-  context: "js-string" | "vue-script-string";
+  context: "js-string" | "vue-script-string" | "vue-template-attr" | "vue-template-text";
+  attrName?: string;
 }
 
 export interface ExtractSessionConfig {
