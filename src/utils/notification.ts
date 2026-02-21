@@ -75,24 +75,51 @@ export class NotificationManager {
     }
   }
 
-  static showSuccess(message: string, ...items: string[]): Thenable<string | undefined> {
+  static showSuccess(message: string, ...items: string[]): Thenable<string | undefined>;
+  static showSuccess(message: string, options: vscode.MessageOptions, ...items: string[]): Thenable<string | undefined>;
+  static showSuccess<T extends vscode.MessageItem>(message: string, ...items: T[]): Thenable<T | undefined>;
+  static showSuccess<T extends vscode.MessageItem>(message: string, options: vscode.MessageOptions, ...items: T[]): Thenable<T | undefined>;
+  static showSuccess(
+    message: string,
+    optionsOrItem?: vscode.MessageOptions | string | vscode.MessageItem,
+    ...items: Array<string | vscode.MessageItem>
+  ): Thenable<string | vscode.MessageItem | undefined> {
     NotificationManager.setStatusBarMessage(`${message}`);
     this.logToOutput(message, "success");
     this.logDebug(`User-visible success: ${message}`);
-    return vscode.window.showInformationMessage(`${PREFIX}${message}`, ...items);
+    const resolved = this.resolveMessageArgs(optionsOrItem, items);
+    return this.showInformation(`${PREFIX}${message}`, resolved);
   }
 
-  static showError(message: string, ...items: string[]): Thenable<string | undefined> {
+  static showError(message: string, ...items: string[]): Thenable<string | undefined>;
+  static showError(message: string, options: vscode.MessageOptions, ...items: string[]): Thenable<string | undefined>;
+  static showError<T extends vscode.MessageItem>(message: string, ...items: T[]): Thenable<T | undefined>;
+  static showError<T extends vscode.MessageItem>(message: string, options: vscode.MessageOptions, ...items: T[]): Thenable<T | undefined>;
+  static showError(
+    message: string,
+    optionsOrItem?: vscode.MessageOptions | string | vscode.MessageItem,
+    ...items: Array<string | vscode.MessageItem>
+  ): Thenable<string | vscode.MessageItem | undefined> {
     this.ensureOutputChannel().show();
     this.logToOutput(message, "error");
     this.logDebug(`User-visible error: ${message}`);
-    return vscode.window.showErrorMessage(`${PREFIX}${message}`, ...items);
+    const resolved = this.resolveMessageArgs(optionsOrItem, items);
+    return this.showErrorMessage(`${PREFIX}${message}`, resolved);
   }
 
-  static showWarning(message: string, ...items: string[]): Thenable<string | undefined> {
+  static showWarning(message: string, ...items: string[]): Thenable<string | undefined>;
+  static showWarning(message: string, options: vscode.MessageOptions, ...items: string[]): Thenable<string | undefined>;
+  static showWarning<T extends vscode.MessageItem>(message: string, ...items: T[]): Thenable<T | undefined>;
+  static showWarning<T extends vscode.MessageItem>(message: string, options: vscode.MessageOptions, ...items: T[]): Thenable<T | undefined>;
+  static showWarning(
+    message: string,
+    optionsOrItem?: vscode.MessageOptions | string | vscode.MessageItem,
+    ...items: Array<string | vscode.MessageItem>
+  ): Thenable<string | vscode.MessageItem | undefined> {
     this.logToOutput(message, "warn");
     this.logDebug(`User-visible warning: ${message}`);
-    return vscode.window.showWarningMessage(`${PREFIX}${message}`, ...items);
+    const resolved = this.resolveMessageArgs(optionsOrItem, items);
+    return this.showWarningMessage(`${PREFIX}${message}`, resolved);
   }
 
   static logToOutput(message: string, type: LogType = "info"): void {
@@ -145,5 +172,109 @@ export class NotificationManager {
       const fallback = error instanceof Error ? error.message : String(error);
       return `[Unserializable payload: ${fallback}]`;
     }
+  }
+
+  private static isMessageOptions(input: unknown): input is vscode.MessageOptions {
+    if (typeof input !== "object" || input === null) return false;
+    return Object.hasOwn(input, "modal") || Object.hasOwn(input, "detail");
+  }
+
+  private static resolveMessageArgs(
+    optionsOrItem: vscode.MessageOptions | string | vscode.MessageItem | undefined,
+    restItems: Array<string | vscode.MessageItem>
+  ): { options?: vscode.MessageOptions; items: Array<string | vscode.MessageItem> } {
+    if (this.isMessageOptions(optionsOrItem)) {
+      return { options: optionsOrItem, items: restItems };
+    }
+    if (optionsOrItem === undefined) {
+      return { items: [] };
+    }
+    return { items: [optionsOrItem, ...restItems] };
+  }
+
+  private static showInformation(
+    message: string,
+    resolved: { options?: vscode.MessageOptions; items: Array<string | vscode.MessageItem> }
+  ): Thenable<string | vscode.MessageItem | undefined> {
+    const stringItems = this.asStringItems(resolved.items);
+    if (stringItems !== null) {
+      if (resolved.options !== undefined) {
+        return vscode.window.showInformationMessage(message, resolved.options, ...stringItems);
+      }
+      return vscode.window.showInformationMessage(message, ...stringItems);
+    }
+    const messageItems = this.asMessageItems(resolved.items);
+    if (messageItems !== null) {
+      if (resolved.options !== undefined) {
+        return vscode.window.showInformationMessage(message, resolved.options, ...messageItems);
+      }
+      return vscode.window.showInformationMessage(message, ...messageItems);
+    }
+    if (resolved.options !== undefined) {
+      return vscode.window.showInformationMessage(message, resolved.options);
+    }
+    return vscode.window.showInformationMessage(message);
+  }
+
+  private static showErrorMessage(
+    message: string,
+    resolved: { options?: vscode.MessageOptions; items: Array<string | vscode.MessageItem> }
+  ): Thenable<string | vscode.MessageItem | undefined> {
+    const stringItems = this.asStringItems(resolved.items);
+    if (stringItems !== null) {
+      if (resolved.options !== undefined) {
+        return vscode.window.showErrorMessage(message, resolved.options, ...stringItems);
+      }
+      return vscode.window.showErrorMessage(message, ...stringItems);
+    }
+    const messageItems = this.asMessageItems(resolved.items);
+    if (messageItems !== null) {
+      if (resolved.options !== undefined) {
+        return vscode.window.showErrorMessage(message, resolved.options, ...messageItems);
+      }
+      return vscode.window.showErrorMessage(message, ...messageItems);
+    }
+    if (resolved.options !== undefined) {
+      return vscode.window.showErrorMessage(message, resolved.options);
+    }
+    return vscode.window.showErrorMessage(message);
+  }
+
+  private static showWarningMessage(
+    message: string,
+    resolved: { options?: vscode.MessageOptions; items: Array<string | vscode.MessageItem> }
+  ): Thenable<string | vscode.MessageItem | undefined> {
+    const stringItems = this.asStringItems(resolved.items);
+    if (stringItems !== null) {
+      if (resolved.options !== undefined) {
+        return vscode.window.showWarningMessage(message, resolved.options, ...stringItems);
+      }
+      return vscode.window.showWarningMessage(message, ...stringItems);
+    }
+    const messageItems = this.asMessageItems(resolved.items);
+    if (messageItems !== null) {
+      if (resolved.options !== undefined) {
+        return vscode.window.showWarningMessage(message, resolved.options, ...messageItems);
+      }
+      return vscode.window.showWarningMessage(message, ...messageItems);
+    }
+    if (resolved.options !== undefined) {
+      return vscode.window.showWarningMessage(message, resolved.options);
+    }
+    return vscode.window.showWarningMessage(message);
+  }
+
+  private static asStringItems(items: Array<string | vscode.MessageItem>): string[] | null {
+    if (items.every(item => typeof item === "string")) {
+      return items;
+    }
+    return null;
+  }
+
+  private static asMessageItems(items: Array<string | vscode.MessageItem>): vscode.MessageItem[] | null {
+    if (items.every(item => typeof item !== "string")) {
+      return items;
+    }
+    return null;
   }
 }

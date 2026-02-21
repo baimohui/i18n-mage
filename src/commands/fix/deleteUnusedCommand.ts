@@ -27,7 +27,7 @@ export function registerDeleteUnusedCommand() {
         targets = e.data;
       }
       if (targets.length === 0) return;
-      const confirmDelete = await vscode.window.showWarningMessage(
+      const confirmDelete = await NotificationManager.showWarning(
         t("command.deleteUnused.modalTitle"),
         { modal: true, detail: t("command.deleteUnused.modalContent", targets.map(item => unescapeString(item)).join(", ")) },
         { title: t("common.confirm") }

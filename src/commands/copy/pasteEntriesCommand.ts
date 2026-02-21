@@ -72,7 +72,7 @@ export function registerPasteEntriesCommand(context: vscode.ExtensionContext) {
         const existedKeys = entries.map(([key, _]) => key).filter(key => Object.hasOwn(dictionary, key));
         let skipExistedKeys = false;
         if (existedKeys.length > 0) {
-          const confirm = await vscode.window.showWarningMessage(
+          const confirm = await NotificationManager.showWarning(
             t("command.pasteEntries.confirm", existedKeys.length),
             { modal: true },
             t("command.pasteEntries.confirm.overwrite"),

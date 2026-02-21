@@ -5,6 +5,7 @@ import { clearConfigCache, getConfig, setConfig } from "@/utils/config";
 import { toRelativePath } from "@/utils/fs";
 import { t } from "@/utils/i18n";
 import { getLangCode, LANG_CODE_MAPPINGS } from "@/utils/langKey";
+import { NotificationManager } from "@/utils/notification";
 
 type BootstrapRaw = Partial<ExtractBootstrapConfig> & {
   fileExtensionsText?: string;
@@ -495,7 +496,7 @@ function openBootstrapWebview(
       if (msg.type === "save") {
         const raw = (msg.value ?? null) as BootstrapRaw | null;
         if (raw === null) {
-          vscode.window.showErrorMessage("Invalid form value");
+          NotificationManager.showError("Invalid form value");
           return;
         }
         const parsed = sanitizeBootstrapConfig(raw);
@@ -503,22 +504,22 @@ function openBootstrapWebview(
         const hasJsTsFiles = normalizedExts.some(item => [".js", ".ts", ".jsx", ".tsx", ".mjs", ".cjs"].includes(item));
         const hasVueFiles = normalizedExts.includes(".vue");
         if (hasJsTsFiles && parsed.jsTsFunctionName.trim().length === 0) {
-          vscode.window.showErrorMessage(`${t("extractSetup.labelJsTsFunctionName")} ${t("common.validate.required")}`);
+          NotificationManager.showError(`${t("extractSetup.labelJsTsFunctionName")} ${t("common.validate.required")}`);
           return;
         }
         if (hasJsTsFiles && parsed.jsTsImportLines.length === 0) {
-          vscode.window.showErrorMessage(`${t("extractSetup.labelJsTsImportLines")} ${t("common.validate.required")}`);
+          NotificationManager.showError(`${t("extractSetup.labelJsTsImportLines")} ${t("common.validate.required")}`);
           return;
         }
         if (hasVueFiles && parsed.framework === "vue-i18n" && parsed.vueScriptImportLines.length === 0) {
-          vscode.window.showErrorMessage(`${t("extractSetup.labelVueScriptImportLines")} ${t("common.validate.required")}`);
+          NotificationManager.showError(`${t("extractSetup.labelVueScriptImportLines")} ${t("common.validate.required")}`);
           return;
         }
         if (parsed.extractScopePaths.length > 0) {
           for (const scopePath of parsed.extractScopePaths) {
             const absoluteScopePath = path.isAbsolute(scopePath) ? scopePath : path.join(projectPath, scopePath);
             if (!fs.existsSync(absoluteScopePath)) {
-              vscode.window.showErrorMessage(t("extractSetup.errorExtractScopePathInvalid", scopePath));
+              NotificationManager.showError(t("extractSetup.errorExtractScopePathInvalid", scopePath));
               return;
             }
           }
@@ -527,7 +528,7 @@ function openBootstrapWebview(
           for (const ignorePath of parsed.ignoreExtractScopePaths) {
             const absoluteIgnorePath = path.isAbsolute(ignorePath) ? ignorePath : path.join(projectPath, ignorePath);
             if (!fs.existsSync(absoluteIgnorePath)) {
-              vscode.window.showErrorMessage(t("extractSetup.errorIgnoreScopePathInvalid", ignorePath));
+              NotificationManager.showError(t("extractSetup.errorIgnoreScopePathInvalid", ignorePath));
               return;
             }
           }
@@ -541,7 +542,7 @@ function openBootstrapWebview(
         resolve(null);
       } else if (msg.type === "error") {
         const detail = typeof msg.value === "string" ? msg.value : "Invalid form value";
-        vscode.window.showErrorMessage(detail);
+        NotificationManager.showError(detail);
       }
     });
 
