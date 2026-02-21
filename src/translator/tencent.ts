@@ -1,9 +1,18 @@
-import { tmt } from "tencentcloud-sdk-nodejs-tmt";
 import { TranslateParams, TranslateResult } from "../types";
 import { t } from "@/utils/i18n";
 import { batchTranslate } from "./utils/batchTranslate";
 
-const TmtClient = tmt.v20180321.Client;
+type TmtBatchResult = { TargetTextList?: string[] };
+type TmtClient = {
+  TextTranslateBatch(params: { Source: string; Target: string; ProjectId: number; SourceTextList: string[] }): Promise<TmtBatchResult>;
+};
+type TmtClientCtor = new (config: {
+  credential: { secretId: string; secretKey: string };
+  region: string;
+  profile: { httpProfile: { endpoint: string } };
+}) => TmtClient;
+
+let tmtClientCtorPromise: Promise<TmtClientCtor> | null = null;
 
 let tencentSecretId = "";
 let tencentSecretKey = "";
@@ -47,8 +56,16 @@ export default async function translateTo({ source, target, sourceTextList, apiI
   return batchTranslate(source, target, sourceTextList, { maxLen: 2000, batchSize: 5, interval: 1100 }, send);
 }
 
-function send(source: string, target: string, sourceTextList: string[]): Promise<TranslateResult> {
-  return new Promise(resolve => {
+async function loadTmtClientCtor(): Promise<TmtClientCtor> {
+  if (!tmtClientCtorPromise) {
+    tmtClientCtorPromise = import("tencentcloud-sdk-nodejs-tmt").then(mod => mod.tmt.v20180321.Client as TmtClientCtor);
+  }
+  return await tmtClientCtorPromise;
+}
+
+async function send(source: string, target: string, sourceTextList: string[]): Promise<TranslateResult> {
+  try {
+    const TmtClient = await loadTmtClientCtor();
     const params = {
       Source: source,
       Target: target,
@@ -67,13 +84,9 @@ function send(source: string, target: string, sourceTextList: string[]): Promise
         }
       }
     });
-    client.TextTranslateBatch(params).then(
-      data => {
-        resolve({ success: true, data: data.TargetTextList || [] });
-      },
-      (e: unknown) => {
-        resolve({ success: false, message: e instanceof Error ? e.message : (e as string) });
-      }
-    );
-  });
+    const data = await client.TextTranslateBatch(params);
+    return { success: true, data: data.TargetTextList || [] };
+  } catch (e: unknown) {
+    return { success: false, message: e instanceof Error ? e.message : (e as string) };
+  }
 }

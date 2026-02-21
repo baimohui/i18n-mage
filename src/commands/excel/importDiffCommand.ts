@@ -1,5 +1,4 @@
 import * as vscode from "vscode";
-import xlsx from "node-xlsx";
 import LangMage from "@/core/LangMage";
 import { treeInstance } from "@/views/tree";
 import previewFixContent from "@/views/fixWebview";
@@ -10,6 +9,7 @@ import { NotificationManager } from "@/utils/notification";
 import { getConfig } from "@/utils/config";
 import { Cell, ExcelData, I18nUpdatePayload } from "@/types";
 import { getLangIntro, getLangText } from "@/utils/langKey";
+import { loadNodeXlsx } from "@/utils/lazyDeps";
 
 type DiffImportEdit = { key: string; lang: string; value: string };
 
@@ -46,6 +46,7 @@ export function registerImportDiffCommand(context: vscode.ExtensionContext) {
 
     await wrapWithProgress({ title: t("command.importDiff.progress") }, async () => {
       const previewChanges = getConfig<boolean>("general.previewChanges", true);
+      const xlsx = await loadNodeXlsx();
       const excelData = xlsx.parse(fileUri[0].fsPath) as ExcelData;
       const parsed = parseDiffWorkbook(excelData, mage.langDetail.dictionary, mage.detectedLangList);
       if (!parsed.success) {

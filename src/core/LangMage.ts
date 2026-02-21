@@ -130,10 +130,10 @@ class LangMage {
           res = await new FixHandler(this.ctx).run();
           break;
         case "export":
-          res = new ExportHandler(this.ctx).run();
+          res = await new ExportHandler(this.ctx).run();
           break;
         case "import":
-          res = new ImportHandler(this.ctx).run();
+          res = await new ImportHandler(this.ctx).run();
           break;
         case "sort":
           res = await new SortHandler(this.ctx).run();

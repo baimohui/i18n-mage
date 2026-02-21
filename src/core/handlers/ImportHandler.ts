@@ -1,5 +1,4 @@
 import fs from "fs";
-import xlsx from "node-xlsx";
 import { ExcelData, Cell } from "@/types";
 import { LangContextInternal } from "@/types";
 import { getLangIntro, getLangText } from "@/utils/langKey";
@@ -7,6 +6,7 @@ import { getDetectedLangList } from "@/core/tools/contextTools";
 import { t } from "@/utils/i18n";
 import { ExecutionResult, EXECUTION_RESULT_CODE } from "@/types";
 import { NotificationManager } from "@/utils/notification";
+import { loadNodeXlsx } from "@/utils/lazyDeps";
 
 export class ImportHandler {
   constructor(private ctx: LangContextInternal) {}
@@ -15,7 +15,7 @@ export class ImportHandler {
     return getDetectedLangList(this.ctx);
   }
 
-  public run(): ExecutionResult {
+  public async run(): Promise<ExecutionResult> {
     try {
       NotificationManager.logToOutput(t("command.import.pathDetected", this.ctx.importExcelFrom));
       if (!fs.existsSync(this.ctx.importExcelFrom)) {
@@ -26,6 +26,7 @@ export class ImportHandler {
         };
       }
       const importMode = this.ctx.importMode || "key";
+      const xlsx = await loadNodeXlsx();
       const excelData = xlsx.parse(this.ctx.importExcelFrom) as ExcelData;
       for (let sheetIndex = 0; sheetIndex < excelData.length; sheetIndex++) {
         NotificationManager.logToOutput(t("command.import.sheetIndex", sheetIndex + 1));

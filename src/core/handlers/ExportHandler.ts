@@ -1,5 +1,4 @@
 import fs from "fs";
-import xlsx from "node-xlsx";
 import { LangContextInternal } from "@/types";
 import { getDetectedLangList } from "@/core/tools/contextTools";
 import { getLangText } from "@/utils/langKey";
@@ -7,6 +6,7 @@ import { t } from "@/utils/i18n";
 import { SortHandler } from "./SortHandler";
 import { ExecutionResult, EXECUTION_RESULT_CODE } from "@/types";
 import { NotificationManager } from "@/utils/notification";
+import { loadNodeXlsx } from "@/utils/lazyDeps";
 
 export class ExportHandler {
   constructor(private ctx: LangContextInternal) {}
@@ -15,7 +15,7 @@ export class ExportHandler {
     return getDetectedLangList(this.ctx);
   }
 
-  public run(): ExecutionResult {
+  public async run(): Promise<ExecutionResult> {
     try {
       NotificationManager.logToOutput(t("command.export.pathDetected", this.ctx.exportExcelTo));
       if (!this.ctx.exportExcelTo) {
@@ -44,6 +44,7 @@ export class ExportHandler {
           }))
         ]
       };
+      const xlsx = await loadNodeXlsx();
       const buffer = xlsx.build([{ name: "Sheet1", data: tableData, options: {} }], { sheetOptions });
       fs.writeFileSync(this.ctx.exportExcelTo, buffer);
       return { success: true, message: "", code: EXECUTION_RESULT_CODE.Success };

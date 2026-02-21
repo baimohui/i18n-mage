@@ -4,7 +4,6 @@ import * as os from "os";
 import * as path from "path";
 import * as vscode from "vscode";
 import { execFileSync } from "child_process";
-import xlsx from "node-xlsx";
 import LangMage from "@/core/LangMage";
 import { registerDisposable } from "@/utils/dispose";
 import { t } from "@/utils/i18n";
@@ -12,6 +11,7 @@ import { NotificationManager } from "@/utils/notification";
 import { wrapWithProgress } from "@/utils/wrapWithProgress";
 import { getLangText } from "@/utils/langKey";
 import { LangDictionary } from "@/types";
+import { loadNodeXlsx } from "@/utils/lazyDeps";
 
 type Snapshot = {
   dictionary: LangDictionary;
@@ -97,7 +97,7 @@ export function registerExportDiffCommand() {
         const sourceLang = resolveSourceLang(publicCtx.referredLang, allLangs);
         const orderedLangs = orderLangsWithSourceFirst(allLangs, sourceLang);
         const records = buildDiffRecords(currentSnapshot, baselineSnapshot, allLangs);
-        const workbook = buildWorkbook(records, orderedLangs, commit, sourceLang, repoMeta);
+        const workbook = await buildWorkbook(records, orderedLangs, commit, sourceLang, repoMeta);
         fs.writeFileSync(fileUri.fsPath, workbook);
 
         NotificationManager.showSuccess(t("command.exportDiff.success", records.length));
@@ -177,7 +177,7 @@ function buildDiffRecords(current: Snapshot, baseline: Snapshot, langs: string[]
   return records;
 }
 
-function buildWorkbook(records: DiffRecord[], langs: string[], commit: CommitPick, sourceLang: string, repoMeta: RepoMeta) {
+async function buildWorkbook(records: DiffRecord[], langs: string[], commit: CommitPick, sourceLang: string, repoMeta: RepoMeta) {
   const langColumns = buildLangColumns(langs);
 
   const addRows = records.filter(item => item.action === "ADD").map(item => [item.key, ...langs.map(lang => item.newValues[lang] ?? "")]);
@@ -234,6 +234,7 @@ function buildWorkbook(records: DiffRecord[], langs: string[], commit: CommitPic
     "!cols": [{ wch: 40 }, { wch: 40 }, { wch: 40 }, { wch: 30 }, ...Array.from({ length: langs.length * 2 }, () => ({ wch: 36 }))]
   };
 
+  const xlsx = await loadNodeXlsx();
   return xlsx.build(
     [
       { name: "README", data: readmeData, options: {} },
