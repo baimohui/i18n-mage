@@ -12,14 +12,19 @@ type QuoteStyle = "none" | "single" | "double" | "auto";
 type PreviewLanguage = "zh" | "en";
 
 type FormState = {
+  syncToWorkspaceConfig: boolean;
   framework: Defaults["framework"];
   languagePath: string;
   fileExtensionsText: string;
-  translationFunctionNamesText: string;
   vueTemplateFunctionName: string;
   vueScriptFunctionName: string;
-  importStatement: string;
-  extractScopePath: string;
+  jsTsFunctionName: string;
+  vueScriptImportLinesText: string;
+  vueScriptSetupLinesText: string;
+  jsTsImportLinesText: string;
+  jsTsSetupLinesText: string;
+  extractScopePathsText: string;
+  ignoreExtractScopePathsText: string;
   translationFileType: Defaults["translationFileType"];
   targetLanguages: string[];
   referenceLanguage: string;
@@ -85,6 +90,14 @@ function normalizeReferenceLangCode(input: string) {
   if (normalized.startsWith("hi")) return "hi";
   if (normalized.startsWith("vi")) return "vi";
   return input;
+}
+
+function parseExtensions(input: string) {
+  return input
+    .split(",")
+    .map(item => item.trim().toLowerCase())
+    .filter(Boolean)
+    .map(item => (item.startsWith(".") ? item : `.${item}`));
 }
 
 function upperFirst(value: string) {
@@ -345,14 +358,19 @@ function toInitialState(data: ExtractSetupWebviewData): FormState {
   const normalizedQuoteStyleForKey = d.quoteStyleForKey === "auto" ? "double" : d.quoteStyleForKey;
   const normalizedQuoteStyleForValue = d.quoteStyleForValue === "auto" ? "double" : d.quoteStyleForValue;
   return {
+    syncToWorkspaceConfig: data.isFirstSetup,
     framework: d.framework,
     languagePath: d.languagePath,
     fileExtensionsText: d.fileExtensions.join(", "),
-    translationFunctionNamesText: d.translationFunctionNames.join(", "),
     vueTemplateFunctionName: d.vueTemplateFunctionName,
     vueScriptFunctionName: d.vueScriptFunctionName,
-    importStatement: d.importStatement,
-    extractScopePath: d.extractScopePath,
+    jsTsFunctionName: d.jsTsFunctionName,
+    vueScriptImportLinesText: d.vueScriptImportLines.join("\n"),
+    vueScriptSetupLinesText: d.vueScriptSetupLines.join("\n"),
+    jsTsImportLinesText: d.jsTsImportLines.join("\n"),
+    jsTsSetupLinesText: d.jsTsSetupLines.join("\n"),
+    extractScopePathsText: d.extractScopePaths.join(", "),
+    ignoreExtractScopePathsText: d.ignoreExtractScopePaths.join(", "),
     translationFileType: d.translationFileType,
     targetLanguages: d.targetLanguages,
     referenceLanguage: d.referenceLanguage,
@@ -414,7 +432,14 @@ function FieldSection(props: {
   availableLanguages: Array<{ code: string; label: string }>;
 }) {
   const { form, update, toggleTargetLanguage, t, availableLanguages } = props;
-  const showVueFunctions = form.framework === "vue-i18n";
+  const extensions = useMemo(() => parseExtensions(form.fileExtensionsText), [form.fileExtensionsText]);
+  const hasVueFiles = extensions.includes(".vue");
+  const hasJsTsFiles = extensions.some(item => [".js", ".ts", ".jsx", ".tsx", ".mjs", ".cjs"].includes(item));
+  const showVueFunctions = hasVueFiles && form.framework === "vue-i18n";
+  const jsImportPlaceholder = "import { useI18n } from '@/i18n';";
+  const jsSetupPlaceholder = "const { t } = useI18n();";
+  const vueImportPlaceholder = "import { useI18n } from 'vue-i18n';";
+  const vueSetupPlaceholder = "const { t } = useI18n();";
   const [previewLanguage, setPreviewLanguage] = useState<PreviewLanguage>("zh");
   const previewText = useMemo(() => buildWriteRulePreview(form, previewLanguage), [form, previewLanguage]);
   const ruleBadges = useMemo(() => getRuleBadges(form, t), [form, t]);
@@ -438,11 +463,26 @@ function FieldSection(props: {
           <input value={form.languagePath} onInput={e => update("languagePath", (e.target as HTMLInputElement).value)} />
           <label>{t("extractSetup.labelFileExtensions")}</label>
           <input value={form.fileExtensionsText} onInput={e => update("fileExtensionsText", (e.target as HTMLInputElement).value)} />
-          <label>{t("extractSetup.labelFunctionNames")}</label>
-          <input
-            value={form.translationFunctionNamesText}
-            onInput={e => update("translationFunctionNamesText", (e.target as HTMLInputElement).value)}
-          />
+          {hasJsTsFiles ? (
+            <>
+              <label>{t("extractSetup.labelJsTsFunctionName")}</label>
+              <input value={form.jsTsFunctionName} onInput={e => update("jsTsFunctionName", (e.target as HTMLInputElement).value)} />
+              <label>{t("extractSetup.labelJsTsImportLines")}</label>
+              <textarea
+                rows={3}
+                value={form.jsTsImportLinesText}
+                placeholder={jsImportPlaceholder}
+                onInput={e => update("jsTsImportLinesText", (e.target as HTMLTextAreaElement).value)}
+              />
+              <label>{t("extractSetup.labelJsTsSetupLines")}</label>
+              <textarea
+                rows={3}
+                value={form.jsTsSetupLinesText}
+                placeholder={jsSetupPlaceholder}
+                onInput={e => update("jsTsSetupLinesText", (e.target as HTMLTextAreaElement).value)}
+              />
+            </>
+          ) : null}
           {showVueFunctions ? (
             <>
               <label>{t("extractSetup.labelVueTemplateFn")}</label>
@@ -455,16 +495,33 @@ function FieldSection(props: {
                 value={form.vueScriptFunctionName}
                 onInput={e => update("vueScriptFunctionName", (e.target as HTMLInputElement).value)}
               />
+              <label>{t("extractSetup.labelVueScriptImportLines")}</label>
+              <textarea
+                rows={3}
+                value={form.vueScriptImportLinesText}
+                placeholder={vueImportPlaceholder}
+                onInput={e => update("vueScriptImportLinesText", (e.target as HTMLTextAreaElement).value)}
+              />
+              <label>{t("extractSetup.labelVueScriptSetupLines")}</label>
+              <textarea
+                rows={3}
+                value={form.vueScriptSetupLinesText}
+                placeholder={vueSetupPlaceholder}
+                onInput={e => update("vueScriptSetupLinesText", (e.target as HTMLTextAreaElement).value)}
+              />
             </>
           ) : null}
-          <label>{t("extractSetup.labelImportStatement")}</label>
-          <input value={form.importStatement} onInput={e => update("importStatement", (e.target as HTMLInputElement).value)} />
           <label>{t("extractSetup.labelTargetLanguages")}</label>
           <TargetLanguagePicker selected={form.targetLanguages} options={availableLanguages} onToggle={toggleTargetLanguage} t={t} />
           <label>{t("extractSetup.labelReferenceLanguage")}</label>
           <input value={form.referenceLanguage} onInput={e => update("referenceLanguage", (e.target as HTMLInputElement).value)} />
           <label>{t("extractSetup.labelExtractScopePath")}</label>
-          <input value={form.extractScopePath} onInput={e => update("extractScopePath", (e.target as HTMLInputElement).value)} />
+          <input value={form.extractScopePathsText} onInput={e => update("extractScopePathsText", (e.target as HTMLInputElement).value)} />
+          <label>{t("extractSetup.labelIgnoreExtractScopePaths")}</label>
+          <input
+            value={form.ignoreExtractScopePathsText}
+            onInput={e => update("ignoreExtractScopePathsText", (e.target as HTMLInputElement).value)}
+          />
         </div>
       </section>
 
@@ -626,13 +683,40 @@ function DetectedProjectSection(props: {
   t: (key: string, ...args: unknown[]) => string;
 }) {
   const { form, update, t } = props;
-  const showVueFunctions = form.framework === "vue-i18n";
+  const extensions = useMemo(() => parseExtensions(form.fileExtensionsText), [form.fileExtensionsText]);
+  const hasVueFiles = extensions.includes(".vue");
+  const hasJsTsFiles = extensions.some(item => [".js", ".ts", ".jsx", ".tsx", ".mjs", ".cjs"].includes(item));
+  const showVueFunctions = hasVueFiles && form.framework === "vue-i18n";
+  const jsImportPlaceholder = "import { useI18n } from '@/i18n';";
+  const jsSetupPlaceholder = "const { t } = useI18n();";
+  const vueImportPlaceholder = "import { useI18n } from 'vue-i18n';";
+  const vueSetupPlaceholder = "const { t } = useI18n();";
   return (
     <section className="entry-card">
       <h3>{t("extractSetup.sectionProject")}</h3>
       <div className="grid">
         <label>{t("extractSetup.labelFileExtensions")}</label>
         <input value={form.fileExtensionsText} onInput={e => update("fileExtensionsText", (e.target as HTMLInputElement).value)} />
+        {hasJsTsFiles ? (
+          <>
+            <label>{t("extractSetup.labelJsTsFunctionName")}</label>
+            <input value={form.jsTsFunctionName} onInput={e => update("jsTsFunctionName", (e.target as HTMLInputElement).value)} />
+            <label>{t("extractSetup.labelJsTsImportLines")}</label>
+            <textarea
+              rows={3}
+              value={form.jsTsImportLinesText}
+              placeholder={jsImportPlaceholder}
+              onInput={e => update("jsTsImportLinesText", (e.target as HTMLTextAreaElement).value)}
+            />
+            <label>{t("extractSetup.labelJsTsSetupLines")}</label>
+            <textarea
+              rows={3}
+              value={form.jsTsSetupLinesText}
+              placeholder={jsSetupPlaceholder}
+              onInput={e => update("jsTsSetupLinesText", (e.target as HTMLTextAreaElement).value)}
+            />
+          </>
+        ) : null}
         {showVueFunctions ? (
           <>
             <label>{t("extractSetup.labelVueTemplateFn")}</label>
@@ -645,12 +729,29 @@ function DetectedProjectSection(props: {
               value={form.vueScriptFunctionName}
               onInput={e => update("vueScriptFunctionName", (e.target as HTMLInputElement).value)}
             />
+            <label>{t("extractSetup.labelVueScriptImportLines")}</label>
+            <textarea
+              rows={3}
+              value={form.vueScriptImportLinesText}
+              placeholder={vueImportPlaceholder}
+              onInput={e => update("vueScriptImportLinesText", (e.target as HTMLTextAreaElement).value)}
+            />
+            <label>{t("extractSetup.labelVueScriptSetupLines")}</label>
+            <textarea
+              rows={3}
+              value={form.vueScriptSetupLinesText}
+              placeholder={vueSetupPlaceholder}
+              onInput={e => update("vueScriptSetupLinesText", (e.target as HTMLTextAreaElement).value)}
+            />
           </>
         ) : null}
-        <label>{t("extractSetup.labelImportStatement")}</label>
-        <input value={form.importStatement} onInput={e => update("importStatement", (e.target as HTMLInputElement).value)} />
         <label>{t("extractSetup.labelExtractScopePath")}</label>
-        <input value={form.extractScopePath} onInput={e => update("extractScopePath", (e.target as HTMLInputElement).value)} />
+        <input value={form.extractScopePathsText} onInput={e => update("extractScopePathsText", (e.target as HTMLInputElement).value)} />
+        <label>{t("extractSetup.labelIgnoreExtractScopePaths")}</label>
+        <input
+          value={form.ignoreExtractScopePathsText}
+          onInput={e => update("ignoreExtractScopePathsText", (e.target as HTMLInputElement).value)}
+        />
       </div>
     </section>
   );
@@ -666,7 +767,10 @@ export function App({ data }: Props) {
     const code = normalizeReferenceLangCode(form.referenceLanguage);
     return SOURCE_LANGUAGE_FILTER_CODES.has(code);
   }, [form.referenceLanguage]);
-  const showVueTemplateAttrsConfig = form.framework === "vue-i18n";
+  const parsedExtensions = useMemo(() => parseExtensions(form.fileExtensionsText), [form.fileExtensionsText]);
+  const hasVueFiles = parsedExtensions.includes(".vue");
+  const hasJsTsFiles = parsedExtensions.some(item => [".js", ".ts", ".jsx", ".tsx", ".mjs", ".cjs"].includes(item));
+  const showVueTemplateAttrsConfig = form.framework === "vue-i18n" && hasVueFiles;
 
   const update = <K extends keyof FormState>(key: K, value: FormState[K]) => {
     setForm(prev => ({ ...prev, [key]: value }));
@@ -689,8 +793,16 @@ export function App({ data }: Props) {
       setError(t("extractSetup.errorTargetLanguagesRequired"));
       return;
     }
-    if (form.importStatement.trim().length === 0) {
-      setError(t("extractSetup.errorImportStatementRequired"));
+    if (hasJsTsFiles && form.jsTsFunctionName.trim().length === 0) {
+      setError(`${t("extractSetup.labelJsTsFunctionName")} ${t("common.validate.required")}`);
+      return;
+    }
+    if (hasJsTsFiles && form.jsTsImportLinesText.trim().length === 0) {
+      setError(`${t("extractSetup.labelJsTsImportLines")} ${t("common.validate.required")}`);
+      return;
+    }
+    if (hasVueFiles && form.framework === "vue-i18n" && form.vueScriptImportLinesText.trim().length === 0) {
+      setError(`${t("extractSetup.labelVueScriptImportLines")} ${t("common.validate.required")}`);
       return;
     }
     setError("");
@@ -727,7 +839,7 @@ export function App({ data }: Props) {
       <header className="page-head">
         <h1>{t("extractSetup.title")}</h1>
       </header>
-      <div className="hint">{t("extractSetup.hintReusable")}</div>
+      {/* <div className="hint">{t("extractSetup.hintReusable")}</div> */}
       <div className="hint">{data.hasDetectedLangs ? t("extractSetup.hintDetected") : t("extractSetup.hintUndetected")}</div>
 
       <main className="content">
@@ -782,6 +894,14 @@ export function App({ data }: Props) {
       </main>
 
       <footer className="actions">
+        <label className="sync-option">
+          <input
+            type="checkbox"
+            checked={form.syncToWorkspaceConfig}
+            onChange={e => update("syncToWorkspaceConfig", (e.target as HTMLInputElement).checked)}
+          />
+          <span>{t("extractSetup.labelSyncToWorkspaceConfig")}</span>
+        </label>
         <button className="btn-secondary" onClick={onCancel}>
           {t("extractSetup.cancel")}
         </button>

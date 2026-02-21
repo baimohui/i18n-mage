@@ -1,6 +1,17 @@
 import fs from "fs";
 import { FixedTEntry } from "@/types";
 import { toAbsolutePath } from "@/utils/fs";
+import path from "path";
+
+interface InjectionStrategy {
+  importLines: string[];
+  setupLines: string[];
+}
+
+interface ApplyCodePatchOptions {
+  vueScript?: InjectionStrategy;
+  jsTs?: InjectionStrategy;
+}
 
 function parseRange(pos: string) {
   const parts = pos
@@ -17,8 +28,7 @@ function parseRange(pos: string) {
   return null;
 }
 
-export async function applyCodePatches(patchedEntryIdInfo: Record<string, FixedTEntry[]>, options: { importStatement?: string } = {}) {
-  const importStatement = options.importStatement?.trim() ?? "";
+export async function applyCodePatches(patchedEntryIdInfo: Record<string, FixedTEntry[]>, options: ApplyCodePatchOptions = {}) {
   for (const [filePath, patchList] of Object.entries(patchedEntryIdInfo)) {
     if (patchList.length === 0) continue;
     const absolutePath = toAbsolutePath(filePath);
@@ -40,22 +50,65 @@ export async function applyCodePatches(patchedEntryIdInfo: Record<string, FixedT
     }
 
     if (output !== original) {
-      if (importStatement.length > 0) {
-        output = ensureImportStatement(output, filePath, importStatement);
+      const ext = path.extname(filePath).toLowerCase();
+      if (ext === ".vue") {
+        output = ensureVueInjection(output, options.vueScript);
+      } else if ([".js", ".ts", ".jsx", ".tsx", ".mjs", ".cjs"].includes(ext)) {
+        output = ensureScriptInjection(output, options.jsTs);
       }
       await fs.promises.writeFile(absolutePath, output);
     }
   }
 }
 
-function ensureImportStatement(content: string, filePath: string, importStatement: string) {
-  if (content.includes(importStatement)) return content;
-  const normalized = importStatement.endsWith(";") ? importStatement : `${importStatement};`;
-  if (filePath.toLowerCase().endsWith(".vue")) {
-    const scriptMatch = content.match(/<script\b[^>]*>/i);
-    if (!scriptMatch || scriptMatch.index === undefined) return content;
-    const insertPos = scriptMatch.index + scriptMatch[0].length;
-    return `${content.slice(0, insertPos)}\n${normalized}\n${content.slice(insertPos)}`;
+function normalizeLines(lines: string[]) {
+  return lines
+    .map(item => item.trim())
+    .filter(Boolean)
+    .map(item => (item.endsWith(";") ? item : `${item};`));
+}
+
+function ensureScriptInjection(content: string, strategy?: InjectionStrategy) {
+  if (!strategy) return content;
+  const imports = normalizeLines(strategy.importLines);
+  const setups = normalizeLines(strategy.setupLines);
+  if (imports.length === 0 && setups.length === 0) return content;
+
+  const chunks: string[] = [];
+  imports.forEach(line => {
+    if (!content.includes(line)) chunks.push(line);
+  });
+  setups.forEach(line => {
+    if (!content.includes(line)) chunks.push(line);
+  });
+
+  if (chunks.length === 0) return content;
+  return `${chunks.join("\n")}\n${content}`;
+}
+
+function ensureVueInjection(content: string, strategy?: InjectionStrategy) {
+  if (!strategy) return content;
+  const imports = normalizeLines(strategy.importLines);
+  const setups = normalizeLines(strategy.setupLines);
+  if (imports.length === 0 && setups.length === 0) return content;
+
+  const scriptMatch = content.match(/<script\b[^>]*>/i);
+  if (!scriptMatch || scriptMatch.index === undefined) {
+    const injectedBody = [...imports, ...setups].join("\n");
+    return `<script setup>\n${injectedBody}\n</script>\n${content}`;
   }
-  return `${normalized}\n${content}`;
+  const insertPos = scriptMatch.index + scriptMatch[0].length;
+  const existingScriptEnd = content.indexOf("</script>", insertPos);
+  const scriptBody = existingScriptEnd >= 0 ? content.slice(insertPos, existingScriptEnd) : content.slice(insertPos);
+
+  const chunks: string[] = [];
+  imports.forEach(line => {
+    if (!scriptBody.includes(line)) chunks.push(line);
+  });
+  setups.forEach(line => {
+    if (!scriptBody.includes(line)) chunks.push(line);
+  });
+  if (chunks.length === 0) return content;
+
+  return `${content.slice(0, insertPos)}\n${chunks.join("\n")}\n${content.slice(insertPos)}`;
 }

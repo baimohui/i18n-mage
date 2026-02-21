@@ -1,31 +1,38 @@
-﻿import * as vscode from "vscode";
+import * as vscode from "vscode";
 import fs from "fs";
 import path from "path";
-import { createHash } from "crypto";
 import { clearConfigCache, getConfig, setConfig } from "@/utils/config";
 import { toRelativePath } from "@/utils/fs";
 import { t } from "@/utils/i18n";
 import { getLangCode, LANG_CODE_MAPPINGS } from "@/utils/langKey";
 
-const BOOTSTRAP_KEY_PREFIX = "extract.bootstrapConfig.v2";
-
 type BootstrapRaw = Partial<ExtractBootstrapConfig> & {
   fileExtensionsText?: string;
-  translationFunctionNamesText?: string;
   stopWordsText?: string;
   stopPrefixesText?: string;
   targetLanguagesText?: string;
   vueTemplateIncludeAttrsText?: string;
   vueTemplateExcludeAttrsText?: string;
+  extractScopePathsText?: string;
+  ignoreExtractScopePathsText?: string;
+  vueScriptImportLinesText?: string;
+  vueScriptSetupLinesText?: string;
+  jsTsImportLinesText?: string;
+  jsTsSetupLinesText?: string;
 };
 
 export interface ExtractBootstrapConfig {
+  syncToWorkspaceConfig?: boolean;
   framework: string;
   languagePath: string;
   fileExtensions: string[];
-  translationFunctionNames: string[];
   vueTemplateFunctionName: string;
   vueScriptFunctionName: string;
+  jsTsFunctionName: string;
+  vueScriptImportLines: string[];
+  vueScriptSetupLines: string[];
+  jsTsImportLines: string[];
+  jsTsSetupLines: string[];
   keyPrefix: "none" | "auto-path";
   languageStructure: "flat" | "nested";
   sortRule: "none" | "byKey" | "byPosition";
@@ -43,8 +50,8 @@ export interface ExtractBootstrapConfig {
   onlyExtractSourceLanguageText: boolean;
   referenceLanguage: string;
   translationFileType: "json" | "json5" | "js" | "ts" | "yaml" | "yml";
-  importStatement: string;
-  extractScopePath: string;
+  extractScopePaths: string[];
+  ignoreExtractScopePaths: string[];
   targetLanguages: string[];
   vueTemplateIncludeAttrs: string[];
   vueTemplateExcludeAttrs: string[];
@@ -61,9 +68,13 @@ function defaultBootstrapConfig(): ExtractBootstrapConfig {
     framework: "none",
     languagePath: "src/i18n",
     fileExtensions: [".js", ".ts", ".jsx", ".tsx", ".vue"],
-    translationFunctionNames: ["t"],
     vueTemplateFunctionName: "t",
     vueScriptFunctionName: "t",
+    jsTsFunctionName: "t",
+    vueScriptImportLines: [],
+    vueScriptSetupLines: [],
+    jsTsImportLines: [],
+    jsTsSetupLines: [],
     keyPrefix: "auto-path",
     languageStructure: "flat",
     sortRule: "byKey",
@@ -81,8 +92,8 @@ function defaultBootstrapConfig(): ExtractBootstrapConfig {
     onlyExtractSourceLanguageText: true,
     referenceLanguage: vscode.env.language || "en",
     translationFileType: "json",
-    importStatement: 'import { t } from "@/i18n";',
-    extractScopePath: "",
+    extractScopePaths: [],
+    ignoreExtractScopePaths: [],
     targetLanguages: getDefaultTargetLanguages(),
     vueTemplateIncludeAttrs: [],
     vueTemplateExcludeAttrs: ["key", "ref", "prop", "value", "class", "style", "id", "for", "type", "name", "src", "href", "to"]
@@ -97,6 +108,22 @@ function parseCsvText(input: string | undefined) {
     .filter(Boolean);
 }
 
+function parseScopePathsFromText(input: string | undefined) {
+  if (typeof input !== "string") return [];
+  return input
+    .split(",")
+    .map(item => item.trim())
+    .filter(Boolean);
+}
+
+function parseLinesText(input: string | undefined) {
+  if (typeof input !== "string") return [];
+  return input
+    .split(/\r?\n/)
+    .map(item => item.trim())
+    .filter(Boolean);
+}
+
 function sanitizeBootstrapConfig(raw: BootstrapRaw | undefined): ExtractBootstrapConfig {
   const defaults = defaultBootstrapConfig();
   if (!raw) return defaults;
@@ -105,25 +132,35 @@ function sanitizeBootstrapConfig(raw: BootstrapRaw | undefined): ExtractBootstra
     ? raw.fileExtensions
     : parseCsvText(raw.fileExtensionsText).map(ext => (ext.startsWith(".") ? ext : `.${ext}`));
 
-  const translationFunctionNames = Array.isArray(raw.translationFunctionNames)
-    ? raw.translationFunctionNames
-    : parseCsvText(raw.translationFunctionNamesText);
-
   const stopWords = Array.isArray(raw.stopWords) ? raw.stopWords : parseCsvText(raw.stopWordsText);
   const stopPrefixes = Array.isArray(raw.stopPrefixes) ? raw.stopPrefixes : parseCsvText(raw.stopPrefixesText);
   const targetLanguages = Array.isArray(raw.targetLanguages) ? raw.targetLanguages : parseCsvText(raw.targetLanguagesText);
+  const ignoreExtractScopePaths = Array.isArray(raw.ignoreExtractScopePaths)
+    ? raw.ignoreExtractScopePaths
+    : parseCsvText(raw.ignoreExtractScopePathsText);
+  const extractScopePaths = Array.isArray(raw.extractScopePaths)
+    ? raw.extractScopePaths
+    : parseScopePathsFromText(raw.extractScopePathsText);
   const vueTemplateIncludeAttrs = Array.isArray(raw.vueTemplateIncludeAttrs)
     ? raw.vueTemplateIncludeAttrs
     : parseCsvText(raw.vueTemplateIncludeAttrsText);
   const vueTemplateExcludeAttrs = Array.isArray(raw.vueTemplateExcludeAttrs)
     ? raw.vueTemplateExcludeAttrs
     : parseCsvText(raw.vueTemplateExcludeAttrsText);
+  const vueScriptImportLines = Array.isArray(raw.vueScriptImportLines)
+    ? raw.vueScriptImportLines
+    : parseLinesText(raw.vueScriptImportLinesText);
+  const vueScriptSetupLines = Array.isArray(raw.vueScriptSetupLines)
+    ? raw.vueScriptSetupLines
+    : parseLinesText(raw.vueScriptSetupLinesText);
+  const jsTsImportLines = Array.isArray(raw.jsTsImportLines) ? raw.jsTsImportLines : parseLinesText(raw.jsTsImportLinesText);
+  const jsTsSetupLines = Array.isArray(raw.jsTsSetupLines) ? raw.jsTsSetupLines : parseLinesText(raw.jsTsSetupLinesText);
 
   const config: ExtractBootstrapConfig = {
+    syncToWorkspaceConfig: typeof raw.syncToWorkspaceConfig === "boolean" ? raw.syncToWorkspaceConfig : false,
     framework: typeof raw.framework === "string" && raw.framework.trim() ? raw.framework.trim() : defaults.framework,
     languagePath: typeof raw.languagePath === "string" && raw.languagePath.trim() ? raw.languagePath.trim() : defaults.languagePath,
     fileExtensions: fileExtensions.length > 0 ? fileExtensions : defaults.fileExtensions,
-    translationFunctionNames: translationFunctionNames.length > 0 ? translationFunctionNames : defaults.translationFunctionNames,
     vueTemplateFunctionName:
       typeof raw.vueTemplateFunctionName === "string" && raw.vueTemplateFunctionName.trim()
         ? raw.vueTemplateFunctionName.trim()
@@ -132,6 +169,12 @@ function sanitizeBootstrapConfig(raw: BootstrapRaw | undefined): ExtractBootstra
       typeof raw.vueScriptFunctionName === "string" && raw.vueScriptFunctionName.trim()
         ? raw.vueScriptFunctionName.trim()
         : defaults.vueScriptFunctionName,
+    jsTsFunctionName:
+      typeof raw.jsTsFunctionName === "string" && raw.jsTsFunctionName.trim() ? raw.jsTsFunctionName.trim() : defaults.jsTsFunctionName,
+    vueScriptImportLines: vueScriptImportLines.length > 0 ? vueScriptImportLines : defaults.vueScriptImportLines,
+    vueScriptSetupLines: vueScriptSetupLines.length > 0 ? vueScriptSetupLines : defaults.vueScriptSetupLines,
+    jsTsImportLines: jsTsImportLines.length > 0 ? jsTsImportLines : defaults.jsTsImportLines,
+    jsTsSetupLines: jsTsSetupLines.length > 0 ? jsTsSetupLines : defaults.jsTsSetupLines,
     keyPrefix: raw.keyPrefix === "none" || raw.keyPrefix === "auto-path" ? raw.keyPrefix : defaults.keyPrefix,
     languageStructure:
       raw.languageStructure === "nested" || raw.languageStructure === "flat" ? raw.languageStructure : defaults.languageStructure,
@@ -186,9 +229,8 @@ function sanitizeBootstrapConfig(raw: BootstrapRaw | undefined): ExtractBootstra
       raw.translationFileType === "yml"
         ? raw.translationFileType
         : defaults.translationFileType,
-    importStatement:
-      typeof raw.importStatement === "string" && raw.importStatement.trim() ? raw.importStatement.trim() : defaults.importStatement,
-    extractScopePath: typeof raw.extractScopePath === "string" ? raw.extractScopePath.trim() : defaults.extractScopePath,
+    extractScopePaths,
+    ignoreExtractScopePaths: ignoreExtractScopePaths.map(item => item.trim()).filter(Boolean),
     targetLanguages: targetLanguages.length > 0 ? targetLanguages : defaults.targetLanguages,
     vueTemplateIncludeAttrs: vueTemplateIncludeAttrs.map(item => item.toLowerCase()),
     vueTemplateExcludeAttrs:
@@ -206,73 +248,60 @@ function sanitizeBootstrapConfig(raw: BootstrapRaw | undefined): ExtractBootstra
   return config;
 }
 
-function getProjectBootstrapKey(projectPath: string) {
-  const normalized = process.platform === "win32" ? path.normalize(projectPath).toLowerCase() : path.normalize(projectPath);
-  const digest = createHash("sha1").update(normalized).digest("hex");
-  return `${BOOTSTRAP_KEY_PREFIX}.${digest}`;
-}
-
-export function getStoredBootstrapConfig(context: vscode.ExtensionContext, projectPath: string) {
-  const key = getProjectBootstrapKey(projectPath);
-  return context.globalState.get<ExtractBootstrapConfig>(key);
-}
-
-async function setStoredBootstrapConfig(context: vscode.ExtensionContext, projectPath: string, config: ExtractBootstrapConfig) {
-  const key = getProjectBootstrapKey(projectPath);
-  await context.globalState.update(key, config);
-}
-
 export async function ensureBootstrapConfig(params: {
   context: vscode.ExtensionContext;
   projectPath: string;
   hasDetectedLangs: boolean;
   initialExtractScopePath?: string;
 }): Promise<ExtractBootstrapConfig | null> {
-  const stored = getStoredBootstrapConfig(params.context, params.projectPath);
+  const seenKey = getSetupSeenKey(params.projectPath);
+  const isFirstSetup = params.context.workspaceState.get<boolean>(seenKey) !== true;
+  if (isFirstSetup) {
+    await params.context.workspaceState.update(seenKey, true);
+  }
   const scopedDefaults = (defaults: ExtractBootstrapConfig) =>
     sanitizeBootstrapConfig({
       ...defaults,
-      extractScopePath:
+      extractScopePaths:
         typeof params.initialExtractScopePath === "string" && params.initialExtractScopePath.trim().length > 0
-          ? params.initialExtractScopePath.trim()
-          : defaults.extractScopePath
+          ? [params.initialExtractScopePath.trim()]
+          : defaults.extractScopePaths
     });
 
   if (params.hasDetectedLangs) {
-    const defaults = scopedDefaults(getDetectedProjectDefaults(params.context, params.projectPath));
-    const raw = await openBootstrapWebview(params.context, defaults, true, params.projectPath);
+    const defaults = scopedDefaults(getDetectedProjectDefaults(params.projectPath));
+    const raw = await openBootstrapWebview(params.context, defaults, true, params.projectPath, isFirstSetup);
     if (raw === null) return null;
     const config = sanitizeBootstrapConfig(raw);
-    await applyDetectedConfigs(config);
-    await setStoredBootstrapConfig(params.context, params.projectPath, config);
+    if (config.syncToWorkspaceConfig === true) {
+      await applyDetectedConfigs(config);
+    }
     return config;
   }
 
-  const defaults = scopedDefaults(stored ? sanitizeBootstrapConfig(stored) : defaultBootstrapConfig());
-  const raw = await openBootstrapWebview(params.context, defaults, false, params.projectPath);
+  const defaults = scopedDefaults(getUndetectedProjectDefaults(params.projectPath));
+  const raw = await openBootstrapWebview(params.context, defaults, false, params.projectPath, isFirstSetup);
   if (raw === null) return null;
   const config = sanitizeBootstrapConfig(raw);
 
-  await applyKnownConfigs(config, params.projectPath);
+  if (config.syncToWorkspaceConfig === true) {
+    await applyKnownConfigs(config, params.projectPath);
+  }
   await ensureTranslationFiles(config, params.projectPath);
-  await setStoredBootstrapConfig(params.context, params.projectPath, config);
   return config;
 }
 
-function getDetectedProjectDefaults(context: vscode.ExtensionContext, projectPath: string): ExtractBootstrapConfig {
-  const inferred = inferBootstrapConfigFromCurrent(projectPath);
-  const stored = getStoredBootstrapConfig(context, projectPath);
-  if (!stored) return inferred;
-  return sanitizeBootstrapConfig({
-    ...inferred,
-    importStatement: stored.importStatement || inferred.importStatement,
-    extractScopePath: stored.extractScopePath || inferred.extractScopePath,
-    onlyExtractSourceLanguageText: stored.onlyExtractSourceLanguageText ?? inferred.onlyExtractSourceLanguageText,
-    vueTemplateFunctionName: stored.vueTemplateFunctionName || inferred.vueTemplateFunctionName,
-    vueScriptFunctionName: stored.vueScriptFunctionName || inferred.vueScriptFunctionName,
-    vueTemplateIncludeAttrs: stored.vueTemplateIncludeAttrs ?? inferred.vueTemplateIncludeAttrs,
-    vueTemplateExcludeAttrs: stored.vueTemplateExcludeAttrs ?? inferred.vueTemplateExcludeAttrs
-  });
+function getDetectedProjectDefaults(projectPath: string): ExtractBootstrapConfig {
+  return inferBootstrapConfigFromCurrent(projectPath);
+}
+
+function getUndetectedProjectDefaults(projectPath: string): ExtractBootstrapConfig {
+  return inferBootstrapConfigFromCurrent(projectPath);
+}
+
+function getSetupSeenKey(projectPath: string) {
+  const normalized = process.platform === "win32" ? path.normalize(projectPath).toLowerCase() : path.normalize(projectPath);
+  return `extract.setupSeen.${normalized}`;
 }
 
 function inferBootstrapConfigFromCurrent(projectPath: string): ExtractBootstrapConfig {
@@ -284,8 +313,19 @@ function inferBootstrapConfigFromCurrent(projectPath: string): ExtractBootstrapC
     ...defaults,
     framework: getConfig<string>("i18nFeatures.framework", defaults.framework),
     languagePath: toRelativePath(languagePathAbs),
-    fileExtensions: getConfig<string[]>("analysis.fileExtensions", defaults.fileExtensions),
-    translationFunctionNames: getConfig<string[]>("i18nFeatures.translationFunctionNames", defaults.translationFunctionNames),
+    fileExtensions: getConfig<string[]>("extract.fileExtensions", defaults.fileExtensions),
+    vueTemplateFunctionName: getConfig<string>("extract.vueTemplateFunctionName", defaults.vueTemplateFunctionName),
+    vueScriptFunctionName: getConfig<string>("extract.vueScriptFunctionName", defaults.vueScriptFunctionName),
+    jsTsFunctionName: getConfig<string>("extract.jsTsFunctionName", defaults.jsTsFunctionName),
+    vueScriptImportLines: getConfig<string[]>("extract.vueScriptImportLines", defaults.vueScriptImportLines),
+    vueScriptSetupLines: getConfig<string[]>("extract.vueScriptSetupLines", defaults.vueScriptSetupLines),
+    jsTsImportLines: getConfig<string[]>("extract.jsTsImportLines", defaults.jsTsImportLines),
+    jsTsSetupLines: getConfig<string[]>("extract.jsTsSetupLines", defaults.jsTsSetupLines),
+    onlyExtractSourceLanguageText: getConfig<boolean>("extract.onlyExtractSourceLanguageText", defaults.onlyExtractSourceLanguageText),
+    vueTemplateIncludeAttrs: getConfig<string[]>("extract.vueTemplateIncludeAttrs", defaults.vueTemplateIncludeAttrs),
+    vueTemplateExcludeAttrs: getConfig<string[]>("extract.vueTemplateExcludeAttrs", defaults.vueTemplateExcludeAttrs),
+    extractScopePaths: getConfig<string[]>("workspace.extractScopeWhitelist", defaults.extractScopePaths),
+    ignoreExtractScopePaths: getConfig<string[]>("workspace.extractScopeBlacklist", defaults.ignoreExtractScopePaths),
     keyPrefix: getConfig<"none" | "auto-path">("writeRules.keyPrefix", defaults.keyPrefix),
     languageStructure: getConfig<"flat" | "nested">("writeRules.languageStructure", defaults.languageStructure),
     sortRule: getConfig<"none" | "byKey" | "byPosition">("writeRules.sortRule", defaults.sortRule),
@@ -301,7 +341,7 @@ function inferBootstrapConfigFromCurrent(projectPath: string): ExtractBootstrapC
     stopPrefixes: getConfig<string[]>("writeRules.stopPrefixes", defaults.stopPrefixes),
     ignorePossibleVariables: getConfig<boolean>("translationServices.ignorePossibleVariables", defaults.ignorePossibleVariables),
     referenceLanguage: getConfig<string>("translationServices.referenceLanguage", defaults.referenceLanguage),
-    extractScopePath: defaults.extractScopePath
+    targetLanguages: defaults.targetLanguages
   });
 }
 
@@ -310,13 +350,21 @@ async function applyKnownConfigs(config: ExtractBootstrapConfig, projectPath: st
 
   await setConfig("i18nFeatures.framework", config.framework as never);
   await setConfig("workspace.languagePath", toRelativePath(langPath));
-  await setConfig("analysis.fileExtensions", config.fileExtensions);
-  const functionNames = Array.from(
-    new Set(
-      [...config.translationFunctionNames, config.vueTemplateFunctionName, config.vueScriptFunctionName]
-        .map(item => item.trim())
-        .filter(Boolean)
-    )
+  await setConfig("extract.fileExtensions", config.fileExtensions);
+  await setConfig("extract.jsTsFunctionName", config.jsTsFunctionName);
+  await setConfig("extract.jsTsImportLines", config.jsTsImportLines);
+  await setConfig("extract.jsTsSetupLines", config.jsTsSetupLines);
+  await setConfig("extract.vueTemplateFunctionName", config.vueTemplateFunctionName);
+  await setConfig("extract.vueScriptFunctionName", config.vueScriptFunctionName);
+  await setConfig("extract.vueScriptImportLines", config.vueScriptImportLines);
+  await setConfig("extract.vueScriptSetupLines", config.vueScriptSetupLines);
+  await setConfig("extract.onlyExtractSourceLanguageText", config.onlyExtractSourceLanguageText);
+  await setConfig("extract.vueTemplateIncludeAttrs", config.vueTemplateIncludeAttrs);
+  await setConfig("extract.vueTemplateExcludeAttrs", config.vueTemplateExcludeAttrs);
+  await setConfig("workspace.extractScopeWhitelist", config.extractScopePaths);
+  await setConfig("workspace.extractScopeBlacklist", config.ignoreExtractScopePaths);
+  const functionNames = Array.from(new Set([config.jsTsFunctionName, config.vueTemplateFunctionName, config.vueScriptFunctionName])).filter(
+    item => item.trim().length > 0
   );
   await setConfig("i18nFeatures.translationFunctionNames", functionNames);
   await setConfig("writeRules.keyPrefix", config.keyPrefix);
@@ -335,7 +383,9 @@ async function applyKnownConfigs(config: ExtractBootstrapConfig, projectPath: st
   await setConfig("translationServices.ignorePossibleVariables", config.ignorePossibleVariables);
   await setConfig("translationServices.referenceLanguage", config.referenceLanguage, "global");
   clearConfigCache("workspace.languagePath");
-  clearConfigCache("analysis.fileExtensions");
+  clearConfigCache("extract");
+  clearConfigCache("workspace.extractScopeWhitelist");
+  clearConfigCache("workspace.extractScopeBlacklist");
   clearConfigCache("i18nFeatures.translationFunctionNames");
   clearConfigCache("i18nFeatures.framework");
   clearConfigCache("writeRules");
@@ -344,16 +394,26 @@ async function applyKnownConfigs(config: ExtractBootstrapConfig, projectPath: st
 }
 
 async function applyDetectedConfigs(config: ExtractBootstrapConfig) {
-  await setConfig("analysis.fileExtensions", config.fileExtensions);
-  const functionNames = Array.from(
-    new Set(
-      [...config.translationFunctionNames, config.vueTemplateFunctionName, config.vueScriptFunctionName]
-        .map(item => item.trim())
-        .filter(Boolean)
-    )
+  await setConfig("extract.fileExtensions", config.fileExtensions);
+  await setConfig("extract.jsTsFunctionName", config.jsTsFunctionName);
+  await setConfig("extract.jsTsImportLines", config.jsTsImportLines);
+  await setConfig("extract.jsTsSetupLines", config.jsTsSetupLines);
+  await setConfig("extract.vueTemplateFunctionName", config.vueTemplateFunctionName);
+  await setConfig("extract.vueScriptFunctionName", config.vueScriptFunctionName);
+  await setConfig("extract.vueScriptImportLines", config.vueScriptImportLines);
+  await setConfig("extract.vueScriptSetupLines", config.vueScriptSetupLines);
+  await setConfig("extract.onlyExtractSourceLanguageText", config.onlyExtractSourceLanguageText);
+  await setConfig("extract.vueTemplateIncludeAttrs", config.vueTemplateIncludeAttrs);
+  await setConfig("extract.vueTemplateExcludeAttrs", config.vueTemplateExcludeAttrs);
+  await setConfig("workspace.extractScopeWhitelist", config.extractScopePaths);
+  await setConfig("workspace.extractScopeBlacklist", config.ignoreExtractScopePaths);
+  const functionNames = Array.from(new Set([config.jsTsFunctionName, config.vueTemplateFunctionName, config.vueScriptFunctionName])).filter(
+    item => item.trim().length > 0
   );
   await setConfig("i18nFeatures.translationFunctionNames", functionNames);
-  clearConfigCache("analysis.fileExtensions");
+  clearConfigCache("extract");
+  clearConfigCache("workspace.extractScopeWhitelist");
+  clearConfigCache("workspace.extractScopeBlacklist");
   clearConfigCache("i18nFeatures.translationFunctionNames");
 }
 
@@ -373,7 +433,8 @@ function openBootstrapWebview(
   context: vscode.ExtensionContext,
   defaults: ExtractBootstrapConfig,
   hasDetectedLangs: boolean,
-  projectPath: string
+  projectPath: string,
+  isFirstSetup: boolean
 ): Promise<BootstrapRaw | null> {
   return new Promise(resolve => {
     const panel = vscode.window.createWebviewPanel("i18nMage.extractSetup", "i18n Mage Setup", vscode.ViewColumn.One, {
@@ -401,6 +462,7 @@ function openBootstrapWebview(
     window.webviewData = ${JSON.stringify({
       language: vscode.env.language,
       hasDetectedLangs,
+      isFirstSetup,
       defaults,
       availableLanguages: Array.from(
         new Map(
@@ -437,13 +499,37 @@ function openBootstrapWebview(
           return;
         }
         const parsed = sanitizeBootstrapConfig(raw);
-        if (parsed.extractScopePath.trim().length > 0) {
-          const absoluteScopePath = path.isAbsolute(parsed.extractScopePath)
-            ? parsed.extractScopePath
-            : path.join(projectPath, parsed.extractScopePath);
-          if (!fs.existsSync(absoluteScopePath)) {
-            vscode.window.showErrorMessage(t("extractSetup.errorExtractScopePathInvalid", parsed.extractScopePath));
-            return;
+        const normalizedExts = parsed.fileExtensions.map(item => item.trim().toLowerCase());
+        const hasJsTsFiles = normalizedExts.some(item => [".js", ".ts", ".jsx", ".tsx", ".mjs", ".cjs"].includes(item));
+        const hasVueFiles = normalizedExts.includes(".vue");
+        if (hasJsTsFiles && parsed.jsTsFunctionName.trim().length === 0) {
+          vscode.window.showErrorMessage(`${t("extractSetup.labelJsTsFunctionName")} ${t("common.validate.required")}`);
+          return;
+        }
+        if (hasJsTsFiles && parsed.jsTsImportLines.length === 0) {
+          vscode.window.showErrorMessage(`${t("extractSetup.labelJsTsImportLines")} ${t("common.validate.required")}`);
+          return;
+        }
+        if (hasVueFiles && parsed.framework === "vue-i18n" && parsed.vueScriptImportLines.length === 0) {
+          vscode.window.showErrorMessage(`${t("extractSetup.labelVueScriptImportLines")} ${t("common.validate.required")}`);
+          return;
+        }
+        if (parsed.extractScopePaths.length > 0) {
+          for (const scopePath of parsed.extractScopePaths) {
+            const absoluteScopePath = path.isAbsolute(scopePath) ? scopePath : path.join(projectPath, scopePath);
+            if (!fs.existsSync(absoluteScopePath)) {
+              vscode.window.showErrorMessage(t("extractSetup.errorExtractScopePathInvalid", scopePath));
+              return;
+            }
+          }
+        }
+        if (parsed.ignoreExtractScopePaths.length > 0) {
+          for (const ignorePath of parsed.ignoreExtractScopePaths) {
+            const absoluteIgnorePath = path.isAbsolute(ignorePath) ? ignorePath : path.join(projectPath, ignorePath);
+            if (!fs.existsSync(absoluteIgnorePath)) {
+              vscode.window.showErrorMessage(t("extractSetup.errorIgnoreScopePathInvalid", ignorePath));
+              return;
+            }
           }
         }
         settled = true;

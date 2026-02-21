@@ -1,14 +1,19 @@
 export interface ExtractSetupWebviewData {
   language: string;
   hasDetectedLangs: boolean;
+  isFirstSetup: boolean;
   availableLanguages: Array<{ code: string; label: string }>;
   defaults: {
     framework: string;
     languagePath: string;
     fileExtensions: string[];
-    translationFunctionNames: string[];
     vueTemplateFunctionName: string;
     vueScriptFunctionName: string;
+    jsTsFunctionName: string;
+    vueScriptImportLines: string[];
+    vueScriptSetupLines: string[];
+    jsTsImportLines: string[];
+    jsTsSetupLines: string[];
     keyPrefix: "none" | "auto-path";
     languageStructure: "flat" | "nested";
     sortRule: "none" | "byKey" | "byPosition";
@@ -26,8 +31,8 @@ export interface ExtractSetupWebviewData {
     onlyExtractSourceLanguageText: boolean;
     referenceLanguage: string;
     translationFileType: "json" | "json5" | "js" | "ts" | "yaml" | "yml";
-    importStatement: string;
-    extractScopePath: string;
+    extractScopePaths: string[];
+    ignoreExtractScopePaths: string[];
     targetLanguages: string[];
     vueTemplateIncludeAttrs: string[];
     vueTemplateExcludeAttrs: string[];

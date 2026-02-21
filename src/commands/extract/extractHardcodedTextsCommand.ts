@@ -159,9 +159,8 @@ export function registerExtractHardcodedTextsCommand(context: vscode.ExtensionCo
       return;
     }
     const langDetected = mage.detectedLangList.length > 0;
-    const targetUri = resource ?? vscode.window.activeTextEditor?.document.uri;
     const initialExtractScopePath =
-      targetUri && targetUri.scheme === "file" ? path.relative(projectPath, targetUri.fsPath).split(path.sep).join("/") : "";
+      resource && resource.scheme === "file" ? path.relative(projectPath, resource.fsPath).split(path.sep).join("/") : "";
     const bootstrap = await ensureBootstrapConfig({
       context,
       projectPath,
@@ -201,8 +200,11 @@ export function registerExtractHardcodedTextsCommand(context: vscode.ExtensionCo
       const result = scanHardcodedTextCandidates({
         projectPath,
         sourceLanguage: publicCtx.referredLang,
-        scopePath: bootstrap.extractScopePath,
+        scopePaths: bootstrap.extractScopePaths,
+        fileExtensions: bootstrap.fileExtensions,
+        translationFunctionNames: [bootstrap.jsTsFunctionName, bootstrap.vueTemplateFunctionName, bootstrap.vueScriptFunctionName],
         onlyExtractSourceLanguageText: bootstrap.onlyExtractSourceLanguageText,
+        ignoredScopePaths: bootstrap.ignoreExtractScopePaths,
         vueTemplateIncludeAttrs: bootstrap.vueTemplateIncludeAttrs,
         vueTemplateExcludeAttrs: bootstrap.vueTemplateExcludeAttrs
       });
@@ -225,20 +227,19 @@ export function registerExtractHardcodedTextsCommand(context: vscode.ExtensionCo
         },
         {} as Record<string, string[]>
       );
-      const functionNames = getConfig<string[]>("i18nFeatures.translationFunctionNames", ["t"]);
-      const defaultFuncName = Array.isArray(functionNames) && functionNames[0]?.trim().length ? functionNames[0] : "t";
+      const defaultFuncName = bootstrap.jsTsFunctionName?.trim().length ? bootstrap.jsTsFunctionName.trim() : "t";
       const usedKeys = new Set<string>(Object.keys(langDetail.dictionary));
       const generatedTextKeyMap = new Map<string, string>();
       const updatePayloadMap = new Map<string, I18nUpdatePayload>();
       const codePatches: Record<string, FixedTEntry[]> = {};
-      const keyPrefix = getConfig<string>("writeRules.keyPrefix", "none");
+      const keyPrefix = getConfig<string>("writeRules.keyPrefix", bootstrap.keyPrefix);
       const nameSeparator = langDetail.nameSeparator || ".";
-      const stopPrefixes = getConfig<string[]>("writeRules.stopPrefixes", []);
-      const stopWords = getConfig<string[]>("writeRules.stopWords", []);
-      const keyStyle = getConfig("writeRules.keyStyle", "camelCase");
-      const maxKeyLength = getConfig<number>("writeRules.maxKeyLength", 40);
-      const keyStrategy = getConfig<string>("writeRules.keyStrategy", "english");
-      const invalidKeyStrategy = getConfig<string>("writeRules.invalidKeyStrategy", "fallback");
+      const stopPrefixes = bootstrap.stopPrefixes;
+      const stopWords = bootstrap.stopWords;
+      const keyStyle = bootstrap.keyStyle;
+      const maxKeyLength = bootstrap.maxKeyLength;
+      const keyStrategy = bootstrap.keyStrategy;
+      const invalidKeyStrategy = bootstrap.invalidKeyStrategy;
       const manualPrefix = await resolveManualPrefix(context, {
         writeFlag: result.candidates.length > 0,
         keyPrefix,
@@ -375,7 +376,16 @@ export function registerExtractHardcodedTextsCommand(context: vscode.ExtensionCo
           await mage.execute({ task: "check" });
           mage.setPendingChanges(updatePayloads, {});
           await mage.execute({ task: "rewrite" });
-          await applyCodePatches(codePatches, { importStatement: bootstrap.importStatement });
+          await applyCodePatches(codePatches, {
+            vueScript: {
+              importLines: bootstrap.vueScriptImportLines,
+              setupLines: bootstrap.vueScriptSetupLines
+            },
+            jsTs: {
+              importLines: bootstrap.jsTsImportLines,
+              setupLines: bootstrap.jsTsSetupLines
+            }
+          });
           if (langDetected) {
             await mage.execute({ task: "check" });
             treeInstance.refresh();

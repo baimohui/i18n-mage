@@ -83,7 +83,8 @@ label {
 }
 
 input,
-select {
+select,
+textarea {
   width: 100%;
   box-sizing: border-box;
   padding: 7px 10px;
@@ -95,9 +96,15 @@ select {
 }
 
 input:focus,
-select:focus {
+select:focus,
+textarea:focus {
   border-color: var(--ring);
   box-shadow: 0 0 0 1px var(--ring);
+}
+
+textarea {
+  resize: vertical;
+  min-height: 72px;
 }
 
 .bool-row {
@@ -256,6 +263,20 @@ select:focus {
   background: linear-gradient(to top, var(--bg) 70%, transparent);
   padding: 12px 0 4px;
   border-top: 1px solid color-mix(in srgb, var(--border) 60%, transparent);
+}
+
+.sync-option {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--muted);
+  margin-right: 10px;
+}
+
+.sync-option input[type="checkbox"] {
+  width: auto;
+  accent-color: var(--btn-bg);
 }
 
 button {

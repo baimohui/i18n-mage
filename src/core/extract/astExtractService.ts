@@ -11,16 +11,28 @@ interface ScanOptions {
   projectPath: string;
   sourceLanguage?: string;
   scopePath?: string;
+  scopePaths?: string[];
+  fileExtensions?: string[];
+  translationFunctionNames?: string[];
+  ignoredScopePaths?: string[];
   onlyExtractSourceLanguageText?: boolean;
   vueTemplateIncludeAttrs?: string[];
   vueTemplateExcludeAttrs?: string[];
 }
 
 export function scanHardcodedTextCandidates(options: ScanOptions): ExtractScanResult {
-  const scanRoot = resolveScanRoot(options.projectPath, options.scopePath);
-  const filePaths = readAllFiles(scanRoot);
+  const targetExtensions = getTargetExtensions(options.fileExtensions);
+  const scanRoots = resolveScanRoots(options.projectPath, options.scopePath, options.scopePaths);
+  const filePaths = Array.from(
+    new Set(
+      scanRoots
+        .flatMap(root => readAllFiles(root))
+        .filter(filePath => targetExtensions.has(path.extname(filePath).toLowerCase()))
+        .filter(filePath => !isIgnoredByScope(filePath, options.projectPath, options.ignoredScopePaths))
+    )
+  );
   const candidates: ExtractCandidate[] = [];
-  const translationFunctionNames = getTranslationFunctionNames();
+  const translationFunctionNames = getTranslationFunctionNames(options.translationFunctionNames);
   const sourceLanguageGuard = shouldUseSourceLanguageGuard(options.sourceLanguage, options.onlyExtractSourceLanguageText);
 
   for (const filePath of filePaths) {
@@ -68,15 +80,27 @@ export function scanHardcodedTextCandidates(options: ScanOptions): ExtractScanRe
   };
 }
 
-function getTranslationFunctionNames() {
-  const configured = getCacheConfig<string[]>("i18nFeatures.translationFunctionNames", ["t"]);
-  const list = Array.isArray(configured)
-    ? configured.filter((item): item is string => typeof item === "string" && item.trim().length > 0)
-    : [];
-  if (!list.includes("t")) {
-    list.push("t");
+function getTargetExtensions(fileExtensions?: string[]) {
+  const defaults = [".js", ".ts", ".jsx", ".tsx", ".vue"];
+  const list = Array.isArray(fileExtensions) && fileExtensions.length > 0 ? fileExtensions : defaults;
+  const normalized = list
+    .map(item => item.trim().toLowerCase())
+    .filter(Boolean)
+    .map(item => (item.startsWith(".") ? item : `.${item}`));
+  return new Set(normalized);
+}
+
+function getTranslationFunctionNames(overrideNames?: string[]) {
+  const list = Array.isArray(overrideNames)
+    ? overrideNames.filter((item): item is string => typeof item === "string" && item.trim().length > 0)
+    : (getCacheConfig<string[]>("i18nFeatures.translationFunctionNames", ["t"]) ?? []).filter(
+        (item): item is string => typeof item === "string" && item.trim().length > 0
+      );
+  const normalized = Array.from(new Set(list));
+  if (!normalized.includes("t")) {
+    normalized.push("t");
   }
-  return new Set(list);
+  return new Set(normalized);
 }
 
 function scanVueScriptCandidates(
@@ -350,12 +374,33 @@ function readAllFiles(dir: string): string[] {
   return result;
 }
 
-function resolveScanRoot(projectPath: string, scopePath?: string) {
-  if (typeof scopePath !== "string" || scopePath.trim().length === 0) {
-    return projectPath;
+function resolveScanRoots(projectPath: string, scopePath?: string, scopePaths?: string[]) {
+  const configuredPaths =
+    Array.isArray(scopePaths) && scopePaths.length > 0
+      ? scopePaths.map(item => item.trim()).filter(Boolean)
+      : typeof scopePath === "string"
+        ? scopePath
+            .split(",")
+            .map(item => item.trim())
+            .filter(Boolean)
+        : [];
+  if (configuredPaths.length === 0) return [projectPath];
+  return configuredPaths.map(item => (path.isAbsolute(item) ? item : path.join(projectPath, item)));
+}
+
+function isIgnoredByScope(filePath: string, projectPath: string, ignoredScopePaths?: string[]) {
+  if (!Array.isArray(ignoredScopePaths) || ignoredScopePaths.length === 0) return false;
+  const normalizedFilePath = path.normalize(path.resolve(filePath));
+
+  for (const ignoredPath of ignoredScopePaths) {
+    const trimmed = typeof ignoredPath === "string" ? ignoredPath.trim() : "";
+    if (trimmed.length === 0) continue;
+    const absoluteIgnoredPath = path.normalize(path.resolve(path.isAbsolute(trimmed) ? trimmed : path.join(projectPath, trimmed)));
+    if (normalizedFilePath === absoluteIgnoredPath) return true;
+    if (normalizedFilePath.startsWith(`${absoluteIgnoredPath}${path.sep}`)) return true;
   }
-  const normalized = scopePath.trim();
-  return path.isAbsolute(normalized) ? normalized : path.join(projectPath, normalized);
+
+  return false;
 }
 
 function getScriptKindByExt(ext: string) {
