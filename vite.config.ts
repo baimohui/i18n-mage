@@ -19,8 +19,8 @@ export default defineConfig(({ mode }) => {
     },
     build: {
       outDir: "dist/webviews",
-      emptyOutDir: false,
-      sourcemap: true,
+      emptyOutDir: true,
+      sourcemap: isDev,
       minify: isDev ? false : "esbuild",
       rollupOptions: {
         input: {

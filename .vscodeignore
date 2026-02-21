@@ -1,4 +1,4 @@
-# 开发配置文件
+﻿# Development/config files
 .editorconfig
 .eslintignore
 .eslintrc.json
@@ -6,33 +6,29 @@
 .gitignore
 .prettierrc
 .vscode-test.mjs
-.vscodeignore  # 这个文件本身也应该被忽略
+.vscodeignore
 
-# 构建配置和脚本
+# Build/tooling config
 esbuild.config.js
-jcconfig.json
+jsconfig.json
 tsconfig.json
 tsconfig.test.json
 
-# 依赖锁文件
+# Dependency lock file
 package-lock.json
 
-# 源代码目录（如果有的话）
+# Source and docs
 src/**
-
-# 文档资源
 doc-assets
 README.zh-CN.md
 
-# 依赖目录
+# Dependencies and tests
 node_modules/**
-
-# 测试文件（如果有的话）
 test/**
 
-# 开发过程中的临时文件
+# Temp files
 .*.swp
 .DS_Store
 
-# 源代码映射文件
-dist/*.map
+# Source maps
+dist/**/*.map
