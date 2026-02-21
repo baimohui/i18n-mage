@@ -148,7 +148,7 @@ async function resolveManualPrefix(
 
 export function registerExtractHardcodedTextsCommand(context: vscode.ExtensionContext) {
   const mage = LangMage.getInstance();
-  const disposable = vscode.commands.registerCommand("i18nMage.extractHardcodedTexts", async () => {
+  const disposable = vscode.commands.registerCommand("i18nMage.extractHardcodedTexts", async (resource?: vscode.Uri) => {
     await mage.execute({ task: "check" });
     let publicCtx = mage.getPublicContext();
     let langDetail = mage.langDetail;
@@ -159,10 +159,14 @@ export function registerExtractHardcodedTextsCommand(context: vscode.ExtensionCo
       return;
     }
     const langDetected = mage.detectedLangList.length > 0;
+    const targetUri = resource ?? vscode.window.activeTextEditor?.document.uri;
+    const initialExtractScopePath =
+      targetUri && targetUri.scheme === "file" ? path.relative(projectPath, targetUri.fsPath).split(path.sep).join("/") : "";
     const bootstrap = await ensureBootstrapConfig({
       context,
       projectPath,
-      hasDetectedLangs: langDetected
+      hasDetectedLangs: langDetected,
+      initialExtractScopePath
     });
     if (bootstrap === null) return;
 

@@ -666,6 +666,7 @@ export function App({ data }: Props) {
     const code = normalizeReferenceLangCode(form.referenceLanguage);
     return SOURCE_LANGUAGE_FILTER_CODES.has(code);
   }, [form.referenceLanguage]);
+  const showVueTemplateAttrsConfig = form.framework === "vue-i18n";
 
   const update = <K extends keyof FormState>(key: K, value: FormState[K]) => {
     setForm(prev => ({ ...prev, [key]: value }));
@@ -763,18 +764,20 @@ export function App({ data }: Props) {
               />
             </div>
           ) : null}
-          <div className="grid" style={{ marginTop: "10px" }}>
-            <label>{t("extractSetup.labelVueTemplateIncludeAttrs")}</label>
-            <input
-              value={form.vueTemplateIncludeAttrsText}
-              onInput={e => update("vueTemplateIncludeAttrsText", (e.target as HTMLInputElement).value)}
-            />
-            <label>{t("extractSetup.labelVueTemplateExcludeAttrs")}</label>
-            <input
-              value={form.vueTemplateExcludeAttrsText}
-              onInput={e => update("vueTemplateExcludeAttrsText", (e.target as HTMLInputElement).value)}
-            />
-          </div>
+          {showVueTemplateAttrsConfig ? (
+            <div className="grid" style={{ marginTop: "10px" }}>
+              <label>{t("extractSetup.labelVueTemplateIncludeAttrs")}</label>
+              <input
+                value={form.vueTemplateIncludeAttrsText}
+                onInput={e => update("vueTemplateIncludeAttrsText", (e.target as HTMLInputElement).value)}
+              />
+              <label>{t("extractSetup.labelVueTemplateExcludeAttrs")}</label>
+              <input
+                value={form.vueTemplateExcludeAttrsText}
+                onInput={e => update("vueTemplateExcludeAttrsText", (e.target as HTMLInputElement).value)}
+              />
+            </div>
+          ) : null}
         </section>
       </main>
 

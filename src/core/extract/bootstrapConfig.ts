@@ -226,11 +226,20 @@ export async function ensureBootstrapConfig(params: {
   context: vscode.ExtensionContext;
   projectPath: string;
   hasDetectedLangs: boolean;
+  initialExtractScopePath?: string;
 }): Promise<ExtractBootstrapConfig | null> {
   const stored = getStoredBootstrapConfig(params.context, params.projectPath);
+  const scopedDefaults = (defaults: ExtractBootstrapConfig) =>
+    sanitizeBootstrapConfig({
+      ...defaults,
+      extractScopePath:
+        typeof params.initialExtractScopePath === "string" && params.initialExtractScopePath.trim().length > 0
+          ? params.initialExtractScopePath.trim()
+          : defaults.extractScopePath
+    });
 
   if (params.hasDetectedLangs) {
-    const defaults = getDetectedProjectDefaults(params.context, params.projectPath);
+    const defaults = scopedDefaults(getDetectedProjectDefaults(params.context, params.projectPath));
     const raw = await openBootstrapWebview(params.context, defaults, true, params.projectPath);
     if (raw === null) return null;
     const config = sanitizeBootstrapConfig(raw);
@@ -239,7 +248,7 @@ export async function ensureBootstrapConfig(params: {
     return config;
   }
 
-  const defaults = stored ? sanitizeBootstrapConfig(stored) : defaultBootstrapConfig();
+  const defaults = scopedDefaults(stored ? sanitizeBootstrapConfig(stored) : defaultBootstrapConfig());
   const raw = await openBootstrapWebview(params.context, defaults, false, params.projectPath);
   if (raw === null) return null;
   const config = sanitizeBootstrapConfig(raw);
@@ -432,7 +441,7 @@ function openBootstrapWebview(
           const absoluteScopePath = path.isAbsolute(parsed.extractScopePath)
             ? parsed.extractScopePath
             : path.join(projectPath, parsed.extractScopePath);
-          if (!fs.existsSync(absoluteScopePath) || !fs.statSync(absoluteScopePath).isDirectory()) {
+          if (!fs.existsSync(absoluteScopePath)) {
             vscode.window.showErrorMessage(t("extractSetup.errorExtractScopePathInvalid", parsed.extractScopePath));
             return;
           }
