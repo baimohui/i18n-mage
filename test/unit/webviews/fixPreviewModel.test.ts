@@ -51,7 +51,7 @@ function createData(): FixPreviewData {
           id: "new-item",
           raw: 't("新词条")',
           fixedRaw: 't("app.newItem")',
-          fixedKey: "app.newItem",
+          fixedName: "app.newItem",
           addedVars: "",
           pos: "0,1,0,1"
         },
@@ -59,7 +59,7 @@ function createData(): FixPreviewData {
           id: "existing-item",
           raw: 't("已存在")',
           fixedRaw: 't("app.exist")',
-          fixedKey: "app.exist",
+          fixedName: "app.exist",
           addedVars: "",
           pos: "2,3,2,3"
         }
@@ -92,7 +92,7 @@ describe("webviews/fix-preview/model", () => {
     assert.strictEqual(addPayload?.key, "app.custom.newKey");
 
     const patch = exported.idPatches["src/demo.vue"].find(item => item.id === "new-item");
-    assert.strictEqual(patch?.fixedKey, "app.custom.newKey");
+    assert.strictEqual(patch?.fixedName, "app.custom.newKey");
     assert.strictEqual(patch?.fixedRaw, 't("app.custom.newKey")');
   });
 

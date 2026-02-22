@@ -79,7 +79,7 @@ export class FixHandler {
     const referredLangCode = getLangCode(this.ctx.referredLang);
     const referredLangMap = this.ctx.langCountryMap[this.ctx.referredLang];
     const needTranslateList: TEntry[] = [];
-    const patchedEntryIdList: (TEntry & { fixedRaw: string; fixedKey: string; addedVars: string })[] = [];
+    const patchedEntryIdList: (TEntry & { fixedRaw: string; fixedName: string; addedVars: string })[] = [];
     const undefinedEntryIdSet = new Set<string>();
     const entriesToGen = this.ctx.fixQuery.entriesToGen;
     const genScope = this.ctx.fixQuery.genScope;
@@ -140,7 +140,7 @@ export class FixHandler {
         }
       }
       if (undefinedEntryIdSet.has(entryId)) {
-        patchedEntryIdList.push({ ...entry, fixedRaw: "", fixedKey: "", addedVars: "" });
+        patchedEntryIdList.push({ ...entry, fixedRaw: "", fixedName: "", addedVars: "" });
       } else {
         undefinedEntryIdSet.add(entryId);
         needTranslateList.push(entry);
@@ -511,7 +511,7 @@ export class FixHandler {
     return {
       id: key,
       fixedRaw: funcName ? `${funcName}(${quote}${displayName}${quote}${varStr})` : `${quote}${displayName}${quote}`,
-      fixedKey: displayName,
+      fixedName: displayName,
       addedVars: varStr
     };
   }

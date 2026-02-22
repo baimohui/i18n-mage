@@ -345,25 +345,25 @@ export function registerExtractHardcodedTextsCommand(context: vscode.ExtensionCo
         }
 
         const relativeFile = toRelativePath(candidate.file);
-        const displayKey = internalToDisplayName(unescapeString(key));
+        const displayName = internalToDisplayName(unescapeString(key));
         codePatches[relativeFile] ??= [];
         const templateFuncName = resolveVueTemplateFunctionName(bootstrap.vueTemplateFunctionName, defaultFuncName, bootstrap.framework);
         const scriptFuncName = bootstrap.vueScriptFunctionName || defaultFuncName;
-        let fixedRaw = `${defaultFuncName}("${displayKey}")`;
+        let fixedRaw = `${defaultFuncName}("${displayName}")`;
         if (candidate.context === "vue-script-string") {
-          fixedRaw = `${scriptFuncName}("${displayKey}")`;
+          fixedRaw = `${scriptFuncName}("${displayName}")`;
         } else if (candidate.context === "vue-template-attr") {
           const normalizedAttrName = candidate.attrName?.trim();
           const attrName = typeof normalizedAttrName === "string" && normalizedAttrName.length > 0 ? normalizedAttrName : "label";
-          fixedRaw = `:${attrName}="${templateFuncName}('${displayKey}')"`;
+          fixedRaw = `:${attrName}="${templateFuncName}('${displayName}')"`;
         } else if (candidate.context === "vue-template-text") {
-          fixedRaw = `{{ ${templateFuncName}('${displayKey}') }}`;
+          fixedRaw = `{{ ${templateFuncName}('${displayName}') }}`;
         }
         codePatches[relativeFile].push({
-          id: textId,
+          id: key,
           raw: candidate.raw,
           fixedRaw,
-          fixedKey: displayKey,
+          fixedName: displayName,
           addedVars: "",
           pos: `${candidate.start},${candidate.end}`
         });

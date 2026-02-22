@@ -131,7 +131,7 @@ export class ModifyHandler {
             id: key,
             raw: key,
             fixedRaw: displayName,
-            fixedKey: displayName,
+            fixedName: displayName,
             addedVars: "",
             pos
           });

@@ -39,7 +39,7 @@ export interface UnitPatchRef {
   index: number;
   raw: string;
   fixedRaw: string;
-  fixedKey: string;
+  fixedName: string;
   selected: boolean;
 }
 

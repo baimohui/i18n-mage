@@ -259,7 +259,7 @@ export class RewriteHandler {
         if (item.fixedRaw) {
           fixedFileContent += fileContent.slice(lastEndPos, nameStartPos);
           const quoteStr = fileContent[nameStartPos];
-          fixedFileContent += quoteStr + item.fixedKey + quoteStr;
+          fixedFileContent += quoteStr + item.fixedName + quoteStr;
           if (item.addedVars) {
             fixedFileContent += item.addedVars;
             lastEndPos = endPos - 1;

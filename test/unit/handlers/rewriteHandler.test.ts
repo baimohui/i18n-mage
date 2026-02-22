@@ -238,7 +238,7 @@ describe("core/handlers/RewriteHandler", () => {
           id: "old.key",
           raw: "old.key",
           fixedRaw: 't("new.key")',
-          fixedKey: "new.key",
+          fixedName: "new.key",
           addedVars: "",
           pos: "14,23,0,24"
         }

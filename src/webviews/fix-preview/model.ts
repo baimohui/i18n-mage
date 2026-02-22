@@ -133,9 +133,9 @@ export function buildUnits(data: FixPreviewData) {
   Object.entries(idPatches).forEach(([file, patches]) => {
     patches.forEach((patch, index) => {
       const key = patch.id;
-      const fixedKey = patch.fixedKey;
+      const fixedName = patch.fixedName;
       const mappedKey = displayNameToKey.get(key);
-      const existing = unitMap.get(fixedKey) ?? unitMap.get(key) ?? (mappedKey !== undefined ? unitMap.get(mappedKey) : undefined);
+      const existing = unitMap.get(fixedName) ?? unitMap.get(key) ?? (mappedKey !== undefined ? unitMap.get(mappedKey) : undefined);
       const patchData: UnitPatchRef = {
         id: patch.id,
         pos: patch.pos,
@@ -144,7 +144,7 @@ export function buildUnits(data: FixPreviewData) {
         index,
         raw: patch.raw,
         fixedRaw: patch.fixedRaw,
-        fixedKey: patch.fixedKey,
+        fixedName: patch.fixedName,
         selected: true
       };
       if (existing) {
@@ -152,7 +152,7 @@ export function buildUnits(data: FixPreviewData) {
         existing.keyEditable ||= existing.payloadIndices.some(i => updatePayloads[i]?.type === "add");
         unitMap.set(existing.key, existing);
       } else {
-        const fallbackKey = fixedKey || key;
+        const fallbackKey = fixedName || key;
         unitMap.set(fallbackKey, {
           id: `patch:${file}:${index}`,
           key: fallbackKey,
@@ -233,7 +233,7 @@ export function exportPreviewData(
         raw: patch.raw,
         pos: patch.pos,
         fixedRaw: replaceDisplayKeyInFixedRaw(patch.fixedRaw, displayName),
-        fixedKey: displayName,
+        fixedName: displayName,
         addedVars: patch.addedVars
       });
     });
