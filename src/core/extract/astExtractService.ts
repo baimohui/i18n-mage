@@ -6,6 +6,7 @@ import { getLangCode } from "@/utils/langKey";
 import { getCacheConfig } from "@/utils/config";
 import { validateLang } from "@/utils/regex/formatUtils";
 import { ExtractCandidate, ExtractScanResult } from "./types";
+import { isInvalidHardcodedText } from "./textFilter";
 
 interface ScanOptions {
   projectPath: string;
@@ -339,17 +340,12 @@ function getCallExpressionName(expression: ts.Expression): string {
 }
 
 function isExtractableText(text: string, sourceLanguage?: string, sourceLanguageGuard = false) {
-  if (text.length === 0) return false;
-  if (/^\s+$/.test(text)) return false;
-  if (/^[./@_\w-]+$/.test(text)) return false;
-  if (/^#(?:[\da-fA-F]{3}|[\da-fA-F]{4}|[\da-fA-F]{6}|[\da-fA-F]{8})$/.test(text)) return false;
-  if (/^(?:rgb|rgba|hsl|hsla)\s*\([^)]*\)$/i.test(text)) return false;
-  if (/^var\(--[\w-]+\)$/i.test(text)) return false;
-  if (/^-?\d+(?:\.\d+)?(?:px|r?em|vh|vw|vmin|vmax|%)$/i.test(text)) return false;
-  if (/^\d+(?:\.\d+)?$/.test(text)) return false;
+  const normalized = text.trim();
+  if (normalized.length === 0) return false;
+  if (isInvalidHardcodedText(normalized)) return false;
   if (!/[\p{L}]/u.test(text)) return false;
   if (sourceLanguageGuard && typeof sourceLanguage === "string" && sourceLanguage.trim().length > 0) {
-    return validateLang(text, sourceLanguage);
+    return validateLang(normalized, sourceLanguage);
   }
   return true;
 }
