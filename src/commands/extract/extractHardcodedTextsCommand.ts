@@ -377,14 +377,18 @@ export function registerExtractHardcodedTextsCommand(context: vscode.ExtensionCo
           mage.setPendingChanges(updatePayloads, {});
           await mage.execute({ task: "rewrite" });
           await applyCodePatches(codePatches, {
-            vueScript: {
-              importLines: bootstrap.vueScriptImportLines,
-              setupLines: bootstrap.vueScriptSetupLines
-            },
-            jsTs: {
-              importLines: bootstrap.jsTsImportLines,
-              setupLines: bootstrap.jsTsSetupLines
-            }
+            vueScript: bootstrap.skipVueScriptInjection
+              ? undefined
+              : {
+                  importLines: bootstrap.vueScriptImportLines,
+                  setupLines: bootstrap.vueScriptSetupLines
+                },
+            jsTs: bootstrap.skipJsTsInjection
+              ? undefined
+              : {
+                  importLines: bootstrap.jsTsImportLines,
+                  setupLines: bootstrap.jsTsSetupLines
+                }
           });
           if (langDetected) {
             await mage.execute({ task: "check" });

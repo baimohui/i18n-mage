@@ -32,5 +32,13 @@
   "i18n-mage.writeRules.indentSize": 2,
   "i18n-mage.writeRules.languageStructure": "flat",
   "i18n-mage.writeRules.quoteStyleForKey": "double",
-  "i18n-mage.writeRules.quoteStyleForValue": "double"
+  "i18n-mage.writeRules.quoteStyleForValue": "double",
+  "i18n-mage.workspace.extractScopeBlacklist": [
+    "src/webviews",
+    "src/utils/langKey/constants.ts",
+    "src/translator/deepseek.ts"
+  ],
+  "i18n-mage.extract.jsTsImportLines": [
+    "import { t } from \"@/utils/i18n\";"
+  ]
 }

@@ -14,6 +14,8 @@ export interface ExtractSetupWebviewData {
     vueScriptSetupLines: string[];
     jsTsImportLines: string[];
     jsTsSetupLines: string[];
+    skipJsTsInjection: boolean;
+    skipVueScriptInjection: boolean;
     keyPrefix: "none" | "auto-path";
     languageStructure: "flat" | "nested";
     sortRule: "none" | "byKey" | "byPosition";

@@ -490,122 +490,6 @@
         }
       },
       {
-        "id": "i18n-mage-extract",
-        "type": "object",
-        "title": "%config.extract.title%",
-        "properties": {
-          "i18n-mage.extract.fileExtensions": {
-            "order": 1,
-            "type": "array",
-            "default": [
-              ".js",
-              ".ts",
-              ".jsx",
-              ".tsx",
-              ".mjs",
-              ".cjs",
-              ".vue"
-            ],
-            "description": "%config.extract.fileExtensions.desc%",
-            "items": {
-              "type": "string"
-            }
-          },
-          "i18n-mage.extract.jsTsFunctionName": {
-            "order": 2,
-            "type": "string",
-            "default": "t",
-            "description": "%config.extract.jsTsFunctionName.desc%"
-          },
-          "i18n-mage.extract.jsTsImportLines": {
-            "order": 3,
-            "type": "array",
-            "default": [],
-            "description": "%config.extract.jsTsImportLines.desc%",
-            "items": {
-              "type": "string"
-            }
-          },
-          "i18n-mage.extract.jsTsSetupLines": {
-            "order": 4,
-            "type": "array",
-            "default": [],
-            "description": "%config.extract.jsTsSetupLines.desc%",
-            "items": {
-              "type": "string"
-            }
-          },
-          "i18n-mage.extract.vueTemplateFunctionName": {
-            "order": 5,
-            "type": "string",
-            "default": "t",
-            "description": "%config.extract.vueTemplateFunctionName.desc%"
-          },
-          "i18n-mage.extract.vueScriptFunctionName": {
-            "order": 6,
-            "type": "string",
-            "default": "t",
-            "description": "%config.extract.vueScriptFunctionName.desc%"
-          },
-          "i18n-mage.extract.vueScriptImportLines": {
-            "order": 7,
-            "type": "array",
-            "default": [],
-            "description": "%config.extract.vueScriptImportLines.desc%",
-            "items": {
-              "type": "string"
-            }
-          },
-          "i18n-mage.extract.vueScriptSetupLines": {
-            "order": 8,
-            "type": "array",
-            "default": [],
-            "description": "%config.extract.vueScriptSetupLines.desc%",
-            "items": {
-              "type": "string"
-            }
-          },
-          "i18n-mage.extract.onlyExtractSourceLanguageText": {
-            "order": 9,
-            "type": "boolean",
-            "default": true,
-            "description": "%config.extract.onlyExtractSourceLanguageText.desc%"
-          },
-          "i18n-mage.extract.vueTemplateIncludeAttrs": {
-            "order": 10,
-            "type": "array",
-            "default": [],
-            "description": "%config.extract.vueTemplateIncludeAttrs.desc%",
-            "items": {
-              "type": "string"
-            }
-          },
-          "i18n-mage.extract.vueTemplateExcludeAttrs": {
-            "order": 11,
-            "type": "array",
-            "default": [
-              "key",
-              "ref",
-              "prop",
-              "value",
-              "class",
-              "style",
-              "id",
-              "for",
-              "type",
-              "name",
-              "src",
-              "href",
-              "to"
-            ],
-            "description": "%config.extract.vueTemplateExcludeAttrs.desc%",
-            "items": {
-              "type": "string"
-            }
-          }
-        }
-      },
-      {
         "id": "i18n-mage-writeRules",
         "type": "object",
         "title": "%config.writeRules.title%",
@@ -818,6 +702,134 @@
             "type": "boolean",
             "default": false,
             "description": "%config.enablePrefixTagRule.desc%"
+          }
+        }
+      },
+      {
+        "id": "i18n-mage-extract",
+        "type": "object",
+        "title": "%config.extract.title%",
+        "properties": {
+          "i18n-mage.extract.fileExtensions": {
+            "order": 1,
+            "type": "array",
+            "default": [
+              ".js",
+              ".ts",
+              ".jsx",
+              ".tsx",
+              ".mjs",
+              ".cjs",
+              ".vue"
+            ],
+            "description": "%config.extract.fileExtensions.desc%",
+            "items": {
+              "type": "string"
+            }
+          },
+          "i18n-mage.extract.jsTsFunctionName": {
+            "order": 2,
+            "type": "string",
+            "default": "t",
+            "description": "%config.extract.jsTsFunctionName.desc%"
+          },
+          "i18n-mage.extract.jsTsImportLines": {
+            "order": 3,
+            "type": "array",
+            "default": [],
+            "description": "%config.extract.jsTsImportLines.desc%",
+            "items": {
+              "type": "string"
+            }
+          },
+          "i18n-mage.extract.jsTsSetupLines": {
+            "order": 4,
+            "type": "array",
+            "default": [],
+            "description": "%config.extract.jsTsSetupLines.desc%",
+            "items": {
+              "type": "string"
+            }
+          },
+          "i18n-mage.extract.skipJsTsInjection": {
+            "order": 5,
+            "type": "boolean",
+            "default": false,
+            "description": "%config.extract.skipJsTsInjection.desc%"
+          },
+          "i18n-mage.extract.vueTemplateFunctionName": {
+            "order": 6,
+            "type": "string",
+            "default": "t",
+            "description": "%config.extract.vueTemplateFunctionName.desc%"
+          },
+          "i18n-mage.extract.vueScriptFunctionName": {
+            "order": 7,
+            "type": "string",
+            "default": "t",
+            "description": "%config.extract.vueScriptFunctionName.desc%"
+          },
+          "i18n-mage.extract.vueScriptImportLines": {
+            "order": 8,
+            "type": "array",
+            "default": [],
+            "description": "%config.extract.vueScriptImportLines.desc%",
+            "items": {
+              "type": "string"
+            }
+          },
+          "i18n-mage.extract.vueScriptSetupLines": {
+            "order": 9,
+            "type": "array",
+            "default": [],
+            "description": "%config.extract.vueScriptSetupLines.desc%",
+            "items": {
+              "type": "string"
+            }
+          },
+          "i18n-mage.extract.skipVueScriptInjection": {
+            "order": 10,
+            "type": "boolean",
+            "default": false,
+            "description": "%config.extract.skipVueScriptInjection.desc%"
+          },
+          "i18n-mage.extract.onlyExtractSourceLanguageText": {
+            "order": 11,
+            "type": "boolean",
+            "default": true,
+            "description": "%config.extract.onlyExtractSourceLanguageText.desc%"
+          },
+          "i18n-mage.extract.vueTemplateIncludeAttrs": {
+            "order": 12,
+            "type": "array",
+            "default": [],
+            "description": "%config.extract.vueTemplateIncludeAttrs.desc%",
+            "items": {
+              "type": "string"
+            }
+          },
+          "i18n-mage.extract.vueTemplateExcludeAttrs": {
+            "order": 13,
+            "type": "array",
+            "default": [
+              "key",
+              "ref",
+              "prop",
+              "value",
+              "class",
+              "style",
+              "id",
+              "for",
+              "type",
+              "name",
+              "src",
+              "href",
+              "to"
+            ],
+            "description": "%config.extract.vueTemplateExcludeAttrs.desc%",
+            "items": {
+              "type": "string"
+            }
           }
         }
       },

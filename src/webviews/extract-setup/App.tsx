@@ -23,6 +23,8 @@ type FormState = {
   vueScriptSetupLinesText: string;
   jsTsImportLinesText: string;
   jsTsSetupLinesText: string;
+  skipJsTsInjection: boolean;
+  skipVueScriptInjection: boolean;
   extractScopePathsText: string;
   ignoreExtractScopePathsText: string;
   translationFileType: Defaults["translationFileType"];
@@ -56,22 +58,22 @@ type PreviewValue = string | PreviewBranch;
 const SOURCE_LANGUAGE_FILTER_CODES = new Set(["zh-CN", "zh-TW", "ja", "ko", "ru", "ar", "th", "hi", "vi"]);
 const AUTO_PATH_SEGMENTS = ["src", "views", "app"];
 const PREVIEW_SAMPLES = [
-  { sourceZh: "\u6587\u672c\u4e00", sourceEn: "Text One", englishWords: ["text", "one"], pinyinWords: ["wen", "ben", "yi"] },
-  { sourceZh: "\u6587\u672c\u4e8c", sourceEn: "Text Two", englishWords: ["text", "two"], pinyinWords: ["wen", "ben", "er"] },
+  { sourceZh: "文本一", sourceEn: "Text One", englishWords: ["text", "one"], pinyinWords: ["wen", "ben", "yi"] },
+  { sourceZh: "文本二", sourceEn: "Text Two", englishWords: ["text", "two"], pinyinWords: ["wen", "ben", "er"] },
   {
-    sourceZh: "\u9875\u9762\u6807\u9898",
+    sourceZh: "页面标题",
     sourceEn: "Page Title",
     englishWords: ["page", "title"],
     pinyinWords: ["ye", "mian", "biao", "ti"]
   },
   {
-    sourceZh: "\u7528\u6237\u540d\u79f0",
+    sourceZh: "用户名",
     sourceEn: "User Name",
     englishWords: ["user", "name"],
     pinyinWords: ["yong", "hu", "ming", "cheng"]
   },
   {
-    sourceZh: "\u8d85\u7ea7\u8d85\u7ea7\u8d85\u7ea7\u8d85\u7ea7\u8d85\u7ea7\u8d85\u7ea7\u957f\u7684\u9875\u9762\u6587\u672c\u6807\u9898",
+    sourceZh: "超级长的页面文本标题用于预览",
     sourceEn: "Super extremely long page text title for preview",
     englishWords: ["super", "extremely", "long", "page", "text", "title", "for", "preview"],
     pinyinWords: ["chao", "ji", "chao", "ji", "chang", "ye", "mian", "wen", "ben", "biao", "ti"]
@@ -98,6 +100,28 @@ function parseExtensions(input: string) {
     .map(item => item.trim().toLowerCase())
     .filter(Boolean)
     .map(item => (item.startsWith(".") ? item : `.${item}`));
+}
+
+function getFormValidationError(form: FormState, hasDetectedLangs: boolean, t: (key: string, ...args: unknown[]) => string) {
+  const parsedExtensions = parseExtensions(form.fileExtensionsText);
+  const hasVueFiles = parsedExtensions.includes(".vue");
+  const hasJsTsFiles = parsedExtensions.some(item => [".js", ".ts", ".jsx", ".tsx", ".mjs", ".cjs"].includes(item));
+  if (!hasDetectedLangs && form.languagePath.trim().length === 0) {
+    return t("extractSetup.errorLanguagePathRequired");
+  }
+  if (!hasDetectedLangs && form.targetLanguages.length === 0) {
+    return t("extractSetup.errorTargetLanguagesRequired");
+  }
+  if (hasJsTsFiles && form.jsTsFunctionName.trim().length === 0) {
+    return `${t("extractSetup.labelJsTsFunctionName")} ${t("common.validate.required")}`;
+  }
+  if (hasJsTsFiles && !form.skipJsTsInjection && form.jsTsImportLinesText.trim().length === 0) {
+    return `${t("extractSetup.labelJsTsImportLines")} ${t("common.validate.required")}`;
+  }
+  if (hasVueFiles && form.framework === "vue-i18n" && !form.skipVueScriptInjection && form.vueScriptImportLinesText.trim().length === 0) {
+    return `${t("extractSetup.labelVueScriptImportLines")} ${t("common.validate.required")}`;
+  }
+  return "";
 }
 
 function upperFirst(value: string) {
@@ -357,8 +381,8 @@ function toInitialState(data: ExtractSetupWebviewData): FormState {
   const normalizedIndentType = d.indentType === "auto" ? "space" : d.indentType;
   const normalizedQuoteStyleForKey = d.quoteStyleForKey === "auto" ? "double" : d.quoteStyleForKey;
   const normalizedQuoteStyleForValue = d.quoteStyleForValue === "auto" ? "double" : d.quoteStyleForValue;
-  return {
-    syncToWorkspaceConfig: data.isFirstSetup,
+  const initial: FormState = {
+    syncToWorkspaceConfig: false,
     framework: d.framework,
     languagePath: d.languagePath,
     fileExtensionsText: d.fileExtensions.join(", "),
@@ -369,6 +393,8 @@ function toInitialState(data: ExtractSetupWebviewData): FormState {
     vueScriptSetupLinesText: d.vueScriptSetupLines.join("\n"),
     jsTsImportLinesText: d.jsTsImportLines.join("\n"),
     jsTsSetupLinesText: d.jsTsSetupLines.join("\n"),
+    skipJsTsInjection: d.skipJsTsInjection,
+    skipVueScriptInjection: d.skipVueScriptInjection,
     extractScopePathsText: d.extractScopePaths.join(", "),
     ignoreExtractScopePathsText: d.ignoreExtractScopePaths.join(", "),
     translationFileType: d.translationFileType,
@@ -392,6 +418,9 @@ function toInitialState(data: ExtractSetupWebviewData): FormState {
     ignorePossibleVariables: d.ignorePossibleVariables,
     onlyExtractSourceLanguageText: d.onlyExtractSourceLanguageText
   };
+  const initialError = getFormValidationError(initial, data.hasDetectedLangs, (key: string) => key);
+  initial.syncToWorkspaceConfig = initialError.length > 0;
+  return initial;
 }
 
 function renderOptions(t: (key: string) => string, options: Array<{ value: string; key: string }>) {
@@ -461,8 +490,6 @@ function FieldSection(props: {
           </select>
           <label>{t("extractSetup.labelLanguagePath")}</label>
           <input value={form.languagePath} onInput={e => update("languagePath", (e.target as HTMLInputElement).value)} />
-          <label>{t("extractSetup.labelFileExtensions")}</label>
-          <input value={form.fileExtensionsText} onInput={e => update("fileExtensionsText", (e.target as HTMLInputElement).value)} />
           {hasJsTsFiles ? (
             <>
               <label>{t("extractSetup.labelJsTsFunctionName")}</label>
@@ -515,13 +542,6 @@ function FieldSection(props: {
           <TargetLanguagePicker selected={form.targetLanguages} options={availableLanguages} onToggle={toggleTargetLanguage} t={t} />
           <label>{t("extractSetup.labelReferenceLanguage")}</label>
           <input value={form.referenceLanguage} onInput={e => update("referenceLanguage", (e.target as HTMLInputElement).value)} />
-          <label>{t("extractSetup.labelExtractScopePath")}</label>
-          <input value={form.extractScopePathsText} onInput={e => update("extractScopePathsText", (e.target as HTMLInputElement).value)} />
-          <label>{t("extractSetup.labelIgnoreExtractScopePaths")}</label>
-          <input
-            value={form.ignoreExtractScopePathsText}
-            onInput={e => update("ignoreExtractScopePathsText", (e.target as HTMLInputElement).value)}
-          />
         </div>
       </section>
 
@@ -695,8 +715,6 @@ function DetectedProjectSection(props: {
     <section className="entry-card">
       <h3>{t("extractSetup.sectionProject")}</h3>
       <div className="grid">
-        <label>{t("extractSetup.labelFileExtensions")}</label>
-        <input value={form.fileExtensionsText} onInput={e => update("fileExtensionsText", (e.target as HTMLInputElement).value)} />
         {hasJsTsFiles ? (
           <>
             <label>{t("extractSetup.labelJsTsFunctionName")}</label>
@@ -745,13 +763,6 @@ function DetectedProjectSection(props: {
             />
           </>
         ) : null}
-        <label>{t("extractSetup.labelExtractScopePath")}</label>
-        <input value={form.extractScopePathsText} onInput={e => update("extractScopePathsText", (e.target as HTMLInputElement).value)} />
-        <label>{t("extractSetup.labelIgnoreExtractScopePaths")}</label>
-        <input
-          value={form.ignoreExtractScopePathsText}
-          onInput={e => update("ignoreExtractScopePathsText", (e.target as HTMLInputElement).value)}
-        />
       </div>
     </section>
   );
@@ -785,24 +796,9 @@ export function App({ data }: Props) {
   };
 
   const onSave = () => {
-    if (!data.hasDetectedLangs && form.languagePath.trim().length === 0) {
-      setError(t("extractSetup.errorLanguagePathRequired"));
-      return;
-    }
-    if (!data.hasDetectedLangs && form.targetLanguages.length === 0) {
-      setError(t("extractSetup.errorTargetLanguagesRequired"));
-      return;
-    }
-    if (hasJsTsFiles && form.jsTsFunctionName.trim().length === 0) {
-      setError(`${t("extractSetup.labelJsTsFunctionName")} ${t("common.validate.required")}`);
-      return;
-    }
-    if (hasJsTsFiles && form.jsTsImportLinesText.trim().length === 0) {
-      setError(`${t("extractSetup.labelJsTsImportLines")} ${t("common.validate.required")}`);
-      return;
-    }
-    if (hasVueFiles && form.framework === "vue-i18n" && form.vueScriptImportLinesText.trim().length === 0) {
-      setError(`${t("extractSetup.labelVueScriptImportLines")} ${t("common.validate.required")}`);
+    const validationError = getFormValidationError(form, data.hasDetectedLangs, t);
+    if (validationError.length > 0) {
+      setError(validationError);
       return;
     }
     setError("");
@@ -856,24 +852,62 @@ export function App({ data }: Props) {
 
         <section className="entry-card">
           <h3>{t("extractSetup.sectionExtraction")}</h3>
-          {!data.hasDetectedLangs ? (
-            <div className="bool-row">
-              <span>{t("extractSetup.labelIgnorePossibleVariables")}</span>
+          <div className="grid">
+            <label>{t("extractSetup.labelFileExtensions")}</label>
+            <input value={form.fileExtensionsText} onInput={e => update("fileExtensionsText", (e.target as HTMLInputElement).value)} />
+            <label>{t("extractSetup.labelExtractScopePath")}</label>
+            <input
+              value={form.extractScopePathsText}
+              onInput={e => update("extractScopePathsText", (e.target as HTMLInputElement).value)}
+            />
+            <label>{t("extractSetup.labelIgnoreExtractScopePaths")}</label>
+            <input
+              value={form.ignoreExtractScopePathsText}
+              onInput={e => update("ignoreExtractScopePathsText", (e.target as HTMLInputElement).value)}
+            />
+            {hasJsTsFiles ? (
+              <>
+                <label>{t("extractSetup.labelSkipJsTsInjection")}</label>
+                <label className="inline-switch">
+                  <input
+                    type="checkbox"
+                    checked={form.skipJsTsInjection}
+                    onChange={e => update("skipJsTsInjection", (e.target as HTMLInputElement).checked)}
+                  />
+                </label>
+              </>
+            ) : null}
+            {hasVueFiles && form.framework === "vue-i18n" ? (
+              <>
+                <label>{t("extractSetup.labelSkipVueScriptInjection")}</label>
+                <label className="inline-switch">
+                  <input
+                    type="checkbox"
+                    checked={form.skipVueScriptInjection}
+                    onChange={e => update("skipVueScriptInjection", (e.target as HTMLInputElement).checked)}
+                  />
+                </label>
+              </>
+            ) : null}
+            <label>{t("extractSetup.labelIgnorePossibleVariables")}</label>
+            <label className="inline-switch">
               <input
                 type="checkbox"
                 checked={form.ignorePossibleVariables}
                 onChange={e => update("ignorePossibleVariables", (e.target as HTMLInputElement).checked)}
               />
-            </div>
-          ) : null}
+            </label>
+          </div>
           {supportsSourceLanguageFilter ? (
-            <div className="bool-row" style={{ marginTop: "8px" }}>
-              <span>{t("extractSetup.labelOnlySourceLanguageText")}</span>
-              <input
-                type="checkbox"
-                checked={form.onlyExtractSourceLanguageText}
-                onChange={e => update("onlyExtractSourceLanguageText", (e.target as HTMLInputElement).checked)}
-              />
+            <div className="grid switch-grid" style={{ marginTop: "8px" }}>
+              <label>{t("extractSetup.labelOnlySourceLanguageText")}</label>
+              <label className="inline-switch">
+                <input
+                  type="checkbox"
+                  checked={form.onlyExtractSourceLanguageText}
+                  onChange={e => update("onlyExtractSourceLanguageText", (e.target as HTMLInputElement).checked)}
+                />
+              </label>
             </div>
           ) : null}
           {showVueTemplateAttrsConfig ? (

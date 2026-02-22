@@ -127,6 +127,24 @@ textarea {
   accent-color: var(--btn-bg);
 }
 
+.inline-switch {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  height: 32px;
+}
+
+.inline-switch input[type="checkbox"] {
+  width: auto;
+  inline-size: 14px;
+  block-size: 14px;
+  accent-color: var(--btn-bg);
+}
+
+.switch-grid {
+  margin-top: 8px;
+}
+
 .lang-picker {
   border: 1px solid var(--border);
   border-radius: 10px;
