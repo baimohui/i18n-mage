@@ -98,6 +98,7 @@
   "config.extract.onlyExtractSourceLanguageText.desc": "Only extract hardcoded text that matches source-language characters when detectable",
   "config.extract.vueTemplateIncludeAttrs.desc": "Vue template attribute whitelist for extraction",
   "config.extract.vueTemplateExcludeAttrs.desc": "Vue template attribute blacklist for extraction",
+  "config.extract.ignoreTexts.desc": "Exact text values to skip during hardcoded text extraction",
   "config.scanStringLiterals.desc": "Scan string literals as potential entries",
   "config.checkOnSave.desc": "Automatically check entries on file save (debounced)",
   "config.fileSizeSkipThresholdKB.desc": "Skip checking files larger than this size (KB)",

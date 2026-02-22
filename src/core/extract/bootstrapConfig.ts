@@ -20,6 +20,7 @@ type BootstrapRaw = Partial<ExtractBootstrapConfig> & {
   vueScriptSetupLinesText?: string;
   jsTsImportLinesText?: string;
   jsTsSetupLinesText?: string;
+  ignoreTextsText?: string;
 };
 
 export interface ExtractBootstrapConfig {
@@ -58,6 +59,7 @@ export interface ExtractBootstrapConfig {
   targetLanguages: string[];
   vueTemplateIncludeAttrs: string[];
   vueTemplateExcludeAttrs: string[];
+  ignoreTexts: string[];
 }
 
 function getDefaultTargetLanguages() {
@@ -101,7 +103,8 @@ function defaultBootstrapConfig(): ExtractBootstrapConfig {
     ignoreExtractScopePaths: [],
     targetLanguages: getDefaultTargetLanguages(),
     vueTemplateIncludeAttrs: [],
-    vueTemplateExcludeAttrs: ["key", "ref", "prop", "value", "class", "style", "id", "for", "type", "name", "src", "href", "to"]
+    vueTemplateExcludeAttrs: ["key", "ref", "prop", "value", "class", "style", "id", "for", "type", "name", "src", "href", "to"],
+    ignoreTexts: []
   };
 }
 
@@ -193,6 +196,7 @@ function sanitizeBootstrapConfig(raw: BootstrapRaw | undefined): ExtractBootstra
   const vueTemplateExcludeAttrs = Array.isArray(raw.vueTemplateExcludeAttrs)
     ? raw.vueTemplateExcludeAttrs
     : parseCsvText(raw.vueTemplateExcludeAttrsText);
+  const ignoreTexts = Array.isArray(raw.ignoreTexts) ? raw.ignoreTexts : parseCsvText(raw.ignoreTextsText);
   const vueScriptImportLines = Array.isArray(raw.vueScriptImportLines)
     ? raw.vueScriptImportLines
     : parseLinesText(raw.vueScriptImportLinesText);
@@ -282,7 +286,8 @@ function sanitizeBootstrapConfig(raw: BootstrapRaw | undefined): ExtractBootstra
     targetLanguages: targetLanguages.length > 0 ? targetLanguages : defaults.targetLanguages,
     vueTemplateIncludeAttrs: vueTemplateIncludeAttrs.map(item => item.toLowerCase()),
     vueTemplateExcludeAttrs:
-      vueTemplateExcludeAttrs.length > 0 ? vueTemplateExcludeAttrs.map(item => item.toLowerCase()) : defaults.vueTemplateExcludeAttrs
+      vueTemplateExcludeAttrs.length > 0 ? vueTemplateExcludeAttrs.map(item => item.toLowerCase()) : defaults.vueTemplateExcludeAttrs,
+    ignoreTexts: ignoreTexts.map(item => item.trim()).filter(Boolean)
   };
 
   if (config.languageStructure === "nested" && config.sortRule === "byPosition") {
@@ -379,6 +384,7 @@ function inferBootstrapConfigFromCurrent(projectPath: string): ExtractBootstrapC
     onlyExtractSourceLanguageText: getConfig<boolean>("extract.onlyExtractSourceLanguageText", defaults.onlyExtractSourceLanguageText),
     vueTemplateIncludeAttrs: getConfig<string[]>("extract.vueTemplateIncludeAttrs", defaults.vueTemplateIncludeAttrs),
     vueTemplateExcludeAttrs: getConfig<string[]>("extract.vueTemplateExcludeAttrs", defaults.vueTemplateExcludeAttrs),
+    ignoreTexts: getConfig<string[]>("extract.ignoreTexts", defaults.ignoreTexts),
     extractScopePaths: getConfig<string[]>("workspace.extractScopeWhitelist", defaults.extractScopePaths),
     ignoreExtractScopePaths: getConfig<string[]>("workspace.extractScopeBlacklist", defaults.ignoreExtractScopePaths),
     keyPrefix: getConfig<"none" | "auto-path">("writeRules.keyPrefix", defaults.keyPrefix),
@@ -418,6 +424,7 @@ async function applyKnownConfigs(config: ExtractBootstrapConfig, projectPath: st
   await setConfigIfChanged("extract.onlyExtractSourceLanguageText", config.onlyExtractSourceLanguageText);
   await setConfigIfChanged("extract.vueTemplateIncludeAttrs", config.vueTemplateIncludeAttrs);
   await setConfigIfChanged("extract.vueTemplateExcludeAttrs", config.vueTemplateExcludeAttrs);
+  await setConfigIfChanged("extract.ignoreTexts", config.ignoreTexts);
   await setConfigIfChanged("workspace.extractScopeWhitelist", config.extractScopePaths);
   await setConfigIfChanged("workspace.extractScopeBlacklist", config.ignoreExtractScopePaths);
   const functionNames = Array.from(new Set([config.jsTsFunctionName, config.vueTemplateFunctionName, config.vueScriptFunctionName])).filter(
@@ -464,6 +471,7 @@ async function applyDetectedConfigs(config: ExtractBootstrapConfig) {
   await setConfigIfChanged("extract.onlyExtractSourceLanguageText", config.onlyExtractSourceLanguageText);
   await setConfigIfChanged("extract.vueTemplateIncludeAttrs", config.vueTemplateIncludeAttrs);
   await setConfigIfChanged("extract.vueTemplateExcludeAttrs", config.vueTemplateExcludeAttrs);
+  await setConfigIfChanged("extract.ignoreTexts", config.ignoreTexts);
   await setConfigIfChanged("workspace.extractScopeWhitelist", config.extractScopePaths);
   await setConfigIfChanged("workspace.extractScopeBlacklist", config.ignoreExtractScopePaths);
   const functionNames = Array.from(new Set([config.jsTsFunctionName, config.vueTemplateFunctionName, config.vueScriptFunctionName])).filter(

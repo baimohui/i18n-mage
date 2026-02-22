@@ -14,6 +14,7 @@ interface ScanOptions {
   scopePaths?: string[];
   fileExtensions?: string[];
   translationFunctionNames?: string[];
+  ignoredTexts?: string[];
   ignoredScopePaths?: string[];
   onlyExtractSourceLanguageText?: boolean;
   vueTemplateIncludeAttrs?: string[];
@@ -22,6 +23,7 @@ interface ScanOptions {
 
 export function scanHardcodedTextCandidates(options: ScanOptions): ExtractScanResult {
   const targetExtensions = getTargetExtensions(options.fileExtensions);
+  const ignoredTextSet = getIgnoredTextSet(options.ignoredTexts);
   const scanRoots = resolveScanRoots(options.projectPath, options.scopePath, options.scopePaths);
   const filePaths = Array.from(
     new Set(
@@ -45,12 +47,20 @@ export function scanHardcodedTextCandidates(options: ScanOptions): ExtractScanRe
           fileContent,
           options.sourceLanguage,
           sourceLanguageGuard,
+          ignoredTextSet,
           options.vueTemplateIncludeAttrs,
           options.vueTemplateExcludeAttrs
         )
       );
       candidates.push(
-        ...scanVueScriptCandidates(filePath, fileContent, translationFunctionNames, options.sourceLanguage, sourceLanguageGuard)
+        ...scanVueScriptCandidates(
+          filePath,
+          fileContent,
+          translationFunctionNames,
+          options.sourceLanguage,
+          sourceLanguageGuard,
+          ignoredTextSet
+        )
       );
       continue;
     }
@@ -69,7 +79,8 @@ export function scanHardcodedTextCandidates(options: ScanOptions): ExtractScanRe
         "js-string",
         translationFunctionNames,
         options.sourceLanguage,
-        sourceLanguageGuard
+        sourceLanguageGuard,
+        ignoredTextSet
       )
     );
   }
@@ -108,7 +119,8 @@ function scanVueScriptCandidates(
   fileContent: string,
   translationFunctionNames: Set<string>,
   sourceLanguage?: string,
-  sourceLanguageGuard = false
+  sourceLanguageGuard = false,
+  ignoredTextSet: Set<string> = new Set()
 ): ExtractCandidate[] {
   const candidates: ExtractCandidate[] = [];
   const scriptRegex = /<script\b[^>]*>[\s\S]*?<\/script\b[^>]*>/gi;
@@ -134,7 +146,8 @@ function scanVueScriptCandidates(
         "vue-script-string",
         translationFunctionNames,
         sourceLanguage,
-        sourceLanguageGuard
+        sourceLanguageGuard,
+        ignoredTextSet
       )
     );
   }
@@ -147,6 +160,7 @@ function scanVueTemplateCandidates(
   fileContent: string,
   sourceLanguage?: string,
   sourceLanguageGuard = false,
+  ignoredTextSet: Set<string> = new Set(),
   includeAttrs: string[] = [],
   excludeAttrs: string[] = []
 ): ExtractCandidate[] {
@@ -176,6 +190,7 @@ function scanVueTemplateCandidates(
       if (includeSet.size > 0 && !includeSet.has(normalizedAttrName)) continue;
       if (excludeSet.has(normalizedAttrName)) continue;
       const text = (attrMatch[3] ?? attrMatch[4] ?? "").trim();
+      if (isIgnoredText(text, ignoredTextSet)) continue;
       if (!isExtractableText(text, sourceLanguage, sourceLanguageGuard)) continue;
 
       const fullMatch = attrMatch[0];
@@ -199,6 +214,7 @@ function scanVueTemplateCandidates(
     while ((textMatch = textRegex.exec(templateContent)) !== null) {
       const rawText = textMatch[1] ?? "";
       const text = rawText.trim();
+      if (isIgnoredText(text, ignoredTextSet)) continue;
       if (!isExtractableText(text, sourceLanguage, sourceLanguageGuard)) continue;
       const textOffset = rawText.indexOf(text);
       if (textOffset < 0) continue;
@@ -227,7 +243,8 @@ function scanSourceCandidates(
   context: ExtractCandidate["context"],
   translationFunctionNames: Set<string>,
   sourceLanguage?: string,
-  sourceLanguageGuard = false
+  sourceLanguageGuard = false,
+  ignoredTextSet: Set<string> = new Set()
 ): ExtractCandidate[] {
   const sourceFile = ts.createSourceFile(filePath, code, ts.ScriptTarget.Latest, true, scriptKind);
   const results: ExtractCandidate[] = [];
@@ -238,6 +255,9 @@ function scanSourceCandidates(
         return;
       }
       const text = node.text.trim();
+      if (isIgnoredText(text, ignoredTextSet)) {
+        return;
+      }
       if (!isExtractableText(text, sourceLanguage, sourceLanguageGuard)) {
         return;
       }
@@ -349,6 +369,18 @@ function shouldUseSourceLanguageGuard(sourceLanguage?: string, onlyExtractSource
     code === "hi" ||
     code === "vi"
   );
+}
+
+function getIgnoredTextSet(ignoredTexts?: string[]) {
+  if (!Array.isArray(ignoredTexts) || ignoredTexts.length === 0) {
+    return new Set<string>();
+  }
+  return new Set(ignoredTexts.map(item => item.trim()).filter(Boolean));
+}
+
+function isIgnoredText(text: string, ignoredTextSet: Set<string>) {
+  if (ignoredTextSet.size === 0) return false;
+  return ignoredTextSet.has(text.trim());
 }
 
 function readAllFiles(dir: string): string[] {

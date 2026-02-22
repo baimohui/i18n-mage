@@ -238,6 +238,7 @@
   "extractSetup.labelReferenceLanguage": "翻译源语言",
   "extractSetup.labelExtractScopePath": "提取范围白名单（相对路径，逗号分隔）",
   "extractSetup.labelIgnoreExtractScopePaths": "忽略提取范围黑名单（相对路径，逗号分隔）",
+  "extractSetup.labelIgnoreTexts": "忽略提取文本（逗号分隔）",
   "extractSetup.labelSyncToWorkspaceConfig": "同步到工作区配置",
   "extractSetup.labelSortRule": "写入排序规则",
   "extractSetup.labelStopPrefixes": "前序停用前缀",

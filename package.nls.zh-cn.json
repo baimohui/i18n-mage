@@ -98,6 +98,7 @@
   "config.extract.onlyExtractSourceLanguageText.desc": "当源语言可识别字符特征时，仅提取符合源语言字符的硬编码文案",
   "config.extract.vueTemplateIncludeAttrs.desc": "Vue 模板属性提取白名单",
   "config.extract.vueTemplateExcludeAttrs.desc": "Vue 模板属性提取黑名单",
+  "config.extract.ignoreTexts.desc": "硬编码提取时需要忽略的精确文本",
   "config.scanStringLiterals.desc": "扫描字符串字面量作为潜在词条",
   "config.checkOnSave.desc": "保存文件时自动检查词条（含防抖）",
   "config.fileSizeSkipThresholdKB.desc": "文件超过该大小（KB）时跳过检查",

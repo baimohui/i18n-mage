@@ -830,6 +830,15 @@
             "items": {
               "type": "string"
             }
+          },
+          "i18n-mage.extract.ignoreTexts": {
+            "order": 14,
+            "type": "array",
+            "default": [],
+            "description": "%config.extract.ignoreTexts.desc%",
+            "items": {
+              "type": "string"
+            }
           }
         }
       },

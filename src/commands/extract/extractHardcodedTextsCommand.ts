@@ -204,6 +204,7 @@ export function registerExtractHardcodedTextsCommand(context: vscode.ExtensionCo
         fileExtensions: bootstrap.fileExtensions,
         translationFunctionNames: [bootstrap.jsTsFunctionName, bootstrap.vueTemplateFunctionName, bootstrap.vueScriptFunctionName],
         onlyExtractSourceLanguageText: bootstrap.onlyExtractSourceLanguageText,
+        ignoredTexts: bootstrap.ignoreTexts,
         ignoredScopePaths: bootstrap.ignoreExtractScopePaths,
         vueTemplateIncludeAttrs: bootstrap.vueTemplateIncludeAttrs,
         vueTemplateExcludeAttrs: bootstrap.vueTemplateExcludeAttrs

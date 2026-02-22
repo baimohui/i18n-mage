@@ -238,6 +238,7 @@
   "extractSetup.labelReferenceLanguage": "Reference Language",
   "extractSetup.labelExtractScopePath": "Extract Scope Whitelist (Relative Path, comma-separated)",
   "extractSetup.labelIgnoreExtractScopePaths": "Extract Scope Blacklist (Relative Path, comma-separated)",
+  "extractSetup.labelIgnoreTexts": "Ignored Texts (comma-separated)",
   "extractSetup.labelSyncToWorkspaceConfig": "Sync To Workspace Config",
   "extractSetup.labelSortRule": "Sort Rule",
   "extractSetup.labelStopPrefixes": "Stop Prefixes",

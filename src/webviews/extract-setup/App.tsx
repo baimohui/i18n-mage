@@ -45,6 +45,7 @@ type FormState = {
   stopPrefixesText: string;
   vueTemplateIncludeAttrsText: string;
   vueTemplateExcludeAttrsText: string;
+  ignoreTextsText: string;
   ignorePossibleVariables: boolean;
   onlyExtractSourceLanguageText: boolean;
 };
@@ -415,6 +416,7 @@ function toInitialState(data: ExtractSetupWebviewData): FormState {
     stopPrefixesText: d.stopPrefixes.join(", "),
     vueTemplateIncludeAttrsText: d.vueTemplateIncludeAttrs.join(", "),
     vueTemplateExcludeAttrsText: d.vueTemplateExcludeAttrs.join(", "),
+    ignoreTextsText: d.ignoreTexts.join(", "),
     ignorePossibleVariables: d.ignorePossibleVariables,
     onlyExtractSourceLanguageText: d.onlyExtractSourceLanguageText
   };
@@ -865,6 +867,8 @@ export function App({ data }: Props) {
               value={form.ignoreExtractScopePathsText}
               onInput={e => update("ignoreExtractScopePathsText", (e.target as HTMLInputElement).value)}
             />
+            <label>{t("extractSetup.labelIgnoreTexts")}</label>
+            <input value={form.ignoreTextsText} onInput={e => update("ignoreTextsText", (e.target as HTMLInputElement).value)} />
             {hasJsTsFiles ? (
               <>
                 <label>{t("extractSetup.labelSkipJsTsInjection")}</label>
