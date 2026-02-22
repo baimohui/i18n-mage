@@ -1766,7 +1766,7 @@
     "test:integration": "vscode-test --extensionDevelopmentPath=. --extensionTestsPath=test/integration/index.ts",
     "build:webviews": "vite build --mode production",
     "build:webviews:watch": "vite build --mode development --watch",
-    "build": "npm run build:webviews && node esbuild.config.js",
+    "build": "npm run build:webviews && ts-node esbuild.config.ts",
     "package": "npm run build && vsce package --no-yarn",
     "format": "prettier --write \"*.{ts,tsx,js,jsx,md}\""
   },
