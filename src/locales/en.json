@@ -57,7 +57,7 @@
   "command.exportDiff.selectBaselineCommit": "Select baseline commit for comparison",
   "command.exportDiff.success": "Version diff exported: {0} changed entries",
   "command.exportDiff.title": "Export Version Diff",
-  "command.extractHardcodedTexts.applied": "Applied {0} code replacements and wrote {1} new translation entries",
+  "command.extractHardcodedTexts.applied": "{0} code replacements have been applied and {1} new entries have been written.",
   "command.extractHardcodedTexts.applying": "Applying extracted i18n changes",
   "command.extractHardcodedTexts.empty": "No extractable hardcoded text found after scanning {0} files",
   "command.extractHardcodedTexts.noLangPath": "No valid translation directory detected. Configure i18n-mage.workspace.languagePath first",
@@ -392,5 +392,9 @@
   "tree.usedInfo.undefinedPossibleVariable": "Text appears to be a variable",
   "tree.usedInfo.undefinedValidLang": "Text does not meet requirements for key generation",
   "tree.usedInfo.unused": "Unused",
-  "tree.usedInfo.used": "Used"
+  "tree.usedInfo.used": "Used",
+  "command.packagejsonContainsI18nRelatedKeywords": "package.json contains i18n-related keywords",
+  "command.detectedI18nProjectScore": "Detected i18n project score:",
+  "command.detectedI18nProjectSignals": "Detected i18n project signals:",
+  "command.failedToExtractObjectContent": "Failed to extract object content"
 }

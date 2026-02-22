@@ -57,7 +57,7 @@
   "command.exportDiff.selectBaselineCommit": "选择用于对比的基线提交",
   "command.exportDiff.success": "版本差异导出完成：共 {0} 条变更",
   "command.exportDiff.title": "导出版本差异",
-  "command.extractHardcodedTexts.applied": "已应用 {0} 处代码替换并写入 {1} 条新翻译条目",
+  "command.extractHardcodedTexts.applied": "已应用 {0} 处代码替换并写入 {1} 条新词条",
   "command.extractHardcodedTexts.applying": "正在应用提取的国际化变更",
   "command.extractHardcodedTexts.empty": "扫描 {0} 个文件后未发现可提取的硬编码文本",
   "command.extractHardcodedTexts.noLangPath": "未检测到有效的翻译目录。请先配置 i18n-mage.workspace.languagePath",
@@ -392,5 +392,9 @@
   "tree.usedInfo.undefinedPossibleVariable": "文本疑似变量",
   "tree.usedInfo.undefinedValidLang": "文本不符合要求，无法生成键",
   "tree.usedInfo.unused": "未使用",
-  "tree.usedInfo.used": "已使用"
+  "tree.usedInfo.used": "已使用",
+  "command.packagejsonContainsI18nRelatedKeywords": "package.json 包含 i18n 相关关键词",
+  "command.detectedI18nProjectScore": "检测 i18n 项目得分：",
+  "command.detectedI18nProjectSignals": "检测 i18n 项目信号：",
+  "command.failedToExtractObjectContent": "未能提取到对象内容"
 }

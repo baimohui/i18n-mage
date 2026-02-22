@@ -21,6 +21,7 @@ class ExtensionState {
   private _context: vscode.ExtensionContext | null = null;
   private _extensionSubscriptions: vscode.Disposable[] = [];
   private _restoreRegisterCommand: (() => void) | null = null;
+  private _startupDecorationRefreshTimers: Array<ReturnType<typeof setTimeout>> = [];
 
   private constructor() {}
 
@@ -90,6 +91,7 @@ class ExtensionState {
     await wrapWithProgress({ title: "" }, async () => {
       await treeInstance.initTree();
     });
+    this.scheduleStartupDecorationRefresh();
   }
 
   public deactivateExtensions() {
@@ -104,6 +106,8 @@ class ExtensionState {
 
     const decorator = DecoratorController.getInstance();
     decorator.dispose();
+    this._startupDecorationRefreshTimers.forEach(timer => clearTimeout(timer));
+    this._startupDecorationRefreshTimers.length = 0;
 
     this._restoreRegisterCommand?.();
     this._restoreRegisterCommand = null;
@@ -133,6 +137,21 @@ class ExtensionState {
     this._restoreRegisterCommand = () => {
       commandApi.registerCommand = originalRegisterCommand;
     };
+  }
+
+  private scheduleStartupDecorationRefresh() {
+    const refreshDecorations = () => {
+      if (!this._enabled) return;
+      const decorator = DecoratorController.getInstance();
+      decorator.updateVisibleEditors(vscode.window.visibleTextEditors);
+      decorator.update(vscode.window.activeTextEditor);
+    };
+
+    refreshDecorations();
+    [150, 500, 1200].forEach(delay => {
+      const timer = setTimeout(refreshDecorations, delay);
+      this._startupDecorationRefreshTimers.push(timer);
+    });
   }
 }
 

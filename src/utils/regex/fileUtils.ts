@@ -1,3 +1,4 @@
+import { t } from "@/utils/i18n";
 import fs from "fs";
 import vm from "node:vm";
 import path from "path";
@@ -20,7 +21,6 @@ import {
 import { isPathInsideDirectory, isSamePath, toRelativePath } from "../fs";
 import { getCacheConfig } from "../config";
 import { NotificationManager } from "../notification";
-import { t } from "../i18n";
 
 export function isValidI18nCallablePath(inputPath: string, isDirectoryHint?: boolean): boolean {
   const ignoredFiles = getCacheConfig<string[]>("workspace.ignoredFiles");
@@ -298,7 +298,7 @@ export function extractContent(content: string): [string, string, string] {
     }
   }
 
-  throw new Error("未能提取到对象内容");
+  throw new Error(t("command.failedToExtractObjectContent"));
 }
 
 export function getNestedValues(obj: EntryTree | string[]): string[] {

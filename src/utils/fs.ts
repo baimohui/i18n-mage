@@ -162,7 +162,7 @@ export async function detectI18nProject(dirPath: string): Promise<boolean> {
 
       if (pkg.keywords?.some((k: string) => k.includes("i18n") || k.includes("intl")) ?? false) {
         score += 2;
-        signals.push("package.json 包含 i18n 相关关键词");
+        signals.push(t("command.packagejsonContainsI18nRelatedKeywords"));
       }
     } catch {
       // ignore JSON parse errors
@@ -216,8 +216,8 @@ export async function detectI18nProject(dirPath: string): Promise<boolean> {
   }
 
   // 判定阈值
-  NotificationManager.logToOutput("检测 i18n 项目得分：" + score);
-  NotificationManager.logToOutput("检测 i18n 项目信号：" + signals.join(", "));
+  NotificationManager.logToOutput(t("command.detectedI18nProjectScore") + score);
+  NotificationManager.logToOutput(t("command.detectedI18nProjectSignals") + signals.join(", "));
   const isI18nProject = score >= 3;
   return isI18nProject;
 }
