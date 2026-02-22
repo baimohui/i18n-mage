@@ -1,0 +1,140 @@
+:root {
+  --bg: var(--vscode-editor-background);
+  --fg: var(--vscode-editor-foreground);
+  --muted: var(--vscode-descriptionForeground);
+  --border: var(--vscode-panel-border);
+  --panel: var(--vscode-editorWidget-background);
+  --btn-bg: var(--vscode-button-background);
+  --btn-fg: var(--vscode-button-foreground);
+  --btn-hover: var(--vscode-button-hoverBackground);
+}
+
+body {
+  margin: 0;
+  color: var(--fg);
+  background: var(--bg);
+  font-family: var(--vscode-font-family, "Segoe UI", sans-serif);
+}
+
+.app {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  padding: 16px;
+  box-sizing: border-box;
+}
+
+.page-head h1 {
+  margin: 0;
+  font-size: 18px;
+}
+
+.page-head p {
+  margin: 6px 0 0;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.content {
+  flex: 1;
+  overflow: auto;
+  margin-top: 12px;
+}
+
+.file-card {
+  border: 1px solid var(--border);
+  background: var(--panel);
+  border-radius: 10px;
+  margin-bottom: 10px;
+}
+
+.file-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--border);
+}
+
+.file-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.file-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+}
+
+.meta {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.rows {
+  padding: 6px 10px 10px;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 4px 0;
+}
+
+.row-main {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.row code {
+  font-size: 12px;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+.mini-btn {
+  padding: 4px 8px;
+  font-size: 11px;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--muted);
+}
+
+.mini-btn:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.actions {
+  margin-top: 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+button {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 7px 12px;
+  cursor: pointer;
+}
+
+.btn-primary {
+  background: var(--btn-bg);
+  color: var(--btn-fg);
+}
+
+.btn-primary:hover {
+  background: var(--btn-hover);
+}
+
+.btn-secondary {
+  background: transparent;
+  color: var(--fg);
+}

@@ -305,6 +305,7 @@ export async function ensureBootstrapConfig(params: {
   projectPath: string;
   hasDetectedLangs: boolean;
   initialExtractScopePath?: string;
+  overrideDefaults?: ExtractBootstrapConfig;
 }): Promise<ExtractBootstrapConfig | null> {
   const seenKey = getSetupSeenKey(params.projectPath);
   const isFirstSetup = params.context.workspaceState.get<boolean>(seenKey) !== true;
@@ -321,7 +322,7 @@ export async function ensureBootstrapConfig(params: {
     });
 
   if (params.hasDetectedLangs) {
-    const defaults = scopedDefaults(getDetectedProjectDefaults(params.projectPath));
+    const defaults = scopedDefaults(params.overrideDefaults ?? getDetectedProjectDefaults(params.projectPath));
     const raw = await openBootstrapWebview(params.context, defaults, true, params.projectPath, isFirstSetup);
     if (raw === null) return null;
     const config = sanitizeBootstrapConfig(raw);
@@ -331,7 +332,7 @@ export async function ensureBootstrapConfig(params: {
     return config;
   }
 
-  const defaults = scopedDefaults(getUndetectedProjectDefaults(params.projectPath));
+  const defaults = scopedDefaults(params.overrideDefaults ?? getUndetectedProjectDefaults(params.projectPath));
   const raw = await openBootstrapWebview(params.context, defaults, false, params.projectPath, isFirstSetup);
   if (raw === null) return null;
   const config = sanitizeBootstrapConfig(raw);

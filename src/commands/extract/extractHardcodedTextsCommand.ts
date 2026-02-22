@@ -5,7 +5,7 @@ import LangMage from "@/core/LangMage";
 import previewFixContent from "@/views/fixWebview";
 import { treeInstance } from "@/views/tree";
 import { I18nUpdatePayload, FixedTEntry, DirNode, NAMESPACE_STRATEGY } from "@/types";
-import { getConfig } from "@/utils/config";
+import { clearConfigCache, getConfig, setConfig } from "@/utils/config";
 import { registerDisposable } from "@/utils/dispose";
 import { wrapWithProgress } from "@/utils/wrapWithProgress";
 import { t } from "@/utils/i18n";
@@ -24,11 +24,12 @@ import {
 } from "@/utils/regex";
 import { toRelativePath } from "@/utils/fs";
 import { applyCodePatches } from "@/core/extract/applyCodePatches";
-import { ensureBootstrapConfig } from "@/core/extract/bootstrapConfig";
+import { ensureBootstrapConfig, ExtractBootstrapConfig } from "@/core/extract/bootstrapConfig";
 import { getLangCode } from "@/utils/langKey";
 import translateTo from "@/translator";
 import * as pinyin from "tiny-pinyin";
 import generateKeyFrom from "@/keyAiGenerator";
+import launchExtractScanConfirmWebview from "@/views/extractScanConfirmWebview";
 
 function getPathPrefix(candidateFile: string, keyPrefix: string, stopPrefixes: string[], nameSeparator: string) {
   if (keyPrefix !== "auto-path") return "";
@@ -74,6 +75,26 @@ async function ensureBootstrapLangFiles(
       await fs.promises.writeFile(filePath, "{}\n", "utf8");
     }
   }
+}
+
+function toUnique(values: string[]) {
+  return Array.from(new Set(values.map(item => item.trim()).filter(Boolean)));
+}
+
+async function applyPersistentIgnoreSettings(params: {
+  bootstrap: ExtractBootstrapConfig;
+  addedIgnoreFiles: string[];
+  addedIgnoreTexts: string[];
+}) {
+  const nextIgnoreFiles = toUnique([...params.bootstrap.ignoreExtractScopePaths, ...params.addedIgnoreFiles]);
+  const nextIgnoreTexts = toUnique([...params.bootstrap.ignoreTexts, ...params.addedIgnoreTexts]);
+  params.bootstrap.ignoreExtractScopePaths = nextIgnoreFiles;
+  params.bootstrap.ignoreTexts = nextIgnoreTexts;
+
+  await setConfig("workspace.extractScopeBlacklist", nextIgnoreFiles);
+  await setConfig("extract.ignoreTexts", nextIgnoreTexts);
+  clearConfigCache("workspace.extractScopeBlacklist");
+  clearConfigCache("extract.ignoreTexts");
 }
 
 async function resolveManualPrefix(
@@ -161,14 +182,66 @@ export function registerExtractHardcodedTextsCommand(context: vscode.ExtensionCo
     const langDetected = mage.detectedLangList.length > 0;
     const initialExtractScopePath =
       resource && resource.scheme === "file" ? path.relative(projectPath, resource.fsPath).split(path.sep).join("/") : "";
-    const bootstrap = await ensureBootstrapConfig({
-      context,
-      projectPath,
-      hasDetectedLangs: langDetected,
-      initialExtractScopePath
-    });
-    if (bootstrap === null) return;
+    let bootstrapOverride: ExtractBootstrapConfig | undefined;
+    let bootstrap: ExtractBootstrapConfig | null = null;
+    let selectedCandidates = [] as ReturnType<typeof scanHardcodedTextCandidates>["candidates"];
+    let scannedFiles = 0;
+    let awaitingSetup = true;
+    while (awaitingSetup) {
+      bootstrap = await ensureBootstrapConfig({
+        context,
+        projectPath,
+        hasDetectedLangs: langDetected,
+        initialExtractScopePath,
+        overrideDefaults: bootstrapOverride
+      });
+      if (bootstrap === null) return;
 
+      const scanResult = scanHardcodedTextCandidates({
+        projectPath,
+        sourceLanguage: bootstrap.referenceLanguage,
+        scopePaths: bootstrap.extractScopePaths,
+        fileExtensions: bootstrap.fileExtensions,
+        translationFunctionNames: [bootstrap.jsTsFunctionName, bootstrap.vueTemplateFunctionName, bootstrap.vueScriptFunctionName],
+        onlyExtractSourceLanguageText: bootstrap.onlyExtractSourceLanguageText,
+        ignoredTexts: bootstrap.ignoreTexts,
+        ignoredScopePaths: bootstrap.ignoreExtractScopePaths,
+        vueTemplateIncludeAttrs: bootstrap.vueTemplateIncludeAttrs,
+        vueTemplateExcludeAttrs: bootstrap.vueTemplateExcludeAttrs
+      });
+      if (scanResult.candidates.length === 0) {
+        NotificationManager.showWarning(t("command.extractHardcodedTexts.empty", scanResult.scannedFiles));
+        return;
+      }
+
+      const scanConfirm = await launchExtractScanConfirmWebview(context, scanResult.candidates);
+      if (scanConfirm.type === "back") {
+        await applyPersistentIgnoreSettings({
+          bootstrap,
+          addedIgnoreFiles: scanConfirm.addedIgnoreFiles,
+          addedIgnoreTexts: scanConfirm.addedIgnoreTexts
+        });
+        bootstrapOverride = bootstrap;
+        continue;
+      }
+      if (scanConfirm.type === "cancel") return;
+      await applyPersistentIgnoreSettings({
+        bootstrap,
+        addedIgnoreFiles: scanConfirm.addedIgnoreFiles,
+        addedIgnoreTexts: scanConfirm.addedIgnoreTexts
+      });
+
+      const selectedIdSet = new Set(scanConfirm.selectedIds);
+      selectedCandidates = scanResult.candidates.filter(item => selectedIdSet.has(item.id));
+      scannedFiles = scanResult.scannedFiles;
+      if (selectedCandidates.length === 0) {
+        NotificationManager.showWarning(t("command.extractHardcodedTexts.empty", scanResult.scannedFiles));
+        return;
+      }
+      awaitingSetup = false;
+    }
+
+    if (bootstrap === null) return;
     const bootstrapLangPath = path.isAbsolute(bootstrap.languagePath)
       ? bootstrap.languagePath
       : path.join(projectPath, bootstrap.languagePath);
@@ -197,26 +270,6 @@ export function registerExtractHardcodedTextsCommand(context: vscode.ExtensionCo
     }
 
     await wrapWithProgress({ title: t("command.extractHardcodedTexts.progress") }, async () => {
-      const result = scanHardcodedTextCandidates({
-        projectPath,
-        sourceLanguage: publicCtx.referredLang,
-        scopePaths: bootstrap.extractScopePaths,
-        fileExtensions: bootstrap.fileExtensions,
-        translationFunctionNames: [bootstrap.jsTsFunctionName, bootstrap.vueTemplateFunctionName, bootstrap.vueScriptFunctionName],
-        onlyExtractSourceLanguageText: bootstrap.onlyExtractSourceLanguageText,
-        ignoredTexts: bootstrap.ignoreTexts,
-        ignoredScopePaths: bootstrap.ignoreExtractScopePaths,
-        vueTemplateIncludeAttrs: bootstrap.vueTemplateIncludeAttrs,
-        vueTemplateExcludeAttrs: bootstrap.vueTemplateExcludeAttrs
-      });
-
-      if (result.candidates.length === 0) {
-        setTimeout(() => {
-          NotificationManager.showWarning(t("command.extractHardcodedTexts.empty", result.scannedFiles));
-        }, 1000);
-        return;
-      }
-
       const referredLang = publicCtx.referredLang;
       const referredMap = langDetail.countryMap[referredLang] ?? {};
       const valueKeyMap = Object.entries(referredMap).reduce(
@@ -242,7 +295,7 @@ export function registerExtractHardcodedTextsCommand(context: vscode.ExtensionCo
       const keyStrategy = bootstrap.keyStrategy;
       const invalidKeyStrategy = bootstrap.invalidKeyStrategy;
       const manualPrefix = await resolveManualPrefix(context, {
-        writeFlag: result.candidates.length > 0,
+        writeFlag: selectedCandidates.length > 0,
         keyPrefix,
         nameSeparator,
         avgFileNestedLevel: langDetail.avgFileNestedLevel,
@@ -252,7 +305,7 @@ export function registerExtractHardcodedTextsCommand(context: vscode.ExtensionCo
       });
       if (manualPrefix === null) return;
 
-      const uniqueTexts = Array.from(new Set(result.candidates.map(item => item.text)));
+      const uniqueTexts = Array.from(new Set(selectedCandidates.map(item => item.text)));
       let keySourceNames = [...uniqueTexts];
       const englishTextMap = new Map<string, string>();
       if (keyStrategy === "english" && getLangCode(referredLang) !== "en") {
@@ -302,7 +355,7 @@ export function registerExtractHardcodedTextsCommand(context: vscode.ExtensionCo
         generatedNameMap.set(text, generatedNameList[index] || "");
       });
 
-      for (const candidate of result.candidates) {
+      for (const candidate of selectedCandidates) {
         const text = candidate.text;
         const textId = genIdFromText(text);
         let key = generatedTextKeyMap.get(text) ?? "";
@@ -420,7 +473,7 @@ export function registerExtractHardcodedTextsCommand(context: vscode.ExtensionCo
 
       previewFixContent(context, updatePayloads, codePatches, langDetail.countryMap, referredLang, onComplete, onCancel);
 
-      NotificationManager.showSuccess(t("command.extractHardcodedTexts.summary", result.candidates.length, result.scannedFiles));
+      NotificationManager.showSuccess(t("command.extractHardcodedTexts.summary", selectedCandidates.length, scannedFiles));
     });
   });
 

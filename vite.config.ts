@@ -25,7 +25,8 @@ export default defineConfig(({ mode }) => {
       rollupOptions: {
         input: {
           "fix-preview": resolve(__dirname, "src/webviews/fix-preview/main.tsx"),
-          "extract-setup": resolve(__dirname, "src/webviews/extract-setup/main.tsx")
+          "extract-setup": resolve(__dirname, "src/webviews/extract-setup/main.tsx"),
+          "extract-scan-confirm": resolve(__dirname, "src/webviews/extract-scan-confirm/main.tsx")
         },
         output: {
           format: "es",
