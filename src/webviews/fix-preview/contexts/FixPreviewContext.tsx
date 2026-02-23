@@ -84,6 +84,10 @@ export function FixPreviewProvider({ initialData, children }: { initialData: Fix
     setUnits(prev =>
       prev.map(unit => {
         if (unit.id !== id) return unit;
+        const keyValid = isValidEntryKey(unit.keyDraft.trim() || unit.key);
+        if (checked && !keyValid) {
+          return { ...unit, selected: false };
+        }
         return {
           ...unit,
           selected: checked
@@ -150,7 +154,12 @@ export function FixPreviewProvider({ initialData, children }: { initialData: Fix
     setUnits(prev =>
       prev.map(unit => {
         if (unit.id !== id || !unit.keyEditable) return unit;
-        return { ...unit, keyDraft: key };
+        const keyValid = isValidEntryKey(key.trim() || unit.key);
+        return {
+          ...unit,
+          keyDraft: key,
+          selected: keyValid ? true : false
+        };
       })
     );
   };

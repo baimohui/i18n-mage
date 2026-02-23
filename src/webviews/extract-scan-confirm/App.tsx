@@ -23,8 +23,16 @@ export function App({ data }: Props) {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(() => new Set(data.candidates.map(item => item.id)));
   const [addedIgnoreFiles, setAddedIgnoreFiles] = useState<Set<string>>(new Set());
   const [addedIgnoreTexts, setAddedIgnoreTexts] = useState<Set<string>>(new Set());
+  const candidateById = useMemo(() => {
+    const map = new Map<string, ExtractScanConfirmData["candidates"][number]>();
+    data.candidates.forEach(item => map.set(item.id, item));
+    return map;
+  }, [data.candidates]);
 
   const toggleItem = (id: string) => {
+    const candidate = candidateById.get(id);
+    if (!candidate) return;
+    if (addedIgnoreFiles.has(candidate.file) || addedIgnoreTexts.has(candidate.text)) return;
     setSelectedIds(prev => {
       const next = new Set(prev);
       if (next.has(id)) next.delete(id);
@@ -34,10 +42,15 @@ export function App({ data }: Props) {
   };
 
   const toggleFile = (file: string, checked: boolean) => {
+    if (addedIgnoreFiles.has(file)) return;
     setSelectedIds(prev => {
       const next = new Set(prev);
       const items = grouped.find(entry => entry[0] === file)?.[1] ?? [];
       for (const item of items) {
+        if (addedIgnoreTexts.has(item.text)) {
+          next.delete(item.id);
+          continue;
+        }
         if (checked) next.add(item.id);
         else next.delete(item.id);
       }
@@ -45,27 +58,46 @@ export function App({ data }: Props) {
     });
   };
 
-  const addFileToBlacklist = (file: string) => {
+  const toggleFileBlacklist = (file: string) => {
     setAddedIgnoreFiles(prev => {
       const next = new Set(prev);
-      next.add(file);
+      if (next.has(file)) {
+        next.delete(file);
+      } else {
+        next.add(file);
+      }
       return next;
     });
-    toggleFile(file, false);
   };
 
-  const addTextToIgnore = (text: string, id: string) => {
+  const toggleTextIgnore = (text: string) => {
     setAddedIgnoreTexts(prev => {
       const next = new Set(prev);
-      next.add(text);
-      return next;
-    });
-    setSelectedIds(prev => {
-      const next = new Set(prev);
-      next.delete(id);
+      if (next.has(text)) {
+        next.delete(text);
+      } else {
+        next.add(text);
+      }
       return next;
     });
   };
+
+  useEffect(() => {
+    setSelectedIds(prev => {
+      const next = new Set(prev);
+      next.forEach(id => {
+        const candidate = candidateById.get(id);
+        if (!candidate) {
+          next.delete(id);
+          return;
+        }
+        if (addedIgnoreFiles.has(candidate.file) || addedIgnoreTexts.has(candidate.text)) {
+          next.delete(id);
+        }
+      });
+      return next;
+    });
+  }, [addedIgnoreFiles, addedIgnoreTexts, candidateById]);
 
   const onConfirm = useCallback(() => {
     vscode?.postMessage({
@@ -94,14 +126,17 @@ export function App({ data }: Props) {
 
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        onConfirm();
+      } else if (e.key === "Escape") {
         e.preventDefault();
         onCancel();
       }
     };
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [onCancel]);
+  }, [onCancel, onConfirm]);
 
   return (
     <div className="app">
@@ -111,41 +146,51 @@ export function App({ data }: Props) {
       </header>
       <main className="content">
         {grouped.map(([file, items]) => {
+          const fileIgnored = addedIgnoreFiles.has(file);
           const checkedCount = items.filter(item => selectedIds.has(item.id)).length;
           const allChecked = checkedCount === items.length;
           return (
             <section className="file-card" key={file}>
               <div className="file-head">
                 <label className="file-toggle">
-                  <input type="checkbox" checked={allChecked} onChange={e => toggleFile(file, (e.target as HTMLInputElement).checked)} />
+                  <input
+                    type="checkbox"
+                    checked={allChecked}
+                    disabled={fileIgnored}
+                    onChange={e => toggleFile(file, (e.target as HTMLInputElement).checked)}
+                  />
                   <span>{file}</span>
                 </label>
                 <div className="file-actions">
                   <span className="meta">
                     {checkedCount}/{items.length}
                   </span>
-                  <button type="button" className="mini-btn" disabled={addedIgnoreFiles.has(file)} onClick={() => addFileToBlacklist(file)}>
-                    {addedIgnoreFiles.has(file) ? t("extractScanConfirm.added") : t("extractScanConfirm.addFileToBlacklist")}
+                  <button type="button" className="mini-btn" onClick={() => toggleFileBlacklist(file)}>
+                    {fileIgnored ? t("extractScanConfirm.removeFileFromBlacklist") : t("extractScanConfirm.addFileToBlacklist")}
                   </button>
                 </div>
               </div>
               <div className="rows">
-                {items.map(item => (
-                  <div className="row" key={item.id}>
-                    <label className="row-main">
-                      <input type="checkbox" checked={selectedIds.has(item.id)} onChange={() => toggleItem(item.id)} />
-                      <code>{item.text}</code>
-                    </label>
-                    <button
-                      type="button"
-                      className="mini-btn"
-                      disabled={addedIgnoreTexts.has(item.text)}
-                      onClick={() => addTextToIgnore(item.text, item.id)}
-                    >
-                      {addedIgnoreTexts.has(item.text) ? t("extractScanConfirm.added") : t("extractScanConfirm.addTextToIgnore")}
-                    </button>
-                  </div>
-                ))}
+                {items.map(item => {
+                  const textIgnored = addedIgnoreTexts.has(item.text);
+                  const itemDisabled = fileIgnored || textIgnored;
+                  return (
+                    <div className="row" key={item.id}>
+                      <label className="row-main">
+                        <input
+                          type="checkbox"
+                          disabled={itemDisabled}
+                          checked={selectedIds.has(item.id)}
+                          onChange={() => toggleItem(item.id)}
+                        />
+                        <code>{item.text}</code>
+                      </label>
+                      <button type="button" className="mini-btn" onClick={() => toggleTextIgnore(item.text)}>
+                        {textIgnored ? t("extractScanConfirm.removeTextFromIgnore") : t("extractScanConfirm.addTextToIgnore")}
+                      </button>
+                    </div>
+                  );
+                })}
               </div>
             </section>
           );

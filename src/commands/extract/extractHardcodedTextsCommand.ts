@@ -294,6 +294,7 @@ export function registerExtractHardcodedTextsCommand(context: vscode.ExtensionCo
       const maxKeyLength = bootstrap.maxKeyLength;
       const keyStrategy = bootstrap.keyStrategy;
       const invalidKeyStrategy = bootstrap.invalidKeyStrategy;
+      const keyGenerationFillScope = getConfig<"minimal" | "all">("translationServices.keyGenerationFillScope", "all");
       const manualPrefix = await resolveManualPrefix(context, {
         writeFlag: selectedCandidates.length > 0,
         keyPrefix,
@@ -330,7 +331,48 @@ export function registerExtractHardcodedTextsCommand(context: vscode.ExtensionCo
       } else if (keyStrategy === "english") {
         uniqueTexts.forEach(text => englishTextMap.set(text, text));
       }
-      const enLang = mage.detectedLangList.find(lang => getLangCode(lang) === "en") ?? "";
+      const detectedLangs = [...mage.detectedLangList];
+      const translatedValuesByLang = new Map<string, Map<string, string>>();
+      translatedValuesByLang.set(referredLang, new Map(uniqueTexts.map(text => [text, text])));
+      const enLang = detectedLangs.find(lang => getLangCode(lang) === "en") ?? "";
+      if (enLang && enLang !== referredLang && englishTextMap.size > 0) {
+        translatedValuesByLang.set(enLang, new Map(uniqueTexts.map(text => [text, englishTextMap.get(text) ?? ""])));
+      }
+      if (enLang && enLang !== referredLang && !translatedValuesByLang.has(enLang)) {
+        NotificationManager.showProgress({ message: t("command.fix.waitForTranslator"), increment: 0 });
+        const translated = await translateTo({
+          source: referredLang,
+          target: enLang,
+          sourceTextList: uniqueTexts
+        });
+        if (translated.success && translated.data) {
+          translatedValuesByLang.set(enLang, new Map(uniqueTexts.map((text, index) => [text, translated.data?.[index] ?? ""])));
+        } else {
+          setTimeout(() => {
+            NotificationManager.showWarning(translated.message ?? t("translator.noAvailableApi"));
+          }, 1000);
+        }
+      }
+      const fillLangs =
+        keyGenerationFillScope === "minimal"
+          ? detectedLangs.filter(lang => lang === referredLang || (enLang.length > 0 && lang === enLang))
+          : detectedLangs;
+      const targetLangsToTranslate = fillLangs.filter(lang => lang !== referredLang && !translatedValuesByLang.has(lang));
+      for (const lang of targetLangsToTranslate) {
+        NotificationManager.showProgress({ message: t("command.fix.waitForTranslator"), increment: 0 });
+        const translated = await translateTo({
+          source: referredLang,
+          target: lang,
+          sourceTextList: uniqueTexts
+        });
+        if (!translated.success || !translated.data) {
+          setTimeout(() => {
+            NotificationManager.showWarning(translated.message ?? t("translator.noAvailableApi"));
+          }, 1000);
+          continue;
+        }
+        translatedValuesByLang.set(lang, new Map(uniqueTexts.map((text, index) => [text, translated.data?.[index] ?? ""])));
+      }
 
       const generatedNameList = keySourceNames.map(name => genKeyFromText(name, { keyStyle, stopWords }));
       if (invalidKeyStrategy === "ai") {
@@ -384,12 +426,13 @@ export function registerExtractHardcodedTextsCommand(context: vscode.ExtensionCo
             }
             usedKeys.add(key);
             generatedTextKeyMap.set(text, key);
-            const valueChanges: I18nUpdatePayload["valueChanges"] = {
-              [referredLang]: { after: text }
-            };
-            if (keyStrategy === "english" && enLang && enLang !== referredLang) {
-              valueChanges[enLang] = { after: englishTextMap.get(text) ?? text };
-            }
+            const valueChanges: I18nUpdatePayload["valueChanges"] = {};
+            fillLangs.forEach(lang => {
+              const translatedValue = translatedValuesByLang.get(lang)?.get(text) ?? "";
+              if (translatedValue.trim().length === 0) return;
+              valueChanges[lang] = { after: translatedValue };
+            });
+            valueChanges[referredLang] ??= { after: text };
             updatePayloadMap.set(key, {
               type: "add",
               key,

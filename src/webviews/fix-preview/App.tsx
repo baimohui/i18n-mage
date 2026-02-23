@@ -411,7 +411,7 @@ function AppInner() {
                             <div key={`${unit.id}:${value.locale}`} className="item value-item">
                               <input
                                 type="checkbox"
-                                checked={value.selected}
+                                checked={unit.selected && meta.keyValid && value.selected}
                                 disabled={!unit.selected || !meta.keyValid || !selectable}
                                 onChange={e => ctx.setValueSelected(unit.id, value.locale, (e.target as HTMLInputElement).checked)}
                               />
@@ -459,7 +459,7 @@ function AppInner() {
                           <div key={`${unit.id}:${patch.file}:${patch.index}`} className="item patch-item">
                             <input
                               type="checkbox"
-                              checked={patch.selected}
+                              checked={unit.selected && meta.keyValid && patch.selected}
                               disabled={!unit.selected || !meta.keyValid}
                               onChange={e => ctx.setPatchSelected(unit.id, patch.file, patch.index, (e.target as HTMLInputElement).checked)}
                             />

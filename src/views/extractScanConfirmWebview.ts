@@ -86,16 +86,26 @@ function buildWebviewHtml(context: vscode.ExtensionContext, webview: vscode.Webv
       language: vscode.env.language,
       candidates: normalized
     }).replace(/</g, "\\u003c")};
-    window.addEventListener('load', () => {
-      setTimeout(() => {
+    window.addEventListener('load', function() {
+      setTimeout(function() {
+        document.body.setAttribute('tabindex', '-1');
+        document.body.focus();
+        window.focus();
+
         const root = document.getElementById('root');
         if (root) {
           root.setAttribute('tabindex', '-1');
           root.focus();
         }
-        document.body.setAttribute('tabindex', '-1');
-        document.body.focus();
-        window.focus();
+
+        const focusElement = document.createElement('div');
+        focusElement.setAttribute('tabindex', '0');
+        focusElement.style.position = 'absolute';
+        focusElement.style.opacity = '0';
+        focusElement.style.width = '0';
+        focusElement.style.height = '0';
+        document.body.appendChild(focusElement);
+        focusElement.focus();
       }, 100);
     });
   </script>
