@@ -34,6 +34,7 @@ export function isInvalidHardcodedText(text: string) {
   if (/^--?[a-z][\w-]*$/i.test(text)) return true;
   if (/^\$\{?[\w.]+\}?$/.test(text)) return true;
   if (/^\{+[\w.$-]+\}+$/.test(text)) return true;
+  if (/^\{\s*[$A-Za-z_][\w$]*(?:\s*,\s*[$A-Za-z_][\w$]*)*\s*\}$/.test(text)) return true;
   if (/^(?:https?:)?\/\/\S+$/i.test(text)) return true;
   if (/^<\/?[a-z][^>]*>$/i.test(text)) return true;
   if (/^<!DOCTYPE\s+html>$/i.test(text)) return true;

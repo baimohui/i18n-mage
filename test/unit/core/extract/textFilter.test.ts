@@ -24,7 +24,9 @@ describe("core/extract/textFilter", () => {
       "C:\\temp\\a.txt",
       "/src/views/App.vue",
       "undefined",
-      "NaN"
+      "NaN",
+      "{ row, column, $index }",
+      "{ data }"
     ];
 
     invalidCases.forEach(text => {

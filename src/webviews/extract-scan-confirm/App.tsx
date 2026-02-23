@@ -23,6 +23,7 @@ export function App({ data }: Props) {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(() => new Set(data.candidates.map(item => item.id)));
   const [addedIgnoreFiles, setAddedIgnoreFiles] = useState<Set<string>>(new Set());
   const [addedIgnoreTexts, setAddedIgnoreTexts] = useState<Set<string>>(new Set());
+  const [collapsedFiles, setCollapsedFiles] = useState<Set<string>>(new Set());
   const candidateById = useMemo(() => {
     const map = new Map<string, ExtractScanConfirmData["candidates"][number]>();
     data.candidates.forEach(item => map.set(item.id, item));
@@ -78,6 +79,15 @@ export function App({ data }: Props) {
       } else {
         next.add(text);
       }
+      return next;
+    });
+  };
+
+  const toggleFileCollapsed = (file: string) => {
+    setCollapsedFiles(prev => {
+      const next = new Set(prev);
+      if (next.has(file)) next.delete(file);
+      else next.add(file);
       return next;
     });
   };
@@ -147,6 +157,7 @@ export function App({ data }: Props) {
       <main className="content">
         {grouped.map(([file, items]) => {
           const fileIgnored = addedIgnoreFiles.has(file);
+          const collapsed = collapsedFiles.has(file);
           const checkedCount = items.filter(item => selectedIds.has(item.id)).length;
           const allChecked = checkedCount === items.length;
           return (
@@ -165,12 +176,15 @@ export function App({ data }: Props) {
                   <span className="meta">
                     {checkedCount}/{items.length}
                   </span>
+                  <button type="button" className="mini-btn ghost-btn" onClick={() => toggleFileCollapsed(file)}>
+                    {collapsed ? t("preview.expand") : t("preview.collapse")}
+                  </button>
                   <button type="button" className="mini-btn" onClick={() => toggleFileBlacklist(file)}>
                     {fileIgnored ? t("extractScanConfirm.removeFileFromBlacklist") : t("extractScanConfirm.addFileToBlacklist")}
                   </button>
                 </div>
               </div>
-              <div className="rows">
+              <div className={`rows${collapsed ? " is-collapsed" : ""}`}>
                 {items.map(item => {
                   const textIgnored = addedIgnoreTexts.has(item.text);
                   const itemDisabled = fileIgnored || textIgnored;

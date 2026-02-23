@@ -60,6 +60,7 @@ body {
   display: inline-flex;
   align-items: center;
   gap: 8px;
+  flex-wrap: wrap;
 }
 
 .file-toggle {
@@ -90,12 +91,15 @@ body {
   display: inline-flex;
   align-items: center;
   gap: 8px;
+  flex: 1;
+  min-width: 0;
 }
 
 .row code {
   font-size: 12px;
   white-space: pre-wrap;
   word-break: break-all;
+  min-width: 0;
 }
 
 .mini-btn {
@@ -104,11 +108,23 @@ body {
   border-radius: 6px;
   background: transparent;
   color: var(--muted);
+  min-width: 128px;
+  text-align: center;
+  flex-shrink: 0;
+  border: 1px solid var(--border);
+}
+
+.mini-btn.ghost-btn {
+  min-width: 70px;
 }
 
 .mini-btn:disabled {
   opacity: 0.6;
   cursor: default;
+}
+
+.rows.is-collapsed {
+  display: none;
 }
 
 .actions {
