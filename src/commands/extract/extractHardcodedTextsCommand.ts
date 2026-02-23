@@ -468,40 +468,43 @@ export function registerExtractHardcodedTextsCommand(context: vscode.ExtensionCo
 
       const updatePayloads = Array.from(updatePayloadMap.values());
       const previewChanges = getConfig<boolean>("general.previewChanges", true);
+      const applyExtractionChanges = async () => {
+        await mage.execute({ task: "check" });
+        mage.setPendingChanges(updatePayloads, {});
+        await mage.execute({ task: "rewrite" });
+        await applyCodePatches(codePatches, {
+          vueScript: bootstrap.skipVueScriptInjection
+            ? undefined
+            : {
+                importLines: bootstrap.vueScriptImportLines,
+                setupLines: bootstrap.vueScriptSetupLines
+              },
+          jsTs: bootstrap.skipJsTsInjection
+            ? undefined
+            : {
+                importLines: bootstrap.jsTsImportLines,
+                setupLines: bootstrap.jsTsSetupLines
+              }
+        });
+        if (langDetected) {
+          await mage.execute({ task: "check" });
+          treeInstance.refresh();
+        } else {
+          await treeInstance.initTree();
+        }
+        setTimeout(() => {
+          NotificationManager.showSuccess(
+            t(
+              "command.extractHardcodedTexts.applied",
+              Object.values(codePatches).reduce((acc, cur) => acc + cur.length, 0),
+              updatePayloads.length
+            )
+          );
+        }, 1000);
+      };
       const onComplete = async () => {
         await wrapWithProgress({ title: t("command.extractHardcodedTexts.applying") }, async () => {
-          await mage.execute({ task: "check" });
-          mage.setPendingChanges(updatePayloads, {});
-          await mage.execute({ task: "rewrite" });
-          await applyCodePatches(codePatches, {
-            vueScript: bootstrap.skipVueScriptInjection
-              ? undefined
-              : {
-                  importLines: bootstrap.vueScriptImportLines,
-                  setupLines: bootstrap.vueScriptSetupLines
-                },
-            jsTs: bootstrap.skipJsTsInjection
-              ? undefined
-              : {
-                  importLines: bootstrap.jsTsImportLines,
-                  setupLines: bootstrap.jsTsSetupLines
-                }
-          });
-          if (langDetected) {
-            await mage.execute({ task: "check" });
-            treeInstance.refresh();
-          } else {
-            await treeInstance.initTree();
-          }
-          setTimeout(() => {
-            NotificationManager.showSuccess(
-              t(
-                "command.extractHardcodedTexts.applied",
-                Object.values(codePatches).reduce((acc, cur) => acc + cur.length, 0),
-                updatePayloads.length
-              )
-            );
-          }, 1000);
+          await applyExtractionChanges();
         });
       };
       const onCancel = async () => {
@@ -510,7 +513,7 @@ export function registerExtractHardcodedTextsCommand(context: vscode.ExtensionCo
       };
 
       if (!previewChanges) {
-        await onComplete();
+        await applyExtractionChanges();
         return;
       }
 
