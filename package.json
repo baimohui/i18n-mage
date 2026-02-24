@@ -1,7 +1,7 @@
 {
   "name": "i18n-mage",
   "displayName": "i18n Mage",
-  "description": "Wave your i18n wand. Conjure order from the chaos with auto-translation, smart fixes, and Excel sync.",
+  "description": "Manage frontend i18n faster in VS Code with inline translation hints, key auto-completion, missing-key fixes, and Excel sync.",
   "repository": {
     "type": "git",
     "url": "https://github.com/baimohui/i18n-mage.git"
@@ -839,6 +839,33 @@
             "items": {
               "type": "string"
             }
+          },
+          "i18n-mage.extract.ignoreCallExpressionCallees": {
+            "order": 15,
+            "type": "array",
+            "default": [
+              "console"
+            ],
+            "description": "%config.extract.ignoreCallExpressionCallees.desc%",
+            "items": {
+              "type": "string"
+            }
+          },
+          "i18n-mage.extract.translationFailureStrategy": {
+            "order": 16,
+            "type": "string",
+            "enum": [
+              "skip",
+              "fill-with-source",
+              "abort"
+            ],
+            "default": "skip",
+            "enumDescriptions": [
+              "%config.extract.translationFailureStrategy.skip%",
+              "%config.extract.translationFailureStrategy.fillWithSource%",
+              "%config.extract.translationFailureStrategy.abort%"
+            ],
+            "description": "%config.extract.translationFailureStrategy.desc%"
           }
         }
       },
@@ -1782,14 +1809,15 @@
     "lint:code": "eslint \"src/**/*.{ts,tsx,js,jsx}\" --fix",
     "lint:test": "eslint \"test/**/*.{ts,tsx}\" --no-fix",
     "type-check": "tsc --noEmit",
-    "check": "npm run lint && npm run type-check",
+    "check": "npm run lint && npm run type-check && npm run check:dead-files",
     "test:unit": "mocha --require ts-node/register --require tsconfig-paths/register ./test/setup.ts \"test/**/*.ts\"",
     "test:integration": "vscode-test --extensionDevelopmentPath=. --extensionTestsPath=test/integration/index.ts",
     "build:webviews": "vite build --mode production",
     "build:webviews:watch": "vite build --mode development --watch",
     "build": "npm run build:webviews && ts-node esbuild.config.ts",
     "package": "npm run build && vsce package --no-yarn",
-    "format": "prettier --write \"*.{ts,tsx,js,jsx,md}\""
+    "format": "prettier --write \"*.{ts,tsx,js,jsx,md}\"",
+    "check:dead-files": "ts-node scripts/check-dead-files.ts"
   },
   "mocha": {
     "timeout": 2000

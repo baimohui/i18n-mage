@@ -1,3 +1,4 @@
+import { t } from "@/utils/i18n";
 import * as vscode from "vscode";
 
 export interface ExtendedTreeItem extends vscode.TreeItem {
@@ -19,7 +20,7 @@ export class FileItem extends vscode.TreeItem {
     this.description = `${range.start.line + 1}:${range.start.character + 1}`;
     this.command = {
       command: "vscode.open",
-      title: "Open File",
+      title: t("command.fix.openFile"),
       arguments: [resourceUri, { selection: range }]
     };
   }

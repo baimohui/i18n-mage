@@ -16,7 +16,8 @@ type ScanConfirmResult =
 
 export default function launchExtractScanConfirmWebview(
   context: vscode.ExtensionContext,
-  candidates: ExtractCandidate[]
+  candidates: ExtractCandidate[],
+  writeLanguages: string[]
 ): Promise<ScanConfirmResult> {
   return new Promise(resolve => {
     const panel = vscode.window.createWebviewPanel("extractScanConfirm", t("extractScanConfirm.title"), vscode.ViewColumn.One, {
@@ -26,7 +27,7 @@ export default function launchExtractScanConfirmWebview(
     });
     panel.iconPath = vscode.Uri.file(path.join(context.extensionPath, "images", "icon.png"));
 
-    panel.webview.html = buildWebviewHtml(context, panel.webview, candidates);
+    panel.webview.html = buildWebviewHtml(context, panel.webview, candidates, writeLanguages);
     let settled = false;
     panel.webview.onDidReceiveMessage((msg: WebviewMessage) => {
       if (msg.type === "confirm") {
@@ -61,7 +62,12 @@ export default function launchExtractScanConfirmWebview(
   });
 }
 
-function buildWebviewHtml(context: vscode.ExtensionContext, webview: vscode.Webview, candidates: ExtractCandidate[]) {
+function buildWebviewHtml(
+  context: vscode.ExtensionContext,
+  webview: vscode.Webview,
+  candidates: ExtractCandidate[],
+  writeLanguages: string[]
+) {
   const nonce = getNonce();
   const scriptPath = vscode.Uri.file(path.join(context.extensionPath, "dist", "webviews", "extract-scan-confirm.js"));
   const scriptSrc = webview.asWebviewUri(scriptPath).toString();
@@ -84,6 +90,7 @@ function buildWebviewHtml(context: vscode.ExtensionContext, webview: vscode.Webv
   <script nonce="${nonce}">
     window.webviewData = ${JSON.stringify({
       language: vscode.env.language,
+      writeLanguages,
       candidates: normalized
     }).replace(/</g, "\\u003c")};
     window.addEventListener('load', function() {

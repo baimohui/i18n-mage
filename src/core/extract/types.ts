@@ -9,14 +9,6 @@ export interface ExtractCandidate {
   attrName?: string;
 }
 
-export interface ExtractSessionConfig {
-  translationImportTemplate: string;
-  onlyHardcodedLanguageText: boolean;
-  targetLanguages: string[];
-  vueTemplateFunctionName: string;
-  vueScriptFunctionName: string;
-}
-
 export interface ExtractScanResult {
   candidates: ExtractCandidate[];
   scannedFiles: number;

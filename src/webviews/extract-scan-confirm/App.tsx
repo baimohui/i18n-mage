@@ -148,11 +148,27 @@ export function App({ data }: Props) {
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [onCancel, onConfirm]);
 
+  const selectedStats = useMemo(() => {
+    const selectedItems = data.candidates.filter(item => selectedIds.has(item.id));
+    const keyCount = new Set(selectedItems.map(item => item.text)).size;
+    const fileCount = new Set(selectedItems.map(item => item.file)).size;
+    return {
+      keyCount,
+      fileCount,
+      languageCount: data.writeLanguages.length
+    };
+  }, [data.candidates, data.writeLanguages.length, selectedIds]);
+
   return (
     <div className="app">
       <header className="page-head">
         <h1>{t("extractScanConfirm.title")}</h1>
         <p>{t("extractScanConfirm.hint", data.candidates.length)}</p>
+        <div className="summary-row">
+          <span className="summary-pill">{t("extractScanConfirm.summaryKeys", selectedStats.keyCount)}</span>
+          <span className="summary-pill">{t("extractScanConfirm.summaryFiles", selectedStats.fileCount)}</span>
+          <span className="summary-pill">{t("extractScanConfirm.summaryLangs", selectedStats.languageCount)}</span>
+        </div>
       </header>
       <main className="content">
         {grouped.map(([file, items]) => {

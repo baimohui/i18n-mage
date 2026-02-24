@@ -221,5 +221,10 @@
   "command.toggleWholeWordMatch.title": "全词匹配",
   "command.toggleCaseSensitive.title": "区分大小写",
   "command.pasteEntries.title": "粘贴词条",
-  "config.aiCustomPrompt.desc": "AI 翻译时附加的自定义提示词"
+  "config.aiCustomPrompt.desc": "AI 翻译时附加的自定义提示词",
+  "config.extract.ignoreCallExpressionCallees.desc": "忽略指定调用表达式及其子路径中的字符串参数（前缀匹配，例如 [\"console\"] 会忽略 console.log）",
+  "config.extract.translationFailureStrategy.desc": "硬编码提取时翻译失败后的处理方式",
+  "config.extract.translationFailureStrategy.skip": "跳过该语种并继续",
+  "config.extract.translationFailureStrategy.fillWithSource": "该语种使用源文案填充",
+  "config.extract.translationFailureStrategy.abort": "中断提取"
 }

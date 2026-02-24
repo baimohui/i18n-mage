@@ -29,7 +29,6 @@ export interface ExtractSetupWebviewData {
     quoteStyleForValue: "single" | "double" | "auto";
     stopWords: string[];
     stopPrefixes: string[];
-    ignorePossibleVariables: boolean;
     onlyExtractSourceLanguageText: boolean;
     referenceLanguage: string;
     translationFileType: "json" | "json5" | "js" | "ts" | "yaml" | "yml";
@@ -39,5 +38,7 @@ export interface ExtractSetupWebviewData {
     vueTemplateIncludeAttrs: string[];
     vueTemplateExcludeAttrs: string[];
     ignoreTexts: string[];
+    ignoreCallExpressionCallees: string[];
+    translationFailureStrategy: "skip" | "fill-with-source" | "abort";
   };
 }

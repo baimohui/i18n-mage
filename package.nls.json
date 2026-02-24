@@ -221,5 +221,10 @@
   "command.toggleWholeWordMatch.title": "Whole Word Match",
   "command.toggleCaseSensitive.title": "Case Sensitive",
   "command.pasteEntries.title": "Paste Entries",
-  "config.aiCustomPrompt.desc": "Custom instruction prepended to AI translation context"
+  "config.aiCustomPrompt.desc": "Custom instruction prepended to AI translation context",
+  "config.extract.ignoreCallExpressionCallees.desc": "Skip string arguments inside specific call expressions and their sub-paths (prefix match, e.g. [\"console\"] ignores console.log)",
+  "config.extract.translationFailureStrategy.desc": "Behavior when translation request fails while extracting hardcoded texts",
+  "config.extract.translationFailureStrategy.skip": "Skip this language and continue",
+  "config.extract.translationFailureStrategy.fillWithSource": "Fill this language with source text",
+  "config.extract.translationFailureStrategy.abort": "Abort extraction"
 }

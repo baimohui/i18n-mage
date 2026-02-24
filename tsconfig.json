@@ -29,6 +29,7 @@
   "include": [
     "src",
     "test",
+    "scripts",
     "vite.config.ts",
     "esbuild.config.ts"
   ],

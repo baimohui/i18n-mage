@@ -162,7 +162,7 @@ Visit the [Marketplace Page](https://marketplace.visualstudio.com/items?itemName
 
 > All settings are accessible via the VS Code Settings UI or in `.vscode/settings.json`.
 
-See [Full Config Reference](#-full-config-reference) for all options.
+<!-- See [Full Config Reference](#-full-config-reference) for all options. -->
 
 ## 🤝 Contributing
 
@@ -170,6 +170,7 @@ See [Full Config Reference](#-full-config-reference) for all options.
 git clone https://github.com/baimohui/i18n-mage.git
 cd i18n-mage
 npm install
+# f5 to debug
 npm run check
 npm run build
 ```

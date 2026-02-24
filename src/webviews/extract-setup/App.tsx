@@ -46,7 +46,8 @@ type FormState = {
   vueTemplateIncludeAttrsText: string;
   vueTemplateExcludeAttrsText: string;
   ignoreTextsText: string;
-  ignorePossibleVariables: boolean;
+  ignoreCallExpressionCalleesText: string;
+  translationFailureStrategy: Defaults["translationFailureStrategy"];
   onlyExtractSourceLanguageText: boolean;
 };
 
@@ -417,7 +418,8 @@ function toInitialState(data: ExtractSetupWebviewData): FormState {
     vueTemplateIncludeAttrsText: d.vueTemplateIncludeAttrs.join(", "),
     vueTemplateExcludeAttrsText: d.vueTemplateExcludeAttrs.join(", "),
     ignoreTextsText: d.ignoreTexts.join(", "),
-    ignorePossibleVariables: d.ignorePossibleVariables,
+    ignoreCallExpressionCalleesText: d.ignoreCallExpressionCallees.join(", "),
+    translationFailureStrategy: d.translationFailureStrategy,
     onlyExtractSourceLanguageText: d.onlyExtractSourceLanguageText
   };
   const initialError = getFormValidationError(initial, data.hasDetectedLangs, (key: string) => key);
@@ -869,6 +871,24 @@ export function App({ data }: Props) {
             />
             <label>{t("extractSetup.labelIgnoreTexts")}</label>
             <input value={form.ignoreTextsText} onInput={e => update("ignoreTextsText", (e.target as HTMLInputElement).value)} />
+            <label>{t("extractSetup.labelIgnoreCallExpressionCallees")}</label>
+            <input
+              value={form.ignoreCallExpressionCalleesText}
+              onInput={e => update("ignoreCallExpressionCalleesText", (e.target as HTMLInputElement).value)}
+            />
+            <label>{t("extractSetup.labelTranslationFailureStrategy")}</label>
+            <select
+              value={form.translationFailureStrategy}
+              onChange={e =>
+                update("translationFailureStrategy", (e.target as HTMLSelectElement).value as FormState["translationFailureStrategy"])
+              }
+            >
+              {renderOptions(t, [
+                { value: "skip", key: "extractSetup.option.translationFailureStrategy.skip" },
+                { value: "fill-with-source", key: "extractSetup.option.translationFailureStrategy.fillWithSource" },
+                { value: "abort", key: "extractSetup.option.translationFailureStrategy.abort" }
+              ])}
+            </select>
             {hasJsTsFiles ? (
               <>
                 <label>{t("extractSetup.labelSkipJsTsInjection")}</label>
@@ -893,14 +913,6 @@ export function App({ data }: Props) {
                 </label>
               </>
             ) : null}
-            <label>{t("extractSetup.labelIgnorePossibleVariables")}</label>
-            <label className="inline-switch">
-              <input
-                type="checkbox"
-                checked={form.ignorePossibleVariables}
-                onChange={e => update("ignorePossibleVariables", (e.target as HTMLInputElement).checked)}
-              />
-            </label>
           </div>
           {supportsSourceLanguageFilter ? (
             <div className="grid switch-grid" style={{ marginTop: "8px" }}>

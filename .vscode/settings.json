@@ -36,9 +36,16 @@
   "i18n-mage.workspace.extractScopeBlacklist": [
     "src/webviews",
     "src/utils/langKey/constants.ts",
-    "src/translator/deepseek.ts"
+    "src/translator/deepseek.ts",
+    "vite.config.ts"
   ],
   "i18n-mage.extract.jsTsImportLines": [
     "import { t } from \"@/utils/i18n\";"
+  ],
+  "i18n-mage.extract.ignoreTexts": [
+    "@ext:jensen-wen.i18n-mage",
+    "i18n Mage",
+    "[[[SEP]]]",
+    "sync~spin"
   ]
 }

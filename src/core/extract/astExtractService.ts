@@ -20,6 +20,7 @@ interface ScanOptions {
   onlyExtractSourceLanguageText?: boolean;
   vueTemplateIncludeAttrs?: string[];
   vueTemplateExcludeAttrs?: string[];
+  ignoreCallExpressionCallees?: string[];
 }
 
 export function scanHardcodedTextCandidates(options: ScanOptions): ExtractScanResult {
@@ -36,6 +37,7 @@ export function scanHardcodedTextCandidates(options: ScanOptions): ExtractScanRe
   );
   const candidates: ExtractCandidate[] = [];
   const translationFunctionNames = getTranslationFunctionNames(options.translationFunctionNames);
+  const ignoredCallExpressionCallees = getIgnoredCallExpressionCallees(options.ignoreCallExpressionCallees);
   const sourceLanguageGuard = shouldUseSourceLanguageGuard(options.sourceLanguage, options.onlyExtractSourceLanguageText);
 
   for (const filePath of filePaths) {
@@ -58,6 +60,7 @@ export function scanHardcodedTextCandidates(options: ScanOptions): ExtractScanRe
           filePath,
           fileContent,
           translationFunctionNames,
+          ignoredCallExpressionCallees,
           options.sourceLanguage,
           sourceLanguageGuard,
           ignoredTextSet
@@ -79,6 +82,7 @@ export function scanHardcodedTextCandidates(options: ScanOptions): ExtractScanRe
         0,
         "js-string",
         translationFunctionNames,
+        ignoredCallExpressionCallees,
         options.sourceLanguage,
         sourceLanguageGuard,
         ignoredTextSet
@@ -115,10 +119,20 @@ function getTranslationFunctionNames(overrideNames?: string[]) {
   return new Set(normalized);
 }
 
+function getIgnoredCallExpressionCallees(overrideNames?: string[]) {
+  const list = Array.isArray(overrideNames)
+    ? overrideNames.filter((item): item is string => typeof item === "string" && item.trim().length > 0)
+    : (getCacheConfig<string[]>("extract.ignoreCallExpressionCallees", ["console"]) ?? []).filter(
+        (item): item is string => typeof item === "string" && item.trim().length > 0
+      );
+  return new Set(list.map(item => item.trim()).filter(Boolean));
+}
+
 function scanVueScriptCandidates(
   filePath: string,
   fileContent: string,
   translationFunctionNames: Set<string>,
+  ignoredCallExpressionCallees: Set<string>,
   sourceLanguage?: string,
   sourceLanguageGuard = false,
   ignoredTextSet: Set<string> = new Set()
@@ -146,6 +160,7 @@ function scanVueScriptCandidates(
         contentStart,
         "vue-script-string",
         translationFunctionNames,
+        ignoredCallExpressionCallees,
         sourceLanguage,
         sourceLanguageGuard,
         ignoredTextSet
@@ -243,6 +258,7 @@ function scanSourceCandidates(
   offset: number,
   context: ExtractCandidate["context"],
   translationFunctionNames: Set<string>,
+  ignoredCallExpressionCallees: Set<string>,
   sourceLanguage?: string,
   sourceLanguageGuard = false,
   ignoredTextSet: Set<string> = new Set()
@@ -252,7 +268,7 @@ function scanSourceCandidates(
 
   const visit = (node: ts.Node) => {
     if (ts.isStringLiteral(node) || ts.isNoSubstitutionTemplateLiteral(node)) {
-      if (shouldSkipNode(node, translationFunctionNames)) {
+      if (shouldSkipNode(node, translationFunctionNames, ignoredCallExpressionCallees)) {
         return;
       }
       const text = node.text.trim();
@@ -283,7 +299,11 @@ function scanSourceCandidates(
   return results;
 }
 
-function shouldSkipNode(node: ts.StringLiteral | ts.NoSubstitutionTemplateLiteral, translationFunctionNames: Set<string>) {
+function shouldSkipNode(
+  node: ts.StringLiteral | ts.NoSubstitutionTemplateLiteral,
+  translationFunctionNames: Set<string>,
+  ignoredCallExpressionCallees: Set<string>
+) {
   const parent = node.parent;
 
   if (
@@ -304,6 +324,10 @@ function shouldSkipNode(node: ts.StringLiteral | ts.NoSubstitutionTemplateLitera
   }
 
   if (isTranslationFunctionArgument(node, translationFunctionNames)) {
+    return true;
+  }
+
+  if (isIgnoredCallExpressionArgument(node, ignoredCallExpressionCallees)) {
     return true;
   }
 
@@ -337,6 +361,44 @@ function getCallExpressionName(expression: ts.Expression): string {
     return expression.name.text;
   }
   return "";
+}
+
+function getCallExpressionPath(expression: ts.Expression): string {
+  if (ts.isIdentifier(expression)) {
+    return expression.text;
+  }
+  if (ts.isPropertyAccessExpression(expression)) {
+    const left = getCallExpressionPath(expression.expression);
+    if (!left) return "";
+    return `${left}.${expression.name.text}`;
+  }
+  return "";
+}
+
+function isIgnoredCallExpressionArgument(node: ts.Node, ignoredCallExpressionCallees: Set<string>) {
+  if (ignoredCallExpressionCallees.size === 0) return false;
+  let current: ts.Node | undefined = node;
+  while (current !== undefined) {
+    const parentNode = current.parent as ts.Node | undefined;
+    if (parentNode === undefined) break;
+    if (ts.isCallExpression(parentNode)) {
+      const inArgs = parentNode.arguments.some(arg => arg === current);
+      if (!inArgs) return false;
+      const callPath = getCallExpressionPath(parentNode.expression);
+      if (!callPath) return false;
+      for (const ignoredCallee of ignoredCallExpressionCallees) {
+        if (callPath === ignoredCallee || callPath.startsWith(`${ignoredCallee}.`)) {
+          return true;
+        }
+      }
+      return false;
+    }
+    if (ts.isFunctionLike(parentNode) || ts.isClassLike(parentNode) || ts.isSourceFile(parentNode)) {
+      break;
+    }
+    current = parentNode;
+  }
+  return false;
 }
 
 function isExtractableText(text: string, sourceLanguage?: string, sourceLanguageGuard = false) {

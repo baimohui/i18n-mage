@@ -119,4 +119,26 @@ describe("core/extract/astExtractService", () => {
     assert.ok(texts.includes("文本三"));
     assert.ok(!texts.includes("English Text"));
   });
+
+  it("should skip call arguments by callee prefix like console", () => {
+    writeFile(
+      projectPath,
+      "src/console-case.ts",
+      `
+      console.log("Console only text");
+      console.error("Error details");
+      const label = "Visible UI label";
+      `
+    );
+
+    const result = scanHardcodedTextCandidates({
+      projectPath,
+      fileExtensions: [".ts"]
+    });
+    const texts = result.candidates.map(item => item.text);
+
+    assert.ok(!texts.includes("Console only text"));
+    assert.ok(!texts.includes("Error details"));
+    assert.ok(texts.includes("Visible UI label"));
+  });
 });

@@ -81,6 +81,15 @@ function toUnique(values: string[]) {
   return Array.from(new Set(values.map(item => item.trim()).filter(Boolean)));
 }
 
+function getExtractionFillLangs(allLangs: string[], referredLang: string, keyGenerationFillScope: "minimal" | "all") {
+  if (keyGenerationFillScope !== "minimal") {
+    return allLangs;
+  }
+  const referredLangCode = getLangCode(referredLang);
+  const enLang = allLangs.find(lang => getLangCode(lang) === "en");
+  return allLangs.filter(lang => lang === referredLang || (referredLangCode !== "en" && typeof enLang === "string" && lang === enLang));
+}
+
 async function applyPersistentIgnoreSettings(params: {
   bootstrap: ExtractBootstrapConfig;
   addedIgnoreFiles: string[];
@@ -205,6 +214,7 @@ export function registerExtractHardcodedTextsCommand(context: vscode.ExtensionCo
         translationFunctionNames: [bootstrap.jsTsFunctionName, bootstrap.vueTemplateFunctionName, bootstrap.vueScriptFunctionName],
         onlyExtractSourceLanguageText: bootstrap.onlyExtractSourceLanguageText,
         ignoredTexts: bootstrap.ignoreTexts,
+        ignoreCallExpressionCallees: bootstrap.ignoreCallExpressionCallees,
         ignoredScopePaths: bootstrap.ignoreExtractScopePaths,
         vueTemplateIncludeAttrs: bootstrap.vueTemplateIncludeAttrs,
         vueTemplateExcludeAttrs: bootstrap.vueTemplateExcludeAttrs
@@ -214,7 +224,10 @@ export function registerExtractHardcodedTextsCommand(context: vscode.ExtensionCo
         return;
       }
 
-      const scanConfirm = await launchExtractScanConfirmWebview(context, scanResult.candidates);
+      const keyGenerationFillScope = getConfig<"minimal" | "all">("translationServices.keyGenerationFillScope", "all");
+      const scanWriteLangCandidates = langDetected ? mage.detectedLangList : bootstrap.targetLanguages;
+      const scanWriteLangs = getExtractionFillLangs(scanWriteLangCandidates, bootstrap.referenceLanguage, keyGenerationFillScope);
+      const scanConfirm = await launchExtractScanConfirmWebview(context, scanResult.candidates, scanWriteLangs);
       if (scanConfirm.type === "back") {
         await applyPersistentIgnoreSettings({
           bootstrap,
@@ -294,6 +307,10 @@ export function registerExtractHardcodedTextsCommand(context: vscode.ExtensionCo
       const maxKeyLength = bootstrap.maxKeyLength;
       const keyStrategy = bootstrap.keyStrategy;
       const invalidKeyStrategy = bootstrap.invalidKeyStrategy;
+      const translationFailureStrategy = getConfig<"skip" | "fill-with-source" | "abort">(
+        "extract.translationFailureStrategy",
+        bootstrap.translationFailureStrategy
+      );
       const keyGenerationFillScope = getConfig<"minimal" | "all">("translationServices.keyGenerationFillScope", "all");
       const manualPrefix = await resolveManualPrefix(context, {
         writeFlag: selectedCandidates.length > 0,
@@ -320,12 +337,21 @@ export function registerExtractHardcodedTextsCommand(context: vscode.ExtensionCo
           setTimeout(() => {
             NotificationManager.showWarning(translated.message ?? t("translator.noAvailableApi"));
           }, 1000);
-          return;
+          if (translationFailureStrategy === "abort") {
+            return;
+          }
+          if (translationFailureStrategy === "fill-with-source") {
+            keySourceNames = [...uniqueTexts];
+            uniqueTexts.forEach(text => {
+              englishTextMap.set(text, text);
+            });
+          }
+        } else {
+          keySourceNames = translated.data;
+          uniqueTexts.forEach((text, index) => {
+            englishTextMap.set(text, translated.data?.[index] ?? "");
+          });
         }
-        keySourceNames = translated.data;
-        uniqueTexts.forEach((text, index) => {
-          englishTextMap.set(text, translated.data?.[index] ?? "");
-        });
       } else if (keyStrategy === "pinyin") {
         keySourceNames = uniqueTexts.map(name => pinyin.convertToPinyin(name, " ").replace(/\s+/g, " ").trim());
       } else if (keyStrategy === "english") {
@@ -351,12 +377,15 @@ export function registerExtractHardcodedTextsCommand(context: vscode.ExtensionCo
           setTimeout(() => {
             NotificationManager.showWarning(translated.message ?? t("translator.noAvailableApi"));
           }, 1000);
+          if (translationFailureStrategy === "abort") {
+            return;
+          }
+          if (translationFailureStrategy === "fill-with-source") {
+            translatedValuesByLang.set(enLang, new Map(uniqueTexts.map(text => [text, text])));
+          }
         }
       }
-      const fillLangs =
-        keyGenerationFillScope === "minimal"
-          ? detectedLangs.filter(lang => lang === referredLang || (enLang.length > 0 && lang === enLang))
-          : detectedLangs;
+      const fillLangs = getExtractionFillLangs(detectedLangs, referredLang, keyGenerationFillScope);
       const targetLangsToTranslate = fillLangs.filter(lang => lang !== referredLang && !translatedValuesByLang.has(lang));
       for (const lang of targetLangsToTranslate) {
         NotificationManager.showProgress({ message: t("command.fix.waitForTranslator"), increment: 0 });
@@ -369,6 +398,12 @@ export function registerExtractHardcodedTextsCommand(context: vscode.ExtensionCo
           setTimeout(() => {
             NotificationManager.showWarning(translated.message ?? t("translator.noAvailableApi"));
           }, 1000);
+          if (translationFailureStrategy === "abort") {
+            return;
+          }
+          if (translationFailureStrategy === "fill-with-source") {
+            translatedValuesByLang.set(lang, new Map(uniqueTexts.map(text => [text, text])));
+          }
           continue;
         }
         translatedValuesByLang.set(lang, new Map(uniqueTexts.map((text, index) => [text, translated.data?.[index] ?? ""])));

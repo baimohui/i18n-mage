@@ -21,6 +21,7 @@ type BootstrapRaw = Partial<ExtractBootstrapConfig> & {
   jsTsImportLinesText?: string;
   jsTsSetupLinesText?: string;
   ignoreTextsText?: string;
+  ignoreCallExpressionCalleesText?: string;
 };
 
 export interface ExtractBootstrapConfig {
@@ -50,7 +51,6 @@ export interface ExtractBootstrapConfig {
   quoteStyleForValue: "single" | "double" | "auto";
   stopWords: string[];
   stopPrefixes: string[];
-  ignorePossibleVariables: boolean;
   onlyExtractSourceLanguageText: boolean;
   referenceLanguage: string;
   translationFileType: "json" | "json5" | "js" | "ts" | "yaml" | "yml";
@@ -60,6 +60,8 @@ export interface ExtractBootstrapConfig {
   vueTemplateIncludeAttrs: string[];
   vueTemplateExcludeAttrs: string[];
   ignoreTexts: string[];
+  ignoreCallExpressionCallees: string[];
+  translationFailureStrategy: "skip" | "fill-with-source" | "abort";
 }
 
 function getDefaultTargetLanguages() {
@@ -95,7 +97,6 @@ function defaultBootstrapConfig(): ExtractBootstrapConfig {
     quoteStyleForValue: "double",
     stopWords: [],
     stopPrefixes: [],
-    ignorePossibleVariables: true,
     onlyExtractSourceLanguageText: true,
     referenceLanguage: vscode.env.language || "en",
     translationFileType: "json",
@@ -104,7 +105,9 @@ function defaultBootstrapConfig(): ExtractBootstrapConfig {
     targetLanguages: getDefaultTargetLanguages(),
     vueTemplateIncludeAttrs: [],
     vueTemplateExcludeAttrs: ["key", "ref", "prop", "value", "class", "style", "id", "for", "type", "name", "src", "href", "to"],
-    ignoreTexts: []
+    ignoreTexts: [],
+    ignoreCallExpressionCallees: ["console"],
+    translationFailureStrategy: "skip"
   };
 }
 
@@ -197,6 +200,11 @@ function sanitizeBootstrapConfig(raw: BootstrapRaw | undefined): ExtractBootstra
     ? raw.vueTemplateExcludeAttrs
     : parseCsvText(raw.vueTemplateExcludeAttrsText);
   const ignoreTexts = Array.isArray(raw.ignoreTexts) ? raw.ignoreTexts : parseCsvText(raw.ignoreTextsText);
+  const hasExplicitIgnoreCallExpressionCalleesInput =
+    Array.isArray(raw.ignoreCallExpressionCallees) || typeof raw.ignoreCallExpressionCalleesText === "string";
+  const ignoreCallExpressionCallees = Array.isArray(raw.ignoreCallExpressionCallees)
+    ? raw.ignoreCallExpressionCallees
+    : parseCsvText(raw.ignoreCallExpressionCalleesText);
   const vueScriptImportLines = Array.isArray(raw.vueScriptImportLines)
     ? raw.vueScriptImportLines
     : parseLinesText(raw.vueScriptImportLinesText);
@@ -266,8 +274,6 @@ function sanitizeBootstrapConfig(raw: BootstrapRaw | undefined): ExtractBootstra
         : defaults.quoteStyleForValue,
     stopWords,
     stopPrefixes,
-    ignorePossibleVariables:
-      typeof raw.ignorePossibleVariables === "boolean" ? raw.ignorePossibleVariables : defaults.ignorePossibleVariables,
     onlyExtractSourceLanguageText:
       typeof raw.onlyExtractSourceLanguageText === "boolean" ? raw.onlyExtractSourceLanguageText : defaults.onlyExtractSourceLanguageText,
     referenceLanguage:
@@ -287,7 +293,16 @@ function sanitizeBootstrapConfig(raw: BootstrapRaw | undefined): ExtractBootstra
     vueTemplateIncludeAttrs: vueTemplateIncludeAttrs.map(item => item.toLowerCase()),
     vueTemplateExcludeAttrs:
       vueTemplateExcludeAttrs.length > 0 ? vueTemplateExcludeAttrs.map(item => item.toLowerCase()) : defaults.vueTemplateExcludeAttrs,
-    ignoreTexts: ignoreTexts.map(item => item.trim()).filter(Boolean)
+    ignoreTexts: ignoreTexts.map(item => item.trim()).filter(Boolean),
+    ignoreCallExpressionCallees: hasExplicitIgnoreCallExpressionCalleesInput
+      ? ignoreCallExpressionCallees.map(item => item.trim()).filter(Boolean)
+      : defaults.ignoreCallExpressionCallees,
+    translationFailureStrategy:
+      raw.translationFailureStrategy === "skip" ||
+      raw.translationFailureStrategy === "fill-with-source" ||
+      raw.translationFailureStrategy === "abort"
+        ? raw.translationFailureStrategy
+        : defaults.translationFailureStrategy
   };
 
   if (config.languageStructure === "nested" && config.sortRule === "byPosition") {
@@ -386,6 +401,11 @@ function inferBootstrapConfigFromCurrent(projectPath: string): ExtractBootstrapC
     vueTemplateIncludeAttrs: getConfig<string[]>("extract.vueTemplateIncludeAttrs", defaults.vueTemplateIncludeAttrs),
     vueTemplateExcludeAttrs: getConfig<string[]>("extract.vueTemplateExcludeAttrs", defaults.vueTemplateExcludeAttrs),
     ignoreTexts: getConfig<string[]>("extract.ignoreTexts", defaults.ignoreTexts),
+    ignoreCallExpressionCallees: getConfig<string[]>("extract.ignoreCallExpressionCallees", defaults.ignoreCallExpressionCallees),
+    translationFailureStrategy: getConfig<"skip" | "fill-with-source" | "abort">(
+      "extract.translationFailureStrategy",
+      defaults.translationFailureStrategy
+    ),
     extractScopePaths: getConfig<string[]>("workspace.extractScopeWhitelist", defaults.extractScopePaths),
     ignoreExtractScopePaths: getConfig<string[]>("workspace.extractScopeBlacklist", defaults.ignoreExtractScopePaths),
     keyPrefix: getConfig<"none" | "auto-path">("writeRules.keyPrefix", defaults.keyPrefix),
@@ -401,7 +421,6 @@ function inferBootstrapConfigFromCurrent(projectPath: string): ExtractBootstrapC
     quoteStyleForValue: getConfig<"single" | "double" | "auto">("writeRules.quoteStyleForValue", defaults.quoteStyleForValue),
     stopWords: getConfig<string[]>("writeRules.stopWords", defaults.stopWords),
     stopPrefixes: getConfig<string[]>("writeRules.stopPrefixes", defaults.stopPrefixes),
-    ignorePossibleVariables: getConfig<boolean>("translationServices.ignorePossibleVariables", defaults.ignorePossibleVariables),
     referenceLanguage: getConfig<string>("translationServices.referenceLanguage", defaults.referenceLanguage),
     targetLanguages: defaults.targetLanguages
   });
@@ -426,6 +445,8 @@ async function applyKnownConfigs(config: ExtractBootstrapConfig, projectPath: st
   await setConfigIfChanged("extract.vueTemplateIncludeAttrs", config.vueTemplateIncludeAttrs);
   await setConfigIfChanged("extract.vueTemplateExcludeAttrs", config.vueTemplateExcludeAttrs);
   await setConfigIfChanged("extract.ignoreTexts", config.ignoreTexts);
+  await setConfigIfChanged("extract.ignoreCallExpressionCallees", config.ignoreCallExpressionCallees);
+  await setConfigIfChanged("extract.translationFailureStrategy", config.translationFailureStrategy);
   await setConfigIfChanged("workspace.extractScopeWhitelist", config.extractScopePaths);
   await setConfigIfChanged("workspace.extractScopeBlacklist", config.ignoreExtractScopePaths);
   const functionNames = Array.from(new Set([config.jsTsFunctionName, config.vueTemplateFunctionName, config.vueScriptFunctionName])).filter(
@@ -445,7 +466,6 @@ async function applyKnownConfigs(config: ExtractBootstrapConfig, projectPath: st
   await setConfigIfChanged("writeRules.quoteStyleForValue", config.quoteStyleForValue);
   await setConfigIfChanged("writeRules.stopWords", config.stopWords);
   await setConfigIfChanged("writeRules.stopPrefixes", config.stopPrefixes);
-  await setConfigIfChanged("translationServices.ignorePossibleVariables", config.ignorePossibleVariables);
   await setConfigIfChanged("translationServices.referenceLanguage", config.referenceLanguage, "global");
   clearConfigCache("workspace.languagePath");
   clearConfigCache("extract");
@@ -455,7 +475,6 @@ async function applyKnownConfigs(config: ExtractBootstrapConfig, projectPath: st
   clearConfigCache("i18nFeatures.framework");
   clearConfigCache("writeRules");
   clearConfigCache("translationServices.referenceLanguage");
-  clearConfigCache("translationServices.ignorePossibleVariables");
 }
 
 async function applyDetectedConfigs(config: ExtractBootstrapConfig) {
@@ -473,6 +492,8 @@ async function applyDetectedConfigs(config: ExtractBootstrapConfig) {
   await setConfigIfChanged("extract.vueTemplateIncludeAttrs", config.vueTemplateIncludeAttrs);
   await setConfigIfChanged("extract.vueTemplateExcludeAttrs", config.vueTemplateExcludeAttrs);
   await setConfigIfChanged("extract.ignoreTexts", config.ignoreTexts);
+  await setConfigIfChanged("extract.ignoreCallExpressionCallees", config.ignoreCallExpressionCallees);
+  await setConfigIfChanged("extract.translationFailureStrategy", config.translationFailureStrategy);
   await setConfigIfChanged("workspace.extractScopeWhitelist", config.extractScopePaths);
   await setConfigIfChanged("workspace.extractScopeBlacklist", config.ignoreExtractScopePaths);
   const functionNames = Array.from(new Set([config.jsTsFunctionName, config.vueTemplateFunctionName, config.vueScriptFunctionName])).filter(
@@ -505,7 +526,7 @@ function openBootstrapWebview(
   isFirstSetup: boolean
 ): Promise<BootstrapRaw | null> {
   return new Promise(resolve => {
-    const panel = vscode.window.createWebviewPanel("i18nMage.extractSetup", "i18n Mage Setup", vscode.ViewColumn.One, {
+    const panel = vscode.window.createWebviewPanel("i18nMage.extractSetup", t("command.fix.i18nMageSetup"), vscode.ViewColumn.One, {
       enableScripts: true,
       retainContextWhenHidden: false,
       localResourceRoots: [vscode.Uri.file(path.join(context.extensionPath, "dist", "webviews"))]
@@ -563,7 +584,7 @@ function openBootstrapWebview(
       if (msg.type === "save") {
         const raw = (msg.value ?? null) as BootstrapRaw | null;
         if (raw === null) {
-          NotificationManager.showError("Invalid form value");
+          NotificationManager.showError(t("command.fix.invalidFormValue"));
           return;
         }
         const parsed = sanitizeBootstrapConfig(raw);
@@ -609,7 +630,7 @@ function openBootstrapWebview(
         panel.dispose();
         resolve(null);
       } else if (msg.type === "error") {
-        const detail = typeof msg.value === "string" ? msg.value : "Invalid form value";
+        const detail = typeof msg.value === "string" ? msg.value : t("command.fix.invalidFormValue");
         NotificationManager.showError(detail);
       }
     });
