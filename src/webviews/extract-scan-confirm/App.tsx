@@ -48,10 +48,7 @@ export function App({ data }: Props) {
       const next = new Set(prev);
       const items = grouped.find(entry => entry[0] === file)?.[1] ?? [];
       for (const item of items) {
-        if (addedIgnoreTexts.has(item.text)) {
-          next.delete(item.id);
-          continue;
-        }
+        if (addedIgnoreTexts.has(item.text)) continue;
         if (checked) next.add(item.id);
         else next.delete(item.id);
       }
@@ -174,8 +171,11 @@ export function App({ data }: Props) {
         {grouped.map(([file, items]) => {
           const fileIgnored = addedIgnoreFiles.has(file);
           const collapsed = collapsedFiles.has(file);
-          const checkedCount = items.filter(item => selectedIds.has(item.id)).length;
-          const allChecked = checkedCount === items.length;
+          const selectableItems = fileIgnored ? [] : items.filter(item => !addedIgnoreTexts.has(item.text));
+          const checkedCount = selectableItems.filter(item => selectedIds.has(item.id)).length;
+          const allChecked = selectableItems.length > 0 && checkedCount === selectableItems.length;
+          const hasPartialChecked = checkedCount > 0 && checkedCount < selectableItems.length;
+          const fileCheckboxDisabled = fileIgnored || selectableItems.length === 0;
           return (
             <section className="file-card" key={file}>
               <div className="file-head">
@@ -183,14 +183,19 @@ export function App({ data }: Props) {
                   <input
                     type="checkbox"
                     checked={allChecked}
-                    disabled={fileIgnored}
+                    disabled={fileCheckboxDisabled}
+                    ref={el => {
+                      if (el) {
+                        el.indeterminate = hasPartialChecked;
+                      }
+                    }}
                     onChange={e => toggleFile(file, (e.target as HTMLInputElement).checked)}
                   />
                   <span>{file}</span>
                 </label>
                 <div className="file-actions">
                   <span className="meta">
-                    {checkedCount}/{items.length}
+                    {checkedCount}/{selectableItems.length}
                   </span>
                   <button type="button" className="mini-btn ghost-btn" onClick={() => toggleFileCollapsed(file)}>
                     {collapsed ? t("preview.expand") : t("preview.collapse")}
