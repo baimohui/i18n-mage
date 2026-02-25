@@ -4,6 +4,33 @@ All notable changes to the i18n Mage VS Code extension will be documented in thi
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.3.0] - 2026-02-25
+
+### Added
+- **Hard-coded Text Extraction**: Introduced hard-coded text extraction module for rapid internationalization of non-i18n projects and enhancement of existing i18n projects. Features nearly 20 configurable options, accessible via `ctrl/cmd + alt + e` shortcut or `i18nMage.extractHardcodedTexts` command.
+- **YAML Language File Support**: Added comprehensive support for YAML format language files, expanding project compatibility.
+- **Cantonese Language Support**: Added Cantonese as a translation language with improved language code alias mappings.
+- **Debug Mode**: Introduced debug mode configuration that logs user operations and execution results in the extension output channel for troubleshooting.
+- **Pinyin Naming Style Configuration**: When generating keys using Pinyin, now supports naming style configuration (e.g., PascalCase, camelCase) for flexible key customization.
+- **Nested Structure Sorting**: Added key-based sorting support for nested language files to maintain structural consistency.
+- **Real-time Decoration Update**: Exposed `translationHints.realtimeVisibleRangeUpdate` configuration to control immediate decoration updates during scrolling, balancing visual feedback with performance.
+- **Decoration Scope Configuration**: Exposed `translationHints.decorationScope` to select decoration application to visible area or entire file, resolving sticky scroll display issues.
+- **OpenAI Proxy Support**: Unified ChatGPT-related configurations under OpenAI naming, added proxy support, and corrected request endpoints for improved service stability.
+
+### Improved
+- **Repair Preview Interface Redesign**: Completely redesigned repair preview interface with entry-centric information aggregation, supporting key editing, one-click collapse/expand, filtering, and selective language application for more intuitive operations.
+- **Multi-editor Decoration Sync**: Translation decorations now apply simultaneously to multiple editor files in split view, not limited to the active editor.
+- **Enhanced Excel Functionality**: Expanded import/export capabilities with version diff feature, supporting Git commit node selection for generating difference tables and re-importing modified content.
+- **Performance Optimization**: Introduced caching strategy to optimize check logic, significantly improving scanning speed.
+- **Simplified Interface Operations**: Merged import/export buttons in sidebar view into a single Excel button with selection dialog for cleaner workflow.
+- **Pre-filled Export Filename**: Export dialogs now automatically pre-fill filenames when generating Excel files, reducing manual input.
+- **Configuration Cleanup**: Removed `analysis.languageFileParser` configuration due to limited practical utility.
+- **Keyboard Shortcut Support**: Repair preview interface now supports Escape key for quick closure.
+- **Configuration Naming Optimization**: Moved file extension scanning configuration from general module to check rules module with updated naming.
+
+### Documentation
+- **Official Site Upgrade**: Added English documentation support and enhanced Chinese documentation with comprehensive feature explanations.
+
 ## [1.2.4] - 2026-02-10
 
 ### Added
