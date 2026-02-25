@@ -321,7 +321,7 @@ export function getSyncInfoChildren(ctx: TreeSectionContext, element: ExtendedTr
             if (lang === ctx.publicCtx.referredLang) {
               contextValueList.push("FILL_VALUE");
             }
-            tooltip.appendMarkdown(`- **${escapeMarkdown(lang)}:** ${escapeMarkdown(value)} [馃搵](command:i18nMage.copyValue?${args})\n`);
+            tooltip.appendMarkdown(`- **${escapeMarkdown(lang)}:** ${escapeMarkdown(value)} [📋](command:i18nMage.copyValue?${args})\n`);
           } else {
             tooltip.appendMarkdown(`- **${escapeMarkdown(lang)}:** ${t("tree.syncInfo.null")}\n`);
           }

@@ -127,5 +127,6 @@ export function resolveLangCode(
     chatgpt: "ggCode",
     youdao: "ydCode"
   };
-  return intro?.[map[platform]] ?? null;
+  const code = intro?.[map[platform]];
+  return typeof code === "string" && code.trim().length > 0 ? code : null;
 }

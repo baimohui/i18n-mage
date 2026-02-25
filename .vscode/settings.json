@@ -21,7 +21,8 @@
   "i18n-mage.general.displayLanguage": "zh-CN",
   "i18n-mage.workspace.languagePath": "src/locales",
   "i18n-mage.workspace.ignoredDirectories": [
-    "test"
+    "test",
+    "dist"
   ],
   "i18n-mage.analysis.fileExtensions": [
     ".ts",
