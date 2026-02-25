@@ -1,7 +1,7 @@
 import * as vscode from "vscode";
 import fs from "fs";
 import path from "path";
-import { clearConfigCache, getConfig, setConfig } from "@/utils/config";
+import { clearConfigCache, getCacheConfig, getConfig, setConfig } from "@/utils/config";
 import { toRelativePath } from "@/utils/fs";
 import { t } from "@/utils/i18n";
 import { getLangCode, LANG_CODE_MAPPINGS } from "@/utils/langKey";
@@ -553,6 +553,7 @@ function openBootstrapWebview(
       hasDetectedLangs,
       isFirstSetup,
       defaults,
+      langAliasCustomMappings: getCacheConfig<Record<string, string[]>>("translationServices.langAliasCustomMappings", {}),
       availableLanguages: Array.from(
         new Map(
           Object.entries(LANG_CODE_MAPPINGS).map(([key, info]) => {

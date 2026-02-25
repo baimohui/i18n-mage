@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "preact/hooks";
+import { resolveLangCode } from "@/utils/langKey/core";
 import { getVSCodeAPI } from "@/webviews/shared/utils";
 import { useTranslation } from "@/webviews/shared/hooks";
 import { ExtractSetupWebviewData } from "./types";
@@ -81,20 +82,6 @@ const PREVIEW_SAMPLES = [
     pinyinWords: ["chao", "ji", "chao", "ji", "chang", "ye", "mian", "wen", "ben", "biao", "ti"]
   }
 ] as const;
-
-function normalizeReferenceLangCode(input: string) {
-  const normalized = input.trim().toLowerCase().replace(/_/g, "-");
-  if (normalized === "zh" || normalized === "zh-cn" || normalized === "zh-hans") return "zh-CN";
-  if (normalized === "zh-tw" || normalized === "zh-hant") return "zh-TW";
-  if (normalized.startsWith("ja")) return "ja";
-  if (normalized.startsWith("ko")) return "ko";
-  if (normalized.startsWith("ru")) return "ru";
-  if (normalized.startsWith("ar")) return "ar";
-  if (normalized.startsWith("th")) return "th";
-  if (normalized.startsWith("hi")) return "hi";
-  if (normalized.startsWith("vi")) return "vi";
-  return input;
-}
 
 function parseExtensions(input: string) {
   return input
@@ -779,9 +766,9 @@ export function App({ data }: Props) {
   const [error, setError] = useState("");
 
   const supportsSourceLanguageFilter = useMemo(() => {
-    const code = normalizeReferenceLangCode(form.referenceLanguage);
-    return SOURCE_LANGUAGE_FILTER_CODES.has(code);
-  }, [form.referenceLanguage]);
+    const code = resolveLangCode(form.referenceLanguage, "google", data.langAliasCustomMappings);
+    return code !== null && SOURCE_LANGUAGE_FILTER_CODES.has(code);
+  }, [data.langAliasCustomMappings, form.referenceLanguage]);
   const parsedExtensions = useMemo(() => parseExtensions(form.fileExtensionsText), [form.fileExtensionsText]);
   const hasVueFiles = parsedExtensions.includes(".vue");
   const hasJsTsFiles = parsedExtensions.some(item => [".js", ".ts", ".jsx", ".tsx", ".mjs", ".cjs"].includes(item));

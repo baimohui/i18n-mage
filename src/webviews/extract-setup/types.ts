@@ -2,6 +2,7 @@ export interface ExtractSetupWebviewData {
   language: string;
   hasDetectedLangs: boolean;
   isFirstSetup: boolean;
+  langAliasCustomMappings: Record<string, string[]>;
   availableLanguages: Array<{ code: string; label: string }>;
   defaults: {
     framework: string;
