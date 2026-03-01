@@ -28,7 +28,7 @@ export class NotificationManager {
   }
 
   static setStatusBarMessage(message: string, time: number = 3000) {
-    vscode.window.setStatusBarMessage(`$(comment) ${message}`, time);
+    vscode.window.setStatusBarMessage(`🧙 ${message}`, time);
   }
 
   static showTitle(title: string): void {

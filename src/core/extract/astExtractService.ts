@@ -445,6 +445,7 @@ function readAllFiles(dir: string): string[] {
   if (!fs.existsSync(dir)) return [];
   const stat = fs.statSync(dir);
   if (stat.isFile()) {
+    if (!isValidI18nCallablePath(dir, false)) return [];
     return [dir];
   }
   const result: string[] = [];

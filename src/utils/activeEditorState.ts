@@ -4,6 +4,7 @@ import LangMage from "@/core/LangMage";
 import { getCacheConfig } from "./config";
 import path from "path";
 import { TEntry } from "@/types";
+import { isPathInsideDirectory, isSamePath, toAbsolutePath } from "./fs";
 
 export type DefinedEntryInEditor = TEntry & { visible: boolean; funcCall: boolean; dynamic: boolean };
 export type UndefinedEntryInEditor = TEntry & { visible: boolean };
@@ -14,11 +15,44 @@ export class ActiveEditorState {
   public static dynamicMatchInfo = new Map<string, string[]>();
   public static keyAtCursor: string = "";
 
+  private static canExtractHardcodedFromFile(filePath: string) {
+    if (!path.isAbsolute(filePath)) return false;
+    const normalizedFilePath = path.normalize(filePath);
+    const fileExt = path.extname(normalizedFilePath).toLowerCase();
+    const extractExts = getCacheConfig<string[]>("extract.fileExtensions", [".js", ".ts", ".jsx", ".tsx", ".mjs", ".cjs", ".vue"]) ?? [];
+    const normalizedExtractExts = new Set(extractExts.map(ext => ext.trim().toLowerCase()).filter(Boolean));
+    if (!normalizedExtractExts.has(fileExt)) return false;
+
+    const ignoredFiles = getCacheConfig<string[]>("workspace.ignoredFiles", []) ?? [];
+    if (ignoredFiles.some(item => isSamePath(normalizedFilePath, item))) return false;
+
+    const ignoredDirectories = getCacheConfig<string[]>("workspace.ignoredDirectories", []) ?? [];
+    if (ignoredDirectories.some(item => isPathInsideDirectory(item, normalizedFilePath))) return false;
+
+    const extractScopeBlacklist = getCacheConfig<string[]>("workspace.extractScopeBlacklist", []) ?? [];
+    if (extractScopeBlacklist.length > 0) {
+      const normalizedBlacklist = extractScopeBlacklist
+        .map(item => item.trim())
+        .filter(Boolean)
+        .map(item => path.normalize(path.resolve(path.isAbsolute(item) ? item : toAbsolutePath(item))));
+      for (const blockedPath of normalizedBlacklist) {
+        if (normalizedFilePath === blockedPath) return false;
+        if (normalizedFilePath.startsWith(`${blockedPath}${path.sep}`)) return false;
+      }
+    }
+
+    return true;
+  }
+
   static update(editor?: vscode.TextEditor) {
-    if (!editor) return;
+    if (!editor) {
+      vscode.commands.executeCommand("setContext", "i18nMage.canExtractHardcodedInCurrentFile", false);
+      return;
+    }
     this.definedEntries = new Map();
     this.undefinedEntries = new Map();
     const filePath = editor.document.uri.fsPath;
+    vscode.commands.executeCommand("setContext", "i18nMage.canExtractHardcodedInCurrentFile", this.canExtractHardcodedFromFile(filePath));
     if (isValidI18nCallablePath(filePath)) {
       const mage = LangMage.getInstance();
       const text = editor.document.getText();

@@ -1741,7 +1741,7 @@
         },
         {
           "command": "i18nMage.extractHardcodedTexts",
-          "when": "i18nMage.enabled",
+          "when": "i18nMage.enabled && i18nMage.canExtractHardcodedInCurrentFile",
           "group": "2_i18n@4"
         }
       ],
