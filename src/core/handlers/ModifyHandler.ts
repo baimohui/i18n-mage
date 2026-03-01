@@ -7,6 +7,7 @@ import { getDetectedLangList } from "../tools/contextTools";
 import { NotificationManager } from "@/utils/notification";
 import { internalToDisplayName, unescapeString } from "@/utils/regex";
 import { toRelativePath } from "@/utils/fs";
+import { ExecutionContext } from "@/utils/context";
 
 export class ModifyHandler {
   constructor(private ctx: LangContextInternal) {}
@@ -22,9 +23,7 @@ export class ModifyHandler {
       } else if (type === "renameKey") {
         this.handleRenameKey(this.ctx.modifyQuery);
       } else if (type === "rewriteEntry") {
-        const res = await this.handleRewriteEntry(this.ctx.modifyQuery);
-        await new RewriteHandler(this.ctx).run();
-        return res;
+        return await this.handleRewriteEntry(this.ctx.modifyQuery);
       }
       return await new RewriteHandler(this.ctx).run();
     } catch (e: unknown) {
@@ -62,11 +61,39 @@ export class ModifyHandler {
     let failCount = 0;
     for (const lang of this.detectedLangList) {
       if (lang === sourceLang) continue;
+      if (ExecutionContext.token.isCancellationRequested) {
+        return {
+          success: false,
+          message: "",
+          code: EXECUTION_RESULT_CODE.Cancelled,
+          data: {
+            success: 0,
+            failed: 0,
+            generated: 0,
+            total: 0,
+            patched: 0
+          }
+        };
+      }
       const res = await translateTo({
         source: sourceLang,
         target: lang,
         sourceTextList: [value]
       });
+      if (ExecutionContext.token.isCancellationRequested) {
+        return {
+          success: false,
+          message: "",
+          code: EXECUTION_RESULT_CODE.Cancelled,
+          data: {
+            success: 0,
+            failed: 0,
+            generated: 0,
+            total: 0,
+            patched: 0
+          }
+        };
+      }
       if (res.success && res.data && payload.valueChanges) {
         successCount++;
         payload.valueChanges[lang] = { before: this.ctx.langCountryMap[lang][key], after: res.data[0] };

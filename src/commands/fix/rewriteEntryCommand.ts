@@ -1,13 +1,16 @@
 import * as vscode from "vscode";
 import LangMage from "@/core/LangMage";
 import { treeInstance } from "@/views/tree";
+import previewFixContent from "@/views/fixWebview";
 import { registerDisposable } from "@/utils/dispose";
 import { t } from "@/utils/i18n";
 import { NotificationManager } from "@/utils/notification";
+import { getConfig } from "@/utils/config";
 import { formatEscapeChar, unescapeString, unFormatEscapeChar } from "@/utils/regex";
 import { wrapWithProgress } from "@/utils/wrapWithProgress";
+import { EXECUTION_RESULT_CODE } from "@/types";
 
-export function registerRewriteEntryCommand() {
+export function registerRewriteEntryCommand(context: vscode.ExtensionContext) {
   const mage = LangMage.getInstance();
   const disposable = vscode.commands.registerCommand(
     "i18nMage.rewriteEntry",
@@ -49,19 +52,61 @@ export function registerRewriteEntryCommand() {
         value: formatEscapeChar(value)
       });
       if (typeof newValue === "string" && newValue.trim() !== "") {
-        await wrapWithProgress({ title: t("command.rewriteEntry.rewriting"), cancellable: true, timeout: 1000 * 60 * 10 }, async () => {
-          mage.setOptions({ task: "modify", modifyQuery: { type: "rewriteEntry", ...target, value: unFormatEscapeChar(newValue) } });
-          const res = await mage.execute();
-          if (res.success) {
-            if (e) e.description = newValue;
-            if (!value) {
-              await mage.execute({ task: "check", globalFlag: false });
-              mage.setOptions({ globalFlag: true });
+        await wrapWithProgress(
+          { title: t("command.rewriteEntry.rewriting"), cancellable: true, timeout: 1000 * 60 * 10 },
+          async (_, token) => {
+            if (token.isCancellationRequested) return;
+
+            mage.setOptions({ task: "modify", modifyQuery: { type: "rewriteEntry", ...target, value: unFormatEscapeChar(newValue) } });
+            const res = await mage.execute();
+
+            if (token.isCancellationRequested || res.code === EXECUTION_RESULT_CODE.Cancelled) {
+              mage.setPendingChanges([], {});
+              return;
             }
-            treeInstance.refresh();
-            NotificationManager.showResult(res);
+            if (!res.success) {
+              NotificationManager.showResult(res);
+              mage.setPendingChanges([], {});
+              return;
+            }
+
+            const applyRewrite = async () => {
+              await wrapWithProgress({ title: t("command.rewrite.progress") }, async () => {
+                await mage.execute({ task: "rewrite" });
+                if (e) e.description = newValue;
+                if (!value) {
+                  await mage.execute({ task: "check", globalFlag: false });
+                  mage.setOptions({ globalFlag: true });
+                } else {
+                  await mage.execute({ task: "check" });
+                }
+                treeInstance.refresh();
+                NotificationManager.showResult(res);
+              });
+            };
+
+            if (getConfig<boolean>("general.previewChanges", true)) {
+              const publicCtx = mage.getPublicContext();
+              previewFixContent(
+                context,
+                mage.langDetail.updatePayloads,
+                {},
+                mage.langDetail.countryMap,
+                publicCtx.referredLang,
+                async () => {
+                  await applyRewrite();
+                },
+                async () => {
+                  mage.setPendingChanges([], {});
+                  await mage.execute({ task: "check" });
+                  treeInstance.refresh();
+                }
+              );
+            } else {
+              await applyRewrite();
+            }
           }
-        });
+        );
       }
     }
   );
