@@ -4,8 +4,11 @@ import { unescapeString } from "@/utils/regex";
 import * as vscode from "vscode";
 
 export class KeyReferenceProvider implements vscode.ReferenceProvider {
+  public static keyOverride: string | null = null;
+
   async provideReferences(): Promise<vscode.Location[]> {
-    const keyAtCursor = ActiveEditorState.keyAtCursor;
+    const keyAtCursor = KeyReferenceProvider.keyOverride ?? ActiveEditorState.keyAtCursor;
+    KeyReferenceProvider.keyOverride = null;
     if (!keyAtCursor) return [];
     const locations: vscode.Location[] = [];
     const mage = LangMage.getInstance();

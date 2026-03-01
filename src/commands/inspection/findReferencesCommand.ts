@@ -4,6 +4,7 @@ import { t } from "@/utils/i18n";
 import { NotificationManager } from "@/utils/notification";
 import LangMage from "@/core/LangMage";
 import { unescapeString } from "@/utils/regex";
+import { KeyReferenceProvider } from "@/features/ReferenceProvider";
 
 export function registerFindReferencesCommand() {
   const disposable = vscode.commands.registerCommand("i18nMage.findReferences", async (e: { key: string } | undefined) => {
@@ -12,7 +13,6 @@ export function registerFindReferencesCommand() {
       return;
     }
 
-    const locations: vscode.Location[] = [];
     const mage = LangMage.getInstance();
     const { used: usedEntryMap } = mage.langDetail;
     const name = unescapeString(e.key);
@@ -23,41 +23,30 @@ export function registerFindReferencesCommand() {
       return;
     }
 
-    for (const [file, posSet] of Object.entries(usedInfo)) {
-      try {
-        const doc = await vscode.workspace.openTextDocument(file);
-        const posList = Array.from(posSet);
-        posList.forEach(pos => {
-          const [startPos, endPos] = pos.split(",").map(Number);
-          const rangeStart = doc.positionAt(startPos);
-          const rangeEnd = rangeStart.translate(0, endPos - startPos);
-          const range = new vscode.Range(rangeStart, rangeEnd);
-          locations.push(new vscode.Location(doc.uri, range));
-        });
-      } catch (error) {
-        console.error(`Error opening document ${file}:`, error);
+    let activeEditor = vscode.window.activeTextEditor;
+    if (!activeEditor) {
+      const firstEntry = Object.entries(usedInfo)[0];
+      const firstFile = firstEntry?.[0];
+      const firstPosSet = firstEntry?.[1];
+      const firstPos = firstPosSet !== undefined ? Array.from(firstPosSet)[0] : undefined;
+
+      if (typeof firstFile === "string" && firstFile !== "" && typeof firstPos === "string" && firstPos !== "") {
+        const doc = await vscode.workspace.openTextDocument(firstFile);
+        activeEditor = await vscode.window.showTextDocument(doc);
+        const [startPos] = firstPos.split(",").map(Number);
+        const anchorPos = doc.positionAt(startPos);
+        activeEditor.selection = new vscode.Selection(anchorPos, anchorPos);
+        activeEditor.revealRange(new vscode.Range(anchorPos, anchorPos));
       }
     }
 
-    if (locations.length > 0) {
-      const activeEditor = vscode.window.activeTextEditor;
-      if (activeEditor) {
-        await vscode.commands.executeCommand(
-          "editor.action.showReferences",
-          activeEditor.document.uri,
-          activeEditor.selection.active,
-          locations
-        );
-      } else {
-        // 如果没有活动编辑器，使用第一个引用位置作为上下文
-        if (locations.length > 0) {
-          const firstLocation = locations[0];
-          await vscode.commands.executeCommand("editor.action.showReferences", firstLocation.uri, firstLocation.range.start, locations);
-        }
-      }
-    } else {
+    if (!activeEditor) {
       NotificationManager.showWarning(t("command.findReferences.noReferences", e.key));
+      return;
     }
+
+    KeyReferenceProvider.keyOverride = e.key;
+    await vscode.commands.executeCommand("references-view.findReferences");
   });
 
   registerDisposable(disposable);
