@@ -25,6 +25,7 @@ import {
   LangMageOptions,
   ExecutionResult,
   EXECUTION_RESULT_CODE,
+  CheckScope,
   KeyStyle,
   NAMESPACE_STRATEGY,
   KeyStrategy,
@@ -108,12 +109,13 @@ class LangMage {
       switch (this.ctx.task) {
         case "check":
           {
+            const requestedScope: CheckScope = options?.checkScope === "usageOnly" ? "usageOnly" : "full";
             const checkStart = Date.now();
             const readStart = Date.now();
-            const readSuccess = this.read();
+            const { success: readSuccess, scope: readScope } = this.read(requestedScope);
             const readElapsed = Date.now() - readStart;
             if (!readSuccess) {
-              NotificationManager.logToOutput(`[check] read=${readElapsed}ms, no language path detected`, "info");
+              NotificationManager.logToOutput(`[check][${requestedScope}] read=${readElapsed}ms, no language path detected`, "info");
               return { success: true, message: t("common.noLangPathDetectedWarn"), code: EXECUTION_RESULT_CODE.NoLangPathDetected };
             }
             const verifyStart = Date.now();
@@ -121,7 +123,7 @@ class LangMage {
             const verifyElapsed = Date.now() - verifyStart;
             const totalElapsed = Date.now() - checkStart;
             NotificationManager.logToOutput(
-              `[check] pipeline: read=${readElapsed}ms, verify=${verifyElapsed}ms, total=${totalElapsed}ms`,
+              `[check][${readScope}] pipeline: read=${readElapsed}ms, verify=${verifyElapsed}ms, total=${totalElapsed}ms`,
               "info"
             );
           }
@@ -236,8 +238,12 @@ class LangMage {
     this.ctx.patchedEntryIdInfo = patchedEntryIdInfo;
   }
 
-  private read() {
+  private read(scope: CheckScope = "full"): { success: boolean; scope: CheckScope } {
     const reader = new ReadHandler(this.ctx);
+    if (scope === "usageOnly" && this.canRunUsageOnlyCheck()) {
+      reader.startCensus();
+      return { success: true, scope: "usageOnly" };
+    }
     const detect = () => {
       this.reset();
       reader.readLangFiles();
@@ -263,10 +269,14 @@ class LangMage {
       detect();
     }
     if (this.detectedLangList.length === 0) {
-      return false;
+      return { success: false, scope: "full" };
     }
     this.ctx.referredLang = this.resolveLang(this.ctx.referredLang);
-    return true;
+    return { success: true, scope: "full" };
+  }
+
+  private canRunUsageOnlyCheck(): boolean {
+    return this.ctx.langPath.trim().length > 0 && this.detectedLangList.length > 0;
   }
 
   private resolveLang(target: string) {

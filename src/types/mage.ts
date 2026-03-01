@@ -14,8 +14,11 @@ import {
   SortMode
 } from "@/types";
 
+export type CheckScope = "full" | "usageOnly";
+
 export interface LangMageOptions {
   task?: string;
+  checkScope?: CheckScope;
   langPath?: string;
   projectPath?: string;
   i18nFramework?: I18nFramework;
