@@ -483,15 +483,20 @@ export function getDictionaryChildren(ctx: TreeSectionContext, element: Extended
       const stack = (element.stack || []).concat(item[0]);
       const key = typeof item[1] === "string" ? item[1] : undefined;
       const contextValueList = ["COPY_ENTRIES"];
+      if (key !== undefined) {
+        contextValueList.push("COPY_NAME");
+      }
       return {
         label: internalToDisplayName(item[0]),
         description: key !== undefined ? ctx.langInfo.dictionary[key].value[ctx.displayLang] : false,
         root: element.root,
         id: ctx.genId(element, item[0]),
         contextValue: contextValueList.join(","),
+        name: key !== undefined ? unescapeString(key) : undefined,
         key,
         stack,
         tooltip: stack.join("."),
+        iconPath: new vscode.ThemeIcon(key !== undefined ? "key" : "folder"),
         collapsibleState: vscode.TreeItemCollapsibleState.Collapsed
       };
     });

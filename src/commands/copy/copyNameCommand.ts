@@ -7,9 +7,12 @@ import { unescapeString } from "@/utils/regex";
 
 export function registerCopyNameCommand() {
   const mage = LangMage.getInstance();
-  const disposable = vscode.commands.registerCommand("i18nMage.copyName", async (e: vscode.TreeItem | undefined) => {
+  const disposable = vscode.commands.registerCommand("i18nMage.copyName", async (e: (vscode.TreeItem & { name?: string }) | undefined) => {
     let target = "";
-    if (e === undefined || typeof e.label !== "string" || e.label.trim() === "") {
+    if (
+      e === undefined ||
+      ((typeof e.name !== "string" || e.name.trim() === "") && (typeof e.label !== "string" || e.label.trim() === ""))
+    ) {
       const dictionary = mage.langDetail.dictionary;
       const key = await vscode.window.showQuickPick(Object.keys(dictionary), {
         canPickMany: false,
@@ -18,7 +21,7 @@ export function registerCopyNameCommand() {
       if (key === undefined) return;
       target = unescapeString(key);
     } else {
-      target = e.label;
+      target = typeof e.name === "string" && e.name.trim() !== "" ? e.name : (e.label as string);
     }
     await vscode.env.clipboard.writeText(target);
     NotificationManager.setStatusBarMessage(t("command.copy.success", target));
