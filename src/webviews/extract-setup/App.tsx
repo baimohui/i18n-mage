@@ -485,6 +485,14 @@ function FieldSection(props: {
             <>
               <label>{t("extractSetup.labelJsTsFunctionName")}</label>
               <input value={form.jsTsFunctionName} onInput={e => update("jsTsFunctionName", (e.target as HTMLInputElement).value)} />
+              <label>{t("extractSetup.labelSkipJsTsInjection")}</label>
+              <label className="inline-switch">
+                <input
+                  type="checkbox"
+                  checked={form.skipJsTsInjection}
+                  onChange={e => update("skipJsTsInjection", (e.target as HTMLInputElement).checked)}
+                />
+              </label>
               <label>{t("extractSetup.labelJsTsImportLines")}</label>
               <textarea
                 rows={3}
@@ -513,6 +521,14 @@ function FieldSection(props: {
                 value={form.vueScriptFunctionName}
                 onInput={e => update("vueScriptFunctionName", (e.target as HTMLInputElement).value)}
               />
+              <label>{t("extractSetup.labelSkipVueScriptInjection")}</label>
+              <label className="inline-switch">
+                <input
+                  type="checkbox"
+                  checked={form.skipVueScriptInjection}
+                  onChange={e => update("skipVueScriptInjection", (e.target as HTMLInputElement).checked)}
+                />
+              </label>
               <label>{t("extractSetup.labelVueScriptImportLines")}</label>
               <textarea
                 rows={3}
@@ -710,6 +726,14 @@ function DetectedProjectSection(props: {
           <>
             <label>{t("extractSetup.labelJsTsFunctionName")}</label>
             <input value={form.jsTsFunctionName} onInput={e => update("jsTsFunctionName", (e.target as HTMLInputElement).value)} />
+            <label>{t("extractSetup.labelSkipJsTsInjection")}</label>
+            <label className="inline-switch">
+              <input
+                type="checkbox"
+                checked={form.skipJsTsInjection}
+                onChange={e => update("skipJsTsInjection", (e.target as HTMLInputElement).checked)}
+              />
+            </label>
             <label>{t("extractSetup.labelJsTsImportLines")}</label>
             <textarea
               rows={3}
@@ -738,6 +762,14 @@ function DetectedProjectSection(props: {
               value={form.vueScriptFunctionName}
               onInput={e => update("vueScriptFunctionName", (e.target as HTMLInputElement).value)}
             />
+            <label>{t("extractSetup.labelSkipVueScriptInjection")}</label>
+            <label className="inline-switch">
+              <input
+                type="checkbox"
+                checked={form.skipVueScriptInjection}
+                onChange={e => update("skipVueScriptInjection", (e.target as HTMLInputElement).checked)}
+              />
+            </label>
             <label>{t("extractSetup.labelVueScriptImportLines")}</label>
             <textarea
               rows={3}
@@ -771,7 +803,6 @@ export function App({ data }: Props) {
   }, [data.langAliasCustomMappings, form.referenceLanguage]);
   const parsedExtensions = useMemo(() => parseExtensions(form.fileExtensionsText), [form.fileExtensionsText]);
   const hasVueFiles = parsedExtensions.includes(".vue");
-  const hasJsTsFiles = parsedExtensions.some(item => [".js", ".ts", ".jsx", ".tsx", ".mjs", ".cjs"].includes(item));
   const showVueTemplateAttrsConfig = form.framework === "vue-i18n" && hasVueFiles;
 
   const update = <K extends keyof FormState>(key: K, value: FormState[K]) => {
@@ -876,30 +907,6 @@ export function App({ data }: Props) {
                 { value: "abort", key: "extractSetup.option.translationFailureStrategy.abort" }
               ])}
             </select>
-            {hasJsTsFiles ? (
-              <>
-                <label>{t("extractSetup.labelSkipJsTsInjection")}</label>
-                <label className="inline-switch">
-                  <input
-                    type="checkbox"
-                    checked={form.skipJsTsInjection}
-                    onChange={e => update("skipJsTsInjection", (e.target as HTMLInputElement).checked)}
-                  />
-                </label>
-              </>
-            ) : null}
-            {hasVueFiles && form.framework === "vue-i18n" ? (
-              <>
-                <label>{t("extractSetup.labelSkipVueScriptInjection")}</label>
-                <label className="inline-switch">
-                  <input
-                    type="checkbox"
-                    checked={form.skipVueScriptInjection}
-                    onChange={e => update("skipVueScriptInjection", (e.target as HTMLInputElement).checked)}
-                  />
-                </label>
-              </>
-            ) : null}
           </div>
           {supportsSourceLanguageFilter ? (
             <div className="grid switch-grid" style={{ marginTop: "8px" }}>
