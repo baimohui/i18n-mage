@@ -5,6 +5,7 @@ import { registerDisposable } from "@/utils/dispose";
 import { setConfig } from "@/utils/config";
 import LangMage from "@/core/LangMage";
 import { t } from "@/utils/i18n";
+import { getLangText } from "@/utils/langKey";
 
 export function registerSetDisplayLangCommand() {
   const mage = LangMage.getInstance();
@@ -15,7 +16,12 @@ export function registerSetDisplayLangCommand() {
     } else {
       const publicCtx = mage.getPublicContext();
       const langList = mage.detectedLangList.filter(l => !publicCtx.ignoredLangs.includes(l));
-      target = await vscode.window.showQuickPick(langList, { placeHolder: t("command.pick.selectDisplayLang") });
+      const quickPickItems: vscode.QuickPickItem[] = langList.map(item => ({
+        label: item,
+        description: getLangText(item)
+      }));
+      const picked = await vscode.window.showQuickPick(quickPickItems, { placeHolder: t("command.pick.selectDisplayLang") });
+      target = picked?.label;
     }
     if (target !== undefined) {
       await wrapWithProgress({ title: "" }, async () => {
