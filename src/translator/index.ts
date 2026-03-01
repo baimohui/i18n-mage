@@ -3,14 +3,14 @@ import tcTranslateTo from "./tencent";
 import bdTranslateTo from "./baidu";
 import ggTranslateTo from "./google";
 import gfTranslateTo from "./googleFree";
-import dsTranslateTo from "./deepseek";
 import dlTranslateTo from "./deepl";
-import cgTranslateTo from "./chatgpt";
 import ydTranslateTo from "./youdao";
 import { TranslateParams, TranslateResult, ApiPlatform } from "@/types";
 import { t } from "@/utils/i18n";
 import { NotificationManager } from "@/utils/notification";
 import { getCacheConfig } from "@/utils/config";
+import { ApiCredentialsMap, selectAvailableApiList } from "@/ai/shared/selectAvailableApi";
+import { aiService } from "@/ai";
 
 export interface Credentials {
   baiduAppId?: string;
@@ -27,7 +27,7 @@ export interface TranslateData {
   sourceTextList: string[];
 }
 
-type ApiMap = Record<ApiPlatform, (string | undefined)[]>;
+type ApiMap = ApiCredentialsMap<ApiPlatform>;
 
 export default async function translateTo(data: TranslateData, startIndex = 0): Promise<TranslateResult> {
   const { source = "", target = "", sourceTextList = [] } = data;
@@ -55,9 +55,7 @@ export default async function translateTo(data: TranslateData, startIndex = 0): 
     youdao: [youdaoAppId, youdaoAppKey]
   };
 
-  const availableApiList = translateApiPriority.filter(
-    api => Array.isArray(apiMap[api]) && !apiMap[api].some(token => typeof token !== "string" || token.trim() === "")
-  ) as ApiPlatform[];
+  const availableApiList = selectAvailableApiList<ApiPlatform>(translateApiPriority, apiMap);
 
   if (startIndex >= availableApiList.length) {
     const message = t("translator.noAvailableApi");
@@ -69,7 +67,6 @@ export default async function translateTo(data: TranslateData, startIndex = 0): 
   const sourceLangCode = getLangCode(source, availableApi);
   const targetLangCode = getLangCode(target, availableApi);
 
-  // 源语言不支持 → 直接换下一个
   if (sourceLangCode === null) {
     if (startIndex + 1 < availableApiList.length) {
       const backupApi = availableApiList[startIndex + 1];
@@ -77,8 +74,7 @@ export default async function translateTo(data: TranslateData, startIndex = 0): 
         message: t("translator.useOtherApi", availableApi, target, t("translator.invalidSourceCode", source), backupApi),
         type: "error"
       });
-      const res = await translateTo(data, startIndex + 1);
-      return res;
+      return translateTo(data, startIndex + 1);
     }
     NotificationManager.showProgress({
       message: t("translator.failedToFix", availableApi, target, t("translator.invalidSourceCode", source)),
@@ -87,7 +83,6 @@ export default async function translateTo(data: TranslateData, startIndex = 0): 
     return { success: false, message: t("translator.noAvailableApi") };
   }
 
-  // 目标语言不支持 → 尝试临时接力
   if (targetLangCode === null) {
     if (startIndex + 1 < availableApiList.length) {
       const backupApi = availableApiList[startIndex + 1];
@@ -95,8 +90,7 @@ export default async function translateTo(data: TranslateData, startIndex = 0): 
         message: t("translator.useOtherApi", availableApi, target, t("translator.invalidTargetCode", target), backupApi),
         type: "error"
       });
-      const res = await translateTo(data, startIndex + 1);
-      return res;
+      return translateTo(data, startIndex + 1);
     }
     NotificationManager.showProgress({
       message: t("translator.failedToFix", availableApi, target, t("translator.invalidTargetCode", target)),
@@ -115,7 +109,6 @@ export default async function translateTo(data: TranslateData, startIndex = 0): 
   };
 
   const res = await doTranslate(availableApi, params);
-
   if (res.success) {
     res.api = availableApi;
     res.message = t(
@@ -125,21 +118,26 @@ export default async function translateTo(data: TranslateData, startIndex = 0): 
       res?.data?.map(item => item.replace(/\n/g, "\\n")).join(", ") ?? ""
     );
     return res;
-  } else {
-    if (startIndex + 1 < availableApiList.length) {
-      const nextApi = availableApiList[startIndex + 1];
-      NotificationManager.showProgress({
-        message: t("translator.useOtherApi", availableApi, target, res.message ?? t("common.unknownError"), nextApi),
-        type: "error"
-      });
-      return translateTo(data, startIndex + 1);
-    }
-    res.message = t("translator.failedToFix", availableApi, target, res.message ?? t("common.unknownError"));
-    return { success: false, message: res.message };
   }
+
+  if (startIndex + 1 < availableApiList.length) {
+    const nextApi = availableApiList[startIndex + 1];
+    NotificationManager.showProgress({
+      message: t("translator.useOtherApi", availableApi, target, res.message ?? t("common.unknownError"), nextApi),
+      type: "error"
+    });
+    return translateTo(data, startIndex + 1);
+  }
+
+  res.message = t("translator.failedToFix", availableApi, target, res.message ?? t("common.unknownError"));
+  return { success: false, message: res.message };
 }
 
 async function doTranslate(api: ApiPlatform, params: TranslateParams): Promise<TranslateResult> {
+  if (aiService.isAiPlatform(api)) {
+    return aiService.translate(api, params);
+  }
+
   switch (api) {
     case "tencent":
       return tcTranslateTo(params);
@@ -147,12 +145,8 @@ async function doTranslate(api: ApiPlatform, params: TranslateParams): Promise<T
       return bdTranslateTo(params);
     case "google":
       return params.apiKey ? ggTranslateTo(params) : gfTranslateTo(params);
-    case "deepseek":
-      return dsTranslateTo(params);
     case "deepl":
       return dlTranslateTo(params);
-    case "chatgpt":
-      return cgTranslateTo(params);
     case "youdao":
       return ydTranslateTo(params);
     default:

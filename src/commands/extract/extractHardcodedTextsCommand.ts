@@ -28,7 +28,7 @@ import { ensureBootstrapConfig, ExtractBootstrapConfig } from "@/core/extract/bo
 import { getLangCode } from "@/utils/langKey";
 import translateTo from "@/translator";
 import * as pinyin from "tiny-pinyin";
-import generateKeyFrom from "@/keyAiGenerator";
+import { generateKeyFromAi } from "@/ai";
 import launchExtractScanConfirmWebview from "@/views/extractScanConfirmWebview";
 
 function getPathPrefix(candidateFile: string, keyPrefix: string, stopPrefixes: string[], nameSeparator: string) {
@@ -415,7 +415,7 @@ export function registerExtractHardcodedTextsCommand(context: vscode.ExtensionCo
           .map((name, index) => (name.length === 0 || name.length > maxKeyLength ? index : -1))
           .filter(index => index !== -1);
         if (invalidIndexes.length > 0) {
-          const aiRes = await generateKeyFrom({
+          const aiRes = await generateKeyFromAi({
             sourceTextList: invalidIndexes.map(index => uniqueTexts[index]),
             style: keyStyle,
             maxLen: maxKeyLength

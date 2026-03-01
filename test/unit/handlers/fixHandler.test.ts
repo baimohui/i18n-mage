@@ -21,7 +21,7 @@ function resetHandlerModule(modulePath: string) {
 describe("core/handlers/FixHandler", () => {
   beforeEach(() => {
     mockRequire.stop("@/translator/index");
-    mockRequire.stop("@/keyAiGenerator");
+    mockRequire.stop("@/ai");
     mockRequire.stop("tiny-pinyin");
     resetHandlerModule("@/core/handlers/FixHandler");
 
@@ -29,10 +29,12 @@ describe("core/handlers/FixHandler", () => {
       success: true,
       data: []
     }));
-    mockRequire("@/keyAiGenerator", async (_args: unknown) => ({
-      success: true,
-      data: []
-    }));
+    mockRequire("@/ai", {
+      generateKeyFromAi: async (_args: unknown) => ({
+        success: true,
+        data: []
+      })
+    });
     mockRequire("tiny-pinyin", {
       convertToPinyin: (s: string) => s
     });

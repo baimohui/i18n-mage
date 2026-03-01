@@ -29,7 +29,7 @@ import { ExecutionContext } from "@/utils/context";
 import { NotificationManager } from "@/utils/notification";
 import * as pinyin from "tiny-pinyin";
 import { toRelativePath } from "@/utils/fs";
-import generateKeyFrom from "@/keyAiGenerator";
+import { generateKeyFromAi } from "@/ai";
 
 export class FixHandler {
   private lackInfoFromUndefined: LackInfo;
@@ -181,7 +181,7 @@ export class FixHandler {
           .map((name, index) => (name.length === 0 || name.length > maxLen ? index : -1))
           .filter(index => index !== -1);
         if (invalidNameIndexList.length > 0) {
-          const res = await generateKeyFrom({
+          const res = await generateKeyFromAi({
             sourceTextList: invalidNameIndexList.map(index => needTranslateList[index].nameInfo.text),
             style: genKeyInfo.keyStyle,
             maxLen: maxLen
