@@ -6,8 +6,17 @@ import LangMage from "@/core/LangMage";
 import { unescapeString } from "@/utils/regex";
 import { KeyReferenceProvider } from "@/features/ReferenceProvider";
 
+type FindReferencesArgs = {
+  key: string;
+  anchorUri?: string;
+  anchorPosition?: {
+    line: number;
+    character: number;
+  };
+};
+
 export function registerFindReferencesCommand() {
-  const disposable = vscode.commands.registerCommand("i18nMage.findReferences", async (e: { key: string } | undefined) => {
+  const disposable = vscode.commands.registerCommand("i18nMage.findReferences", async (e: FindReferencesArgs | undefined) => {
     if (e === undefined || e.key === undefined || e.key === "") {
       NotificationManager.showError(t("common.noKeyProvided"));
       return;
@@ -24,7 +33,22 @@ export function registerFindReferencesCommand() {
     }
 
     let activeEditor = vscode.window.activeTextEditor;
-    if (!activeEditor) {
+    const hasHoverAnchor =
+      typeof e.anchorUri === "string" &&
+      e.anchorUri !== "" &&
+      typeof e.anchorPosition?.line === "number" &&
+      typeof e.anchorPosition?.character === "number";
+
+    if (hasHoverAnchor) {
+      const anchorUri = e.anchorUri as string;
+      const anchorLine = e.anchorPosition?.line as number;
+      const anchorCharacter = e.anchorPosition?.character as number;
+      const doc = await vscode.workspace.openTextDocument(vscode.Uri.parse(anchorUri));
+      activeEditor = await vscode.window.showTextDocument(doc);
+      const anchorPos = new vscode.Position(anchorLine, anchorCharacter);
+      activeEditor.selection = new vscode.Selection(anchorPos, anchorPos);
+      activeEditor.revealRange(new vscode.Range(anchorPos, anchorPos));
+    } else {
       const firstEntry = Object.entries(usedInfo)[0];
       const firstFile = firstEntry?.[0];
       const firstPosSet = firstEntry?.[1];

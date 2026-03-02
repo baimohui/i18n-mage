@@ -43,7 +43,16 @@ export class HoverProvider implements vscode.HoverProvider {
             markdown.appendMarkdown(` [📋](command:i18nMage.copyName?${copyNameArgs})`);
             const copyEntryArgs = encodeURIComponent(JSON.stringify({ key }));
             markdown.appendMarkdown(`[📦](command:i18nMage.copyEntries?${copyEntryArgs})`);
-            const refArgs = encodeURIComponent(JSON.stringify({ key }));
+            const refArgs = encodeURIComponent(
+              JSON.stringify({
+                key,
+                anchorUri: document.uri.toString(),
+                anchorPosition: {
+                  line: position.line,
+                  character: position.character
+                }
+              })
+            );
             markdown.appendMarkdown(`[🔗${referenceCount}](command:i18nMage.findReferences?${refArgs})`);
           }
           markdown.appendMarkdown("\n\n");

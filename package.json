@@ -1725,12 +1725,12 @@
       ],
       "editor/context": [
         {
-          "command": "i18nMage.browseTranslationsInFile",
+          "command": "i18nMage.copyEntries",
           "when": "i18nMage.hasDefinedEntriesInFile",
           "group": "2_i18n@1"
         },
         {
-          "command": "i18nMage.copyEntries",
+          "command": "i18nMage.browseTranslationsInFile",
           "when": "i18nMage.hasDefinedEntriesInFile",
           "group": "2_i18n@2"
         },
