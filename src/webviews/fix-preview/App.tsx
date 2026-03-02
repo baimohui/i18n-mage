@@ -416,33 +416,35 @@ function AppInner() {
                                 onChange={e => ctx.setValueSelected(unit.id, value.locale, (e.target as HTMLInputElement).checked)}
                               />
                               <label>{value.locale}</label>
-                              <textarea
-                                className={selectable ? "" : "invalid"}
-                                rows={1}
-                                value={value.after}
-                                onInput={e => ctx.setValueAfter(unit.id, value.locale, (e.target as HTMLTextAreaElement).value)}
-                              />
+                              <div className="value-main">
+                                <textarea
+                                  className={selectable ? "" : "invalid"}
+                                  rows={1}
+                                  value={value.after}
+                                  onInput={e => ctx.setValueAfter(unit.id, value.locale, (e.target as HTMLTextAreaElement).value)}
+                                />
+                                {value.before !== undefined && value.before !== "" && value.before !== value.after ? (
+                                  <span className="diff-inline value-hint">
+                                    {(() => {
+                                      const diff = buildDiff(value.before, value.after);
+                                      return (
+                                        <>
+                                          <span>{diff.prefix}</span>
+                                          <span className="diff-removed">{diff.removed}</span>
+                                          <span className="diff-added">{diff.added}</span>
+                                          <span>{diff.suffix}</span>
+                                        </>
+                                      );
+                                    })()}
+                                  </span>
+                                ) : value.base !== undefined && value.base !== "" ? (
+                                  <span className="value-hint">{value.base}</span>
+                                ) : null}
+                              </div>
                               {status !== "ok" ? (
                                 <span className={`status-badge status-${status}`}>
                                   {status === "empty" ? t("preview.statusEmpty") : t("preview.statusLocaleFiltered")}
                                 </span>
-                              ) : null}
-                              {value.before !== undefined && value.before !== "" && value.before !== value.after ? (
-                                <span className="diff-inline value-hint">
-                                  {(() => {
-                                    const diff = buildDiff(value.before, value.after);
-                                    return (
-                                      <>
-                                        <span>{diff.prefix}</span>
-                                        <span className="diff-removed">{diff.removed}</span>
-                                        <span className="diff-added">{diff.added}</span>
-                                        <span>{diff.suffix}</span>
-                                      </>
-                                    );
-                                  })()}
-                                </span>
-                              ) : value.base !== undefined && value.base !== "" ? (
-                                <span className="value-hint">{value.base}</span>
                               ) : null}
                             </div>
                           );
