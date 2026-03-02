@@ -5,6 +5,7 @@ import LangMage from "@/core/LangMage";
 import previewFixContent from "@/views/fixWebview";
 import { treeInstance } from "@/views/tree";
 import { I18nUpdatePayload, FixedTEntry, DirNode, NAMESPACE_STRATEGY } from "@/types";
+import { UNMATCHED_LANGUAGE_ACTION, UnmatchedLanguageAction } from "@/types";
 import { clearConfigCache, getConfig, setConfig } from "@/utils/config";
 import { registerDisposable } from "@/utils/dispose";
 import { wrapWithProgress } from "@/utils/wrapWithProgress";
@@ -20,11 +21,13 @@ import {
   generateKey,
   splitFileName,
   getCommonFilePaths,
-  getParentKeys
+  getParentKeys,
+  validateLang
 } from "@/utils/regex";
 import { toRelativePath } from "@/utils/fs";
 import { applyCodePatches } from "@/core/extract/applyCodePatches";
 import { ensureBootstrapConfig, ExtractBootstrapConfig } from "@/core/extract/bootstrapConfig";
+import { planEnglishKeyGeneration, planTextsByLanguage } from "@/core/extract/extractTextPlanner";
 import { getLangCode } from "@/utils/langKey";
 import translateTo from "@/translator";
 import * as pinyin from "tiny-pinyin";
@@ -307,6 +310,7 @@ export function registerExtractHardcodedTextsCommand(context: vscode.ExtensionCo
       const maxKeyLength = bootstrap.maxKeyLength;
       const keyStrategy = bootstrap.keyStrategy;
       const invalidKeyStrategy = bootstrap.invalidKeyStrategy;
+      const validateLanguageBeforeTranslate = getConfig<boolean>("translationServices.validateLanguageBeforeTranslate", true);
       const translationFailureStrategy = getConfig<"skip" | "fill-with-source" | "abort">(
         "extract.translationFailureStrategy",
         bootstrap.translationFailureStrategy
@@ -323,76 +327,192 @@ export function registerExtractHardcodedTextsCommand(context: vscode.ExtensionCo
       });
       if (manualPrefix === null) return;
 
-      const uniqueTexts = Array.from(new Set(selectedCandidates.map(item => item.text)));
-      let keySourceNames = [...uniqueTexts];
+      let uniqueTexts = Array.from(new Set(selectedCandidates.map(item => item.text)));
+      const skippedTextSet = new Set<string>();
+      const fillWithOriginalTextSet = new Set<string>();
+      const sourceLangMap = new Map<string, string>(uniqueTexts.map(text => [text, referredLang]));
+      if (!bootstrap.onlyExtractSourceLanguageText && validateLanguageBeforeTranslate) {
+        const nonSourceTexts = uniqueTexts.filter(text => !validateLang(text, referredLang));
+        if (nonSourceTexts.length > 0) {
+          const unmatchedLanguageAction = getConfig<UnmatchedLanguageAction>(
+            "translationServices.unmatchedLanguageAction",
+            UNMATCHED_LANGUAGE_ACTION.ignore
+          );
+          const switchableLangs = Array.from(
+            new Set([...mage.detectedLangList, ...bootstrap.targetLanguages, referredLang].filter(item => item.trim().length > 0))
+          );
+          const applyAction = async (texts: string[], action: UnmatchedLanguageAction) => {
+            if (action === UNMATCHED_LANGUAGE_ACTION.ignore) {
+              texts.forEach(text => skippedTextSet.add(text));
+              return true;
+            }
+            if (action === UNMATCHED_LANGUAGE_ACTION.fill) {
+              texts.forEach(text => fillWithOriginalTextSet.add(text));
+              return true;
+            }
+            if (action === UNMATCHED_LANGUAGE_ACTION.switch) {
+              const switchedLang = await vscode.window.showQuickPick(switchableLangs, {
+                placeHolder: t("command.pick.selectReferredLangForThese", texts.join(", "))
+              });
+              if (switchedLang === undefined) return false;
+              texts.forEach(text => sourceLangMap.set(text, switchedLang));
+            }
+            return true;
+          };
+          if (unmatchedLanguageAction === UNMATCHED_LANGUAGE_ACTION.query) {
+            let pending = [...nonSourceTexts];
+            while (pending.length > 0) {
+              let selectedTexts: string[] | undefined = pending;
+              if (pending.length > 1) {
+                selectedTexts = await vscode.window.showQuickPick(pending, {
+                  canPickMany: true,
+                  placeHolder: t("command.fix.selectNoneSourceTexts")
+                });
+              }
+              if (selectedTexts === undefined) return;
+              const operation = await vscode.window.showQuickPick(
+                [t("command.fix.skip"), t("command.fix.fill"), t("command.fix.force"), t("command.fix.switch")],
+                {
+                  placeHolder: t("command.fix.selectAction", selectedTexts.join(", "))
+                }
+              );
+              if (operation === undefined) return;
+              let action: UnmatchedLanguageAction = UNMATCHED_LANGUAGE_ACTION.force;
+              if (operation === t("command.fix.skip")) action = UNMATCHED_LANGUAGE_ACTION.ignore;
+              else if (operation === t("command.fix.fill")) action = UNMATCHED_LANGUAGE_ACTION.fill;
+              else if (operation === t("command.fix.switch")) action = UNMATCHED_LANGUAGE_ACTION.switch;
+              const success = await applyAction(selectedTexts, action);
+              if (!success) return;
+              pending = pending.filter(item => !selectedTexts.includes(item));
+            }
+          } else {
+            const success = await applyAction(nonSourceTexts, unmatchedLanguageAction);
+            if (!success) return;
+          }
+        }
+      }
+      const planned = planTextsByLanguage({
+        uniqueTexts,
+        referredLang,
+        onlyExtractSourceLanguageText: bootstrap.onlyExtractSourceLanguageText,
+        validateLanguageBeforeTranslate,
+        unmatchedLanguageAction: UNMATCHED_LANGUAGE_ACTION.force,
+        switchedLangByText: Object.fromEntries(sourceLangMap.entries())
+      });
+      planned.skippedTextSet.forEach(text => skippedTextSet.add(text));
+      planned.fillWithOriginalTextSet.forEach(text => fillWithOriginalTextSet.add(text));
+      uniqueTexts = planned.uniqueTexts;
+      sourceLangMap.clear();
+      planned.sourceLangMap.forEach((value, key) => sourceLangMap.set(key, value));
+      selectedCandidates = selectedCandidates.filter(item => !skippedTextSet.has(item.text));
+      if (uniqueTexts.length === 0 || selectedCandidates.length === 0) {
+        NotificationManager.showWarning(t("command.extractHardcodedTexts.empty", scannedFiles));
+        return;
+      }
+
+      const keySourceNames = new Array<string>(uniqueTexts.length).fill("");
       const englishTextMap = new Map<string, string>();
-      if (keyStrategy === "english" && getLangCode(referredLang) !== "en") {
-        NotificationManager.showProgress({ message: t("command.fix.generatingKeyForUndefinedText"), increment: 0 });
-        const translated = await translateTo({
-          source: referredLang,
-          target: "en",
-          sourceTextList: uniqueTexts
+      if (keyStrategy === "english") {
+        const keyPlan = planEnglishKeyGeneration({
+          uniqueTexts,
+          sourceLangMap,
+          fillWithOriginalTextSet
         });
-        if (!translated.success || !translated.data) {
-          setTimeout(() => {
-            NotificationManager.showWarning(translated.message ?? t("translator.noAvailableApi"));
-          }, 1000);
-          if (translationFailureStrategy === "abort") {
-            return;
+        uniqueTexts.forEach((text, index) => {
+          if (keyPlan.directTextSet.has(text)) {
+            keySourceNames[index] = text;
+            englishTextMap.set(text, text);
           }
-          if (translationFailureStrategy === "fill-with-source") {
-            keySourceNames = [...uniqueTexts];
-            uniqueTexts.forEach(text => {
-              englishTextMap.set(text, text);
-            });
+        });
+        const textIndexMap = new Map(uniqueTexts.map((text, index) => [text, index]));
+        for (const [sourceLang, sourceTexts] of Object.entries(keyPlan.translationGroups)) {
+          NotificationManager.showProgress({ message: t("command.fix.generatingKeyForUndefinedText"), increment: 0 });
+          const translated = await translateTo({
+            source: sourceLang,
+            target: "en",
+            sourceTextList: sourceTexts
+          });
+          if (!translated.success || !translated.data) {
+            setTimeout(() => {
+              NotificationManager.showWarning(translated.message ?? t("translator.noAvailableApi"));
+            }, 1000);
+            if (translationFailureStrategy === "abort") {
+              return;
+            }
+            if (translationFailureStrategy === "fill-with-source") {
+              sourceTexts.forEach(text => {
+                const textIndex = textIndexMap.get(text);
+                if (textIndex === undefined) return;
+                keySourceNames[textIndex] = text;
+                englishTextMap.set(text, text);
+              });
+            }
+            continue;
           }
-        } else {
-          keySourceNames = translated.data;
-          uniqueTexts.forEach((text, index) => {
-            englishTextMap.set(text, translated.data?.[index] ?? "");
+          sourceTexts.forEach((text, i) => {
+            const textIndex = textIndexMap.get(text);
+            if (textIndex === undefined) return;
+            const translatedText = translated.data?.[i] ?? "";
+            keySourceNames[textIndex] = translatedText;
+            englishTextMap.set(text, translatedText);
           });
         }
       } else if (keyStrategy === "pinyin") {
-        keySourceNames = uniqueTexts.map(name => pinyin.convertToPinyin(name, " ").replace(/\s+/g, " ").trim());
-      } else if (keyStrategy === "english") {
-        uniqueTexts.forEach(text => englishTextMap.set(text, text));
+        uniqueTexts.forEach((name, index) => {
+          keySourceNames[index] = pinyin.convertToPinyin(name, " ").replace(/\s+/g, " ").trim();
+        });
       }
       const detectedLangs = [...mage.detectedLangList];
       const translatedValuesByLang = new Map<string, Map<string, string>>();
-      translatedValuesByLang.set(referredLang, new Map(uniqueTexts.map(text => [text, text])));
       const enLang = detectedLangs.find(lang => getLangCode(lang) === "en") ?? "";
-      if (enLang && enLang !== referredLang && englishTextMap.size > 0) {
-        translatedValuesByLang.set(enLang, new Map(uniqueTexts.map(text => [text, englishTextMap.get(text) ?? ""])));
-      }
-      if (enLang && enLang !== referredLang && !translatedValuesByLang.has(enLang)) {
-        NotificationManager.showProgress({ message: t("command.fix.waitForTranslator"), increment: 0 });
-        const translated = await translateTo({
-          source: referredLang,
-          target: enLang,
-          sourceTextList: uniqueTexts
-        });
-        if (translated.success && translated.data) {
-          translatedValuesByLang.set(enLang, new Map(uniqueTexts.map((text, index) => [text, translated.data?.[index] ?? ""])));
-        } else {
-          setTimeout(() => {
-            NotificationManager.showWarning(translated.message ?? t("translator.noAvailableApi"));
-          }, 1000);
-          if (translationFailureStrategy === "abort") {
-            return;
-          }
-          if (translationFailureStrategy === "fill-with-source") {
-            translatedValuesByLang.set(enLang, new Map(uniqueTexts.map(text => [text, text])));
-          }
-        }
-      }
       const fillLangs = getExtractionFillLangs(detectedLangs, referredLang, keyGenerationFillScope);
-      const targetLangsToTranslate = fillLangs.filter(lang => lang !== referredLang && !translatedValuesByLang.has(lang));
-      for (const lang of targetLangsToTranslate) {
+      const ensureLangMap = (lang: string) => {
+        let map = translatedValuesByLang.get(lang);
+        if (!map) {
+          map = new Map<string, string>();
+          translatedValuesByLang.set(lang, map);
+        }
+        return map;
+      };
+      uniqueTexts.forEach(text => {
+        const sourceLang = sourceLangMap.get(text) ?? referredLang;
+        if (fillWithOriginalTextSet.has(text)) {
+          fillLangs.forEach(lang => {
+            ensureLangMap(lang).set(text, text);
+          });
+          return;
+        }
+        ensureLangMap(sourceLang).set(text, text);
+      });
+      if (enLang && englishTextMap.size > 0) {
+        const enMap = ensureLangMap(enLang);
+        uniqueTexts.forEach(text => {
+          const v = englishTextMap.get(text);
+          if (typeof v === "string" && v.trim().length > 0) {
+            enMap.set(text, v);
+          }
+        });
+      }
+      const translationGroups = new Map<string, string[]>();
+      uniqueTexts.forEach(text => {
+        if (fillWithOriginalTextSet.has(text)) return;
+        const sourceLang = sourceLangMap.get(text) ?? referredLang;
+        fillLangs.forEach(lang => {
+          if (lang === sourceLang) return;
+          if (translatedValuesByLang.get(lang)?.has(text) === true) return;
+          const groupKey = `${sourceLang}>>${lang}`;
+          const list = translationGroups.get(groupKey) ?? [];
+          list.push(text);
+          translationGroups.set(groupKey, list);
+        });
+      });
+      for (const [groupKey, sourceTexts] of translationGroups) {
+        const [source, target] = groupKey.split(">>");
         NotificationManager.showProgress({ message: t("command.fix.waitForTranslator"), increment: 0 });
         const translated = await translateTo({
-          source: referredLang,
-          target: lang,
-          sourceTextList: uniqueTexts
+          source,
+          target,
+          sourceTextList: sourceTexts
         });
         if (!translated.success || !translated.data) {
           setTimeout(() => {
@@ -402,11 +522,15 @@ export function registerExtractHardcodedTextsCommand(context: vscode.ExtensionCo
             return;
           }
           if (translationFailureStrategy === "fill-with-source") {
-            translatedValuesByLang.set(lang, new Map(uniqueTexts.map(text => [text, text])));
+            const targetMap = ensureLangMap(target);
+            sourceTexts.forEach(text => targetMap.set(text, text));
           }
           continue;
         }
-        translatedValuesByLang.set(lang, new Map(uniqueTexts.map((text, index) => [text, translated.data?.[index] ?? ""])));
+        const targetMap = ensureLangMap(target);
+        sourceTexts.forEach((text, index) => {
+          targetMap.set(text, translated.data?.[index] ?? "");
+        });
       }
 
       const generatedNameList = keySourceNames.map(name => genKeyFromText(name, { keyStyle, stopWords }));
@@ -467,7 +591,8 @@ export function registerExtractHardcodedTextsCommand(context: vscode.ExtensionCo
               if (translatedValue.trim().length === 0) return;
               valueChanges[lang] = { after: translatedValue };
             });
-            valueChanges[referredLang] ??= { after: text };
+            const textSourceLang = sourceLangMap.get(text) ?? referredLang;
+            valueChanges[textSourceLang] ??= { after: text };
             updatePayloadMap.set(key, {
               type: "add",
               key,

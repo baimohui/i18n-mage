@@ -98,6 +98,7 @@
   "command.fix.undefinedEntriesPatched": "Extracted {0} fixable undefined entries: {1}",
   "command.fix.viewDetails": "View details",
   "command.fix.waitForFileSelection": "Waiting for file selection",
+  "command.fix.waitForTranslator": "Waiting for translator service",
   "command.goToDefinition.selectEntry": "Select entry to locate",
   "command.goToDefinition.selectLang": "Select language to locate",
   "command.goToReference.selectEntry": "Select entry to navigate",

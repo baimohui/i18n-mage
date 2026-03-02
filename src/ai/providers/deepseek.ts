@@ -4,6 +4,7 @@ import { t } from "@/utils/i18n";
 import { AiProvider } from "@/ai/types";
 import { batchTranslate } from "@/ai/shared/batchTranslate";
 import { batchGenerate } from "@/ai/shared/batchGenerate";
+import { buildIndexedItems, parseListOutput } from "@/ai/shared/listOutput";
 
 const baseUrl = "https://api.deepseek.com/v1/chat/completions";
 const SEP = "[[[SEP]]]";
@@ -43,23 +44,24 @@ async function translate(params: TranslateParams): Promise<TranslateResult> {
     { maxLen: 2000, batchSize: 10, interval: 1100 },
     async (sourceCode, targetCode, sourceList) => {
       try {
-        const sourceText = sourceList.join(SEP);
+        const sourceText = buildIndexedItems(sourceList);
         const prompt = customPrompt.trim();
         const content = await requestCompletion(apiKey, [
           {
             role: "system",
             content:
               `You are a professional translation assistant. Translate text from ${sourceCode} to ${targetCode}. ` +
-              `${sourceList.length > 1 ? `Keep separator ${SEP} unchanged. ` : ""}` +
-              `Return translation only with no explanations.${prompt ? "\n" + prompt : ""}`
+              `Do not split or merge items. ` +
+              `Return strict JSON array only, same length and order as input items. ` +
+              `No explanation, no markdown.${prompt ? "\n" + prompt : ""}`
           },
           {
             role: "user",
-            content: `Translate the following text:\n${sourceText}`
+            content: `Translate the following items:\n` + `${sourceText}\n` + `Output example: ["translated text 1","translated text 2"]`
           }
         ]);
 
-        const result = content.split(SEP).map(line => line.trim());
+        const result = parseListOutput(content, SEP, sourceList.length);
         if (result.length !== sourceList.length) {
           return { success: false, message: t("translator.deepseek.lineCountMismatch", result.join(SEP)) };
         }
@@ -84,23 +86,24 @@ async function generateKey(params: GenKeyParams): Promise<GenKeyResult> {
     { maxLen: 2000, batchSize: 10, interval: 1100 },
     async (sourceList, keyStyle, keyMaxLen) => {
       try {
-        const sourceText = sourceList.join(SEP);
+        const sourceText = buildIndexedItems(sourceList);
         const content = await requestCompletion(apiKey, [
           {
             role: "system",
             content:
               `You generate i18n keys. For each source text, generate exactly one key. ` +
-              `${sourceList.length > 1 ? `Keep separator ${SEP} unchanged. ` : ""}` +
               `Style: ${keyStyle}. Max length: ${keyMaxLen}. ` +
-              `Only output keys. No numbering, no explanation.`
+              `Do not split or merge items. ` +
+              `Return strict JSON array only, same length and order as input items. ` +
+              `No numbering, no explanation, no markdown.`
           },
           {
             role: "user",
-            content: `Generate keys for the following text:\n${sourceText}`
+            content: `Generate keys for the following items:\n` + `${sourceText}\n` + `Output example: ["firstKey","secondKey"]`
           }
         ]);
 
-        const result = content.split(SEP).map(line => line.trim());
+        const result = parseListOutput(content, SEP, sourceList.length);
         if (result.length !== sourceList.length) {
           return { success: false, message: t("translator.deepseek.lineCountMismatch", result.join(SEP)) };
         }

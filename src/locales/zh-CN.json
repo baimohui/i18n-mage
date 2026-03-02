@@ -98,6 +98,7 @@
   "command.fix.undefinedEntriesPatched": "已提取 {0} 个可修正的未定义词条：{1}",
   "command.fix.viewDetails": "查看详情",
   "command.fix.waitForFileSelection": "等待用户选择写入位置",
+  "command.fix.waitForTranslator": "等待翻译服务返回结果",
   "command.goToDefinition.selectEntry": "选择要定位的词条",
   "command.goToDefinition.selectLang": "选择要定位的语言",
   "command.goToReference.selectEntry": "选择要跳转的词条",
