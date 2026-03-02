@@ -5,26 +5,27 @@
 .gitattributes
 .gitignore
 .prettierrc
-.vscode-test.mjs
 .vscodeignore
 
 # Build/tooling config
-esbuild.config.js
+esbuild.config.ts
+vite.config.ts
 jsconfig.json
 tsconfig.json
 tsconfig.test.json
 
 # Dependency lock file
 package-lock.json
+yarn.lock
 
 # Source and docs
 src/**
 doc-assets
-README.zh-CN.md
 
 # Dependencies and tests
 node_modules/**
 test/**
+scripts/**
 
 # Temp files
 .*.swp
@@ -32,3 +33,15 @@ test/**
 
 # Source maps
 dist/**/*.map
+
+# Local/CI helper folders (should not ship in extension)
+.claude/**
+.husky/**
+.vscode/**
+
+# Optional: local artifacts
+*.vsix
+coverage/**
+.nyc_output/**
+*.log
+
