@@ -142,7 +142,7 @@ describe("core/handlers/ModifyHandler", () => {
     assert.strictEqual(res.code, EXECUTION_RESULT_CODE.Success);
     assert.strictEqual(ctx.updatePayloads.length, 1);
     assert.strictEqual(ctx.updatePayloads[0].valueChanges?.["zh-cn"]?.after, "你好");
-    assert.strictEqual(rewriteCalled, true);
+    assert.strictEqual(rewriteCalled, false);
   });
 
   it("rewriteEntry 翻译部分成功应返回 TranslatorPartialFailed", async () => {
@@ -173,7 +173,7 @@ describe("core/handlers/ModifyHandler", () => {
     const changes = ctx.updatePayloads[0].valueChanges ?? {};
     assert.strictEqual(changes["zh-cn"]?.after, "你好");
     assert.strictEqual(changes["ja"], undefined);
-    assert.strictEqual(rewriteCalled, true);
+    assert.strictEqual(rewriteCalled, false);
   });
 
   it("rewriteEntry 翻译全部失败应返回 TranslatorFailed", async () => {
@@ -201,7 +201,7 @@ describe("core/handlers/ModifyHandler", () => {
     assert.strictEqual(res.code, EXECUTION_RESULT_CODE.TranslatorFailed);
     const changes = ctx.updatePayloads[0].valueChanges ?? {};
     assert.strictEqual(changes["zh-cn"], undefined);
-    assert.strictEqual(rewriteCalled, true);
+    assert.strictEqual(rewriteCalled, false);
   });
 
   it("renameKey 应生成 rename payload 与 patchedEntryIdInfo", async () => {

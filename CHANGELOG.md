@@ -4,6 +4,26 @@ All notable changes to the i18n Mage VS Code extension will be documented in thi
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.3.1] - 2026-03-03
+
+### Added
+- **Rewrite Preview**: Added preview confirmation for entry value rewriting, allowing review of changes before application.
+- **Status Bar Entry Count**: Bottom status bar now displays entry count for current file, clickable to trigger file translation browsing.
+- **Non-source Language Handling**: Added specialized handling options for texts containing non-source languages during hard-coded extraction.
+
+### Improved
+- **Reference View Upgrade**: Replaced peek popup with sidebar reference view for key reference browsing in hover panels, providing persistent reference exploration.
+- **Dictionary Module Enhancement**: Added icons to sidebar dictionary module for distinguishing key prefixes from actual names; support for copying individual entry names.
+- **File Check Logic Optimization**: Improved check triggering mechanism to avoid language file checks when modifying non-language files; fixed missing checks after Git operations.
+- **Language Selection Experience**: Enhanced language selection dialog with standard language names as descriptions for better accuracy.
+- **Configuration Grouping**: Merged skip injection toggle with injection statement settings in hard-coded extraction configuration group for clearer dependency relationships.
+- **Preview Interface Styling**: Refined repair preview interface style, resolving inconsistent input width display issues.
+
+### Fixed
+- **Command Visibility**: Refined command display logic for single-file hard-coded text extraction, showing in context menu only when files are processable.
+- **Cancel Operation Response**: Resolved issue where cancel operation didn't properly terminate ongoing entry rewrite processes.
+- **AI Key Generation**: Fixed abnormal behavior where key fallback strategy failed to use AI generation when extracting hard-coded texts containing non-source languages.
+
 ## [1.3.0] - 2026-02-25
 
 ### Added
