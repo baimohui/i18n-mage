@@ -227,9 +227,9 @@ export function getCurrentFileChildren(ctx: TreeSectionContext, element: Extende
     return ctx.langInfo.langList
       .filter(lang => !ctx.publicCtx.ignoredLangs.includes(lang))
       .map(lang => {
-        const contextValueList = ["entryTranslationInCurFile", "EDIT_VALUE", "REWRITE_ENTRY", "COPY_ENTRIES"];
+        const contextValueList = ["entryTranslationInCurFile", "EDIT_VALUE", "REWRITE_ENTRY"];
         if (entryInfo[lang]) {
-          contextValueList.push("COPY_VALUE");
+          contextValueList.push("COPY_VALUE", "COPY_ENTRIES");
         } else if (entryInfo[ctx.publicCtx.referredLang]) {
           contextValueList.push("FILL_VALUE");
         }
@@ -308,7 +308,7 @@ export function getSyncInfoChildren(ctx: TreeSectionContext, element: ExtendedTr
 
   if (element.level === 2) {
     return (element.data as string[]).map(key => {
-      const contextValueList = ["syncInfoItem", "EDIT_VALUE", "REWRITE_ENTRY", "COPY_ENTRIES"];
+      const contextValueList = ["syncInfoItem", "EDIT_VALUE", "REWRITE_ENTRY"];
       if (element.type !== "lack") {
         contextValueList.push("GO_TO_DEFINITION");
       }
@@ -319,7 +319,7 @@ export function getSyncInfoChildren(ctx: TreeSectionContext, element: ExtendedTr
           const args = encodeURIComponent(JSON.stringify({ description: value }));
           if (value) {
             if (lang === ctx.publicCtx.referredLang) {
-              contextValueList.push("FILL_VALUE");
+              contextValueList.push("FILL_VALUE", "COPY_NAME");
             }
             tooltip.appendMarkdown(`- **${escapeMarkdown(lang)}:** ${escapeMarkdown(value)} [📋](command:i18nMage.copyValue?${args})\n`);
           } else {
@@ -327,6 +327,8 @@ export function getSyncInfoChildren(ctx: TreeSectionContext, element: ExtendedTr
           }
         });
         tooltip.isTrusted = true;
+      } else {
+        contextValueList.push("COPY_ENTRIES");
       }
       const name = unescapeString(key);
       return {
