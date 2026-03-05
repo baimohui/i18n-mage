@@ -40,7 +40,7 @@
 * Tree-structured view of translation entries.
 * Functional buttons: Search, Export, Import, Sort, Fix.
 
-![Tree Provider](https://raw.githubusercontent.com/baimohui/i18n-mage/refs/heads/main/doc-assets/panelView.png)
+![Tree Provider](https://raw.githubusercontent.com/baimohui/i18n-mage-docs/refs/heads/main/docs/en/guide/images/panel-view.png)
 
 ### 🧠 Inline Translation Hints
 
@@ -48,7 +48,7 @@
 * Supports custom styles (color, max length, etc.).
 * Toggleable via shortcuts.
 
-![Inline Hints](https://raw.githubusercontent.com/baimohui/i18n-mage/refs/heads/main/doc-assets/inlineHints.gif)
+![Inline Hints](https://raw.githubusercontent.com/baimohui/i18n-mage-docs/refs/heads/main/docs/en/guide/images/inline-hints.gif)
 
 ### ⚡ Intelligent Code Completion
 
@@ -56,14 +56,14 @@
 * Supports candidate filtering by key, value, or bidirectional matching
 * Auto-fills translation keys to boost multilingual development efficiency
 
-![Code Completion](https://raw.githubusercontent.com/baimohui/i18n-mage/refs/heads/main/doc-assets/completion.gif)
+![Code Completion](https://raw.githubusercontent.com/baimohui/i18n-mage-docs/refs/heads/main/docs/en/guide/images/completion.gif)
 
 ### 🚧 Auto-Fill Missing Translations
 
 - Integrates global providers (DeepL, Google, OpenAI/ChatGPT) and optional regional providers (DeepSeek, Baidu, Tencent, Youdao)
 - Fill missing translations automatically with preview and manual review
 
-![Auto-Fill Missing Translations](https://raw.githubusercontent.com/baimohui/i18n-mage/refs/heads/main/doc-assets/fixMissingTranslation.gif)
+![Auto-Fill Missing Translations](https://raw.githubusercontent.com/baimohui/i18n-mage-docs/refs/heads/main/docs/en/guide/images/fill-missing-translations.gif)
 
 ### 🧹 Auto-Fix Undefined Entries
 
@@ -71,14 +71,14 @@
 - Match existing entries or extract text into new entries
 - Support customizable key naming strategies
 
-![Auto-Fix Undefined Entries](https://raw.githubusercontent.com/baimohui/i18n-mage/refs/heads/main/doc-assets/fixUndefinedTranslation.gif)
+![Auto-Fix Undefined Entries](https://raw.githubusercontent.com/baimohui/i18n-mage-docs/refs/heads/main/docs/en/guide/images/fix-undefined-entries.gif)
 
 ### 🛄 Extract Hardcoded Texts
 - Scan hardcoded texts and batch-extract them into i18n keys
 - Replace source code and write back into language files
 - Preview before apply, suitable for migrating legacy projects
 
-![Extract Hardcoded Texts](https://raw.githubusercontent.com/baimohui/i18n-mage/refs/heads/main/doc-assets/extractHardcodedText.gif)
+![Extract Hardcoded Texts](https://raw.githubusercontent.com/baimohui/i18n-mage-docs/refs/heads/main/docs/en/guide/images/extract-hardcoded-text.gif)
 
 ### 🕵️ Detect Unused Keys
 
@@ -86,14 +86,14 @@
 * Pattern matching for dynamic keys.
 * Delete or mark as used manually.
 
-![Detect Unused Keys](https://raw.githubusercontent.com/baimohui/i18n-mage/refs/heads/main/doc-assets/checkUsage.gif)
+![Detect Unused Keys](https://raw.githubusercontent.com/baimohui/i18n-mage-docs/refs/heads/main/docs/en/guide/images/check-usage.gif)
 
 ### 🔍 Search Translation Entries
 
 - Search across languages to locate target entries quickly
 - Support whole-word and case-sensitive search
 
-![Search Translation Entries](https://raw.githubusercontent.com/baimohui/i18n-mage/refs/heads/main/doc-assets/search.gif)
+![Search Translation Entries](https://raw.githubusercontent.com/baimohui/i18n-mage-docs/refs/heads/main/docs/en/guide/images/search.gif)
 
 ### 📊 Excel Import/Export
 
@@ -102,18 +102,18 @@
 - Export git-based diff sheets (ADD/MODIFY/DELETE)
 - Import diff sheets back into project
 
-![Excel Import/Export](https://raw.githubusercontent.com/baimohui/i18n-mage/refs/heads/main/doc-assets/excel.png)
+![Excel Import/Export](https://raw.githubusercontent.com/baimohui/i18n-mage-docs/refs/heads/main/docs/en/guide/images/excel.png)
 
 ### 📋 Cross-Project Entry Migration
 - Copy entries by file or prefix into clipboard
 - Paste copied entries into target projects for fast migration
 
-![Copy Translation Data](https://raw.githubusercontent.com/baimohui/i18n-mage/refs/heads/main/doc-assets/copyCurrentPage.gif)
+![Copy Translation Data](https://raw.githubusercontent.com/baimohui/i18n-mage-docs/refs/heads/main/docs/en/guide/images/copy-entries.gif)
 
 ### Write Sorting
 - Sort by key name or first occurrence position
 - Reduce noisy diffs after fixes
-![Sorting](https://raw.githubusercontent.com/baimohui/i18n-mage/refs/heads/main/doc-assets/sorting.gif)
+![Sorting](https://raw.githubusercontent.com/baimohui/i18n-mage-docs/refs/heads/main/docs/en/guide/images/sorting.gif)
 
 ## ⚡ Quick Start
 
