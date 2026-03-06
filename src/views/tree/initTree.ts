@@ -24,6 +24,44 @@ interface InitTreeParams {
   refresh: () => void;
 }
 
+type ConfigTargetScope = "global" | "workspace" | "workspaceFolder";
+
+interface PendingConfigUpdate {
+  key: string;
+  value: unknown;
+  targetScope?: ConfigTargetScope;
+}
+
+const initConfigSyncTasks = new Map<string, Promise<void>>();
+
+async function applyConfigUpdatesInOrder(updates: PendingConfigUpdate[]) {
+  for (const update of updates) {
+    try {
+      await setConfig(update.key, update.value, update.targetScope ?? "workspace");
+    } catch (error) {
+      NotificationManager.logToOutput(`Failed to set config for ${update.key}: ${String(error)}`, "error");
+    }
+  }
+}
+
+async function runInitConfigSyncOnce(projectPath: string, updates: PendingConfigUpdate[]) {
+  const existingTask = initConfigSyncTasks.get(projectPath);
+  if (existingTask) {
+    await existingTask;
+    return;
+  }
+
+  const task = applyConfigUpdatesInOrder(updates);
+  initConfigSyncTasks.set(projectPath, task);
+  try {
+    await task;
+  } finally {
+    if (initConfigSyncTasks.get(projectPath) === task) {
+      initConfigSyncTasks.delete(projectPath);
+    }
+  }
+}
+
 export async function initTreeWithDeps(params: InitTreeParams): Promise<boolean> {
   try {
     const projectPath = toAbsolutePath(getCacheConfig<string>("workspace.projectPath", ""));
@@ -92,86 +130,65 @@ export async function initTreeWithDeps(params: InitTreeParams): Promise<boolean>
       params.setPublicCtx(publicCtx);
       const langPath = toRelativePath(publicCtx.langPath);
 
-      setTimeout(() => {
-        const curFramework = getConfig<I18nFramework>("i18nFeatures.framework");
-        const usedFramework = getCacheConfig<I18nFramework>("i18nFeatures.framework");
-        if (curFramework !== usedFramework) {
-          setConfig("i18nFeatures.framework", usedFramework).catch(error => {
-            NotificationManager.logToOutput(`Failed to set config for i18nFramework: ${error}`, "error");
-          });
-        }
-        if (getCacheConfig("workspace.languagePath", "") !== langPath) {
-          setConfig("workspace.languagePath", langPath).catch(error => {
-            NotificationManager.logToOutput(`Failed to set config for langPath: ${error}`, "error");
-          });
-        }
-        if (getCacheConfig("general.displayLanguage", "") === "") {
-          setConfig("general.displayLanguage", vscodeLang, "global").catch(error => {
-            NotificationManager.logToOutput(`Failed to set config for displayLanguage: ${error}`, "error");
-          });
-        }
-        if (getCacheConfig("translationServices.referenceLanguage", "") === "") {
-          setConfig("translationServices.referenceLanguage", vscodeLang, "global").catch(error => {
-            NotificationManager.logToOutput(`Failed to set config for referenceLanguage: ${error}`, "error");
-          });
-        }
+      const pendingUpdates: PendingConfigUpdate[] = [];
+      const curFramework = getConfig<I18nFramework>("i18nFeatures.framework");
+      const usedFramework = getCacheConfig<I18nFramework>("i18nFeatures.framework");
+      if (curFramework !== usedFramework) {
+        pendingUpdates.push({ key: "i18nFeatures.framework", value: usedFramework });
+      }
+      if (getConfig<string>("workspace.languagePath", "") !== langPath) {
+        pendingUpdates.push({ key: "workspace.languagePath", value: langPath });
+      }
+      if (getConfig<string>("general.displayLanguage", "") === "") {
+        pendingUpdates.push({ key: "general.displayLanguage", value: vscodeLang, targetScope: "global" });
+      }
+      if (getConfig<string>("translationServices.referenceLanguage", "") === "") {
+        pendingUpdates.push({ key: "translationServices.referenceLanguage", value: vscodeLang, targetScope: "global" });
+      }
 
-        const latestPublicCtx = params.getPublicCtx();
-        const latestLangInfo = params.mage.langDetail;
-        if (
-          getCacheConfig("i18nFeatures.namespaceStrategy") !== latestPublicCtx.namespaceStrategy &&
-          latestLangInfo.avgFileNestedLevel > 0
-        ) {
-          setConfig("i18nFeatures.namespaceStrategy", latestPublicCtx.namespaceStrategy).catch(error => {
-            NotificationManager.logToOutput(`Failed to set config for namespaceStrategy: ${error}`, "error");
-          });
-        }
+      const latestPublicCtx = params.getPublicCtx();
+      const latestLangInfo = params.mage.langDetail;
+      if (getConfig("i18nFeatures.namespaceStrategy") !== latestPublicCtx.namespaceStrategy && latestLangInfo.avgFileNestedLevel > 0) {
+        pendingUpdates.push({ key: "i18nFeatures.namespaceStrategy", value: latestPublicCtx.namespaceStrategy });
+      }
 
-        const fileExtraData = Object.values(latestLangInfo.fileExtraInfo);
-        if (fileExtraData.length === 0) return;
-        if (getCacheConfig("writeRules.indentType") === INDENT_TYPE.auto) {
+      const fileExtraData = Object.values(latestLangInfo.fileExtraInfo);
+      if (fileExtraData.length > 0) {
+        if (getConfig("writeRules.indentType") === INDENT_TYPE.auto) {
           const initIndentType = fileExtraData[0].indentType;
           const isUnified = fileExtraData.every(item => item.indentType === initIndentType);
           if (isUnified) {
-            setConfig("writeRules.indentType", initIndentType).catch(error => {
-              NotificationManager.logToOutput(`Failed to set config for indentType: ${error}`, "error");
-            });
+            pendingUpdates.push({ key: "writeRules.indentType", value: initIndentType });
           }
         }
-        if (getCacheConfig("writeRules.indentSize") === null) {
+        if (getConfig("writeRules.indentSize") === null) {
           const initIndentSize = fileExtraData[0].indentSize;
           const isUnified = fileExtraData.every(item => item.indentSize === initIndentSize);
           if (isUnified) {
-            setConfig("writeRules.indentSize", initIndentSize).catch(error => {
-              NotificationManager.logToOutput(`Failed to set config for indentSize: ${error}`, "error");
-            });
+            pendingUpdates.push({ key: "writeRules.indentSize", value: initIndentSize });
           }
         }
-        if (getCacheConfig("writeRules.quoteStyleForKey") === QUOTE_STYLE_4_KEY.auto) {
+        if (getConfig("writeRules.quoteStyleForKey") === QUOTE_STYLE_4_KEY.auto) {
           const initKeyQuotes = fileExtraData[0].keyQuotes;
           const isUnified = fileExtraData.every(item => item.keyQuotes === initKeyQuotes);
           if (isUnified) {
-            setConfig("writeRules.quoteStyleForKey", initKeyQuotes).catch(error => {
-              NotificationManager.logToOutput(`Failed to set config for quoteStyleForKey: ${error}`, "error");
-            });
+            pendingUpdates.push({ key: "writeRules.quoteStyleForKey", value: initKeyQuotes });
           }
         }
-        if (getCacheConfig("writeRules.quoteStyleForValue") === QUOTE_STYLE_4_VALUE.auto) {
+        if (getConfig("writeRules.quoteStyleForValue") === QUOTE_STYLE_4_VALUE.auto) {
           const initValueQuotes = fileExtraData[0].valueQuotes;
           const isUnified = fileExtraData.every(item => item.valueQuotes === initValueQuotes);
           if (isUnified) {
-            setConfig("writeRules.quoteStyleForValue", initValueQuotes).catch(error => {
-              NotificationManager.logToOutput(`Failed to set config for quoteStyleForValue: ${error}`, "error");
-            });
+            pendingUpdates.push({ key: "writeRules.quoteStyleForValue", value: initValueQuotes });
           }
         }
-        if (getCacheConfig("writeRules.languageStructure") === LANGUAGE_STRUCTURE.auto) {
+        if (getConfig("writeRules.languageStructure") === LANGUAGE_STRUCTURE.auto) {
           const isFlat = fileExtraData.every(item => item.isFlat);
-          setConfig("writeRules.languageStructure", LANGUAGE_STRUCTURE[isFlat ? "flat" : "nested"]).catch(error => {
-            NotificationManager.logToOutput(`Failed to set config for languageStructure: ${error}`, "error");
-          });
+          pendingUpdates.push({ key: "writeRules.languageStructure", value: LANGUAGE_STRUCTURE[isFlat ? "flat" : "nested"] });
         }
-      }, 10000);
+      }
+
+      await runInitConfigSyncOnce(projectPath, pendingUpdates);
     }
 
     params.setInitialized(true);

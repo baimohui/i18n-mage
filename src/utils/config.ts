@@ -5,6 +5,35 @@ const NAMESPACE = "i18n-mage";
 type Scope = "global" | "workspace" | "workspaceFolder";
 
 const cachedConfig: Record<string, any> = {};
+let configWriteQueue: Promise<void> = Promise.resolve();
+
+const RETRY_DELAYS_MS = [100, 300];
+
+function delay(ms: number) {
+  return new Promise<void>(resolve => setTimeout(resolve, ms));
+}
+
+async function updateConfigWithRetry<T = any>(
+  config: vscode.WorkspaceConfiguration,
+  key: string,
+  value: T,
+  target: vscode.ConfigurationTarget
+) {
+  let lastError: unknown;
+  for (let attempt = 0; attempt <= RETRY_DELAYS_MS.length; attempt++) {
+    try {
+      await config.update(key, value, target);
+      return;
+    } catch (error) {
+      lastError = error;
+      if (attempt < RETRY_DELAYS_MS.length) {
+        await delay(RETRY_DELAYS_MS[attempt]);
+        continue;
+      }
+      throw lastError;
+    }
+  }
+}
 
 export function getConfig<T = any>(key: string, defaultValue?: T, scope?: vscode.ConfigurationScope): T {
   return vscode.workspace.getConfiguration(NAMESPACE, scope).get<T>(key, defaultValue as T);
@@ -16,15 +45,19 @@ export async function setConfig<T = any>(
   targetScope: Scope = "workspace", // 默认写入当前项目
   scope?: vscode.ConfigurationScope // 可选传入 workspaceFolder 或 Uri
 ): Promise<void> {
-  const config = vscode.workspace.getConfiguration(NAMESPACE, scope);
   const configTarget =
     targetScope === "global"
       ? vscode.ConfigurationTarget.Global
       : targetScope === "workspace"
         ? vscode.ConfigurationTarget.Workspace
         : vscode.ConfigurationTarget.WorkspaceFolder;
-
-  await config.update(key, value, configTarget);
+  const task = async () => {
+    const config = vscode.workspace.getConfiguration(NAMESPACE, scope);
+    await updateConfigWithRetry(config, key, value, configTarget);
+  };
+  const queuedTask = configWriteQueue.then(task, task);
+  configWriteQueue = queuedTask.catch(() => undefined);
+  await queuedTask;
 }
 
 export function getCacheConfig<T = any>(key: string, defaultValue?: T) {
