@@ -81,12 +81,24 @@ export function getRootChildren(ctx: TreeSectionContext): ExtendedTreeItem[] {
   });
 
   if (!ctx.isSearching) {
+    const fillableSyncKeys = [
+      ...new Set(
+        [...Object.values(ctx.langInfo.lack).flat(), ...Object.values(ctx.langInfo.null).flat()].filter(
+          key => !!ctx.langInfo.countryMap[ctx.publicCtx.referredLang]?.[key]
+        )
+      )
+    ];
+    const syncContextValueList = ["checkSync"];
+    if (fillableSyncKeys.length > 0) {
+      syncContextValueList.push("FILL_VALUE");
+    }
     rootSections.push({
       level: 0,
       label: t("tree.syncInfo.title"),
       id: "SYNC_INFO",
       root: "SYNC_INFO",
-      contextValue: "checkSync",
+      contextValue: syncContextValueList.join(","),
+      data: fillableSyncKeys,
       tooltip: toRelativePath(ctx.publicCtx.langPath),
       iconPath: new vscode.ThemeIcon(ctx.isSyncing !== false ? "sync~spin" : "sync"),
       collapsibleState: vscode.TreeItemCollapsibleState.Expanded,

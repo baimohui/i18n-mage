@@ -1711,7 +1711,7 @@
         },
         {
           "command": "i18nMage.addLanguage",
-          "when": "viewItem == checkSync",
+          "when": "viewItem =~ /(^|,)checkSync(,|$)/",
           "group": "op@1"
         }
       ],
