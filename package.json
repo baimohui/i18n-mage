@@ -572,8 +572,9 @@
           "i18n-mage.writeRules.keyStyle": {
             "order": 20,
             "type": "string",
-            "default": "camelCase",
+            "default": "auto",
             "enum": [
+              "auto",
               "camelCase",
               "PascalCase",
               "snake_case",
@@ -581,6 +582,7 @@
               "raw"
             ],
             "enumDescriptions": [
+              "%config.option.auto%",
               "%config.keyStyle.camelCase%",
               "%config.keyStyle.pascalCase%",
               "%config.keyStyle.snakeCase%",

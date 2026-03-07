@@ -183,7 +183,13 @@ export function registerFixCommand(context: vscode.ExtensionContext) {
           }
         }
         const keyPrefix = getConfig<string>("writeRules.keyPrefix", "");
-        if (writeFlag && nameSeparator && keyPrefix === "manual-selection") {
+        const keyStyle = getConfig<string>("writeRules.keyStyle", "camelCase");
+        const skipKeyCategorySelection =
+          (keyStyle === "snake_case" && nameSeparator === "_") || (keyStyle === "kebab-case" && nameSeparator === "-");
+        if (writeFlag && skipKeyCategorySelection) {
+          mage.setOptions({ missingEntryPath: "" });
+        }
+        if (writeFlag && nameSeparator && keyPrefix === "manual-selection" && !skipKeyCategorySelection) {
           const classTreeItem = classTree.find(item => item.filePos === (missingEntryFile ?? ""));
           let commonKeys = classTreeItem ? getParentKeys(classTreeItem.data, nameSeparator) : [];
           const offset = publicCtx.namespaceStrategy === NAMESPACE_STRATEGY.file ? 1 : (missingEntryFile?.split(".").length ?? 0);

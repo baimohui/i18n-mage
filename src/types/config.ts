@@ -49,6 +49,7 @@ export const SORT_MODE = {
 export type SortMode = (typeof SORT_MODE)[keyof typeof SORT_MODE];
 
 export const KEY_STYLE = {
+  auto: "auto",
   camelCase: "camelCase",
   pascalCase: "PascalCase",
   snakeCase: "snake_case",

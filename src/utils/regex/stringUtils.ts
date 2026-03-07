@@ -13,6 +13,7 @@ export function generateKey(parts: string[], keyStyle: KeyStyle): string {
   const toKebabCase = (arr: string[]) => arr.map(word => word.toLowerCase()).join("-");
   const toRaw = (arr: string[]) => arr.join("");
   switch (keyStyle) {
+    case KEY_STYLE.auto:
     case KEY_STYLE.camelCase:
       return toCamelCase(parts);
     case KEY_STYLE.pascalCase:

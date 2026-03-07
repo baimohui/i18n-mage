@@ -5,6 +5,8 @@ import {
   EntryClassTreeItem,
   EntryNode,
   I18N_FRAMEWORK,
+  KEY_STYLE,
+  KeyStyle,
   LangContextInternal,
   LANGUAGE_STRUCTURE,
   NAMESPACE_STRATEGY,
@@ -17,6 +19,7 @@ import {
   getValueByAmbiguousEntryName,
   flattenNestedObj,
   escapeString,
+  getPathSegsFromId,
   unescapeString,
   isValidI18nCallablePath,
   stripLanguageLayer,
@@ -77,6 +80,9 @@ export class ReadHandler {
       if (this.ctx.nameSeparator) {
         entryNameList.forEach(name => this.genEntryClassTree(name));
       }
+    }
+    if (this.ctx.keyStyle === KEY_STYLE.auto) {
+      this.ctx.keyStyle = this.detectCommonKeyStyle(Object.keys(lookup), this.ctx.nameSeparator);
     }
   }
 
@@ -425,6 +431,61 @@ export class ReadHandler {
     const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1]);
     const [mostUsedSep, count] = sorted[0];
     return count / total >= threshold ? mostUsedSep : "";
+  }
+
+  private detectCommonKeyStyle(keys: string[] = [], nameSeparator: string): KeyStyle {
+    const styleCounter: Record<string, number> = {
+      [KEY_STYLE.camelCase]: 0,
+      [KEY_STYLE.pascalCase]: 0,
+      [KEY_STYLE.snakeCase]: 0,
+      [KEY_STYLE.kebabCase]: 0
+    };
+    for (const key of keys) {
+      const nameCandidate = this.getNameCandidate(key, nameSeparator);
+      const byName = this.detectKeyStyle(nameCandidate);
+      if (byName) {
+        styleCounter[byName]++;
+        continue;
+      }
+      const byWholeKey = this.detectKeyStyle(key);
+      if (byWholeKey) {
+        styleCounter[byWholeKey]++;
+      }
+    }
+    const sorted = Object.entries(styleCounter).sort((a, b) => b[1] - a[1]);
+    const [mostStyle, count] = sorted[0] ?? [];
+    if (!mostStyle || count === 0) {
+      return KEY_STYLE.camelCase;
+    }
+    return mostStyle as KeyStyle;
+  }
+
+  private getNameCandidate(key: string, nameSeparator: string): string {
+    if (!nameSeparator) return key;
+    if (nameSeparator === ".") {
+      const segs = getPathSegsFromId(key);
+      return segs[segs.length - 1] ?? key;
+    }
+    const index = key.lastIndexOf(nameSeparator);
+    if (index === -1) return key;
+    return key.slice(index + nameSeparator.length);
+  }
+
+  private detectKeyStyle(key: string): KeyStyle | "" {
+    if (!key) return "";
+    if (/^[a-z][a-z0-9]*(?:[A-Z][a-z0-9]*)+$/.test(key)) {
+      return KEY_STYLE.camelCase;
+    }
+    if (/^[A-Z][a-z0-9]*(?:[A-Z][a-z0-9]*)*$/.test(key) && /[a-z]/.test(key)) {
+      return KEY_STYLE.pascalCase;
+    }
+    if (/^[a-z0-9]+(?:_[a-z0-9]+)+$/.test(key)) {
+      return KEY_STYLE.snakeCase;
+    }
+    if (/^[a-z0-9]+(?:-[a-z0-9]+)+$/.test(key)) {
+      return KEY_STYLE.kebabCase;
+    }
+    return "";
   }
 
   /**

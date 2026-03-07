@@ -6,6 +6,7 @@ import {
   INDENT_TYPE,
   I18N_FRAMEWORK,
   I18nFramework,
+  KEY_STYLE,
   LANGUAGE_STRUCTURE,
   LangContextPublic,
   QUOTE_STYLE_4_KEY,
@@ -150,6 +151,9 @@ export async function initTreeWithDeps(params: InitTreeParams): Promise<boolean>
       const latestLangInfo = params.mage.langDetail;
       if (getConfig("i18nFeatures.namespaceStrategy") !== latestPublicCtx.namespaceStrategy && latestLangInfo.avgFileNestedLevel > 0) {
         pendingUpdates.push({ key: "i18nFeatures.namespaceStrategy", value: latestPublicCtx.namespaceStrategy });
+      }
+      if (getConfig("writeRules.keyStyle") === KEY_STYLE.auto) {
+        pendingUpdates.push({ key: "writeRules.keyStyle", value: latestPublicCtx.keyStyle });
       }
 
       const fileExtraData = Object.values(latestLangInfo.fileExtraInfo);
