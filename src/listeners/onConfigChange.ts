@@ -45,11 +45,11 @@ export function registerOnConfigChange() {
                 "translationHints.maxLength",
                 "translationHints.enableLooseKeyMatch",
                 "translationHints.realtimeVisibleRangeUpdate",
-                "translationHints.decorationScope"
+                "translationHints.fullFileMaxSizeKB"
               ].includes(key) ||
               ["translationHints.light", "translationHints.dark"].some(i => key.startsWith(i))
             ) {
-              if (["translationHints.realtimeVisibleRangeUpdate", "translationHints.decorationScope"].includes(key)) {
+              if (["translationHints.realtimeVisibleRangeUpdate", "translationHints.fullFileMaxSizeKB"].includes(key)) {
                 decorator.updateVisibleEditors();
               } else {
                 decorator.updateTranslationDecoration();

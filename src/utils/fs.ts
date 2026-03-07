@@ -281,6 +281,17 @@ export function isFileTooLarge(filePath: string): boolean {
   }
 }
 
+export function getFileSizeKB(filePath: string): number | null {
+  if (!filePath) return null;
+  try {
+    const stats = fsSync.statSync(filePath);
+    if (!stats.isFile()) return null;
+    return stats.size / 1024;
+  } catch {
+    return null;
+  }
+}
+
 export async function checkPathExists(path: string) {
   try {
     await fs.access(path);

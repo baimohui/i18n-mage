@@ -3,9 +3,9 @@ import LangMage from "@/core/LangMage";
 import { treeInstance } from "@/views/tree";
 import { getValueByAmbiguousEntryName, formatEscapeChar } from "@/utils/regex";
 import { getCacheConfig } from "@/utils/config";
-import { DECORATION_SCOPE, DecorationScope, INLINE_HINTS_DISPLAY_MODE, InlineHintsDisplayMode } from "@/types";
+import { INLINE_HINTS_DISPLAY_MODE, InlineHintsDisplayMode } from "@/types";
 import { ActiveEditorState } from "@/utils/activeEditorState";
-import { isFileTooLarge } from "@/utils/fs";
+import { getFileSizeKB, isFileTooLarge } from "@/utils/fs";
 
 type DecorationData = {
   startPos: number;
@@ -87,10 +87,10 @@ export class DecoratorController implements vscode.Disposable {
       this.clearEditorDecorations(editor, editorKey);
       return;
     }
-    const decorationScope = getCacheConfig<DecorationScope>("translationHints.decorationScope", DECORATION_SCOPE.visible);
+    const visibleOnly = this.shouldRenderVisibleOnly(editor);
     const entries = Array.from(ActiveEditorState.definedEntries.values())
       .flat()
-      .filter(item => decorationScope === DECORATION_SCOPE.file || item.visible);
+      .filter(item => !visibleOnly || item.visible);
     const maxLen = getCacheConfig<number>("translationHints.maxLength");
     const enableLooseKeyMatch = getCacheConfig<boolean>("translationHints.enableLooseKeyMatch");
     const dynamicMatchInfo = ActiveEditorState.dynamicMatchInfo;
@@ -152,13 +152,12 @@ export class DecoratorController implements vscode.Disposable {
 
   public handleDocumentChange(event: vscode.TextDocumentChangeEvent): void {
     if (event.contentChanges.length === 0) return;
-    const decorationScope = getCacheConfig<DecorationScope>("translationHints.decorationScope", DECORATION_SCOPE.visible);
 
     const editors = vscode.window.visibleTextEditors.filter(editor => editor.document === event.document);
     if (editors.length === 0) return;
 
     editors.forEach(editor => {
-      if (decorationScope === DECORATION_SCOPE.file) {
+      if (!this.shouldRenderVisibleOnly(editor)) {
         ActiveEditorState.update(editor);
         this.update(editor);
         return;
@@ -195,6 +194,15 @@ export class DecoratorController implements vscode.Disposable {
   public handleVisibleRangesChange(event: vscode.TextEditorVisibleRangesChangeEvent): void {
     ActiveEditorState.update(event.textEditor);
     this.update(event.textEditor);
+  }
+
+  public shouldRenderVisibleOnly(editor: vscode.TextEditor): boolean {
+    const fullFileMaxSizeKB = getCacheConfig<number>("translationHints.fullFileMaxSizeKB", 50);
+    if (fullFileMaxSizeKB === -1) return false;
+    if (fullFileMaxSizeKB <= 0) return true;
+    const fileSizeKB = getFileSizeKB(editor.document.uri.fsPath);
+    if (fileSizeKB === null) return true;
+    return fileSizeKB > fullFileMaxSizeKB;
   }
 
   public updateTranslationDecoration() {
