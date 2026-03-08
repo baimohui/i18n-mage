@@ -18,6 +18,8 @@ export interface Credentials {
   tencentSecretId?: string;
   tencentSecretKey?: string;
   deepseekApiKey?: string;
+  doubaoApiKey?: string;
+  doubaoModel?: string;
   translateApiPriority: string[];
 }
 
@@ -39,6 +41,8 @@ export default async function translateTo(data: TranslateData, startIndex = 0): 
   const tencentSecretKey = getCacheConfig<string>("translationServices.tencentSecretKey");
   const deepseekApiKey = getCacheConfig<string>("translationServices.deepseekApiKey");
   const openaiApiKey = getCacheConfig<string>("translationServices.openaiApiKey", "");
+  const doubaoApiKey = getCacheConfig<string>("translationServices.doubaoApiKey", "");
+  const doubaoModel = getCacheConfig<string>("translationServices.doubaoModel", "");
   const googleApiKey = getCacheConfig<string>("translationServices.googleApiKey");
   const youdaoAppId = getCacheConfig<string>("translationServices.youdaoAppId");
   const youdaoAppKey = getCacheConfig<string>("translationServices.youdaoAppKey");
@@ -51,6 +55,7 @@ export default async function translateTo(data: TranslateData, startIndex = 0): 
     tencent: [tencentSecretId, tencentSecretKey],
     deepseek: ["none", deepseekApiKey],
     chatgpt: ["none", openaiApiKey],
+    doubao: [doubaoModel, doubaoApiKey],
     deepl: ["none", deeplApiKey],
     youdao: [youdaoAppId, youdaoAppKey]
   };

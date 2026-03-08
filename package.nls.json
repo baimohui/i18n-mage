@@ -17,6 +17,8 @@
   "config.translateServices.title": "Translation Services",
   "config.openaiApiKey.desc": "OpenAI API Key",
   "config.deepseekApiKey.desc": "DeepSeek API Key",
+  "config.doubaoApiKey.desc": "Doubao API Key",
+  "config.doubaoModel.desc": "Doubao model (for Ark OpenAI-compatible API)",
   "config.baiduAppId.desc": "Baidu Translate APP ID",
   "config.baiduSecretKey.desc": "Baidu Translate Secret Key",
   "config.tencentSecretId.desc": "Tencent Cloud SecretId",

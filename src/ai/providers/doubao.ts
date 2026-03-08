@@ -7,9 +7,10 @@ import { batchTranslate } from "@/ai/shared/batchTranslate";
 import { batchGenerate } from "@/ai/shared/batchGenerate";
 import { buildIndexedItems, parseListOutput } from "@/ai/shared/listOutput";
 
-const baseUrl = "https://api.openai.com/v1/chat/completions";
+const baseUrl = "https://ark.cn-beijing.volces.com/api/v3/chat/completions";
+const defaultModel = "doubao-seed-1-8-251228";
 
-interface OpenAIAPIResponse {
+interface DoubaoAPIResponse {
   choices: {
     message: {
       content: string;
@@ -17,12 +18,16 @@ interface OpenAIAPIResponse {
   }[];
 }
 
-async function requestCompletion(apiKey: string, messages: Array<{ role: "system" | "user"; content: string }>): Promise<string> {
+async function requestCompletion(
+  apiKey: string,
+  model: string,
+  messages: Array<{ role: "system" | "user"; content: string }>
+): Promise<string> {
   const agent = getProxyAgent();
-  const response = await axios.post<OpenAIAPIResponse>(
+  const response = await axios.post<DoubaoAPIResponse>(
     baseUrl,
     {
-      model: "gpt-4o-mini",
+      model,
       messages,
       temperature: 0
     },
@@ -38,7 +43,8 @@ async function requestCompletion(apiKey: string, messages: Array<{ role: "system
 }
 
 async function translate(params: TranslateParams): Promise<TranslateResult> {
-  const { source, target, sourceTextList, apiKey, customPrompt = "" } = params;
+  const { source, target, sourceTextList, apiId, apiKey, customPrompt = "" } = params;
+  const model = apiId || defaultModel;
   return batchTranslate(
     source,
     target,
@@ -48,7 +54,7 @@ async function translate(params: TranslateParams): Promise<TranslateResult> {
       try {
         const sourceText = buildIndexedItems(sourceList);
         const prompt = customPrompt.trim();
-        const content = await requestCompletion(apiKey, [
+        const content = await requestCompletion(apiKey, model, [
           {
             role: "system",
             content:
@@ -80,7 +86,8 @@ async function translate(params: TranslateParams): Promise<TranslateResult> {
 }
 
 async function generateKey(params: GenKeyParams): Promise<GenKeyResult> {
-  const { style, maxLen, sourceTextList, apiKey } = params;
+  const { style, maxLen, sourceTextList, apiId, apiKey } = params;
+  const model = apiId || defaultModel;
   return batchGenerate(
     sourceTextList,
     style,
@@ -89,7 +96,7 @@ async function generateKey(params: GenKeyParams): Promise<GenKeyResult> {
     async (sourceList, keyStyle, keyMaxLen) => {
       try {
         const sourceText = buildIndexedItems(sourceList);
-        const content = await requestCompletion(apiKey, [
+        const content = await requestCompletion(apiKey, model, [
           {
             role: "system",
             content:
@@ -122,7 +129,8 @@ async function generateKey(params: GenKeyParams): Promise<GenKeyResult> {
 }
 
 async function selectPrefix(params: SelectPrefixParams): Promise<SelectPrefixResult> {
-  const { sourceTextList, prefixCandidates, apiKey } = params;
+  const { sourceTextList, prefixCandidates, apiId, apiKey } = params;
+  const model = apiId || defaultModel;
   if (prefixCandidates.length === 0) {
     return { success: false, message: "No prefix candidates provided" };
   }
@@ -133,7 +141,7 @@ async function selectPrefix(params: SelectPrefixParams): Promise<SelectPrefixRes
   try {
     const sourceText = buildIndexedItems(sourceTextList);
     const candidatesJson = JSON.stringify(safeCandidates);
-    const content = await requestCompletion(apiKey, [
+    const content = await requestCompletion(apiKey, model, [
       {
         role: "system",
         content:
@@ -161,11 +169,11 @@ async function selectPrefix(params: SelectPrefixParams): Promise<SelectPrefixRes
   }
 }
 
-const chatgptProvider: AiProvider = {
-  id: "chatgpt",
+const doubaoProvider: AiProvider = {
+  id: "doubao",
   translate,
   generateKey,
   selectPrefix
 };
 
-export default chatgptProvider;
+export default doubaoProvider;

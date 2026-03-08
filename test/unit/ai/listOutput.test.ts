@@ -8,17 +8,12 @@ describe("ai/shared/listOutput", () => {
   });
 
   it("parseListOutput should parse JSON array", () => {
-    const result = parseListOutput(`["k1","k2"]`, "[[[SEP]]]", 2);
-    assert.deepStrictEqual(result, ["k1", "k2"]);
-  });
-
-  it("parseListOutput should parse separator output", () => {
-    const result = parseListOutput("k1[[[SEP]]]k2", "[[[SEP]]]", 2);
+    const result = parseListOutput(`["k1","k2"]`, 2);
     assert.deepStrictEqual(result, ["k1", "k2"]);
   });
 
   it("parseListOutput should parse plain line output", () => {
-    const result = parseListOutput("k1\nk2", "[[[SEP]]]", 2);
+    const result = parseListOutput("k1\nk2", 2);
     assert.deepStrictEqual(result, ["k1", "k2"]);
   });
 });

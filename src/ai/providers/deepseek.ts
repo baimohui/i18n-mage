@@ -7,7 +7,6 @@ import { batchGenerate } from "@/ai/shared/batchGenerate";
 import { buildIndexedItems, parseListOutput } from "@/ai/shared/listOutput";
 
 const baseUrl = "https://api.deepseek.com/v1/chat/completions";
-const SEP = "[[[SEP]]]";
 
 interface DeepSeekAPIResponse {
   choices: {
@@ -61,9 +60,9 @@ async function translate(params: TranslateParams): Promise<TranslateResult> {
           }
         ]);
 
-        const result = parseListOutput(content, SEP, sourceList.length);
+        const result = parseListOutput(content, sourceList.length);
         if (result.length !== sourceList.length) {
-          return { success: false, message: t("translator.deepseek.lineCountMismatch", result.join(SEP)) };
+          return { success: false, message: t("translator.deepseek.lineCountMismatch", result.join(" | ")) };
         }
 
         return {
@@ -103,9 +102,9 @@ async function generateKey(params: GenKeyParams): Promise<GenKeyResult> {
           }
         ]);
 
-        const result = parseListOutput(content, SEP, sourceList.length);
+        const result = parseListOutput(content, sourceList.length);
         if (result.length !== sourceList.length) {
-          return { success: false, message: t("translator.deepseek.lineCountMismatch", result.join(SEP)) };
+          return { success: false, message: t("translator.deepseek.lineCountMismatch", result.join(" | ")) };
         }
 
         return {
@@ -149,9 +148,9 @@ async function selectPrefix(params: SelectPrefixParams): Promise<SelectPrefixRes
           `Output example: ["common.form","tips"]`
       }
     ]);
-    const result = parseListOutput(content, SEP, sourceTextList.length);
+    const result = parseListOutput(content, sourceTextList.length);
     if (result.length !== sourceTextList.length) {
-      return { success: false, message: t("translator.deepseek.lineCountMismatch", result.join(SEP)) };
+      return { success: false, message: t("translator.deepseek.lineCountMismatch", result.join(" | ")) };
     }
     return { success: true, data: result };
   } catch (e: unknown) {

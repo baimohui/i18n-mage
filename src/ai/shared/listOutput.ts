@@ -16,7 +16,7 @@ function normalizeLine(line: string) {
     .trim();
 }
 
-export function parseListOutput(content: string, sep: string, expectedLength: number): string[] {
+export function parseListOutput(content: string, expectedLength: number): string[] {
   const normalized = stripCodeFence(content);
   try {
     const parsed: unknown = JSON.parse(normalized);
@@ -28,10 +28,6 @@ export function parseListOutput(content: string, sep: string, expectedLength: nu
     }
   } catch {
     // noop
-  }
-
-  if (normalized.includes(sep)) {
-    return normalized.split(sep).map(part => part.trim());
   }
 
   const lines = normalized.split(/\r?\n/).map(normalizeLine).filter(Boolean);

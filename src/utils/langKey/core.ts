@@ -125,6 +125,7 @@ export function resolveLangCode(
     deepseek: "ggCode",
     deepl: "dlCode",
     chatgpt: "ggCode",
+    doubao: "ggCode",
     youdao: "ydCode"
   };
   const code = intro?.[map[platform]];

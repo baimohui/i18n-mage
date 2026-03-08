@@ -306,6 +306,7 @@
             "default": [
               "deepl",
               "chatgpt",
+              "doubao",
               "deepseek",
               "baidu",
               "tencent",
@@ -318,6 +319,7 @@
               "enum": [
                 "deepl",
                 "chatgpt",
+                "doubao",
                 "deepseek",
                 "google",
                 "baidu",
@@ -327,8 +329,38 @@
             },
             "uniqueItems": true
           },
-          "i18n-mage.translationServices.deeplVersion": {
+          "i18n-mage.translationServices.openaiApiKey": {
+            "order": 15,
+            "type": "string",
+            "default": "",
+            "description": "%config.openaiApiKey.desc%"
+          },
+          "i18n-mage.translationServices.deepseekApiKey": {
+            "order": 16,
+            "type": "string",
+            "default": "",
+            "description": "%config.deepseekApiKey.desc%"
+          },
+          "i18n-mage.translationServices.doubaoApiKey": {
+            "order": 17,
+            "type": "string",
+            "default": "",
+            "description": "%config.doubaoApiKey.desc%"
+          },
+          "i18n-mage.translationServices.doubaoModel": {
             "order": 18,
+            "type": "string",
+            "default": "doubao-seed-1-8-251228",
+            "description": "%config.doubaoModel.desc%"
+          },
+          "i18n-mage.translationServices.aiCustomPrompt": {
+            "order": 19,
+            "type": "string",
+            "default": "",
+            "description": "%config.aiCustomPrompt.desc%"
+          },
+          "i18n-mage.translationServices.deeplVersion": {
+            "order": 20,
             "type": "string",
             "enum": [
               "free",
@@ -338,28 +370,16 @@
             "description": "%config.deeplVersion.desc%"
           },
           "i18n-mage.translationServices.deeplApiKey": {
-            "order": 19,
+            "order": 21,
             "type": "string",
             "default": "",
             "description": "%config.deeplApiKey.desc%"
           },
           "i18n-mage.translationServices.googleApiKey": {
-            "order": 20,
-            "type": "string",
-            "default": "",
-            "description": "%config.googleApiKey.desc%"
-          },
-          "i18n-mage.translationServices.openaiApiKey": {
             "order": 22,
             "type": "string",
             "default": "",
-            "description": "%config.openaiApiKey.desc%"
-          },
-          "i18n-mage.translationServices.deepseekApiKey": {
-            "order": 25,
-            "type": "string",
-            "default": "",
-            "description": "%config.deepseekApiKey.desc%"
+            "description": "%config.googleApiKey.desc%"
           },
           "i18n-mage.translationServices.baiduAppId": {
             "order": 27,
@@ -424,12 +444,6 @@
               "https"
             ],
             "description": "%config.proxyProtocol.desc%"
-          },
-          "i18n-mage.translationServices.aiCustomPrompt": {
-            "order": 26,
-            "type": "string",
-            "default": "",
-            "description": "%config.aiCustomPrompt.desc%"
           }
         }
       },
