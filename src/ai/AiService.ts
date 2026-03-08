@@ -1,8 +1,17 @@
-import { AiPlatform, ApiPlatform, GenKeyParams, GenKeyResult, TranslateParams, TranslateResult } from "@/types";
+import {
+  AiPlatform,
+  ApiPlatform,
+  GenKeyParams,
+  GenKeyResult,
+  SelectPrefixParams,
+  SelectPrefixResult,
+  TranslateParams,
+  TranslateResult
+} from "@/types";
 import { getCacheConfig } from "@/utils/config";
 import { t } from "@/utils/i18n";
 import { ApiCredentialsMap, selectAvailableApiList } from "@/ai/shared/selectAvailableApi";
-import { AiProvider, GenerateKeyData } from "@/ai/types";
+import { AiProvider, GenerateKeyData, SelectPrefixData } from "@/ai/types";
 import deepseekProvider from "@/ai/providers/deepseek";
 import chatgptProvider from "@/ai/providers/chatgpt";
 
@@ -23,6 +32,10 @@ export class AiService {
 
   public isAiPlatform(api: ApiPlatform): api is AiPlatform {
     return api in this.providers;
+  }
+
+  public hasAvailableProviders(): boolean {
+    return this.getAvailableProviders().length > 0;
   }
 
   public async translate(api: AiPlatform, params: TranslateParams): Promise<TranslateResult> {
@@ -63,6 +76,38 @@ export class AiService {
     }
 
     result.message = "Failed to generate keys";
+    return { success: false, message: result.message };
+  }
+
+  public async selectPrefixFrom(data: SelectPrefixData, startIndex = 0): Promise<SelectPrefixResult> {
+    const { sourceTextList = [], prefixCandidates = [] } = data;
+    const availableProviders = this.getAvailableProviders();
+
+    if (startIndex >= availableProviders.length) {
+      return { success: false, message: t("translator.noAvailableApi") };
+    }
+
+    const providerId = availableProviders[startIndex];
+    const credentialsMap = this.getCredentialsMap();
+    const params: SelectPrefixParams = {
+      sourceTextList,
+      prefixCandidates,
+      apiId: credentialsMap[providerId][0] ?? "",
+      apiKey: credentialsMap[providerId][1] ?? ""
+    };
+
+    const result = await this.providers[providerId].selectPrefix(params);
+    if (result.success) {
+      result.api = providerId;
+      result.message = "";
+      return result;
+    }
+
+    if (startIndex + 1 < availableProviders.length) {
+      return this.selectPrefixFrom(data, startIndex + 1);
+    }
+
+    result.message = "Failed to select prefixes";
     return { success: false, message: result.message };
   }
 

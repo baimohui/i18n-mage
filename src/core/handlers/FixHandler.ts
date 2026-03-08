@@ -84,9 +84,13 @@ export class FixHandler {
     const entriesToGen = this.ctx.fixQuery.entriesToGen;
     const genScope = this.ctx.fixQuery.genScope;
     const keyPatch = this.ctx.fixQuery.keyPatch;
+    const keyPrefixPatch = this.ctx.fixQuery.keyPrefixPatch;
     for (const entry of this.ctx.undefinedEntryList) {
       const nameInfo = entry.nameInfo;
       const entryId = genIdFromText(nameInfo.text);
+      if (keyPrefixPatch && keyPrefixPatch[entryId] !== undefined) {
+        nameInfo.boundPrefix = keyPrefixPatch[entryId];
+      }
       if (this.ctx.i18nFramework === I18N_FRAMEWORK.none && nameInfo.vars.length > 0) continue;
       if (keyPatch && keyPatch[entryId]) {
         this.needFix = true;
@@ -201,7 +205,7 @@ export class FixHandler {
         pcList
           .map(item => item.name)
           .find(item => item.split(this.ctx.nameSeparator).every(part => !this.ctx.stopPrefixes.includes(part))) ?? "";
-    } else if (this.ctx.keyPrefix === "manual-selection") {
+    } else if (this.ctx.keyPrefix === "manual-selection" || this.ctx.keyPrefix === "ai-selection") {
       if (this.ctx.missingEntryFile) {
         if (this.ctx.namespaceStrategy === NAMESPACE_STRATEGY.full) {
           namePrefix = `${this.ctx.missingEntryFile}.`;

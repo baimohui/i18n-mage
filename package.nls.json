@@ -64,6 +64,8 @@
   "config.keyPrefix.auto-path": "Generate prefix from file path",
   "config.keyPrefix.none": "No prefix",
   "config.keyPrefix.manual-selection": "Manually select prefix",
+  "config.keyPrefix.ai-selection": "AI selects prefix",
+  "config.prefixCandidates.desc": "Prefix candidates for manual/AI selection. When set, manual selection is restricted to this list",
   "config.writeRules.title": "Write Rules",
   "config.quoteStyle.auto": "Auto-detect and unify quote style",
   "config.quoteStyle.double": "Double quotes",

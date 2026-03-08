@@ -540,23 +540,34 @@
           "i18n-mage.writeRules.keyPrefix": {
             "order": 18,
             "type": "string",
-            "default": "manual-selection",
+            "default": "ai-selection",
             "description": "%config.keyPrefix.desc%",
             "enum": [
               "none",
               "manual-selection",
+              "ai-selection",
               "auto-path",
               "auto-popular"
             ],
             "enumDescriptions": [
               "%config.keyPrefix.none%",
               "%config.keyPrefix.manual-selection%",
+              "%config.keyPrefix.ai-selection%",
               "%config.keyPrefix.auto-path%",
               "%config.keyPrefix.auto-popular%"
             ]
           },
-          "i18n-mage.writeRules.keyStrategy": {
+          "i18n-mage.writeRules.prefixCandidates": {
             "order": 19,
+            "type": "array",
+            "default": [],
+            "description": "%config.prefixCandidates.desc%",
+            "items": {
+              "type": "string"
+            }
+          },
+          "i18n-mage.writeRules.keyStrategy": {
+            "order": 20,
             "type": "string",
             "default": "english",
             "enum": [
@@ -570,7 +581,7 @@
             "description": "%config.keyStrategy.desc%"
           },
           "i18n-mage.writeRules.keyStyle": {
-            "order": 20,
+            "order": 21,
             "type": "string",
             "default": "auto",
             "enum": [

@@ -377,7 +377,7 @@
   "translator.baiduErrorInfo.unauthorizedUser": "Unauthorized user. Please check if the appid is correct or if the service is activated.",
   "translator.baiduErrorInfo.unsupportedLanguage": "Translation language direction is not supported. Please check if the translation language is in the language list.",
   "translator.baiduErrorInfo.wrongIp": "Client IP is invalid. Please check if the IP address filled in the personal information is correct. You can go to Developer Information - Basic Information to modify it.",
-  "translator.deepseek.lineCountMismatch": "The number of translated texts does not match the number of original texts. Translations: {0}",
+  "translator.deepseek.lineCountMismatch": "The number of output results does not match the number of inputs; current output: {0}",
   "translator.failedToFix": "Failed to translate {1} using {0} ({2})",
   "translator.googleError.limitedTextLength": "Text length exceeds single request limit: {0}",
   "translator.invalidSourceCode": "Unsupported source language {0}",

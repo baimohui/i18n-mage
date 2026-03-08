@@ -19,6 +19,58 @@ import {
 } from "@/types";
 import { isSamePath } from "@/utils/fs";
 import { getLangCode, getLangIntro, LANG_CODE_MAPPINGS } from "@/utils/langKey";
+import { selectPrefixFromAi } from "@/ai";
+
+const AI_PREFIX_CANDIDATE_LIMIT = 30;
+
+function normalizePrefixList(prefixList: string[] = []) {
+  return Array.from(new Set(prefixList.map(item => item.trim()).filter(Boolean)));
+}
+
+function collectPrefixUsageMap(prefixes: string[], separator: string) {
+  const usageMap: Record<string, number> = {};
+  const sep = separator || ".";
+  prefixes.forEach(prefix => {
+    usageMap[prefix] = 0;
+  });
+  prefixes.forEach(prefix => {
+    const token = `${prefix}${sep}`;
+    prefixes.forEach(key => {
+      if (key === prefix || key.startsWith(token)) {
+        usageMap[prefix]++;
+      }
+    });
+  });
+  return usageMap;
+}
+
+function pickTopPrefixCandidates(prefixes: string[], usageMap: Record<string, number>, limit = AI_PREFIX_CANDIDATE_LIMIT) {
+  if (prefixes.length <= limit) return prefixes;
+  return [...prefixes]
+    .sort((a, b) => {
+      const diff = (usageMap[b] ?? 0) - (usageMap[a] ?? 0);
+      return diff !== 0 ? diff : a.localeCompare(b);
+    })
+    .slice(0, limit);
+}
+
+function normalizeAiSelectedPrefix(selectedPrefix: string, candidates: string[]) {
+  const normalized = selectedPrefix.trim();
+  if (candidates.includes(normalized)) return normalized;
+  const lower = normalized.toLowerCase();
+  return candidates.find(item => item.toLowerCase() === lower) ?? "";
+}
+
+function getNamespacePrefix(missingEntryFile: string | undefined, namespaceStrategy: string) {
+  if (missingEntryFile === undefined || missingEntryFile.trim().length === 0) return "";
+  if (namespaceStrategy === NAMESPACE_STRATEGY.full) {
+    return `${missingEntryFile}.`;
+  }
+  if (namespaceStrategy === NAMESPACE_STRATEGY.file) {
+    return `${missingEntryFile.replace(/^.*\./, "")}.`;
+  }
+  return "";
+}
 
 export function registerFixCommand(context: vscode.ExtensionContext) {
   const mage = LangMage.getInstance();
@@ -182,16 +234,18 @@ export function registerFixCommand(context: vscode.ExtensionContext) {
             return;
           }
         }
-        const keyPrefix = getConfig<string>("writeRules.keyPrefix", "");
+        const keyPrefix = getConfig<string>("writeRules.keyPrefix", "ai-selection");
+        const customPrefixCandidates = normalizePrefixList(getConfig<string[]>("writeRules.prefixCandidates", []));
         const keyStyle = getConfig<string>("writeRules.keyStyle", "camelCase");
+        const isAiPrefixSelection = keyPrefix === "ai-selection";
         const skipKeyCategorySelection =
           (keyStyle === "snake_case" && nameSeparator === "_") || (keyStyle === "kebab-case" && nameSeparator === "-");
         if (writeFlag && skipKeyCategorySelection) {
           mage.setOptions({ missingEntryPath: "" });
         }
-        if (writeFlag && nameSeparator && keyPrefix === "manual-selection" && !skipKeyCategorySelection) {
-          const classTreeItem = classTree.find(item => item.filePos === (missingEntryFile ?? ""));
-          let commonKeys = classTreeItem ? getParentKeys(classTreeItem.data, nameSeparator) : [];
+        const classTreeItem = classTree.find(item => item.filePos === (missingEntryFile ?? ""));
+        let commonKeys = classTreeItem && nameSeparator ? getParentKeys(classTreeItem.data, nameSeparator) : [];
+        if (nameSeparator) {
           const offset = publicCtx.namespaceStrategy === NAMESPACE_STRATEGY.file ? 1 : (missingEntryFile?.split(".").length ?? 0);
           if (publicCtx.namespaceStrategy !== NAMESPACE_STRATEGY.none) {
             commonKeys = commonKeys
@@ -204,26 +258,70 @@ export function registerFixCommand(context: vscode.ExtensionContext) {
               })
               .filter(Boolean);
           }
+        }
+        const candidatePrefixes = customPrefixCandidates.length > 0 ? customPrefixCandidates : commonKeys;
+        const candidateUsageMap = collectPrefixUsageMap(candidatePrefixes, nameSeparator || ".");
+        fixQuery.keyPrefixPatch = undefined;
+        const pickManualMissingEntryPath = async () => {
           let missingEntryPath: string | undefined = "";
-          if (commonKeys.length > 0) {
+          if (candidatePrefixes.length > 0) {
             NotificationManager.showProgress({ message: t("command.fix.waitForFileSelection"), increment: 0 });
             const lastPicked = context.workspaceState.get<string>("lastPickedKey");
-            if (lastPicked !== undefined && commonKeys.includes(lastPicked)) {
-              commonKeys = [lastPicked, ...commonKeys.filter(f => f !== lastPicked)];
+            let manualOptions = candidatePrefixes;
+            if (lastPicked !== undefined && manualOptions.includes(lastPicked)) {
+              manualOptions = [lastPicked, ...manualOptions.filter(f => f !== lastPicked)];
             }
-            missingEntryPath = await vscode.window.showQuickPick([...commonKeys, t("command.fix.customKey")], {
+            const quickPickItems = customPrefixCandidates.length > 0 ? manualOptions : [...manualOptions, t("command.fix.customKey")];
+            missingEntryPath = await vscode.window.showQuickPick(quickPickItems, {
               placeHolder: t("command.fix.selectKeyToWrite")
             });
-            if (missingEntryPath === t("command.fix.customKey")) {
+            if (customPrefixCandidates.length === 0 && missingEntryPath === t("command.fix.customKey")) {
               missingEntryPath = await vscode.window.showInputBox({
                 placeHolder: t("command.fix.customKeyInput")
               });
             }
-            if (missingEntryPath === undefined) return;
+            if (missingEntryPath === undefined) return undefined;
           }
           missingEntryPath = missingEntryPath.trim();
           await context.workspaceState.update("lastPickedKey", missingEntryPath);
           mage.setOptions({ missingEntryPath });
+          fixQuery.keyPrefixPatch = undefined;
+          return missingEntryPath;
+        };
+        if (writeFlag && keyPrefix === "manual-selection" && !skipKeyCategorySelection) {
+          const selectedPath = await pickManualMissingEntryPath();
+          if (selectedPath === undefined) return;
+        } else if (writeFlag && isAiPrefixSelection && !skipKeyCategorySelection) {
+          let fallbackToManualSelection = candidatePrefixes.length === 0;
+          const keyPrefixPatch: Record<string, string> = {};
+          if (!fallbackToManualSelection) {
+            const aiCandidates = pickTopPrefixCandidates(candidatePrefixes, candidateUsageMap);
+            const aiPrefixRes = await selectPrefixFromAi({
+              sourceTextList: undefinedKeys,
+              prefixCandidates: aiCandidates
+            });
+            if (aiPrefixRes.success && Array.isArray(aiPrefixRes.data) && aiPrefixRes.data.length === undefinedKeys.length) {
+              const namespacePrefix = getNamespacePrefix(missingEntryFile, publicCtx.namespaceStrategy);
+              aiPrefixRes.data.forEach((item, index) => {
+                const normalized = normalizeAiSelectedPrefix(item, aiCandidates);
+                if (normalized) {
+                  keyPrefixPatch[genIdFromText(undefinedKeys[index])] = `${namespacePrefix}${normalized}`;
+                }
+              });
+              if (Object.keys(keyPrefixPatch).length === 0) {
+                fallbackToManualSelection = true;
+              }
+            } else {
+              fallbackToManualSelection = true;
+            }
+          }
+          if (fallbackToManualSelection) {
+            const selectedPath = await pickManualMissingEntryPath();
+            if (selectedPath === undefined) return;
+          } else {
+            fixQuery.keyPrefixPatch = keyPrefixPatch;
+            mage.setOptions({ missingEntryPath: "" });
+          }
         }
       } else {
         fixQuery.entriesToGen = false;

@@ -16,3 +16,17 @@ export interface GenKeyResult {
   message?: string;
   api?: AiPlatform;
 }
+
+export interface SelectPrefixParams {
+  sourceTextList: string[];
+  prefixCandidates: string[];
+  apiId: string;
+  apiKey: string;
+}
+
+export interface SelectPrefixResult {
+  success: boolean;
+  data?: string[];
+  message?: string;
+  api?: AiPlatform;
+}

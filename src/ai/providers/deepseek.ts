@@ -1,5 +1,5 @@
 import axios from "axios";
-import { GenKeyParams, GenKeyResult, TranslateParams, TranslateResult } from "@/types";
+import { GenKeyParams, GenKeyResult, SelectPrefixParams, SelectPrefixResult, TranslateParams, TranslateResult } from "@/types";
 import { t } from "@/utils/i18n";
 import { AiProvider } from "@/ai/types";
 import { batchTranslate } from "@/ai/shared/batchTranslate";
@@ -119,10 +119,51 @@ async function generateKey(params: GenKeyParams): Promise<GenKeyResult> {
   );
 }
 
+async function selectPrefix(params: SelectPrefixParams): Promise<SelectPrefixResult> {
+  const { sourceTextList, prefixCandidates, apiKey } = params;
+  if (prefixCandidates.length === 0) {
+    return { success: false, message: "No prefix candidates provided" };
+  }
+  const safeCandidates = Array.from(new Set(prefixCandidates.map(item => item.trim()).filter(Boolean)));
+  if (safeCandidates.length === 0) {
+    return { success: false, message: "No valid prefix candidates provided" };
+  }
+  try {
+    const sourceText = buildIndexedItems(sourceTextList);
+    const candidatesJson = JSON.stringify(safeCandidates);
+    const content = await requestCompletion(apiKey, [
+      {
+        role: "system",
+        content:
+          `You are selecting i18n key prefixes. ` +
+          `For each input text, choose exactly one prefix from the provided candidate list. ` +
+          `Do not invent or modify prefixes. ` +
+          `Return strict JSON array only, same length and order as input items. ` +
+          `No explanation, no markdown.`
+      },
+      {
+        role: "user",
+        content:
+          `Candidate prefixes:\n${candidatesJson}\n` +
+          `Choose one prefix for each item:\n${sourceText}\n` +
+          `Output example: ["common.form","tips"]`
+      }
+    ]);
+    const result = parseListOutput(content, SEP, sourceTextList.length);
+    if (result.length !== sourceTextList.length) {
+      return { success: false, message: t("translator.deepseek.lineCountMismatch", result.join(SEP)) };
+    }
+    return { success: true, data: result };
+  } catch (e: unknown) {
+    return { success: false, message: e instanceof Error ? e.message : String(e) };
+  }
+}
+
 const deepseekProvider: AiProvider = {
   id: "deepseek",
   translate,
-  generateKey
+  generateKey,
+  selectPrefix
 };
 
 export default deepseekProvider;

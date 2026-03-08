@@ -377,7 +377,7 @@
   "translator.baiduErrorInfo.unauthorizedUser": "未授权用户，请检查 appid 是否正确或者服务是否开通",
   "translator.baiduErrorInfo.unsupportedLanguage": "译文语言方向不支持，请检查译文语言是否在语言列表里",
   "translator.baiduErrorInfo.wrongIp": "客户端 IP 非法，请检查个人资料里填写的 IP 地址是否正确，可前往开发者信息 - 基本信息修改",
-  "translator.deepseek.lineCountMismatch": "输出译文数量与原文数量不符，译文：{0}",
+  "translator.deepseek.lineCountMismatch": "输出结果数量与输入数量不符，当前输出：{0}",
   "translator.failedToFix": "使用 {0} 翻译 {1} 失败（{2}）",
   "translator.googleError.limitedTextLength": "文本字符数超出单次翻译请求限制：{0}",
   "translator.invalidSourceCode": "不支持源语言 {0}",

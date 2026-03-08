@@ -120,6 +120,7 @@ export interface FixQuery {
   fillScope?: string[];
   fillWithOriginal?: boolean;
   keyPatch?: Record<string, string>;
+  keyPrefixPatch?: Record<string, string>;
 }
 
 export type ModifyQuery = EditValueQuery | RewriteEntryQuery | RenameKeyQuery;
