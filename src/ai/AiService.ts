@@ -16,6 +16,8 @@ import deepseekProvider from "@/ai/providers/deepseek";
 import chatgptProvider from "@/ai/providers/chatgpt";
 import doubaoProvider from "@/ai/providers/doubao";
 import qwenProvider from "@/ai/providers/qwen";
+import hunyuanProvider from "@/ai/providers/hunyuan";
+import kimiProvider from "@/ai/providers/kimi";
 
 type AiApiMap = ApiCredentialsMap<AiPlatform>;
 
@@ -114,18 +116,26 @@ export class AiService {
   }
 
   private getCredentialsMap(): AiApiMap {
-    const deepseekApiKey = getCacheConfig<string>("translationServices.deepseekApiKey");
+    const deepseekApiKey = getCacheConfig<string>("translationServices.deepseekApiKey", "");
+    const deepseekModel = getCacheConfig<string>("translationServices.deepseekModel", "deepseek-chat");
     const openaiApiKey = getCacheConfig<string>("translationServices.openaiApiKey", "");
+    const openaiModel = getCacheConfig<string>("translationServices.openaiModel", "gpt-4o-mini");
     const doubaoApiKey = getCacheConfig<string>("translationServices.doubaoApiKey", "");
     const doubaoModel = getCacheConfig<string>("translationServices.doubaoModel", "");
     const qwenApiKey = getCacheConfig<string>("translationServices.qwenApiKey", "");
     const qwenModel = getCacheConfig<string>("translationServices.qwenModel", "");
+    const hunyuanApiKey = getCacheConfig<string>("translationServices.hunyuanApiKey", "");
+    const hunyuanModel = getCacheConfig<string>("translationServices.hunyuanModel", "");
+    const kimiApiKey = getCacheConfig<string>("translationServices.kimiApiKey", "");
+    const kimiModel = getCacheConfig<string>("translationServices.kimiModel", "");
 
     return {
-      deepseek: ["none", deepseekApiKey],
-      chatgpt: ["none", openaiApiKey],
+      deepseek: [deepseekModel, deepseekApiKey],
+      chatgpt: [openaiModel, openaiApiKey],
       doubao: [doubaoModel, doubaoApiKey],
-      qwen: [qwenModel, qwenApiKey]
+      qwen: [qwenModel, qwenApiKey],
+      hunyuan: [hunyuanModel, hunyuanApiKey],
+      kimi: [kimiModel, kimiApiKey]
     };
   }
 
@@ -135,4 +145,4 @@ export class AiService {
   }
 }
 
-export const aiService = new AiService([deepseekProvider, chatgptProvider, doubaoProvider, qwenProvider]);
+export const aiService = new AiService([deepseekProvider, chatgptProvider, doubaoProvider, qwenProvider, hunyuanProvider, kimiProvider]);

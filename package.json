@@ -304,11 +304,13 @@
             "order": 14,
             "type": "array",
             "default": [
-              "deepl",
               "chatgpt",
+              "deepseek",
               "doubao",
               "qwen",
-              "deepseek",
+              "hunyuan",
+              "kimi",
+              "deepl",
               "baidu",
               "tencent",
               "youdao",
@@ -318,63 +320,101 @@
             "items": {
               "type": "string",
               "enum": [
-                "deepl",
                 "chatgpt",
+                "deepseek",
                 "doubao",
                 "qwen",
-                "deepseek",
-                "google",
+                "hunyuan",
+                "kimi",
+                "deepl",
                 "baidu",
                 "tencent",
-                "youdao"
+                "youdao",
+                "google"
               ]
             },
             "uniqueItems": true
           },
-          "i18n-mage.translationServices.openaiApiKey": {
+          "i18n-mage.translationServices.aiCustomPrompt": {
             "order": 15,
+            "type": "string",
+            "default": "",
+            "description": "%config.aiCustomPrompt.desc%"
+          },
+          "i18n-mage.translationServices.openaiApiKey": {
+            "order": 16,
             "type": "string",
             "default": "",
             "description": "%config.openaiApiKey.desc%"
           },
+          "i18n-mage.translationServices.openaiModel": {
+            "order": 17,
+            "type": "string",
+            "default": "gpt-4o-mini",
+            "description": "%config.openaiModel.desc%"
+          },
           "i18n-mage.translationServices.deepseekApiKey": {
-            "order": 16,
+            "order": 18,
             "type": "string",
             "default": "",
             "description": "%config.deepseekApiKey.desc%"
           },
+          "i18n-mage.translationServices.deepseekModel": {
+            "order": 19,
+            "type": "string",
+            "default": "deepseek-chat",
+            "description": "%config.deepseekModel.desc%"
+          },
           "i18n-mage.translationServices.doubaoApiKey": {
-            "order": 17,
+            "order": 22,
             "type": "string",
             "default": "",
             "description": "%config.doubaoApiKey.desc%"
           },
           "i18n-mage.translationServices.doubaoModel": {
-            "order": 18,
+            "order": 23,
             "type": "string",
             "default": "doubao-seed-1-8-251228",
             "description": "%config.doubaoModel.desc%"
           },
           "i18n-mage.translationServices.qwenApiKey": {
-            "order": 19,
+            "order": 24,
             "type": "string",
             "default": "",
             "description": "%config.qwenApiKey.desc%"
           },
           "i18n-mage.translationServices.qwenModel": {
-            "order": 20,
+            "order": 25,
             "type": "string",
             "default": "qwen-plus",
             "description": "%config.qwenModel.desc%"
           },
-          "i18n-mage.translationServices.aiCustomPrompt": {
-            "order": 23,
+          "i18n-mage.translationServices.hunyuanApiKey": {
+            "order": 26,
             "type": "string",
             "default": "",
-            "description": "%config.aiCustomPrompt.desc%"
+            "description": "%config.hunyuanApiKey.desc%"
+          },
+          "i18n-mage.translationServices.hunyuanModel": {
+            "order": 27,
+            "type": "string",
+            "default": "hunyuan-turbos-latest",
+            "description": "%config.hunyuanModel.desc%"
+          },
+          "i18n-mage.translationServices.kimiApiKey": {
+            "order": 28,
+            "type": "string",
+            "default": "",
+            "description": "%config.kimiApiKey.desc%"
+          },
+          "i18n-mage.translationServices.kimiModel": {
+            "order": 29,
+            "type": "string",
+            "default": "moonshot-v1-8k",
+            "description": "%config.kimiModel.desc%"
           },
           "i18n-mage.translationServices.deeplVersion": {
-            "order": 24,
+            "order": 44,
             "type": "string",
             "enum": [
               "free",
@@ -384,73 +424,73 @@
             "description": "%config.deeplVersion.desc%"
           },
           "i18n-mage.translationServices.deeplApiKey": {
-            "order": 25,
+            "order": 45,
             "type": "string",
             "default": "",
             "description": "%config.deeplApiKey.desc%"
           },
           "i18n-mage.translationServices.googleApiKey": {
-            "order": 26,
+            "order": 46,
             "type": "string",
             "default": "",
             "description": "%config.googleApiKey.desc%"
           },
           "i18n-mage.translationServices.baiduAppId": {
-            "order": 27,
+            "order": 47,
             "type": "string",
             "default": "",
             "description": "%config.baiduAppId.desc%"
           },
           "i18n-mage.translationServices.baiduSecretKey": {
-            "order": 28,
+            "order": 48,
             "type": "string",
             "default": "",
             "description": "%config.baiduSecretKey.desc%"
           },
           "i18n-mage.translationServices.tencentSecretId": {
-            "order": 31,
+            "order": 51,
             "type": "string",
             "default": "",
             "description": "%config.tencentSecretId.desc%"
           },
           "i18n-mage.translationServices.tencentSecretKey": {
-            "order": 32,
+            "order": 52,
             "type": "string",
             "default": "",
             "description": "%config.tencentSecretKey.desc%"
           },
           "i18n-mage.translationServices.youdaoAppId": {
-            "order": 33,
+            "order": 53,
             "type": "string",
             "default": "",
             "description": "%config.youdaoAppId.desc%"
           },
           "i18n-mage.translationServices.youdaoAppKey": {
-            "order": 34,
+            "order": 54,
             "type": "string",
             "default": "",
             "description": "%config.youdaoAppKey.desc%"
           },
           "i18n-mage.translationServices.proxy.enable": {
-            "order": 35,
+            "order": 65,
             "type": "boolean",
             "default": false,
             "description": "%config.enableProxy.desc%"
           },
           "i18n-mage.translationServices.proxy.host": {
-            "order": 36,
+            "order": 66,
             "type": "string",
             "default": "127.0.0.1",
             "description": "%config.proxyHost.desc%"
           },
           "i18n-mage.translationServices.proxy.port": {
-            "order": 37,
+            "order": 67,
             "type": "number",
             "default": 7890,
             "description": "%config.proxyPort.desc%"
           },
           "i18n-mage.translationServices.proxy.protocol": {
-            "order": 38,
+            "order": 68,
             "type": "string",
             "default": "http",
             "enum": [

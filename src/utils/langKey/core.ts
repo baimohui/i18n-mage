@@ -127,6 +127,8 @@ export function resolveLangCode(
     chatgpt: "ggCode",
     doubao: "ggCode",
     qwen: "ggCode",
+    hunyuan: "ggCode",
+    kimi: "ggCode",
     youdao: "ydCode"
   };
   const code = intro?.[map[platform]];

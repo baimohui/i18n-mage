@@ -18,10 +18,17 @@ export interface Credentials {
   tencentSecretId?: string;
   tencentSecretKey?: string;
   deepseekApiKey?: string;
+  deepseekModel?: string;
+  openaiApiKey?: string;
+  openaiModel?: string;
   doubaoApiKey?: string;
   doubaoModel?: string;
   qwenApiKey?: string;
   qwenModel?: string;
+  hunyuanApiKey?: string;
+  hunyuanModel?: string;
+  kimiApiKey?: string;
+  kimiModel?: string;
   translateApiPriority: string[];
 }
 
@@ -41,12 +48,18 @@ export default async function translateTo(data: TranslateData, startIndex = 0): 
   const baiduSecretKey = getCacheConfig<string>("translationServices.baiduSecretKey");
   const tencentSecretId = getCacheConfig<string>("translationServices.tencentSecretId");
   const tencentSecretKey = getCacheConfig<string>("translationServices.tencentSecretKey");
-  const deepseekApiKey = getCacheConfig<string>("translationServices.deepseekApiKey");
+  const deepseekApiKey = getCacheConfig<string>("translationServices.deepseekApiKey", "");
+  const deepseekModel = getCacheConfig<string>("translationServices.deepseekModel", "deepseek-chat");
   const openaiApiKey = getCacheConfig<string>("translationServices.openaiApiKey", "");
+  const openaiModel = getCacheConfig<string>("translationServices.openaiModel", "gpt-4o-mini");
   const doubaoApiKey = getCacheConfig<string>("translationServices.doubaoApiKey", "");
   const doubaoModel = getCacheConfig<string>("translationServices.doubaoModel", "");
   const qwenApiKey = getCacheConfig<string>("translationServices.qwenApiKey", "");
   const qwenModel = getCacheConfig<string>("translationServices.qwenModel", "");
+  const hunyuanApiKey = getCacheConfig<string>("translationServices.hunyuanApiKey", "");
+  const hunyuanModel = getCacheConfig<string>("translationServices.hunyuanModel", "");
+  const kimiApiKey = getCacheConfig<string>("translationServices.kimiApiKey", "");
+  const kimiModel = getCacheConfig<string>("translationServices.kimiModel", "");
   const googleApiKey = getCacheConfig<string>("translationServices.googleApiKey");
   const youdaoAppId = getCacheConfig<string>("translationServices.youdaoAppId");
   const youdaoAppKey = getCacheConfig<string>("translationServices.youdaoAppKey");
@@ -57,10 +70,12 @@ export default async function translateTo(data: TranslateData, startIndex = 0): 
     google: googleApiKey ? ["none", googleApiKey] : [],
     baidu: [baiduAppId, baiduSecretKey],
     tencent: [tencentSecretId, tencentSecretKey],
-    deepseek: ["none", deepseekApiKey],
-    chatgpt: ["none", openaiApiKey],
+    deepseek: [deepseekModel, deepseekApiKey],
+    chatgpt: [openaiModel, openaiApiKey],
     doubao: [doubaoModel, doubaoApiKey],
     qwen: [qwenModel, qwenApiKey],
+    hunyuan: [hunyuanModel, hunyuanApiKey],
+    kimi: [kimiModel, kimiApiKey],
     deepl: ["none", deeplApiKey],
     youdao: [youdaoAppId, youdaoAppKey]
   };
