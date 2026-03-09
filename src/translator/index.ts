@@ -20,6 +20,8 @@ export interface Credentials {
   deepseekApiKey?: string;
   doubaoApiKey?: string;
   doubaoModel?: string;
+  qwenApiKey?: string;
+  qwenModel?: string;
   translateApiPriority: string[];
 }
 
@@ -43,6 +45,8 @@ export default async function translateTo(data: TranslateData, startIndex = 0): 
   const openaiApiKey = getCacheConfig<string>("translationServices.openaiApiKey", "");
   const doubaoApiKey = getCacheConfig<string>("translationServices.doubaoApiKey", "");
   const doubaoModel = getCacheConfig<string>("translationServices.doubaoModel", "");
+  const qwenApiKey = getCacheConfig<string>("translationServices.qwenApiKey", "");
+  const qwenModel = getCacheConfig<string>("translationServices.qwenModel", "");
   const googleApiKey = getCacheConfig<string>("translationServices.googleApiKey");
   const youdaoAppId = getCacheConfig<string>("translationServices.youdaoAppId");
   const youdaoAppKey = getCacheConfig<string>("translationServices.youdaoAppKey");
@@ -56,6 +60,7 @@ export default async function translateTo(data: TranslateData, startIndex = 0): 
     deepseek: ["none", deepseekApiKey],
     chatgpt: ["none", openaiApiKey],
     doubao: [doubaoModel, doubaoApiKey],
+    qwen: [qwenModel, qwenApiKey],
     deepl: ["none", deeplApiKey],
     youdao: [youdaoAppId, youdaoAppKey]
   };

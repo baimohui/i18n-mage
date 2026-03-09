@@ -15,6 +15,7 @@ import { AiProvider, GenerateKeyData, SelectPrefixData } from "@/ai/types";
 import deepseekProvider from "@/ai/providers/deepseek";
 import chatgptProvider from "@/ai/providers/chatgpt";
 import doubaoProvider from "@/ai/providers/doubao";
+import qwenProvider from "@/ai/providers/qwen";
 
 type AiApiMap = ApiCredentialsMap<AiPlatform>;
 
@@ -117,11 +118,14 @@ export class AiService {
     const openaiApiKey = getCacheConfig<string>("translationServices.openaiApiKey", "");
     const doubaoApiKey = getCacheConfig<string>("translationServices.doubaoApiKey", "");
     const doubaoModel = getCacheConfig<string>("translationServices.doubaoModel", "");
+    const qwenApiKey = getCacheConfig<string>("translationServices.qwenApiKey", "");
+    const qwenModel = getCacheConfig<string>("translationServices.qwenModel", "");
 
     return {
       deepseek: ["none", deepseekApiKey],
       chatgpt: ["none", openaiApiKey],
-      doubao: [doubaoModel, doubaoApiKey]
+      doubao: [doubaoModel, doubaoApiKey],
+      qwen: [qwenModel, qwenApiKey]
     };
   }
 
@@ -131,4 +135,4 @@ export class AiService {
   }
 }
 
-export const aiService = new AiService([deepseekProvider, chatgptProvider, doubaoProvider]);
+export const aiService = new AiService([deepseekProvider, chatgptProvider, doubaoProvider, qwenProvider]);
