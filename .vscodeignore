@@ -18,9 +18,8 @@ tsconfig.test.json
 package-lock.json
 yarn.lock
 
-# Source and docs
+# Source
 src/**
-doc-assets
 
 # Dependencies and tests
 node_modules/**
