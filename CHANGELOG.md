@@ -4,6 +4,19 @@ All notable changes to the i18n Mage VS Code extension will be documented in thi
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.3.2] - 2026-03-09
+
+### Added
+- **Doubao AI Service**: Added Doubao AI as a new translation service provider, expanding service options.
+- **AI-Powered Prefix Selection**: Added `ai-selection` option to `writeRules.keyPrefix` configuration, enabling AI-based automatic prefix selection. Introduced `writeRules.prefixCandidates` for customizing available prefix lists - when unconfigured, automatically detects prefixes used in the project.
+
+### Improved
+- **Smart Key Style Detection**: Added `auto` option as default for `writeRules.keyStyle` configuration, automatically analyzing and matching project language file key naming conventions (PascalCase, camelCase, etc.).
+- **Streamlined Prefix Selection**: Optimized key prefix selection logic to reduce unnecessary interaction steps.
+- **Intelligent Decoration Strategy**: Replaced `translationHints.decorationScope` with `translationHints.fullFileMaxSizeKB`, enabling smart decoration scope switching based on file size (full file decoration when ≤ threshold, 0 for always visible-only, -1 for always full file).
+- **Initialization Configuration Optimization**: Changed workspace configuration writing from synchronous to asynchronous during first project run, resolving occasional `.settings.json` write failures during concurrent configuration operations.
+- **Refined Sidebar Operations**: Enhanced tree view operation options - hiding copy entry commands for missing or empty language entries, displaying copy key name commands instead; sync module header now exposes missing translation completion entry when needed.
+
 ## [1.3.1] - 2026-03-03
 
 ### Added

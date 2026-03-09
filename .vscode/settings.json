@@ -48,5 +48,6 @@
     "i18n Mage",
     "[[[SEP]]]",
     "sync~spin"
-  ]
+  ],
+  "i18n-mage.writeRules.keyStyle": "camelCase"
 }
