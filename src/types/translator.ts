@@ -1,4 +1,6 @@
-export type ApiPlatform =
+import { CustomAiPlatform } from "./keyGenerator";
+
+export type BuiltinApiPlatform =
   | "deepseek"
   | "google"
   | "baidu"
@@ -10,6 +12,8 @@ export type ApiPlatform =
   | "hunyuan"
   | "kimi"
   | "youdao";
+
+export type ApiPlatform = BuiltinApiPlatform | CustomAiPlatform;
 
 export interface TranslateParams {
   source: string;

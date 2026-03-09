@@ -118,7 +118,7 @@ export function resolveLangCode(
   customMappings: LangAliasCustomMappings = {}
 ): string | null {
   const intro = resolveLangIntro(str, customMappings);
-  const map: Record<ApiPlatform, keyof LangKeyIntro> = {
+  const map: Record<string, keyof LangKeyIntro> = {
     google: "ggCode",
     tencent: "tcCode",
     baidu: "bdCode",
@@ -131,6 +131,6 @@ export function resolveLangCode(
     kimi: "ggCode",
     youdao: "ydCode"
   };
-  const code = intro?.[map[platform]];
+  const code = intro?.[map[platform] ?? "ggCode"];
   return typeof code === "string" && code.trim().length > 0 ? code : null;
 }

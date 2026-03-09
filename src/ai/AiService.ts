@@ -12,6 +12,8 @@ import { getCacheConfig } from "@/utils/config";
 import { t } from "@/utils/i18n";
 import { ApiCredentialsMap, selectAvailableApiList } from "@/ai/shared/selectAvailableApi";
 import { AiProvider, GenerateKeyData, SelectPrefixData } from "@/ai/types";
+import { createOpenAICompatibleProvider } from "@/ai/shared/openaiCompatibleProvider";
+import { parseCustomProviders } from "@/ai/shared/customProviders";
 import deepseekProvider from "@/ai/providers/deepseek";
 import chatgptProvider from "@/ai/providers/chatgpt";
 import doubaoProvider from "@/ai/providers/doubao";
@@ -19,10 +21,10 @@ import qwenProvider from "@/ai/providers/qwen";
 import hunyuanProvider from "@/ai/providers/hunyuan";
 import kimiProvider from "@/ai/providers/kimi";
 
-type AiApiMap = ApiCredentialsMap<AiPlatform>;
+type AiApiMap = ApiCredentialsMap<string>;
 
 export class AiService {
-  private providers: Record<AiPlatform, AiProvider>;
+  private providers: Record<string, AiProvider>;
 
   constructor(providers: AiProvider[]) {
     this.providers = providers.reduce(
@@ -30,12 +32,12 @@ export class AiService {
         prev[provider.id] = provider;
         return prev;
       },
-      {} as Record<AiPlatform, AiProvider>
+      {} as Record<string, AiProvider>
     );
   }
 
   public isAiPlatform(api: ApiPlatform): api is AiPlatform {
-    return api in this.providers;
+    return Object.prototype.hasOwnProperty.call(this.getProviders(), api);
   }
 
   public hasAvailableProviders(): boolean {
@@ -43,7 +45,7 @@ export class AiService {
   }
 
   public async translate(api: AiPlatform, params: TranslateParams): Promise<TranslateResult> {
-    const provider = this.providers[api];
+    const provider = this.getProviders()[api];
     if (provider === undefined) {
       return { success: false, message: t("translator.unknownService") };
     }
@@ -68,9 +70,9 @@ export class AiService {
       apiKey: credentialsMap[providerId][1] ?? ""
     };
 
-    const result = await this.providers[providerId].generateKey(params);
+    const result = await this.getProviders()[providerId].generateKey(params);
     if (result.success) {
-      result.api = providerId;
+      result.api = providerId as AiPlatform;
       result.message = "";
       return result;
     }
@@ -100,9 +102,9 @@ export class AiService {
       apiKey: credentialsMap[providerId][1] ?? ""
     };
 
-    const result = await this.providers[providerId].selectPrefix(params);
+    const result = await this.getProviders()[providerId].selectPrefix(params);
     if (result.success) {
-      result.api = providerId;
+      result.api = providerId as AiPlatform;
       result.message = "";
       return result;
     }
@@ -129,7 +131,7 @@ export class AiService {
     const kimiApiKey = getCacheConfig<string>("translationServices.kimiApiKey", "");
     const kimiModel = getCacheConfig<string>("translationServices.kimiModel", "");
 
-    return {
+    const apiMap: AiApiMap = {
       deepseek: [deepseekModel, deepseekApiKey],
       chatgpt: [openaiModel, openaiApiKey],
       doubao: [doubaoModel, doubaoApiKey],
@@ -137,11 +139,43 @@ export class AiService {
       hunyuan: [hunyuanModel, hunyuanApiKey],
       kimi: [kimiModel, kimiApiKey]
     };
+
+    for (const customProvider of parseCustomProviders(getCacheConfig("translationServices.customProviders", []))) {
+      apiMap[customProvider.id] = [customProvider.model, customProvider.apiKey];
+    }
+
+    return apiMap;
   }
 
-  private getAvailableProviders(): AiPlatform[] {
+  private getCustomProviders(): Record<string, AiProvider> {
+    const customProviders = parseCustomProviders(getCacheConfig("translationServices.customProviders", []));
+    return customProviders.reduce(
+      (prev, customProvider) => {
+        prev[customProvider.id] = createOpenAICompatibleProvider({
+          id: customProvider.id,
+          baseUrl: customProvider.baseUrl,
+          defaultModel: customProvider.model,
+          useProxy: customProvider.useProxy,
+          allowCustomModel: true,
+          translateBatchConfig: customProvider.translateBatchConfig,
+          generateBatchConfig: customProvider.generateBatchConfig
+        });
+        return prev;
+      },
+      {} as Record<string, AiProvider>
+    );
+  }
+
+  private getProviders(): Record<string, AiProvider> {
+    return {
+      ...this.providers,
+      ...this.getCustomProviders()
+    };
+  }
+
+  private getAvailableProviders(): string[] {
     const translateApiPriority = getCacheConfig<string[]>("translationServices.translateApiPriority");
-    return selectAvailableApiList<AiPlatform>(translateApiPriority, this.getCredentialsMap());
+    return selectAvailableApiList<string>(translateApiPriority, this.getCredentialsMap());
   }
 }
 

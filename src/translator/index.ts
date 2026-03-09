@@ -10,6 +10,7 @@ import { t } from "@/utils/i18n";
 import { NotificationManager } from "@/utils/notification";
 import { getCacheConfig } from "@/utils/config";
 import { ApiCredentialsMap, selectAvailableApiList } from "@/ai/shared/selectAvailableApi";
+import { parseCustomProviders } from "@/ai/shared/customProviders";
 import { aiService } from "@/ai";
 
 export interface Credentials {
@@ -80,6 +81,10 @@ export default async function translateTo(data: TranslateData, startIndex = 0): 
     youdao: [youdaoAppId, youdaoAppKey]
   };
 
+  for (const customProvider of parseCustomProviders(getCacheConfig("translationServices.customProviders", []))) {
+    apiMap[customProvider.id] = [customProvider.model, customProvider.apiKey];
+  }
+
   const availableApiList = selectAvailableApiList<ApiPlatform>(translateApiPriority, apiMap);
 
   if (startIndex >= availableApiList.length) {
@@ -128,8 +133,8 @@ export default async function translateTo(data: TranslateData, startIndex = 0): 
     source: sourceLangCode,
     target: targetLangCode,
     sourceTextList,
-    apiId: apiMap[availableApi][0] ?? "",
-    apiKey: apiMap[availableApi][1] ?? "",
+    apiId: (apiMap[availableApi] ?? [])[0] ?? "",
+    apiKey: (apiMap[availableApi] ?? [])[1] ?? "",
     customPrompt: aiCustomPrompt
   };
 

@@ -1,6 +1,8 @@
 import { KeyStyle } from "./config";
 
-export type AiPlatform = "deepseek" | "chatgpt" | "doubao" | "qwen" | "hunyuan" | "kimi";
+export type BuiltinAiPlatform = "deepseek" | "chatgpt" | "doubao" | "qwen" | "hunyuan" | "kimi";
+export type CustomAiPlatform = `custom:${string}`;
+export type AiPlatform = BuiltinAiPlatform | CustomAiPlatform;
 
 export interface GenKeyParams {
   sourceTextList: string[];

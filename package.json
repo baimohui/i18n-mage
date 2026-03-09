@@ -318,49 +318,112 @@
             ],
             "description": "%config.translateApiPriority.desc%",
             "items": {
-              "type": "string",
-              "enum": [
-                "chatgpt",
-                "deepseek",
-                "doubao",
-                "qwen",
-                "hunyuan",
-                "kimi",
-                "deepl",
-                "baidu",
-                "tencent",
-                "youdao",
-                "google"
-              ]
+              "type": "string"
             },
             "uniqueItems": true
           },
-          "i18n-mage.translationServices.aiCustomPrompt": {
+          "i18n-mage.translationServices.customProviders": {
             "order": 15,
+            "type": "array",
+            "default": [],
+            "description": "%config.customProviders.desc%",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "id",
+                "baseUrl",
+                "apiKey",
+                "model"
+              ],
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "description": "%config.customProviders.id%"
+                },
+                "baseUrl": {
+                  "type": "string",
+                  "description": "%config.customProviders.baseUrl%"
+                },
+                "apiKey": {
+                  "type": "string",
+                  "description": "%config.customProviders.apiKey%"
+                },
+                "model": {
+                  "type": "string",
+                  "description": "%config.customProviders.model%"
+                },
+                "enabled": {
+                  "type": "boolean",
+                  "default": true,
+                  "description": "%config.customProviders.enabled%"
+                },
+                "useProxy": {
+                  "type": "boolean",
+                  "default": true,
+                  "description": "%config.customProviders.useProxy%"
+                },
+                "translateBatchConfig": {
+                  "type": "object",
+                  "description": "%config.customProviders.translateBatchConfig%",
+                  "additionalProperties": false,
+                  "properties": {
+                    "maxLen": {
+                      "type": "number"
+                    },
+                    "batchSize": {
+                      "type": "number"
+                    },
+                    "interval": {
+                      "type": "number"
+                    }
+                  }
+                },
+                "generateBatchConfig": {
+                  "type": "object",
+                  "description": "%config.customProviders.generateBatchConfig%",
+                  "additionalProperties": false,
+                  "properties": {
+                    "maxLen": {
+                      "type": "number"
+                    },
+                    "batchSize": {
+                      "type": "number"
+                    },
+                    "interval": {
+                      "type": "number"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "i18n-mage.translationServices.aiCustomPrompt": {
+            "order": 16,
             "type": "string",
             "default": "",
             "description": "%config.aiCustomPrompt.desc%"
           },
           "i18n-mage.translationServices.openaiApiKey": {
-            "order": 16,
+            "order": 17,
             "type": "string",
             "default": "",
             "description": "%config.openaiApiKey.desc%"
           },
           "i18n-mage.translationServices.openaiModel": {
-            "order": 17,
+            "order": 18,
             "type": "string",
             "default": "gpt-4o-mini",
             "description": "%config.openaiModel.desc%"
           },
           "i18n-mage.translationServices.deepseekApiKey": {
-            "order": 18,
+            "order": 19,
             "type": "string",
             "default": "",
             "description": "%config.deepseekApiKey.desc%"
           },
           "i18n-mage.translationServices.deepseekModel": {
-            "order": 19,
+            "order": 20,
             "type": "string",
             "default": "deepseek-chat",
             "description": "%config.deepseekModel.desc%"
