@@ -569,6 +569,17 @@ textarea.invalid {
   letter-spacing: 0.35px;
 }
 
+.entry-source-hint {
+  margin-bottom: 8px;
+  padding: 6px 8px;
+  border-radius: 8px;
+  border: 1px dashed color-mix(in srgb, var(--border) 65%, transparent);
+  background: color-mix(in srgb, var(--panel-soft) 48%, transparent);
+  font-size: 12px;
+  color: var(--muted);
+  overflow-wrap: anywhere;
+}
+
 .patch-label {
   display: flex;
   flex-direction: column;

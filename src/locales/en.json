@@ -363,6 +363,7 @@
   "preview.statusLocaleFiltered": "Locale excluded",
   "preview.termIdPatch": "Key update",
   "preview.termValueUpdate": "Value update",
+  "preview.sourceValue": "Source: {0}",
   "preview.title": "Fix Confirmation",
   "preview.viewControls": "View",
   "translator.baiduErrorInfo.closedService": "The service is currently disabled. Please go to the management console to enable the service.",

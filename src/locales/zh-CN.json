@@ -363,6 +363,7 @@
   "preview.statusLocaleFiltered": "语言已排除",
   "preview.termIdPatch": "键名修正",
   "preview.termValueUpdate": "键值更新",
+  "preview.sourceValue": "源文案：{0}",
   "preview.title": "修复确认",
   "preview.viewControls": "视图",
   "translator.baiduErrorInfo.closedService": "服务当前已关闭，请前往管理控制台开启服务",

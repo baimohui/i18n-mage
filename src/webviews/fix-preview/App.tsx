@@ -13,6 +13,7 @@ interface VirtualUnitMeta {
   keyValid: boolean;
   isCollapsed: boolean;
   visibleValuesCount: number;
+  hasSharedBaseHint: boolean;
   start: number;
   height: number;
 }
@@ -56,6 +57,7 @@ function estimateCardHeight(meta: Omit<VirtualUnitMeta, "start">) {
   if (!meta.isCollapsed) {
     if (meta.visibleValuesCount > 0) {
       height += 26 + meta.visibleValuesCount * 52;
+      if (meta.hasSharedBaseHint) height += 32;
     }
     if (meta.unit.patches.length > 0) {
       height += 26 + meta.unit.patches.length * 52;
@@ -63,6 +65,15 @@ function estimateCardHeight(meta: Omit<VirtualUnitMeta, "start">) {
   }
   height += 8;
   return height;
+}
+
+function collectBaseHints(visibleValues: EntryChangeUnit["values"][string][]) {
+  const uniqueBaseHints = Array.from(new Set(visibleValues.map(value => value.base?.trim() ?? "").filter(base => base.length > 0)));
+  return {
+    visibleValues,
+    sharedBaseHint: uniqueBaseHints.length === 1 ? uniqueBaseHints[0] : "",
+    hasMixedBaseHint: uniqueBaseHints.length > 1
+  };
 }
 
 function AppInner() {
@@ -219,14 +230,18 @@ function AppInner() {
     filteredUnits.forEach(unit => {
       const keyValid = ctx.isUnitKeyValid(unit.id);
       const isCollapsed = collapsedUnits[unit.id] ?? false;
-      const visibleValuesCount = Object.values(unit.values).filter(value => ctx.isLocaleSelected(value.locale)).length;
-      const estimatedHeight = estimateCardHeight({ unit, keyValid, isCollapsed, visibleValuesCount, height: 0 });
+      const visibleValues = Object.values(unit.values).filter(value => ctx.isLocaleSelected(value.locale));
+      const { sharedBaseHint } = collectBaseHints(visibleValues);
+      const visibleValuesCount = visibleValues.length;
+      const hasSharedBaseHint = sharedBaseHint.length > 0;
+      const estimatedHeight = estimateCardHeight({ unit, keyValid, isCollapsed, visibleValuesCount, hasSharedBaseHint, height: 0 });
       const height = measuredHeights[unit.id] ?? estimatedHeight;
       items.push({
         unit,
         keyValid,
         isCollapsed,
         visibleValuesCount,
+        hasSharedBaseHint,
         start: cursor,
         height
       });
@@ -359,6 +374,7 @@ function AppInner() {
           {virtual.visibleItems.map((meta, index) => {
             const unit = meta.unit;
             const visibleValues = Object.values(unit.values).filter(value => ctx.isLocaleSelected(value.locale));
+            const { sharedBaseHint, hasMixedBaseHint } = collectBaseHints(visibleValues);
             return (
               <div
                 key={unit.id}
@@ -403,6 +419,7 @@ function AppInner() {
                   {!meta.isCollapsed && visibleValues.length > 0 ? (
                     <div className="entry-block">
                       <div className="block-title">{t("preview.termValueUpdate")}</div>
+                      {sharedBaseHint ? <div className="entry-source-hint">{t("preview.sourceValue", sharedBaseHint)}</div> : null}
                       <div className="group">
                         {visibleValues.map(value => {
                           const selectable = ctx.isValueSelectable(unit.id, value.locale);
@@ -437,7 +454,7 @@ function AppInner() {
                                       );
                                     })()}
                                   </span>
-                                ) : value.base !== undefined && value.base !== "" ? (
+                                ) : hasMixedBaseHint && value.base !== undefined && value.base !== "" ? (
                                   <span className="value-hint">{value.base}</span>
                                 ) : null}
                               </div>
