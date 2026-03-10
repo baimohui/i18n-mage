@@ -7,6 +7,7 @@ import { setCacheConfig, clearConfigCache } from "@/utils/config";
 
 describe("core/handlers/ReadHandler", () => {
   const langPath = path.join(__dirname, "..", "..", "fixtures", "langs");
+  const arrayLangPath = path.join(__dirname, "..", "..", "fixtures", "langs-array");
   const projectPath = path.join(__dirname, "..", "..", "fixtures", "project-simple");
   const sourceFile = path.join(projectPath, "src", "index.ts");
 
@@ -31,6 +32,23 @@ describe("core/handlers/ReadHandler", () => {
     assert.strictEqual(ctx.langCountryMap["en"]["app.title"], "Hello");
     assert.strictEqual(ctx.langDictionary["app.title"].value.en, "Hello");
     assert.strictEqual(ctx.languageStructure, LANGUAGE_STRUCTURE.nested);
+  });
+
+  it("readLangFiles 应支持数组值并将数组元素写入字典", () => {
+    const ctx = createLangContext();
+    ctx.langPath = arrayLangPath;
+    ctx.namespaceStrategy = NAMESPACE_STRATEGY.none;
+    ctx.languageStructure = LANGUAGE_STRUCTURE.auto;
+    ctx.ignoredLangs = [];
+    const handler = new ReadHandler(ctx);
+    handler.readLangFiles();
+
+    assert.strictEqual(ctx.langCountryMap.en["app.tips.0"], "First tip");
+    assert.strictEqual(ctx.langCountryMap.en["app.sections.quickStart.1"], "Choose language");
+    assert.strictEqual(ctx.langDictionary["app.tips.1"].value["zh-cn"], "第二条提示");
+    assert.strictEqual(ctx.langDictionary["app.sections.quickStart.0"].value.en, "Open app");
+    assert.ok(Array.isArray((ctx.entryTree.app as Record<string, unknown>).tips));
+    assert.ok(Array.isArray(((ctx.entryTree.app as Record<string, unknown>).sections as Record<string, unknown>).quickStart));
   });
 
   it("startCensus 应统计已用与未定义词条", () => {

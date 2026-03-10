@@ -1,0 +1,9 @@
+{
+  "app": {
+    "title": "Hello",
+    "tips": ["First tip", "Second tip"],
+    "sections": {
+      "quickStart": ["Open app", "Choose language"]
+    }
+  }
+}

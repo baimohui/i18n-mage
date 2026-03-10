@@ -18,6 +18,7 @@ import { setCacheConfig, clearConfigCache } from "@/utils/config";
 import { I18N_FRAMEWORK } from "@/types";
 
 const fixturesRoot = path.join(__dirname, "..", "..", "fixtures", "langs");
+const arrayFixturesRoot = path.join(__dirname, "..", "..", "fixtures", "langs-array");
 
 describe("utils/regex/fileUtils", () => {
   beforeEach(() => {
@@ -46,6 +47,21 @@ describe("utils/regex/fileUtils", () => {
     assert.strictEqual(info?.extraInfo.keyQuotes, "double");
   });
 
+  it("getLangFileInfo should preserve array values in locale files", () => {
+    const filePath = path.join(arrayFixturesRoot, "en", "common.json");
+    const info = getLangFileInfo(filePath);
+    assert.strictEqual(info !== null, true);
+    assert.deepStrictEqual(info?.data, {
+      app: {
+        title: "Hello",
+        tips: ["First tip", "Second tip"],
+        sections: {
+          quickStart: ["Open app", "Choose language"]
+        }
+      }
+    });
+  });
+
   it("isValidI18nCallablePath should filter by extension and ignored dirs", () => {
     setCacheConfig("workspace.ignoredFiles", []);
     setCacheConfig("workspace.ignoredDirectories", []);
@@ -67,6 +83,26 @@ describe("utils/regex/fileUtils", () => {
     assert.deepStrictEqual(values.sort(), ["x", "y"]);
   });
 
+  it("getNestedValues and flattenNestedObj should support array values", () => {
+    const obj = {
+      app: {
+        tips: ["First tip", "Second tip"],
+        sections: {
+          quickStart: ["Open app", "Choose language"]
+        }
+      }
+    };
+    const flat = flattenNestedObj(obj);
+    assert.deepStrictEqual(flat, {
+      "app.tips.0": "First tip",
+      "app.tips.1": "Second tip",
+      "app.sections.quickStart.0": "Open app",
+      "app.sections.quickStart.1": "Choose language"
+    });
+    const values = getNestedValues(obj);
+    assert.deepStrictEqual(values.sort(), ["Choose language", "First tip", "Open app", "Second tip"]);
+  });
+
   it("extractLangDataFromDir should scan dir and return structure", () => {
     const res = extractLangDataFromDir(fixturesRoot);
     assert.notStrictEqual(res, null);
@@ -74,6 +110,16 @@ describe("utils/regex/fileUtils", () => {
     assert.strictEqual(nonNull.fileType, "json");
     assert.strictEqual(nonNull.fileStructure.children.en !== undefined, true);
     assert.strictEqual(nonNull.fileExtraInfo["en.common"] !== undefined, true);
+  });
+
+  it("extractLangDataFromDir should include array-based locale entries", () => {
+    const res = extractLangDataFromDir(arrayFixturesRoot);
+    assert.notStrictEqual(res, null);
+    const nonNull = res as NonNullable<typeof res>;
+    const enApp = (nonNull.langTree.en.common as Record<string, unknown>).app as Record<string, unknown>;
+    const zhApp = (nonNull.langTree["zh-cn"].common as Record<string, unknown>).app as Record<string, unknown>;
+    assert.deepStrictEqual(enApp.tips, ["First tip", "Second tip"]);
+    assert.deepStrictEqual((zhApp.sections as Record<string, unknown>).quickStart, ["打开应用", "选择语言"]);
   });
 
   it("stripLanguageLayer should remove language level", () => {
