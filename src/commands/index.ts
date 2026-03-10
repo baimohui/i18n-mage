@@ -32,6 +32,7 @@ import { registerIgnoreUndefinedCommand } from "./ignore/ignoreUndefinedCommand"
 import { registerFeedbackCommand } from "./guide/feedbackCommand";
 import { registerOpenSettingsCommand } from "./guide/openSettingsCommand";
 import { registerOpenDocsCommand } from "./guide/openDocsCommand";
+import { registerOpenChangelogCommand } from "./guide/openChangelogCommand";
 import { registerStarCommand } from "./guide/starCommand";
 import { registerBrowseTranslationsInFileCommand } from "./inspection/browseTranslationsInFileCommand";
 import { registerRewriteEntryCommand } from "./fix/rewriteEntryCommand";
@@ -75,6 +76,7 @@ export function registerAllCommands(context: vscode.ExtensionContext) {
   registerIgnoreUndefinedCommand();
   registerFeedbackCommand();
   registerOpenDocsCommand();
+  registerOpenChangelogCommand(context);
   registerOpenSettingsCommand();
   registerStarCommand();
   registerBrowseTranslationsInFileCommand();

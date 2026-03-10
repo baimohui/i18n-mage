@@ -1415,9 +1415,14 @@
         "title": "%command.feedback.title%"
       },
       {
+        "command": "i18nMage.openChangelog",
+        "category": "%extension.name%",
+        "title": "%command.openChangelog.title%"
+      },
+      {
         "command": "i18nMage.star",
         "category": "%extension.name%",
-        "title": "Star"
+        "title": "%command.star.title%"
       },
       {
         "command": "i18nMage.ignoreDirectory",
@@ -1771,9 +1776,14 @@
           "group": "view@3"
         },
         {
-          "command": "i18nMage.star",
+          "command": "i18nMage.openChangelog",
           "when": "view == i18nMage.grimoire && !i18nMage.isSearching",
           "group": "view@4"
+        },
+        {
+          "command": "i18nMage.star",
+          "when": "view == i18nMage.grimoire && !i18nMage.isSearching",
+          "group": "view@5"
         }
       ],
       "view/item/context": [

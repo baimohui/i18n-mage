@@ -16,6 +16,7 @@ import { CodeActionProvider } from "./features/CodeActionProvider";
 import { RenameKeyProvider } from "./features/RenameProvider";
 import { KeyDefinitionProvider } from "./features/DefinitionProvider";
 import { KeyReferenceProvider } from "./features/ReferenceProvider";
+import { showUpdateSummaryIfNeeded } from "./utils/updateSummary";
 
 class ExtensionState {
   private static instance: ExtensionState | null = null;
@@ -165,6 +166,7 @@ class ExtensionState {
 export async function activate(context: vscode.ExtensionContext) {
   const extensionState = ExtensionState.getInstance();
   extensionState.initialize(context);
+  await showUpdateSummaryIfNeeded(context);
 
   context.subscriptions.push(
     vscode.workspace.onDidChangeConfiguration(async event => {
