@@ -53,6 +53,8 @@ async function showUpdateSummaryModal(
 
   const isDisabled = (context.globalState.get<boolean>(DISABLED_KEY) ?? false) === true;
   const summary = getSummaryForVersion(currentVersion);
+  const hasSummary = summary !== undefined && summary.length > 0;
+  if (!hasSummary && options.includeDisable) return;
   const buttons: string[] = [];
   buttons.push(t("common.confirm"));
   buttons.push(t("updateSummary.actions.viewChangelog"));
@@ -64,8 +66,7 @@ async function showUpdateSummaryModal(
   const enableLabel = t("updateSummary.actions.enable");
   const confirmLabel = t("common.confirm");
 
-  const messageOptions: vscode.MessageOptions =
-    summary !== undefined && summary.length > 0 ? { modal: true, detail: summary } : { modal: true };
+  const messageOptions: vscode.MessageOptions = hasSummary ? { modal: true, detail: summary } : { modal: true };
   const selection = await vscode.window.showInformationMessage(t("updateSummary.title", currentVersion), messageOptions, ...buttons);
 
   if (selection === confirmLabel) {

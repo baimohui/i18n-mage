@@ -221,7 +221,7 @@
   "command.openChangelog.title": "日志",
   "command.openSettings.title": "设置",
   "command.feedback.title": "反馈",
-  "command.star.title": "Star 飞来",
+  "command.star.title": "Star 飞来咒",
   "command.fixUndefinedEntries.title": "提取未定义文案",
   "command.extractHardcodedTexts.title": "提取硬编码文案",
   "command.fillMissingTranslations.title": "填充缺失翻译",
