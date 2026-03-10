@@ -10,6 +10,7 @@ import { registerCopyEntriesCommand } from "./copy/copyEntriesCommand";
 import { registerCopyNameCommand } from "./copy/copyNameCommand";
 import { registerCopyValueCommand } from "./copy/copyValueCommand";
 import { registerDeleteUnusedCommand } from "./fix/deleteUnusedCommand";
+import { registerDeleteTranslationCommand } from "./fix/deleteTranslationCommand";
 import { registerEditValueCommand } from "./fix/editValueCommand";
 import { registerFixCommand } from "./fix/fixCommand";
 import { registerSortCommand } from "./fix/sortCommand";
@@ -55,6 +56,7 @@ export function registerAllCommands(context: vscode.ExtensionContext) {
   registerCopyNameCommand();
   registerCopyValueCommand();
   registerDeleteUnusedCommand();
+  registerDeleteTranslationCommand();
   registerEditValueCommand();
   registerFixCommand(context);
   registerSortCommand();

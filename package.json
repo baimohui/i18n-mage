@@ -1515,6 +1515,16 @@
         "enablement": "!i18nMage.readonly"
       },
       {
+        "command": "i18nMage.deleteTranslation",
+        "category": "%extension.name%",
+        "title": "%command.deleteTranslation.title%",
+        "icon": {
+          "light": "./images/delete-light.svg",
+          "dark": "./images/delete-dark.svg"
+        },
+        "enablement": "!i18nMage.readonly"
+      },
+      {
         "command": "i18nMage.markAsUsed",
         "category": "%extension.name%",
         "title": "%command.markAsUsed.title%",
@@ -1850,6 +1860,11 @@
           "command": "i18nMage.rewriteEntry",
           "when": "viewItem =~ /REWRITE_ENTRY/ && !i18nMage.readonly",
           "group": "op@2"
+        },
+        {
+          "command": "i18nMage.deleteTranslation",
+          "when": "viewItem =~ /(^|,)(DELETE_TRANSLATION|DELETE_TRANSLATION_GROUP)(,|$)/ && !i18nMage.readonly",
+          "group": "op@3"
         },
         {
           "command": "i18nMage.markAsUsed",

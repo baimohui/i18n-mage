@@ -324,6 +324,9 @@ export function getSyncInfoChildren(ctx: TreeSectionContext, element: ExtendedTr
       if (element.type !== "lack") {
         contextValueList.push("GO_TO_DEFINITION");
       }
+      if (element.type === "extra") {
+        contextValueList.push("DELETE_TRANSLATION");
+      }
       const tooltip = new vscode.MarkdownString();
       const definedInfo = ctx.langInfo.dictionary[key].value;
       if (element.type === "lack" || element.type === "null") {

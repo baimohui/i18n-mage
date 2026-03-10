@@ -205,6 +205,7 @@
   "command.copyEntries.title": "Copy Entry/Entries",
   "command.editValue.title": "Edit Entry Value",
   "command.deleteUnused.title": "Delete Unused Entry/Entries",
+  "command.deleteTranslation.title": "Delete Translation",
   "command.markAsUsed.title": "Mark as Used",
   "command.unmarkAsUsed.title": "Unmark as Used",
   "command.goToReference.title": "Go to References",

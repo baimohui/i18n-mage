@@ -66,9 +66,18 @@ export class RewriteHandler {
               }
               break;
             case "delete":
-              delete this.ctx.langDictionary[payload.key][lang];
+              if (this.ctx.langDictionary[payload.key]?.value !== undefined) {
+                delete this.ctx.langDictionary[payload.key].value[lang];
+              }
               delete this.ctx.langCountryMap[lang][payload.key];
-              setValueByEscapedEntryName(this.ctx.entryTree, payload.key, undefined);
+              if (this.ctx.langDictionary[payload.key]?.value !== undefined) {
+                const remainLangs = Object.keys(this.ctx.langDictionary[payload.key].value);
+                if (remainLangs.length === 0) {
+                  setValueByEscapedEntryName(this.ctx.entryTree, payload.key, undefined);
+                }
+              } else {
+                setValueByEscapedEntryName(this.ctx.entryTree, payload.key, undefined);
+              }
               break;
           }
           const filePos = getFileLocationFromId(this.ctx.langDictionary[payload.key].fullPath, this.ctx.fileStructure);

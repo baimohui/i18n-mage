@@ -205,6 +205,7 @@
   "command.copyEntries.title": "复制词条",
   "command.editValue.title": "编辑词条值",
   "command.deleteUnused.title": "删除未使用词条",
+  "command.deleteTranslation.title": "删除翻译",
   "command.markAsUsed.title": "标记为已使用",
   "command.unmarkAsUsed.title": "取消已使用标记",
   "command.goToReference.title": "跳转到引用",

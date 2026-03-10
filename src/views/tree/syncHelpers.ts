@@ -121,7 +121,13 @@ export function getSyncInfo(params: GetSyncInfoParams) {
   ];
 
   if (syncBasedOnReferredEntries) {
-    res.push({ label: t("tree.syncInfo.extra"), num: extraEntryKeyList.length, data: extraEntryKeyList, type: "extra" });
+    res.push({
+      label: t("tree.syncInfo.extra"),
+      num: extraEntryKeyList.length,
+      data: extraEntryKeyList,
+      type: "extra",
+      contextValue: extraEntryKeyList.length > 0 ? "DELETE_TRANSLATION_GROUP" : ""
+    });
   }
   return res;
 }

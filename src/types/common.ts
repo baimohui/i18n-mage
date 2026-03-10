@@ -123,11 +123,16 @@ export interface FixQuery {
   keyPrefixPatch?: Record<string, string>;
 }
 
-export type ModifyQuery = EditValueQuery | RewriteEntryQuery | RenameKeyQuery;
+export type ModifyQuery = EditValueQuery | DeleteValueQuery | RewriteEntryQuery | RenameKeyQuery;
 
 export interface EditValueQuery {
   type: "editValue";
   data: { key: string; value: string; lang?: string }[];
+}
+
+export interface DeleteValueQuery {
+  type: "deleteValue";
+  data: { key: string; lang: string }[];
 }
 
 export interface RewriteEntryQuery {

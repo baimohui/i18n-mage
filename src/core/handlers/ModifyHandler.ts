@@ -1,4 +1,12 @@
-import { EditValueQuery, FixExecutionResult, I18nUpdatePayload, LangContextInternal, RenameKeyQuery, RewriteEntryQuery } from "@/types";
+import {
+  DeleteValueQuery,
+  EditValueQuery,
+  FixExecutionResult,
+  I18nUpdatePayload,
+  LangContextInternal,
+  RenameKeyQuery,
+  RewriteEntryQuery
+} from "@/types";
 import { RewriteHandler } from "@/core/handlers/RewriteHandler";
 import { t } from "@/utils/i18n";
 import { ExecutionResult, EXECUTION_RESULT_CODE } from "@/types";
@@ -20,6 +28,8 @@ export class ModifyHandler {
       const type = this.ctx.modifyQuery.type;
       if (type === "editValue") {
         this.handleEditValue(this.ctx.modifyQuery);
+      } else if (type === "deleteValue") {
+        this.handleDeleteValue(this.ctx.modifyQuery);
       } else if (type === "renameKey") {
         this.handleRenameKey(this.ctx.modifyQuery);
       } else if (type === "rewriteEntry") {
@@ -41,6 +51,20 @@ export class ModifyHandler {
         key,
         valueChanges: {
           [lang]: { before: this.ctx.langCountryMap[lang]?.[key] ?? "", after: value }
+        }
+      });
+    }
+  }
+
+  private handleDeleteValue(query: DeleteValueQuery) {
+    for (const item of query.data) {
+      const { key, lang } = item;
+      if (!lang) return;
+      this.ctx.updatePayloads.push({
+        type: "delete",
+        key,
+        valueChanges: {
+          [lang]: { before: this.ctx.langCountryMap[lang]?.[key] ?? "", after: "" }
         }
       });
     }
