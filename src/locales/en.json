@@ -196,6 +196,7 @@
   "common.noLangPathDetectedWarn": "No translation directory detected",
   "common.none": "None",
   "common.noWorkspaceWarn": "No active workspace detected",
+  "common.readonlyModeBlocked": "Read-only mode is enabled. Write operations are unavailable.",
   "common.progress.cancelledByTimeout": "Operation cancelled due to timeout",
   "common.progress.cancelledByUser": "Operation cancelled",
   "common.progress.completed": "Operation completed",

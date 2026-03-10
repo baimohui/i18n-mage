@@ -196,6 +196,7 @@
   "common.noLangPathDetectedWarn": "未发现翻译文件目录",
   "common.none": "无",
   "common.noWorkspaceWarn": "未发现活动工作区",
+  "common.readonlyModeBlocked": "只读模式已启用，写入相关操作不可用",
   "common.progress.cancelledByTimeout": "操作超时已取消",
   "common.progress.cancelledByUser": "已取消操作",
   "common.progress.completed": "操作完成",

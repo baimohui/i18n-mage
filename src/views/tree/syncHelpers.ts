@@ -1,5 +1,6 @@
 import { t } from "@/utils/i18n";
 import { getLangText } from "@/utils/langKey";
+import { isReadonlyModeEnabled } from "@/utils/readonly";
 
 interface CheckLangSyncInfoParams {
   lang: string;
@@ -17,6 +18,7 @@ interface CheckLangSyncInfoParams {
 
 export function checkLangSyncInfo(params: CheckLangSyncInfoParams) {
   const { lang, detectedLangList, isSyncing, displayLang, referredLang, langInfo, countryMap } = params;
+  const isReadonly = isReadonlyModeEnabled();
   const contextValueList = ["checkSyncInfo"];
   let tooltip = getLangText(lang) || t("common.unknownLang");
   if (!getLangText(lang)) {
@@ -49,18 +51,20 @@ export function checkLangSyncInfo(params: CheckLangSyncInfoParams) {
     }
   }
 
-  if (lang === referredLang && lang === displayLang) {
+  if (lang === referredLang && lang === displayLang && !isReadonly) {
     list.push("🧙");
     tooltip += ` (${t("tree.syncInfo.baseline")})`;
     contextValueList.push("REFERENCE_LANG", "DISPLAY_LANG");
-  } else if (lang === referredLang) {
-    tooltip += ` (${t("tree.syncInfo.source")})`;
-    list.push("🌐");
-    contextValueList.push("REFERENCE_LANG");
   } else if (lang === displayLang) {
     tooltip += ` (${t("tree.syncInfo.display")})`;
     list.push("👁️");
     contextValueList.push("DISPLAY_LANG");
+  } else if (lang === referredLang) {
+    tooltip += ` (${t("tree.syncInfo.source")})`;
+    if (!isReadonly) {
+      list.push("🌐");
+    }
+    contextValueList.push("REFERENCE_LANG");
   } else if (!detectedLangList.includes(lang)) {
     icon = "sync-ignored";
     tooltip += ` (${t("tree.syncInfo.ignored")})`;

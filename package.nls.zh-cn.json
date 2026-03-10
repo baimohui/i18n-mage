@@ -3,6 +3,7 @@
   "extension.submenu.pathConfig": "路径配置",
   "config.general.title": "通用",
   "config.enable.desc": "启用 i18n Mage",
+  "config.readonly.desc": "启用只读模式：隐藏写入相关操作入口并阻止写入命令执行",
   "config.i18nFramework.desc": "国际化框架",
   "config.referenceLanguage.desc": "翻译源语言",
   "config.displayLanguage.desc": "显示语言",

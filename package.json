@@ -73,8 +73,14 @@
             "default": "",
             "description": "%config.displayLanguage.desc%"
           },
+          "i18n-mage.general.readonly": {
+            "order": 12,
+            "type": "boolean",
+            "default": false,
+            "description": "%config.readonly.desc%"
+          },
           "i18n-mage.general.enableDebugLog": {
-            "order": 10,
+            "order": 14,
             "type": "boolean",
             "default": false,
             "description": "%config.enableDebugLog.desc%"
@@ -1269,7 +1275,8 @@
       {
         "command": "i18nMage.setReferredLang",
         "category": "%extension.name%",
-        "title": "%command.setReferredLang.title%"
+        "title": "%command.setReferredLang.title%",
+        "enablement": "!i18nMage.readonly"
       },
       {
         "command": "i18nMage.setDisplayLang",
@@ -1301,7 +1308,8 @@
         "icon": {
           "light": "./images/wand-light.svg",
           "dark": "./images/wand-dark.svg"
-        }
+        },
+        "enablement": "!i18nMage.readonly"
       },
       {
         "command": "i18nMage.fixUndefinedEntries",
@@ -1310,7 +1318,8 @@
         "icon": {
           "light": "./images/genKey-light.svg",
           "dark": "./images/genKey-dark.svg"
-        }
+        },
+        "enablement": "!i18nMage.readonly"
       },
       {
         "command": "i18nMage.extractHardcodedTexts",
@@ -1319,7 +1328,8 @@
         "icon": {
           "light": "./images/genKey-light.svg",
           "dark": "./images/genKey-dark.svg"
-        }
+        },
+        "enablement": "!i18nMage.readonly"
       },
       {
         "command": "i18nMage.fillMissingTranslations",
@@ -1328,7 +1338,8 @@
         "icon": {
           "light": "./images/translate-light.svg",
           "dark": "./images/translate-dark.svg"
-        }
+        },
+        "enablement": "!i18nMage.readonly"
       },
       {
         "command": "i18nMage.sort",
@@ -1337,7 +1348,8 @@
         "icon": {
           "light": "./images/sort-light.svg",
           "dark": "./images/sort-dark.svg"
-        }
+        },
+        "enablement": "!i18nMage.readonly"
       },
       {
         "command": "i18nMage.excel",
@@ -1369,12 +1381,14 @@
         "icon": {
           "light": "./images/import-light.svg",
           "dark": "./images/import-dark.svg"
-        }
+        },
+        "enablement": "!i18nMage.readonly"
       },
       {
         "command": "i18nMage.importDiff",
         "category": "%extension.name%",
-        "title": "%command.importDiff.title%"
+        "title": "%command.importDiff.title%",
+        "enablement": "!i18nMage.readonly"
       },
       {
         "command": "i18nMage.ignoreFile",
@@ -1445,7 +1459,8 @@
         "icon": {
           "light": "./images/paste-light.svg",
           "dark": "./images/paste-dark.svg"
-        }
+        },
+        "enablement": "!i18nMage.readonly"
       },
       {
         "command": "i18nMage.goToReference",
@@ -1481,7 +1496,8 @@
         "icon": {
           "light": "./images/edit-light.svg",
           "dark": "./images/edit-dark.svg"
-        }
+        },
+        "enablement": "!i18nMage.readonly"
       },
       {
         "command": "i18nMage.deleteUnused",
@@ -1490,7 +1506,8 @@
         "icon": {
           "light": "./images/delete-light.svg",
           "dark": "./images/delete-dark.svg"
-        }
+        },
+        "enablement": "!i18nMage.readonly"
       },
       {
         "command": "i18nMage.markAsUsed",
@@ -1499,7 +1516,8 @@
         "icon": {
           "light": "./images/pin-light.svg",
           "dark": "./images/pin-dark.svg"
-        }
+        },
+        "enablement": "!i18nMage.readonly"
       },
       {
         "command": "i18nMage.unmarkAsUsed",
@@ -1508,7 +1526,8 @@
         "icon": {
           "light": "./images/pinFill-light.svg",
           "dark": "./images/pinFill-dark.svg"
-        }
+        },
+        "enablement": "!i18nMage.readonly"
       },
       {
         "command": "i18nMage.ignoreUndefined",
@@ -1517,7 +1536,8 @@
         "icon": {
           "light": "./images/ignore-light.svg",
           "dark": "./images/ignore-dark.svg"
-        }
+        },
+        "enablement": "!i18nMage.readonly"
       },
       {
         "command": "i18nMage.setProjectPath",
@@ -1542,7 +1562,8 @@
       {
         "command": "i18nMage.rewriteEntry",
         "category": "%extension.name%",
-        "title": "%command.rewriteEntry.title%"
+        "title": "%command.rewriteEntry.title%",
+        "enablement": "!i18nMage.readonly"
       },
       {
         "command": "i18nMage.search",
@@ -1605,7 +1626,8 @@
         "icon": {
           "light": "./images/add-light.svg",
           "dark": "./images/add-dark.svg"
-        }
+        },
+        "enablement": "!i18nMage.readonly"
       }
     ],
     "keybindings": [
@@ -1630,13 +1652,14 @@
       {
         "command": "i18nMage.extractHardcodedTexts",
         "key": "ctrl+alt+e",
-        "mac": "cmd+alt+e"
+        "mac": "cmd+alt+e",
+        "when": "!i18nMage.readonly"
       },
       {
         "command": "i18nMage.fix",
         "key": "ctrl+alt+f",
         "mac": "cmd+alt+f",
-        "when": "i18nMage.enabled && i18nMage.hasValidLangPath"
+        "when": "i18nMage.enabled && i18nMage.hasValidLangPath && !i18nMage.readonly"
       },
       {
         "command": "i18nMage.browseTranslationsInFile",
@@ -1694,17 +1717,17 @@
         },
         {
           "command": "i18nMage.sort",
-          "when": "view == i18nMage.grimoire && i18nMage.hasValidLangPath && i18nMage.allowSort && !i18nMage.isSearching",
+          "when": "view == i18nMage.grimoire && i18nMage.hasValidLangPath && i18nMage.allowSort && !i18nMage.isSearching && !i18nMage.readonly",
           "group": "navigation@20"
         },
         {
           "command": "i18nMage.fix",
-          "when": "view == i18nMage.grimoire && i18nMage.hasValidLangPath && !i18nMage.isSearching",
+          "when": "view == i18nMage.grimoire && i18nMage.hasValidLangPath && !i18nMage.isSearching && !i18nMage.readonly",
           "group": "navigation@25"
         },
         {
           "command": "i18nMage.extractHardcodedTexts",
-          "when": "view == i18nMage.grimoire && i18nMage.enabled && !i18nMage.isSearching",
+          "when": "view == i18nMage.grimoire && i18nMage.enabled && !i18nMage.isSearching && !i18nMage.readonly",
           "group": "navigation@15"
         },
         {
@@ -1756,7 +1779,7 @@
       "view/item/context": [
         {
           "command": "i18nMage.setReferredLang",
-          "when": "viewItem =~ /checkSyncInfo/ && !(viewItem =~ /UNKNOWN_LANG/) && !(viewItem =~ /REFERENCE_LANG/) && !(viewItem =~ /IGNORED_LANG/)",
+          "when": "viewItem =~ /checkSyncInfo/ && !(viewItem =~ /UNKNOWN_LANG/) && !(viewItem =~ /REFERENCE_LANG/) && !(viewItem =~ /IGNORED_LANG/) && !i18nMage.readonly",
           "group": "syncInfo@1"
         },
         {
@@ -1810,52 +1833,52 @@
         },
         {
           "command": "i18nMage.editValue",
-          "when": "viewItem =~ /EDIT_VALUE/",
+          "when": "viewItem =~ /EDIT_VALUE/ && !i18nMage.readonly",
           "group": "op@1"
         },
         {
           "command": "i18nMage.rewriteEntry",
-          "when": "viewItem =~ /REWRITE_ENTRY/",
+          "when": "viewItem =~ /REWRITE_ENTRY/ && !i18nMage.readonly",
           "group": "op@2"
         },
         {
           "command": "i18nMage.markAsUsed",
-          "when": "viewItem == unusedGroupHeader || viewItem =~ /unusedGroupItem/",
+          "when": "(viewItem == unusedGroupHeader || viewItem =~ /unusedGroupItem/) && !i18nMage.readonly",
           "group": "handleUnused@1"
         },
         {
           "command": "i18nMage.unmarkAsUsed",
-          "when": "viewItem == usedGroupItem-None",
+          "when": "viewItem == usedGroupItem-None && !i18nMage.readonly",
           "group": "handleUnused@1"
         },
         {
           "command": "i18nMage.deleteUnused",
-          "when": "viewItem == unusedGroupHeader || viewItem =~ /unusedGroupItem/",
+          "when": "(viewItem == unusedGroupHeader || viewItem =~ /unusedGroupItem/) && !i18nMage.readonly",
           "group": "handleUnused@2"
         },
         {
           "command": "i18nMage.ignoreUndefined",
-          "when": "viewItem == undefinedGroupHeader || viewItem =~ /IGNORE_UNDEFINED/",
+          "when": "(viewItem == undefinedGroupHeader || viewItem =~ /IGNORE_UNDEFINED/) && !i18nMage.readonly",
           "group": "handleUndefined@1"
         },
         {
           "command": "i18nMage.fixUndefinedEntries",
-          "when": "viewItem =~ /GEN_KEY/",
+          "when": "viewItem =~ /GEN_KEY/ && !i18nMage.readonly",
           "group": "handleUndefined@2"
         },
         {
           "command": "i18nMage.fillMissingTranslations",
-          "when": "viewItem =~ /FILL_VALUE/",
+          "when": "viewItem =~ /FILL_VALUE/ && !i18nMage.readonly",
           "group": "handleMissing@1"
         },
         {
           "command": "i18nMage.pasteEntries",
-          "when": "viewItem =~ /PASTE_ENTRIES/",
+          "when": "viewItem =~ /PASTE_ENTRIES/ && !i18nMage.readonly",
           "group": "op@1"
         },
         {
           "command": "i18nMage.addLanguage",
-          "when": "viewItem =~ /(^|,)checkSync(,|$)/",
+          "when": "viewItem =~ /(^|,)checkSync(,|$)/ && !i18nMage.readonly",
           "group": "op@1"
         }
       ],
@@ -1872,12 +1895,12 @@
         },
         {
           "command": "i18nMage.fixUndefinedEntries",
-          "when": "i18nMage.hasUndefinedEntriesInFile",
+          "when": "i18nMage.hasUndefinedEntriesInFile && !i18nMage.readonly",
           "group": "2_i18n@3"
         },
         {
           "command": "i18nMage.extractHardcodedTexts",
-          "when": "i18nMage.enabled && i18nMage.canExtractHardcodedInCurrentFile",
+          "when": "i18nMage.enabled && i18nMage.canExtractHardcodedInCurrentFile && !i18nMage.readonly",
           "group": "2_i18n@4"
         }
       ],

@@ -7,6 +7,8 @@ import { registerAllListeners } from "@/listeners";
 import { bindDisposablesToContext, registerDisposable } from "@/utils/dispose";
 import { NotificationManager } from "@/utils/notification";
 import { getConfig } from "@/utils/config";
+import { t } from "@/utils/i18n";
+import { isReadonlyModeEnabled, isWriteCommand, READONLY_CONTEXT_KEY } from "@/utils/readonly";
 import { HoverProvider } from "./features/HoverProvider";
 import { I18nCompletionProvider } from "./features/CompletionProvider";
 import { StatusBarItemManager } from "./features/StatusBarItemManager";
@@ -36,6 +38,7 @@ class ExtensionState {
     this._context = context;
     this._enabled = getConfig<boolean>("general.enable", true);
     vscode.commands.executeCommand("setContext", "i18nMage.enabled", this._enabled);
+    vscode.commands.executeCommand("setContext", READONLY_CONTEXT_KEY, isReadonlyModeEnabled());
   }
 
   get enabled(): boolean {
@@ -127,6 +130,10 @@ class ExtensionState {
       const wrappedCallback = function (this: unknown, ...args: unknown[]): unknown {
         if (command.startsWith("i18nMage.")) {
           NotificationManager.logCommandExecution(command, args);
+          if (isWriteCommand(command) && isReadonlyModeEnabled()) {
+            NotificationManager.showWarning(t("common.readonlyModeBlocked"));
+            return;
+          }
         }
         const result = Reflect.apply(callback as (...invokeArgs: unknown[]) => unknown, this, args);
         return result;
@@ -163,6 +170,9 @@ export async function activate(context: vscode.ExtensionContext) {
     vscode.workspace.onDidChangeConfiguration(async event => {
       if (event.affectsConfiguration("i18n-mage.general.enable")) {
         await extensionState.setEnabled(getConfig<boolean>("general.enable", true));
+      }
+      if (event.affectsConfiguration("i18n-mage.general.readonly")) {
+        vscode.commands.executeCommand("setContext", READONLY_CONTEXT_KEY, isReadonlyModeEnabled());
       }
     })
   );

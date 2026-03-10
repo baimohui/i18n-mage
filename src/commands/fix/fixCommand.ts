@@ -90,7 +90,7 @@ export function registerFixCommand(context: vscode.ExtensionContext) {
   };
 
   const fix = async (fixQuery: FixQuery) => {
-    await wrapWithProgress({ title: t("command.fix.progress"), cancellable: true, timeout: 1000 * 60 * 10 }, async (_, token) => {
+    await wrapWithProgress({ title: t("command.fix.progress"), cancellable: true, timeout: 1000 * 60 * 20 }, async (_, token) => {
       await mage.execute({ task: "check" });
       const publicCtx = mage.getPublicContext();
       const { avgFileNestedLevel, nameSeparator, undefined: undefinedMap, classTree } = mage.langDetail;

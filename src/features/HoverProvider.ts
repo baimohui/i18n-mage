@@ -4,6 +4,7 @@ import { getValueByAmbiguousEntryName, displayToInternalName, escapeMarkdown, fo
 import { ActiveEditorState } from "@/utils/activeEditorState";
 import { isFileTooLarge } from "@/utils/fs";
 import { t } from "@/utils/i18n";
+import { isReadonlyModeEnabled } from "@/utils/readonly";
 
 export class HoverProvider implements vscode.HoverProvider {
   provideHover(document: vscode.TextDocument, position: vscode.Position): vscode.ProviderResult<vscode.Hover> {
@@ -27,6 +28,7 @@ export class HoverProvider implements vscode.HoverProvider {
         }
       }
       if (entryKeys.length > 0) {
+        const isReadonly = isReadonlyModeEnabled();
         const markdown = new vscode.MarkdownString();
         markdown.isTrusted = true;
         const referredLang = publicCtx.referredLang;
@@ -68,10 +70,10 @@ export class HoverProvider implements vscode.HoverProvider {
               : `**${escapeMarkdown(lang)}**`;
             const goToDefBtn = `[📍](command:i18nMage.goToDefinition?${args})`;
             const copyBtn = value ? `[📋](command:i18nMage.copyValue?${args})` : "";
-            const editBtn = `[✏️](command:i18nMage.editValue?${args})`;
-            const rewriteBtn = `[🔄](command:i18nMage.rewriteEntry?${rewriteArgs})`;
+            const editBtn = isReadonly ? "" : `[✏️](command:i18nMage.editValue?${args})`;
+            const rewriteBtn = isReadonly ? "" : `[🔄](command:i18nMage.rewriteEntry?${rewriteArgs})`;
             const translateBtn =
-              !value && entryInfo[publicCtx.referredLang] ? `[🌐](command:i18nMage.fillMissingTranslations?${args})` : "";
+              !isReadonly && !value && entryInfo[publicCtx.referredLang] ? `[🌐](command:i18nMage.fillMissingTranslations?${args})` : "";
 
             markdown.appendMarkdown(`${goToDefBtn} ${langLabel}: `);
             if (value) {
