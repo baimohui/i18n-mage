@@ -30,8 +30,9 @@ describe("utils/regex/entryUtils", () => {
   it("displayToInternalName 应根据框架与命名空间处理", () => {
     setCacheConfig("i18nFeatures.framework", I18N_FRAMEWORK.i18nNext);
     setCacheConfig("i18nFeatures.defaultNamespace", "ns");
-    setCacheConfig("i18nFeatures.namespaceSeparator", ".");
-    assert.strictEqual(displayToInternalName("hello"), "ns.hello");
+    setCacheConfig("i18nFeatures.namespaceSeparator", "auto");
+    assert.strictEqual(displayToInternalName("other:hello", ["ns", "other"]), "other.hello");
+    assert.strictEqual(displayToInternalName("hello", ["ns", "other"]), "ns.hello");
 
     setCacheConfig("i18nFeatures.framework", I18N_FRAMEWORK.vueI18n);
     assert.strictEqual(displayToInternalName("a['b'].c[0]"), "a.b.c.0");

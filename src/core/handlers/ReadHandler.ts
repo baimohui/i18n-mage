@@ -132,7 +132,7 @@ export class ReadHandler {
         cacheHitCount++;
       } else {
         const fileContent = fs.readFileSync(filePath, "utf8");
-        tItems = catchTEntries(fileContent);
+        tItems = catchTEntries(fileContent, Object.keys(this.ctx.entryTree));
         if (this.ctx.scanStringLiterals) {
           literalItems = catchLiteralEntries(fileContent, this.ctx.entryTree, path.basename(filePath));
         }

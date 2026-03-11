@@ -38,7 +38,7 @@ export function catchLiteralEntries(fileContent: string, entryTree: EntryTree, f
   const regex = /(["'`])(?:\\[\s\S]|(?!\1)[^\\])*?\1/g;
   const commentRanges = getCommentRanges(fileContent);
   while ((res = regex.exec(withoutTContent)) !== null) {
-    let entryName = displayToInternalName(res[0].slice(1, -1));
+    let entryName = displayToInternalName(res[0].slice(1, -1), Object.keys(entryTree));
     let entryValue = "";
     const framework = getCacheConfig<I18nFramework>("i18nFeatures.framework");
     if (framework === I18N_FRAMEWORK.vscodeL10n && fileName === "package.json") {
@@ -62,7 +62,7 @@ export function catchLiteralEntries(fileContent: string, entryTree: EntryTree, f
   return entryInfoList;
 }
 
-export function catchTEntries(fileContent: string): TEntry[] {
+export function catchTEntries(fileContent: string, namespaces: string[] = []): TEntry[] {
   const tFuncNames = getCacheConfig<string[]>("i18nFeatures.translationFunctionNames", []);
   const accessMode = getCacheConfig<AccessMode>("i18nFeatures.accessMode", ACCESS_MODE.function);
   const framework = getCacheConfig<I18nFramework>("i18nFeatures.framework", I18N_FRAMEWORK.none);
@@ -89,7 +89,7 @@ export function catchTEntries(fileContent: string): TEntry[] {
   while ((tRes = tReg.exec(fileContent)) !== null) {
     const startPos = tRes.index - 1; // 起始位
     const offset = tRes[0].length; // 起始位离 t 函数内首个有效字符的距离
-    const entry = parseTEntry(fileContent, startPos, offset, commentRanges);
+    const entry = parseTEntry(fileContent, startPos, offset, commentRanges, namespaces);
     if (entry) {
       entryInfoList.push(entry);
     }
@@ -206,7 +206,13 @@ function parseFunctionArgs(fileContent: string, openParenIndex: number): { vars:
   return { vars, endPos: curPos + 2 };
 }
 
-export function parseTEntry(fileContent: string, startPos: number, offset: number, commentRanges?: [number, number][]): TEntry | null {
+export function parseTEntry(
+  fileContent: string,
+  startPos: number,
+  offset: number,
+  commentRanges?: [number, number][],
+  namespaces: string[] = []
+): TEntry | null {
   let curPos = startPos + offset;
   const nameStartPos = curPos;
   let nameEndPos = curPos;
@@ -268,7 +274,7 @@ export function parseTEntry(fileContent: string, startPos: number, offset: numbe
   if (entryNameForm.some(item => item.type === "logic")) return null;
   const entryRaw = fileContent.slice(startPos, curPos + 1);
   if (isPositionInComment(fileContent, startPos, commentRanges)) return null;
-  const nameInfo = getEntryNameInfoByForm(entryNameForm, entryVarList);
+  const nameInfo = getEntryNameInfoByForm(entryNameForm, entryVarList, namespaces);
   if (!nameInfo) return null;
   return {
     raw: entryRaw,
@@ -278,7 +284,11 @@ export function parseTEntry(fileContent: string, startPos: number, offset: numbe
   };
 }
 
-export function getEntryNameInfoByForm(nameForm: { type: TEntryPartType; value: string }[], entryVarList: string[]) {
+export function getEntryNameInfoByForm(
+  nameForm: { type: TEntryPartType; value: string }[],
+  entryVarList: string[],
+  namespaces: string[] = []
+) {
   let entryIndex = 0;
   let entryText = "";
   const varList: string[] = [];
@@ -387,7 +397,7 @@ export function getEntryNameInfoByForm(nameForm: { type: TEntryPartType; value: 
     text: entryText,
     regex: new RegExp(`^${entryReg}$`),
     vars: varList,
-    name: displayToInternalName(entryText),
+    name: displayToInternalName(entryText, namespaces),
     boundKey: entryKey,
     boundPrefix: entryPrefix
   };
@@ -544,16 +554,16 @@ export function isPositionInComment(code: string, index: number, precomputedComm
   return commentRanges.some(([start, end]) => index >= start && index < end);
 }
 
-export function displayToInternalName(name: string) {
+export function displayToInternalName(name: string, namespaces: string[] = []) {
   const framework = getCacheConfig<I18nFramework>("i18nFeatures.framework");
   const defaultNamespace = getCacheConfig<string>("i18nFeatures.defaultNamespace");
-  const namespaceSeparator = getCacheConfig<"." | "auto" | ":">("i18nFeatures.namespaceSeparator");
   if (framework === I18N_FRAMEWORK.i18nNext || framework === I18N_FRAMEWORK.reactI18next) {
-    if (namespaceSeparator === ".") {
-      return name.startsWith(`${defaultNamespace}.`) ? name : `${defaultNamespace}.${name}`;
-    } else {
-      return name.includes(":") ? name.replace(":", ".") : `${defaultNamespace}.${name}`;
+    if (!defaultNamespace) return name;
+    for (const namespace of namespaces) {
+      if (name.startsWith(`${namespace}.`)) return name;
+      if (name.startsWith(`${namespace}:`)) return name.replace(":", ".");
     }
+    return `${defaultNamespace}.${name}`;
   } else if (framework === I18N_FRAMEWORK.vueI18n) {
     return name
       .replace(/\\(['"])/g, "$1")

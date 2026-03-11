@@ -33,8 +33,9 @@ export class HoverProvider implements vscode.HoverProvider {
         markdown.isTrusted = true;
         const referredLang = publicCtx.referredLang;
         const sortedLangList = [referredLang, ...mage.detectedLangList.filter(lang => lang !== referredLang)];
+        const namespaces = Object.keys(tree);
         for (const key of entryKeys) {
-          const entryName = displayToInternalName(unescapeString(key));
+          const entryName = displayToInternalName(unescapeString(key), namespaces);
           const entryInfo = dictionary[key]?.value ?? {};
           const usedInfo = mage.langDetail.used[entryName] ?? {};
           const referenceCount = Object.values(usedInfo).reduce((total, posSet) => total + posSet.size, 0);

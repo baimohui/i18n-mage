@@ -56,7 +56,7 @@ export class ActiveEditorState {
     if (isValidI18nCallablePath(filePath)) {
       const mage = LangMage.getInstance();
       const text = editor.document.getText();
-      const entries = catchTEntries(text);
+      const entries = catchTEntries(text, Object.keys(mage.langDetail.tree));
       const publicCtx = mage.getPublicContext();
       const { used: usedEntryMap, tree } = mage.langDetail;
       const usedEntryNames = Object.keys(usedEntryMap);
