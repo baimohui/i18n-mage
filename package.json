@@ -168,7 +168,7 @@
               "double"
             ],
             "enumDescriptions": [
-              "%config.i18nFeatures.auto%",
+              "%config.option.auto%",
               "%config.i18nFeatures.singleBrackets%",
               "%config.i18nFeatures.doubleBrackets%"
             ],
@@ -183,7 +183,7 @@
               "."
             ],
             "enumDescriptions": [
-              "%config.i18nFeatures.auto%"
+              "%config.option.auto%"
             ],
             "default": "auto",
             "description": "%config.namespaceSeparator.desc%"

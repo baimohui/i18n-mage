@@ -137,6 +137,25 @@ export async function initTreeWithDeps(params: InitTreeParams): Promise<boolean>
       if (curFramework !== usedFramework) {
         pendingUpdates.push({ key: "i18nFeatures.framework", value: usedFramework });
       }
+      if (usedFramework === I18N_FRAMEWORK.i18nNext || usedFramework === I18N_FRAMEWORK.reactI18next) {
+        const configInterpolationBrackets = getConfig<"single" | "double" | "auto">("i18nFeatures.interpolationBrackets", "auto");
+        const cachedInterpolationBrackets = getCacheConfig<"single" | "double" | "auto">("i18nFeatures.interpolationBrackets", "auto");
+        if (configInterpolationBrackets === "auto" && cachedInterpolationBrackets !== "auto") {
+          pendingUpdates.push({ key: "i18nFeatures.interpolationBrackets", value: cachedInterpolationBrackets });
+        }
+
+        const configNamespaceSeparator = getConfig<"." | ":" | "auto">("i18nFeatures.namespaceSeparator", "auto");
+        const cachedNamespaceSeparator = getCacheConfig<"." | ":" | "auto">("i18nFeatures.namespaceSeparator", "auto");
+        if (configNamespaceSeparator === "auto" && cachedNamespaceSeparator !== "auto") {
+          pendingUpdates.push({ key: "i18nFeatures.namespaceSeparator", value: cachedNamespaceSeparator });
+        }
+
+        const configDefaultNamespace = getConfig<string>("i18nFeatures.defaultNamespace", "translation");
+        const cachedDefaultNamespace = getCacheConfig<string>("i18nFeatures.defaultNamespace", "translation");
+        if (configDefaultNamespace === "translation" && cachedDefaultNamespace !== "translation") {
+          pendingUpdates.push({ key: "i18nFeatures.defaultNamespace", value: cachedDefaultNamespace });
+        }
+      }
       if (getConfig<string>("workspace.languagePath", "") !== langPath) {
         pendingUpdates.push({ key: "workspace.languagePath", value: langPath });
       }

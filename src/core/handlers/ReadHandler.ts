@@ -5,6 +5,7 @@ import {
   EntryClassTreeItem,
   EntryNode,
   I18N_FRAMEWORK,
+  I18nFramework,
   KEY_STYLE,
   KeyStyle,
   LangContextInternal,
@@ -27,7 +28,7 @@ import {
 } from "@/utils/regex";
 import { EntryTree, LangDictionary, LangTree, PEntry, TEntry } from "@/types";
 import { isFileTooLarge } from "@/utils/fs";
-import { getCacheConfig } from "@/utils/config";
+import { getCacheConfig, setCacheConfig } from "@/utils/config";
 import { NotificationManager } from "@/utils/notification";
 
 type CensusParseCache = {
@@ -66,6 +67,7 @@ export class ReadHandler {
     const { structure, lookup } = this.buildEntryTreeAndDictionary(langTree, keyPathMap);
     this.ctx.entryTree = structure;
     this.ctx.langDictionary = lookup;
+    this.inferI18nProjectConfig(langTree);
     if (this.ctx.languageStructure === LANGUAGE_STRUCTURE.auto) {
       this.ctx.languageStructure = Object.values(this.ctx.langFileExtraInfo).every(info => info.isFlat)
         ? LANGUAGE_STRUCTURE.flat
@@ -89,6 +91,12 @@ export class ReadHandler {
   public startCensus() {
     const censusStart = Date.now();
     const totalEntryList = Object.keys(this.ctx.langDictionary).map(key => unescapeString(key));
+    const framework = getCacheConfig<I18nFramework>("i18nFeatures.framework", I18N_FRAMEWORK.none);
+    const namespaceSeparator = getCacheConfig<"." | ":" | "auto">("i18nFeatures.namespaceSeparator", "auto");
+    const shouldDetectNamespaceSeparator =
+      (framework === I18N_FRAMEWORK.i18nNext || framework === I18N_FRAMEWORK.reactI18next) && namespaceSeparator === "auto";
+    const namespaces = shouldDetectNamespaceSeparator ? Object.keys(this.ctx.entryTree) : [];
+    let detectedNamespaceSeparator: ":" | "." | null = null;
     if (!this.ctx.globalFlag || totalEntryList.length === 0) return;
     const collectStart = Date.now();
     const filePaths = this._readAllFiles(this.ctx.projectPath);
@@ -155,6 +163,13 @@ export class ReadHandler {
       }
       tEntryCount += tItems.length;
       literalEntryCount += literalItems.length;
+      if (shouldDetectNamespaceSeparator && detectedNamespaceSeparator === null) {
+        detectedNamespaceSeparator = this.detectNamespaceSeparatorFromEntries(tItems, namespaces);
+        if (detectedNamespaceSeparator) {
+          setCacheConfig("i18nFeatures.namespaceSeparator", detectedNamespaceSeparator);
+        }
+      }
+
       for (const item of tItems) {
         const nameInfo = item.nameInfo;
         let usedEntryNameList: string[] = [];
@@ -277,6 +292,82 @@ export class ReadHandler {
       translationObjectIdentifiers.join(","),
       dictionaryStamp
     ].join("|");
+  }
+
+  private inferI18nProjectConfig(langTree: LangTree) {
+    const framework = getCacheConfig<I18nFramework>("i18nFeatures.framework", I18N_FRAMEWORK.none);
+    if (framework !== I18N_FRAMEWORK.i18nNext && framework !== I18N_FRAMEWORK.reactI18next) return;
+
+    const interpolationBrackets = getCacheConfig<"single" | "double" | "auto">("i18nFeatures.interpolationBrackets", "auto");
+    if (interpolationBrackets === "auto") {
+      const detected = this.detectInterpolationBracketStyle(langTree);
+      setCacheConfig("i18nFeatures.interpolationBrackets", detected ?? "double");
+    }
+
+    const defaultNamespace = getCacheConfig<string>("i18nFeatures.defaultNamespace", "translation");
+    if (defaultNamespace === "translation") {
+      const namespaceList = Object.keys(this.ctx.entryTree);
+      if (!namespaceList.includes("translation")) {
+        setCacheConfig("i18nFeatures.defaultNamespace", "");
+      }
+    }
+  }
+
+  private detectInterpolationBracketStyle(langTree: LangTree): "single" | "double" | null {
+    const doubleReg = /{{\s*[^{}]+\s*}}/;
+    const singleReg = /\{[^{}]+\}/;
+    let foundSingle = false;
+
+    const traverse = (node: EntryTree | string | string[]): "double" | null => {
+      if (typeof node === "string") {
+        if (doubleReg.test(node)) return "double";
+        if (singleReg.test(node)) foundSingle = true;
+        return null;
+      }
+      if (Array.isArray(node)) {
+        for (const item of node) {
+          const detected = traverse(item);
+          if (detected === "double") return "double";
+        }
+        return null;
+      }
+      for (const value of Object.values(node)) {
+        const detected = traverse(value);
+        if (detected === "double") return "double";
+      }
+      return null;
+    };
+
+    const detected = traverse(langTree);
+    if (detected === "double") return "double";
+    return foundSingle ? "single" : null;
+  }
+
+  private detectNamespaceSeparatorFromEntries(entries: TEntry[], namespaces: string[]): ":" | "." | null {
+    if (namespaces.length === 0) return null;
+    const namespaceSet = new Set(namespaces);
+    let dotCount = 0;
+    let colonCount = 0;
+
+    for (const entry of entries) {
+      const text = entry.nameInfo.text;
+      const colonIndex = text.indexOf(":");
+      if (colonIndex > 0) {
+        const prefix = text.slice(0, colonIndex);
+        if (namespaceSet.has(prefix)) colonCount++;
+      }
+      const dotIndex = text.indexOf(".");
+      if (dotIndex > 0) {
+        const prefix = text.slice(0, dotIndex);
+        if (namespaceSet.has(prefix)) dotCount++;
+      }
+    }
+
+    if (colonCount > 0 && dotCount === 0) return ":";
+    if (dotCount > 0 && colonCount === 0) return ".";
+    if (colonCount > dotCount) return ":";
+    if (dotCount > colonCount) return ".";
+    return null;
   }
 
   private getDictionaryStamp(): string {
