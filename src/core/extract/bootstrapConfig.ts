@@ -606,11 +606,24 @@ function openBootstrapWebview(
           return;
         }
         if (parsed.extractScopePaths.length > 0) {
+          const invalidScopePaths: string[] = [];
+          const validScopePaths: string[] = [];
           for (const scopePath of parsed.extractScopePaths) {
             const absoluteScopePath = path.isAbsolute(scopePath) ? scopePath : path.join(projectPath, scopePath);
             if (!fs.existsSync(absoluteScopePath)) {
-              NotificationManager.showError(t("extractSetup.errorExtractScopePathInvalid", scopePath));
-              return;
+              invalidScopePaths.push(scopePath);
+              continue;
+            }
+            validScopePaths.push(scopePath);
+          }
+          if (invalidScopePaths.length > 0) {
+            NotificationManager.showWarning(t("extractSetup.errorExtractScopePathInvalid", invalidScopePaths.join(", ")));
+            if (Array.isArray(raw.extractScopePaths)) {
+              raw.extractScopePaths = validScopePaths;
+            } else if (typeof raw.extractScopePathsText === "string") {
+              raw.extractScopePathsText = validScopePaths.join(", ");
+            } else {
+              raw.extractScopePaths = validScopePaths;
             }
           }
         }
