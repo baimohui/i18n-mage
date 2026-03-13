@@ -615,11 +615,24 @@ function openBootstrapWebview(
           }
         }
         if (parsed.ignoreExtractScopePaths.length > 0) {
+          const invalidIgnorePaths: string[] = [];
+          const validIgnorePaths: string[] = [];
           for (const ignorePath of parsed.ignoreExtractScopePaths) {
             const absoluteIgnorePath = path.isAbsolute(ignorePath) ? ignorePath : path.join(projectPath, ignorePath);
             if (!fs.existsSync(absoluteIgnorePath)) {
-              NotificationManager.showError(t("extractSetup.errorIgnoreScopePathInvalid", ignorePath));
-              return;
+              invalidIgnorePaths.push(ignorePath);
+              continue;
+            }
+            validIgnorePaths.push(ignorePath);
+          }
+          if (invalidIgnorePaths.length > 0) {
+            NotificationManager.showWarning(t("extractSetup.errorIgnoreScopePathInvalid", invalidIgnorePaths.join(", ")));
+            if (Array.isArray(raw.ignoreExtractScopePaths)) {
+              raw.ignoreExtractScopePaths = validIgnorePaths;
+            } else if (typeof raw.ignoreExtractScopePathsText === "string") {
+              raw.ignoreExtractScopePathsText = validIgnorePaths.join(", ");
+            } else {
+              raw.ignoreExtractScopePaths = validIgnorePaths;
             }
           }
         }
