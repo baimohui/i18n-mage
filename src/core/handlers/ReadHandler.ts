@@ -152,6 +152,10 @@ export class ReadHandler {
         });
         parsedFileCount++;
       }
+      if (this.ctx.scanStringLiterals && tItems.length > 0 && literalItems.length > 0) {
+        const tEntryKeyPosSet = new Set(tItems.map(item => item.pos.split(",").slice(0, 2).join(",")));
+        literalItems = literalItems.filter(item => !tEntryKeyPosSet.has(item.pos));
+      }
       parseElapsed += Date.now() - parseStart;
       let usedEntryList: { name: string; pos: string }[] = [];
       const matchStart = Date.now();

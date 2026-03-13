@@ -57,6 +57,7 @@ export class ActiveEditorState {
       const mage = LangMage.getInstance();
       const text = editor.document.getText();
       const entries = catchTEntries(text, Object.keys(mage.langDetail.tree));
+      const tEntryKeyPosSet = new Set(entries.map(entry => entry.pos.split(",").slice(0, 2).join(",")));
       const publicCtx = mage.getPublicContext();
       const { used: usedEntryMap, tree } = mage.langDetail;
       const usedEntryNames = Object.keys(usedEntryMap);
@@ -85,6 +86,7 @@ export class ActiveEditorState {
       if (scanStringLiterals) {
         const literalEntries = catchLiteralEntries(text, mage.langDetail.tree, path.basename(filePath));
         literalEntries.forEach(entry => {
+          if (tEntryKeyPosSet.has(entry.pos)) return;
           const [startPos, endPos] = entry.pos.split(",").map(pos => editor.document.positionAt(+pos - 1));
           const range = new vscode.Range(startPos, endPos);
           const visible = editor.visibleRanges.some(vr => vr.intersection(range));
