@@ -485,9 +485,19 @@ function AppInner() {
                             <label className="patch-label">
                               <strong>{patch.file}</strong>
                               <span className="patch-diff">
-                                <span className="old">{patch.raw}</span>
-                                <span className="patch-arrow">→</span>
-                                <span className="new">{ctx.getPatchFixedRaw(unit.id, patch.file, patch.index)}</span>
+                                {(() => {
+                                  const before = patch.raw;
+                                  const after = ctx.getPatchFixedRaw(unit.id, patch.file, patch.index);
+                                  const diff = buildDiff(before, after);
+                                  return (
+                                    <>
+                                      <span>{diff.prefix}</span>
+                                      <span className="diff-removed">{diff.removed}</span>
+                                      <span className="diff-added">{diff.added}</span>
+                                      <span>{diff.suffix}</span>
+                                    </>
+                                  );
+                                })()}
                               </span>
                             </label>
                           </div>

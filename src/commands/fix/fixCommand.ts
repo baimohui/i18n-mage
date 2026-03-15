@@ -295,7 +295,10 @@ export function registerFixCommand(context: vscode.ExtensionContext) {
           let fallbackToManualSelection = candidatePrefixes.length === 0;
           const keyPrefixPatch: Record<string, string> = {};
           if (!fallbackToManualSelection) {
-            const aiCandidates = pickTopPrefixCandidates(candidatePrefixes, candidateUsageMap);
+            let aiCandidates = pickTopPrefixCandidates(candidatePrefixes, candidateUsageMap);
+            if (nameSeparator === "\\.") {
+              aiCandidates = aiCandidates.map(item => item.replaceAll("\\.", "."));
+            }
             const aiPrefixRes = await selectPrefixFromAi({
               sourceTextList: undefinedKeys,
               prefixCandidates: aiCandidates
@@ -303,8 +306,11 @@ export function registerFixCommand(context: vscode.ExtensionContext) {
             if (aiPrefixRes.success && Array.isArray(aiPrefixRes.data) && aiPrefixRes.data.length === undefinedKeys.length) {
               const namespacePrefix = getNamespacePrefix(missingEntryFile, publicCtx.namespaceStrategy);
               aiPrefixRes.data.forEach((item, index) => {
-                const normalized = normalizeAiSelectedPrefix(item, aiCandidates);
+                let normalized = normalizeAiSelectedPrefix(item, aiCandidates);
                 if (normalized) {
+                  if (nameSeparator === "\\." && normalized.includes(".")) {
+                    normalized = normalized.replaceAll(".", "\\.");
+                  }
                   keyPrefixPatch[genIdFromText(undefinedKeys[index])] = `${namespacePrefix}${normalized}`;
                 }
               });
