@@ -2,7 +2,28 @@
 
 All notable changes to the i18n Mage VS Code extension will be documented in this file.
 
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [1.3.3] - 2026-03-16
+
+### Added
+- **More AI Services**: Added Qwen, Hunyuan, and Kimi AI translation services, expanding the translation service ecosystem.
+- **Custom AI Service**: Added support for configuring custom AI services compatible with OpenAI standards.
+- **Model Configuration**: OpenAI and DeepSeek services now support specific model configuration for flexible calling options.
+- **Read-only Mode**: Introduced read-only mode configuration (disabled by default) that hides write-related operations and blocks write commands when enabled.
+- **Version Update Summary**: Added version update popup notification with changelog access point in Grimorie view three-dot menu.
+
+### Improved
+- **Streamlined Preview Interface**: Optimized repair preview display by elevating source language texts from individual language modules to entry-level unified presentation.
+- **Enhanced Framework Recognition**: Improved react-i18next namespace detection and variable curly brace matching logic.
+- **Robust Hard-coded Extraction**: When configured extraction paths are invalid, now only shows warning without interrupting the entire extraction process.
+- **Regex Optimization**: Refined regex matching logic to resolve duplicate key reference issues in certain scenarios.
+- **Enhanced AI Prefix Selection**: Optimized AI-based key prefix selection logic for flat structures, improving accuracy.
+
+### Feature Enhancements
+- **Redundant Entry Deletion**: When synchronizing based on source language files, now supports right-click deletion for entries under the "Redundant" category.
+
 
 ## [1.3.2] - 2026-03-09
 

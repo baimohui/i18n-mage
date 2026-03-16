@@ -11,15 +11,15 @@
   "command.copyValue.selectEntry": "Select entry to copy translation",
   "command.copyValue.selectLang": "Select language to copy",
   "command.delete.success": "Removed: {0}",
-  "command.deleteUnused.modalContent": "The following entries will be deleted: {0}",
-  "command.deleteUnused.modalTitle": "Are you sure?",
-  "command.deleteUnused.success": "Deleted successfully",
   "command.deleteTranslation.invalidTarget": "No translation selected to delete",
   "command.deleteTranslation.modalContent": "The translation of {0} in {1} will be deleted",
   "command.deleteTranslation.modalContentMany": "Delete {0} translations from {1}: {2}",
   "command.deleteTranslation.modalTitle": "Are you sure?",
   "command.deleteTranslation.success": "Deleted translation of {0} in {1}",
   "command.deleteTranslation.successMany": "Deleted {0} translations from {1}",
+  "command.deleteUnused.modalContent": "The following entries will be deleted: {0}",
+  "command.deleteUnused.modalTitle": "Are you sure?",
+  "command.deleteUnused.success": "Deleted successfully",
   "command.detectedI18nProjectScore": "Detected i18n project score:",
   "command.detectedI18nProjectSignals": "Detected i18n project signals:",
   "command.editValue.prompt": "Edit {1} translation of {0}",
@@ -432,5 +432,5 @@
   "updateSummary.actions.viewChangelog": "View full changelog",
   "updateSummary.missing": "No summary yet for v{0}. Please add it to the locale file.",
   "updateSummary.title": "i18n Mage updated to v{0}",
-  "updateSummary.version.1_3_2": "TODO: Add update summary for v1.3.2"
+  "updateSummary.version.1_3_3": "[AI Configuration]\n1. Added support for Qwen, Hunyuan, and Kimi services.\n2. Supports configuring custom AI services.\n3. Allows configuration of models for OpenAI and DeepSeek.\n\n[New Features]\n1. Added read-only mode.\n2. Added version update pop-up reminders with an update log entry.\n3. Supports deleting 'redundant' type translation entries in the language synchronization module.\n\n[Improved]\n1. Streamlined the preview interface, unifying source language text to entry-level display.\n2. Improved i18next framework namespace recognition and variable curly brace matching.\n3. When configured hardcoded extraction paths are invalid, only a warning is displayed without interrupting the extraction process.\n4. Optimized the handling logic for flat structure keys when selecting AI key prefixes."
 }

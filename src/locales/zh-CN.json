@@ -11,15 +11,15 @@
   "command.copyValue.selectEntry": "选择要复制文案的词条",
   "command.copyValue.selectLang": "选择要复制文案的语言",
   "command.delete.success": "已移除：{0}",
-  "command.deleteUnused.modalContent": "将删除词条：{0}",
-  "command.deleteUnused.modalTitle": "确定删除吗？",
-  "command.deleteUnused.success": "删除成功",
   "command.deleteTranslation.invalidTarget": "未选择可删除的翻译",
   "command.deleteTranslation.modalContent": "将删除 {1} 的 {0} 翻译",
   "command.deleteTranslation.modalContentMany": "将删除 {1} 的 {0} 条翻译：{2}",
   "command.deleteTranslation.modalTitle": "确定删除吗？",
   "command.deleteTranslation.success": "已删除 {1} 的 {0} 翻译",
   "command.deleteTranslation.successMany": "已删除 {1} 的 {0} 条翻译",
+  "command.deleteUnused.modalContent": "将删除词条：{0}",
+  "command.deleteUnused.modalTitle": "确定删除吗？",
+  "command.deleteUnused.success": "删除成功",
   "command.detectedI18nProjectScore": "检测 i18n 项目得分：",
   "command.detectedI18nProjectSignals": "检测 i18n 项目信号：",
   "command.editValue.prompt": "修改 {0} 的 {1} 文案",
@@ -432,5 +432,5 @@
   "updateSummary.actions.viewChangelog": "查看完整更新日志",
   "updateSummary.missing": "当前版本（v{0}）尚未填写更新摘要，请在语言文件中补充。",
   "updateSummary.title": "i18n Mage 已更新至 v{0}",
-  "updateSummary.version.1_3_2": "【新增】\n1. 新增豆包 AI 翻译服务支持，扩展翻译服务选择范围。\n2. 新增智能前缀选择，支持启用 AI 自动选择生成 key 的前缀。\n3. 新增自定义可选前缀列表配置，未配置时将自动使用项目中使用的前缀。\n\n【优化】\n1. 新增智能键名风格识别，插件会自动分析并匹配项目语言文件的 key 命名风格。\n2. 优化生成 key 的前缀选择逻辑，减少不必要的交互步骤。\n3. 装饰策略智能化，根据文件大小智能切换装饰范围。\n4. 初始化配置写入优化，解决多配置并发写入异常的问题。\n5. 侧边栏操作精细化，完善树视图的操作选项。"
+  "updateSummary.version.1_3_3": "【AI 配置扩展】\n1. 新增千问、混元、Kimi 服务支持。\n2. 支持配置自定义的 AI 服务。\n3. 支持对 OpenAI 与 DeepSeek 配置使用模型。\n\n【功能新增】\n1. 新增只读模式。\n2. 新增版本更新弹窗提醒，并添加更新日志入口。\n3. 支持删除语言同步模块“多余”类型的词条翻译。\n\n【优化】\n1. 精简修复预览界面，将源语言文案统一至词条级展示。\n2. 完善 i18next 框架命名空间识别与变量花括号匹配。\n3. 当配置的硬编码提取路径无效时，仅弹出告警，不再中断提取流程。\n4. 优化 AI 选择 key 前缀时对扁平结构 key 的处理逻辑。\n"
 }
