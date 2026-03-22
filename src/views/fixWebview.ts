@@ -43,16 +43,26 @@ export default function launchFixWebview(
   });
   panel.webview.html = webviewHtml;
 
+  let handled = false;
   panel.webview.onDidReceiveMessage(async (msg: WebviewMessage) => {
     if (msg.type === "apply") {
+      handled = true;
       applyValueUpdates(updatePayloads, msg.data.updatePayloads);
       applyIdPatches(idPatches, msg.data.idPatches);
       panel.dispose();
       await onComplete();
     } else {
+      handled = true;
+      clearPreviewData(updatePayloads, idPatches);
       panel.dispose();
       await onCancel();
     }
+  });
+
+  panel.onDidDispose(() => {
+    if (handled) return;
+    clearPreviewData(updatePayloads, idPatches);
+    void onCancel();
   });
 
   panel.reveal(vscode.ViewColumn.One);
@@ -159,5 +169,12 @@ function applyIdPatches(origin: EntryIdPatches, patches: EntryIdPatches): void {
     if (entries.length > 0) {
       origin[file] = entries;
     }
+  });
+}
+
+function clearPreviewData(updatePayloads: I18nUpdatePayload[], idPatches: EntryIdPatches): void {
+  updatePayloads.splice(0, updatePayloads.length);
+  Object.keys(idPatches).forEach(file => {
+    delete idPatches[file];
   });
 }
