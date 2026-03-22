@@ -5,6 +5,7 @@ import {
   I18nUpdatePayload,
   LangContextInternal,
   RenameKeyQuery,
+  RetranslateEntryQuery,
   RewriteEntryQuery
 } from "@/types";
 import { RewriteHandler } from "@/core/handlers/RewriteHandler";
@@ -34,6 +35,8 @@ export class ModifyHandler {
         this.handleRenameKey(this.ctx.modifyQuery);
       } else if (type === "rewriteEntry") {
         return await this.handleRewriteEntry(this.ctx.modifyQuery);
+      } else if (type === "retranslateEntry") {
+        return await this.handleRetranslateEntry(this.ctx.modifyQuery);
       }
       return await new RewriteHandler(this.ctx).run();
     } catch (e: unknown) {
@@ -145,6 +148,111 @@ export class ModifyHandler {
       code = EXECUTION_RESULT_CODE.TranslatorFailed;
     }
     this.ctx.updatePayloads.push(payload);
+    return new Promise<FixExecutionResult>(resolve => {
+      setTimeout(() => {
+        resolve({
+          success,
+          message,
+          code,
+          data: {
+            success: successCount,
+            failed: failCount,
+            generated: successCount,
+            total: successCount + failCount,
+            patched: 0
+          }
+        });
+      }, 1500);
+    });
+  }
+
+  private async handleRetranslateEntry(query: RetranslateEntryQuery) {
+    const { key, targetLang, sourceLang } = query;
+    const source = sourceLang ?? this.ctx.referredLang;
+    if (!targetLang || targetLang === source) {
+      return { success: false, message: t("command.retranslateEntry.invalidTargetLang"), code: EXECUTION_RESULT_CODE.InvalidEntryName };
+    }
+    const sourceValue = this.ctx.langCountryMap[source]?.[key] ?? "";
+    if (sourceValue.trim().length === 0) {
+      return { success: false, message: t("command.retranslateEntry.noSourceValue", source), code: EXECUTION_RESULT_CODE.InvalidEntryName };
+    }
+
+    if (ExecutionContext.token.isCancellationRequested) {
+      return {
+        success: false,
+        message: "",
+        code: EXECUTION_RESULT_CODE.Cancelled,
+        data: {
+          success: 0,
+          failed: 0,
+          generated: 0,
+          total: 0,
+          patched: 0
+        }
+      };
+    }
+
+    const res = await translateTo({
+      source,
+      target: targetLang,
+      sourceTextList: [sourceValue]
+    });
+
+    if (ExecutionContext.token.isCancellationRequested) {
+      return {
+        success: false,
+        message: "",
+        code: EXECUTION_RESULT_CODE.Cancelled,
+        data: {
+          success: 0,
+          failed: 0,
+          generated: 0,
+          total: 0,
+          patched: 0
+        }
+      };
+    }
+
+    let successCount = 0;
+    let failCount = 0;
+    const payload: I18nUpdatePayload = {
+      type: "edit",
+      key,
+      valueChanges: {}
+    };
+
+    if (res.success && res.data) {
+      successCount = 1;
+      payload.valueChanges![targetLang] = { before: this.ctx.langCountryMap[targetLang]?.[key] ?? "", after: res.data[0] };
+    } else {
+      failCount = 1;
+    }
+
+    NotificationManager.showProgress({
+      message: res.message,
+      type: res.success ? "success" : "error",
+      increment: 100
+    });
+
+    let success = true;
+    let message = "";
+    let code = EXECUTION_RESULT_CODE.Success;
+    if (failCount === 0) {
+      message = t("command.fix.translatorSuccess", successCount, successCount);
+      code = EXECUTION_RESULT_CODE.Success;
+    } else if (successCount > 0) {
+      message = t("command.fix.translatorPartialSuccess", successCount + failCount, successCount, successCount, failCount);
+      code = EXECUTION_RESULT_CODE.TranslatorPartialFailed;
+    } else {
+      success = false;
+      message = t("command.fix.translatorFailed", successCount + failCount);
+      code = EXECUTION_RESULT_CODE.TranslatorFailed;
+    }
+
+    if (successCount > 0) {
+      this.ctx.updatePayloads.push(payload);
+    }
+
     return new Promise<FixExecutionResult>(resolve => {
       setTimeout(() => {
         resolve({

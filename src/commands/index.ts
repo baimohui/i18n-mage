@@ -37,6 +37,7 @@ import { registerOpenChangelogCommand } from "./guide/openChangelogCommand";
 import { registerStarCommand } from "./guide/starCommand";
 import { registerBrowseTranslationsInFileCommand } from "./inspection/browseTranslationsInFileCommand";
 import { registerRewriteEntryCommand } from "./fix/rewriteEntryCommand";
+import { registerRetranslateEntryCommand } from "./fix/retranslateEntryCommand";
 import { registerSearchCommand } from "./search/searchCommand";
 import { registerCancelSearchCommand } from "./search/cancelSearchCommand";
 import { registerToggleWholeWordMatchCommand } from "./search/toggleWholeWordMatchCommand";
@@ -83,6 +84,7 @@ export function registerAllCommands(context: vscode.ExtensionContext) {
   registerStarCommand();
   registerBrowseTranslationsInFileCommand();
   registerRewriteEntryCommand(context);
+  registerRetranslateEntryCommand(context);
   registerSearchCommand();
   registerCancelSearchCommand();
   registerToggleWholeWordMatchCommand();

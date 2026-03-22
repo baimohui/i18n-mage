@@ -12,6 +12,7 @@ const WRITE_COMMAND_SET = new Set<string>([
   "i18nMage.importDiff",
   "i18nMage.editValue",
   "i18nMage.rewriteEntry",
+  "i18nMage.retranslateEntry",
   "i18nMage.deleteUnused",
   "i18nMage.markAsUsed",
   "i18nMage.unmarkAsUsed",

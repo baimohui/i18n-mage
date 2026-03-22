@@ -240,6 +240,9 @@ export function getCurrentFileChildren(ctx: TreeSectionContext, element: Extende
       .filter(lang => !ctx.publicCtx.ignoredLangs.includes(lang))
       .map(lang => {
         const contextValueList = ["entryTranslationInCurFile", "EDIT_VALUE", "REWRITE_ENTRY"];
+        if (lang !== ctx.publicCtx.referredLang) {
+          contextValueList.push("RETRANSLATE_ENTRY");
+        }
         if (entryInfo[lang]) {
           contextValueList.push("COPY_VALUE", "COPY_ENTRIES");
         } else if (entryInfo[ctx.publicCtx.referredLang]) {
@@ -321,6 +324,10 @@ export function getSyncInfoChildren(ctx: TreeSectionContext, element: ExtendedTr
   if (element.level === 2) {
     return (element.data as string[]).map(key => {
       const contextValueList = ["syncInfoItem", "EDIT_VALUE", "REWRITE_ENTRY"];
+      const metaLang = typeof element.meta?.lang === "string" ? element.meta.lang : undefined;
+      if (metaLang !== undefined && metaLang !== ctx.publicCtx.referredLang) {
+        contextValueList.push("RETRANSLATE_ENTRY");
+      }
       if (element.type !== "lack") {
         contextValueList.push("GO_TO_DEFINITION");
       }
@@ -471,6 +478,9 @@ export function getDictionaryChildren(ctx: TreeSectionContext, element: Extended
   if (typeof res === "string") {
     return Object.entries(ctx.langInfo.dictionary[res].value).map(item => {
       const contextValueList = ["dictionaryItem", "GO_TO_DEFINITION", "EDIT_VALUE", "REWRITE_ENTRY"];
+      if (item[0] !== ctx.publicCtx.referredLang) {
+        contextValueList.push("RETRANSLATE_ENTRY");
+      }
       if (item[1]) {
         contextValueList.push("COPY_VALUE", "COPY_ENTRIES");
       }

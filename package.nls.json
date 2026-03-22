@@ -228,6 +228,7 @@
   "command.fillMissingTranslations.title": "Fill Missing Translations",
   "command.browseTranslationsInFile.title": "Browse File Translations",
   "command.rewriteEntry.title": "Rewrite Entry",
+  "command.retranslateEntry.title": "Retranslate Entry",
   "command.searchEntry.title": "Search",
   "command.searchEntry.placeHolder": "Enter search keyword",
   "command.searchEntry.prompt": "Search entries across all languages",
