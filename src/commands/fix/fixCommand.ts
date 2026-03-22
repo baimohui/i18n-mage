@@ -355,19 +355,16 @@ export function registerFixCommand(context: vscode.ExtensionContext) {
             while (currentNonSourceKeys.length > 0) {
               let selectKeys: string[] | undefined = currentNonSourceKeys;
               if (currentNonSourceKeys.length > 1) {
-                const map = currentNonSourceKeys.reduce(
-                  (prev, curr) => {
-                    prev[`${curr}: ${referredTranslation[curr]}`] = curr;
-                    return prev;
-                  },
-                  {} as { [key: string]: string }
-                );
-                const selectValues = await vscode.window.showQuickPick(Object.keys(map), {
+                const quickPickItems = currentNonSourceKeys.map(key => ({
+                  label: key,
+                  description: referredTranslation[key]
+                }));
+                const selectValues = await vscode.window.showQuickPick(quickPickItems, {
                   canPickMany: true,
                   placeHolder: t("command.fix.selectNoneSourceTexts")
                 });
                 if (selectValues === undefined) return;
-                selectKeys = selectValues.map(v => map[v]);
+                selectKeys = selectValues.map(v => v.label);
               }
               const operation = await vscode.window.showQuickPick(
                 [t("command.fix.skip"), t("command.fix.fill"), t("command.fix.force"), t("command.fix.switch")],

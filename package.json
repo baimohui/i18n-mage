@@ -1030,20 +1030,6 @@
             "default": true,
             "description": "%config.translateHintsEnabled.desc%"
           },
-          "i18n-mage.translationHints.displayMode": {
-            "order": 1,
-            "type": "string",
-            "enum": [
-              "overlay",
-              "inline"
-            ],
-            "default": "overlay",
-            "enumDescriptions": [
-              "%config.translationHintsDisplayMode.overlay%",
-              "%config.translationHintsDisplayMode.inline%"
-            ],
-            "description": "%config.translationHintsDisplayMode.desc%"
-          },
           "i18n-mage.translationHints.fullFileMaxSizeKB": {
             "order": 2,
             "type": "number",
@@ -1068,8 +1054,22 @@
             "default": true,
             "description": "%config.translateHintsEnableLooseKeyMatch.desc%"
           },
-          "i18n-mage.translationHints.maxLength": {
+          "i18n-mage.translationHints.displayMode": {
             "order": 6,
+            "type": "string",
+            "enum": [
+              "overlay",
+              "inline"
+            ],
+            "default": "overlay",
+            "enumDescriptions": [
+              "%config.translationHintsDisplayMode.overlay%",
+              "%config.translationHintsDisplayMode.inline%"
+            ],
+            "description": "%config.translationHintsDisplayMode.desc%"
+          },
+          "i18n-mage.translationHints.maxLength": {
+            "order": 7,
             "type": "integer",
             "default": 40,
             "description": "%config.translateHintsMaxLength.desc%"
