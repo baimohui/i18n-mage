@@ -25,7 +25,8 @@ export function registerRetranslateEntryCommand(context: vscode.ExtensionContext
     if (key === undefined) {
       key = await vscode.window.showQuickPick(Object.keys(dictionary), {
         canPickMany: false,
-        placeHolder: t("command.retranslateEntry.selectEntryToRetranslate")
+        placeHolder: t("command.retranslateEntry.selectEntryToRetranslate"),
+        ignoreFocusOut: true
       });
       if (key === undefined) return;
     }
@@ -39,7 +40,8 @@ export function registerRetranslateEntryCommand(context: vscode.ExtensionContext
       }
       targetLang = await vscode.window.showQuickPick(availableLangs, {
         canPickMany: false,
-        placeHolder: t("command.retranslateEntry.selectTargetLanguage")
+        placeHolder: t("command.retranslateEntry.selectTargetLanguage"),
+        ignoreFocusOut: true
       });
     }
 

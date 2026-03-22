@@ -16,12 +16,14 @@ export function registerEditValueCommand() {
       if (e === undefined) {
         const key = await vscode.window.showQuickPick(Object.keys(dictionary), {
           canPickMany: false,
-          placeHolder: t("command.editValue.selectEntry")
+          placeHolder: t("command.editValue.selectEntry"),
+          ignoreFocusOut: true
         });
         if (key === undefined) return;
         const lang = await vscode.window.showQuickPick(mage.langDetail.langList, {
           canPickMany: false,
-          placeHolder: t("command.editValue.selectLang")
+          placeHolder: t("command.editValue.selectLang"),
+          ignoreFocusOut: true
         });
         if (lang === undefined) return;
         const value = dictionary?.[key]?.value?.[lang] ?? "";
@@ -39,7 +41,8 @@ export function registerEditValueCommand() {
       const { name, value, lang } = target;
       const newValue = await vscode.window.showInputBox({
         prompt: t("command.editValue.prompt", name, lang),
-        value: formatEscapeChar(value)
+        value: formatEscapeChar(value),
+        ignoreFocusOut: true
       });
       if (typeof newValue === "string" && newValue !== value && newValue.trim() !== "") {
         mage.setOptions({ task: "modify", modifyQuery: { type: "editValue", data: [{ ...target, value: unFormatEscapeChar(newValue) }] } });

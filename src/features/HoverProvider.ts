@@ -63,7 +63,7 @@ export class HoverProvider implements vscode.HoverProvider {
           for (const lang of sortedLangList) {
             const value = entryInfo[lang] ?? "";
             const args = encodeURIComponent(JSON.stringify({ name: entryName, key, data: [key], meta: { lang }, description: value }));
-            const rewriteArgs = encodeURIComponent(JSON.stringify({ name: entryName, key, value: value, meta: { lang } }));
+            const rewriteActionArgs = encodeURIComponent(JSON.stringify({ name: entryName, key, description: value, meta: { lang } }));
 
             const isReferenceLang = lang === referredLang;
             const langLabel = isReferenceLang
@@ -72,7 +72,7 @@ export class HoverProvider implements vscode.HoverProvider {
             const goToDefBtn = `[📍](command:i18nMage.goToDefinition?${args})`;
             const copyBtn = value ? `[📋](command:i18nMage.copyValue?${args})` : "";
             const editBtn = isReadonly ? "" : `[✏️](command:i18nMage.editValue?${args})`;
-            const rewriteBtn = isReadonly ? "" : `[🔄](command:i18nMage.rewriteEntry?${rewriteArgs})`;
+            const rewriteBtn = isReadonly ? "" : `[🔄](command:i18nMage.rewriteAction?${rewriteActionArgs})`;
             const translateBtn =
               !isReadonly && !value && entryInfo[publicCtx.referredLang] ? `[🌐](command:i18nMage.fillMissingTranslations?${args})` : "";
 

@@ -22,7 +22,8 @@ export function registerRewriteEntryCommand(context: vscode.ExtensionContext) {
       if (e === undefined) {
         const key = await vscode.window.showQuickPick(Object.keys(dictionary), {
           canPickMany: false,
-          placeHolder: t("command.rewriteEntry.selectEntryToRewrite")
+          placeHolder: t("command.rewriteEntry.selectEntryToRewrite"),
+          ignoreFocusOut: true
         });
         if (key === undefined) return;
         const langList = mage.detectedLangList.filter(l => !publicCtx.ignoredLangs.includes(l));
@@ -31,7 +32,10 @@ export function registerRewriteEntryCommand(context: vscode.ExtensionContext) {
           langList.splice(referredLangIndex, 1);
           langList.unshift(referredLang);
         }
-        const lang = await vscode.window.showQuickPick(langList, { placeHolder: t("command.rename.selectSourceLanguageToRewrite") });
+        const lang = await vscode.window.showQuickPick(langList, {
+          placeHolder: t("command.rename.selectSourceLanguageToRewrite"),
+          ignoreFocusOut: true
+        });
         if (lang === undefined) return;
         const value = dictionary?.[key]?.value?.[lang] ?? "";
         target = { name: unescapeString(key), key, value, lang };
@@ -49,7 +53,8 @@ export function registerRewriteEntryCommand(context: vscode.ExtensionContext) {
       const { name, value } = target;
       const newValue = await vscode.window.showInputBox({
         prompt: t("command.rewriteEntry.rewriteValueOf0In1AndSyncToAllLanguages", name, target.lang),
-        value: formatEscapeChar(value)
+        value: formatEscapeChar(value),
+        ignoreFocusOut: true
       });
       if (typeof newValue === "string" && newValue.trim() !== "") {
         await wrapWithProgress(
