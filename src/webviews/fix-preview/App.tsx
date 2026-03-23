@@ -46,7 +46,7 @@ function getKindLabel(t: (key: string, ...args: unknown[]) => string, kind: Chan
     case "fill-missing":
       return t("preview.kindFillMissing");
     default:
-      return t("preview.kindImportEdit");
+      return t("preview.termValueUpdate");
   }
 }
 
@@ -277,7 +277,7 @@ function AppInner() {
               <option value="new-key-and-patch">{t("preview.kindNewAndPatch")}</option>
               <option value="patch-existing-key">{t("preview.kindPatchOnly")}</option>
               <option value="fill-missing">{t("preview.kindFillMissing")}</option>
-              <option value="import-edit">{t("preview.kindImportEdit")}</option>
+              <option value="import-edit">{t("preview.termValueUpdate")}</option>
             </select>
             <div className="quick-filter-group" aria-label={t("preview.quickFilters")}>
               <button
