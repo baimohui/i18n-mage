@@ -31,6 +31,7 @@ type DiffRecord = {
 type CommitPick = vscode.QuickPickItem & { hash: string };
 type RepoMeta = {
   projectName: string;
+  repoUrl: string;
   branchName: string;
   headShort: string;
   headHash: string;
@@ -211,6 +212,7 @@ async function buildWorkbook(records: DiffRecord[], langs: string[], commit: Com
   const readmeData: Array<[string, string]> = [
     [t("command.exportDiff.readme.title"), t("command.exportDiff.readme.description")],
     [t("command.exportDiff.readme.project"), repoMeta.projectName],
+    [t("command.exportDiff.readme.repo"), repoMeta.repoUrl],
     [t("command.exportDiff.readme.branch"), repoMeta.branchName],
     [
       t("command.exportDiff.readme.oldNode"),
@@ -355,14 +357,16 @@ function normalizeGitPath(filePath: string): string {
 function getRepoMeta(projectPath: string): RepoMeta {
   const projectName = getProjectName(projectPath);
   try {
+    const repoUrl = runGit(["-C", projectPath, "remote", "get-url", "origin"]).trim() || "-";
     const branchName = runGit(["-C", projectPath, "rev-parse", "--abbrev-ref", "HEAD"]).trim() || "-";
     const headRaw = runGit(["-C", projectPath, "log", "-1", "--date=short", "--pretty=format:%H%x09%h%x09%cs%x09%s"]).trim();
     const [headHash = "-", headShort = "-", headDate = "-", headSubject = "-"] = headRaw.split("\t");
     const dirty = runGit(["-C", projectPath, "status", "--porcelain"]).trim().length > 0;
-    return { projectName, branchName, headShort, headHash, headDate, headSubject, dirty };
+    return { projectName, repoUrl, branchName, headShort, headHash, headDate, headSubject, dirty };
   } catch {
     return {
       projectName,
+      repoUrl: "-",
       branchName: "-",
       headShort: "-",
       headHash: "-",

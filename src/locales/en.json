@@ -53,6 +53,7 @@
   "command.exportDiff.readme.newNode": "New version node",
   "command.exportDiff.readme.oldNode": "Old version node",
   "command.exportDiff.readme.project": "Project",
+  "command.exportDiff.readme.repo": "Repository",
   "command.exportDiff.readme.rule1": "ADD",
   "command.exportDiff.readme.rule1Desc": "New key in current version. Translation is usually required.",
   "command.exportDiff.readme.rule2": "MODIFY",

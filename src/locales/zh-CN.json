@@ -53,6 +53,7 @@
   "command.exportDiff.readme.newNode": "新版本节点",
   "command.exportDiff.readme.oldNode": "旧版本节点",
   "command.exportDiff.readme.project": "项目",
+  "command.exportDiff.readme.repo": "仓库地址",
   "command.exportDiff.readme.rule1": "ADD",
   "command.exportDiff.readme.rule1Desc": "当前版本新增了该 key，通常需要翻译团队处理。",
   "command.exportDiff.readme.rule2": "MODIFY",
