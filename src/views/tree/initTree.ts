@@ -16,6 +16,7 @@ import {
 import { t } from "@/utils/i18n";
 import { NotificationManager } from "@/utils/notification";
 import { getCacheConfig, getConfig, setCacheConfig, setConfig } from "@/utils/config";
+import { getIgnoredPathsFromConfig } from "@/utils/ignorePaths";
 
 interface InitTreeParams {
   mage: LangMage;
@@ -158,6 +159,15 @@ export async function initTreeWithDeps(params: InitTreeParams): Promise<boolean>
       }
       if (getConfig<string>("workspace.languagePath", "") !== langPath) {
         pendingUpdates.push({ key: "workspace.languagePath", value: langPath });
+      }
+      const currentIgnoredPaths = getConfig<string[]>("workspace.ignoredPaths", []) ?? [];
+      const mergedIgnoredPaths = getIgnoredPathsFromConfig();
+      const ignoredPathsChanged =
+        currentIgnoredPaths.length !== mergedIgnoredPaths.length ||
+        mergedIgnoredPaths.some((item, index) => item !== currentIgnoredPaths[index]);
+      if (ignoredPathsChanged) {
+        pendingUpdates.push({ key: "workspace.ignoredPaths", value: mergedIgnoredPaths });
+        setCacheConfig("workspace.ignoredPaths", mergedIgnoredPaths);
       }
       if (getConfig<string>("general.displayLanguage", "") === "") {
         pendingUpdates.push({ key: "general.displayLanguage", value: vscodeLang, targetScope: "global" });

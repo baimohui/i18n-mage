@@ -5,6 +5,7 @@ import { getCacheConfig } from "./config";
 import path from "path";
 import { TEntry } from "@/types";
 import { isPathInsideDirectory, isSamePath, toAbsolutePath } from "./fs";
+import { getIgnoredPathsFromCache } from "./ignorePaths";
 
 export type DefinedEntryInEditor = TEntry & { visible: boolean; funcCall: boolean; dynamic: boolean };
 export type UndefinedEntryInEditor = TEntry & { visible: boolean };
@@ -23,11 +24,10 @@ export class ActiveEditorState {
     const normalizedExtractExts = new Set(extractExts.map(ext => ext.trim().toLowerCase()).filter(Boolean));
     if (!normalizedExtractExts.has(fileExt)) return false;
 
-    const ignoredFiles = getCacheConfig<string[]>("workspace.ignoredFiles", []) ?? [];
-    if (ignoredFiles.some(item => isSamePath(normalizedFilePath, item))) return false;
-
-    const ignoredDirectories = getCacheConfig<string[]>("workspace.ignoredDirectories", []) ?? [];
-    if (ignoredDirectories.some(item => isPathInsideDirectory(item, normalizedFilePath))) return false;
+    const ignoredPaths = getIgnoredPathsFromCache();
+    if (ignoredPaths.some(item => isSamePath(normalizedFilePath, item) || isPathInsideDirectory(item, normalizedFilePath))) {
+      return false;
+    }
 
     const extractScopeBlacklist = getCacheConfig<string[]>("workspace.extractScopeBlacklist", []) ?? [];
     if (extractScopeBlacklist.length > 0) {

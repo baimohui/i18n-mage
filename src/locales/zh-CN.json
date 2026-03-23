@@ -363,7 +363,7 @@
   "preview.itemsSelected": "已选中 {0} 项",
   "preview.kindFillMissing": "键值补充",
   "preview.kindImportEdit": "文案修改",
-  "preview.kindNewAndPatch": "词条新增及键名修正",
+  "preview.kindNewAndPatch": "词条新增及其键名修正",
   "preview.kindPatchOnly": "仅键名修正",
   "preview.localeScope": "应用语言范围",
   "preview.metaPatches": "{0} 项键名修正",

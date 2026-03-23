@@ -4,8 +4,9 @@ import { treeInstance } from "@/views/tree";
 import { wrapWithProgress } from "@/utils/wrapWithProgress";
 import { registerDisposable } from "@/utils/dispose";
 import { t } from "@/utils/i18n";
-import { getConfig, setConfig } from "@/utils/config";
+import { setConfig } from "@/utils/config";
 import { toRelativePath } from "@/utils/fs";
+import { getIgnoredPathsFromConfig } from "@/utils/ignorePaths";
 
 export function registerIgnoreDirectoryCommand() {
   const mage = LangMage.getInstance();
@@ -21,11 +22,11 @@ export function registerIgnoreDirectoryCommand() {
       uri = folders[0];
     }
     await wrapWithProgress({ title: t("command.ignoreFile.progress") }, async () => {
-      const ignoredDirectories = getConfig<string[]>("workspace.ignoredDirectories", []);
+      const ignoredPaths = getIgnoredPathsFromConfig();
       const dirPath = toRelativePath(uri.fsPath);
-      if (dirPath !== undefined && !ignoredDirectories.includes(dirPath)) {
-        ignoredDirectories.push(dirPath);
-        await setConfig("workspace.ignoredDirectories", [...new Set(ignoredDirectories)]);
+      if (dirPath !== undefined && !ignoredPaths.includes(dirPath)) {
+        ignoredPaths.push(dirPath);
+        await setConfig("workspace.ignoredPaths", [...new Set(ignoredPaths)]);
         mage.setOptions({ task: "check" });
         await mage.execute();
         treeInstance.refresh();

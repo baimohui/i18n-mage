@@ -21,10 +21,10 @@ import {
 import { isPathInsideDirectory, isSamePath, toRelativePath } from "../fs";
 import { getCacheConfig } from "../config";
 import { NotificationManager } from "../notification";
+import { getIgnoredPathsFromCache } from "../ignorePaths";
 
 export function isValidI18nCallablePath(inputPath: string, isDirectoryHint?: boolean): boolean {
-  const ignoredFiles = getCacheConfig<string[]>("workspace.ignoredFiles");
-  const ignoredDirectories = getCacheConfig<string[]>("workspace.ignoredDirectories");
+  const ignoredPaths = getIgnoredPathsFromCache();
   const languagePath = getCacheConfig<string>("workspace.languagePath");
   const fileExtensions = getCacheConfig<string[]>("analysis.fileExtensions");
   const normalizedPath = path.normalize(inputPath);
@@ -39,10 +39,8 @@ export function isValidI18nCallablePath(inputPath: string, isDirectoryHint?: boo
     }
   }
   // 检查是否被忽略
-  if (
-    ignoredFiles.some(ignoredFile => isSamePath(normalizedPath, ignoredFile)) ||
-    [...ignoredDirectories, languagePath].some(ignoredDir => isPathInsideDirectory(ignoredDir, normalizedPath))
-  ) {
+  const blockedPaths = languagePath ? [...ignoredPaths, languagePath] : ignoredPaths;
+  if (blockedPaths.some(ignoredPath => isSamePath(normalizedPath, ignoredPath) || isPathInsideDirectory(ignoredPath, normalizedPath))) {
     return false;
   }
   const dirParts = toRelativePath(normalizedPath).split("/");

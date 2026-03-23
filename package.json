@@ -1208,11 +1208,22 @@
             },
             "scope": "resource"
           },
+          "i18n-mage.workspace.ignoredPaths": {
+            "order": 14,
+            "type": "array",
+            "default": [],
+            "description": "%config.ignoredPaths.desc%",
+            "items": {
+              "type": "string"
+            },
+            "scope": "resource"
+          },
           "i18n-mage.workspace.ignoredFiles": {
             "order": 15,
             "type": "array",
             "default": [],
             "description": "%config.ignoredFiles.desc%",
+            "deprecationMessage": "%config.ignoredFiles.deprecated%",
             "items": {
               "type": "string"
             },
@@ -1223,6 +1234,7 @@
             "type": "array",
             "default": [],
             "description": "%config.ignoredDirectories.desc%",
+            "deprecationMessage": "%config.ignoredDirectories.deprecated%",
             "items": {
               "type": "string"
             },
