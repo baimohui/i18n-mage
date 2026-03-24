@@ -38,6 +38,8 @@ export function registerPasteEntriesCommand(context: vscode.ExtensionContext) {
       });
       const data: EditValueQuery["data"] = [];
       const updatePayloads: I18nUpdatePayload[] = [];
+      let resolvedValueCount = 0;
+      let skippedSameValueCount = 0;
       if (entries.length > 0) {
         let missingEntryFile: string | undefined = undefined;
         if (avgFileNestedLevel && publicCtx.fileStructure) {
@@ -92,6 +94,14 @@ export function registerPasteEntriesCommand(context: vscode.ExtensionContext) {
           for (const [lang, value] of Object.entries(translation)) {
             const targetLang = resolveLang(lang);
             if (targetLang) {
+              resolvedValueCount += 1;
+              if (Object.hasOwn(dictionary, key)) {
+                const existedValue = mage.langDetail.countryMap[targetLang]?.[key];
+                if (existedValue === value) {
+                  skippedSameValueCount += 1;
+                  continue;
+                }
+              }
               data.push({ key, value, lang: targetLang });
             }
           }
@@ -121,9 +131,7 @@ export function registerPasteEntriesCommand(context: vscode.ExtensionContext) {
               await mage.execute({ task: "check" });
               treeInstance.refresh();
               setTimeout(() => {
-                NotificationManager.showSuccess(
-                  t("command.pasteEntries.success", skipExistedKeys ? entries.length - existedKeys.length : entries.length)
-                );
+                NotificationManager.showSuccess(t("command.pasteEntries.success", updatePayloads.length));
               }, 1000);
             });
           };
@@ -153,7 +161,11 @@ export function registerPasteEntriesCommand(context: vscode.ExtensionContext) {
           return;
         }
       }
-      NotificationManager.showWarning(t("command.pasteEntries.empty"));
+      if (resolvedValueCount > 0 && skippedSameValueCount === resolvedValueCount) {
+        NotificationManager.showWarning(t("command.pasteEntries.noChange"));
+      } else {
+        NotificationManager.showWarning(t("command.pasteEntries.empty"));
+      }
     } catch (error) {
       console.error(error);
       NotificationManager.showWarning(t("command.pasteEntries.error", targetText));

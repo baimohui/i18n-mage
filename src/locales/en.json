@@ -159,6 +159,7 @@
   "command.pasteEntries.confirm.overwrite": "Overwrite",
   "command.pasteEntries.confirm.skip": "Skip",
   "command.pasteEntries.empty": "No entries pasted",
+  "command.pasteEntries.noChange": "Pasted entries match existing data. No changes applied.",
   "command.pasteEntries.error": "Failed to extract entry data from text ({0})",
   "command.pasteEntries.success": "Successfully pasted {0} entries",
   "command.pick.selectDisplayLang": "Select display language",
