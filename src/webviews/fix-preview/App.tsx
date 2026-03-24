@@ -472,8 +472,8 @@ function AppInner() {
                                       return (
                                         <>
                                           <span>{diff.prefix}</span>
-                                          <span className="diff-removed">{diff.removed}</span>
-                                          <span className="diff-added">{diff.added}</span>
+                                          {diff.removed && <span className="diff-removed">{diff.removed}</span>}
+                                          {diff.added && <span className="diff-added">{diff.added}</span>}
                                           <span>{diff.suffix}</span>
                                         </>
                                       );
@@ -517,8 +517,8 @@ function AppInner() {
                                   return (
                                     <>
                                       <span>{diff.prefix}</span>
-                                      <span className="diff-removed">{diff.removed}</span>
-                                      <span className="diff-added">{diff.added}</span>
+                                      {diff.removed && <span className="diff-removed">{diff.removed}</span>}
+                                      {diff.added && <span className="diff-added">{diff.added}</span>}
                                       <span>{diff.suffix}</span>
                                     </>
                                   );
