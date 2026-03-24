@@ -6,7 +6,7 @@ import { wrapWithProgress } from "@/utils/wrapWithProgress";
 import { registerDisposable } from "@/utils/dispose";
 import { t } from "@/utils/i18n";
 import { NotificationManager } from "@/utils/notification";
-import { getConfig } from "@/utils/config";
+import { PREVIEW_CHANGE_SCOPE, shouldPreviewChange } from "@/utils/preview";
 
 export function registerImportCommand(context: vscode.ExtensionContext) {
   const mage = LangMage.getInstance();
@@ -33,7 +33,7 @@ export function registerImportCommand(context: vscode.ExtensionContext) {
     const fileUri = await vscode.window.showOpenDialog(options);
     if (Array.isArray(fileUri) && fileUri.length > 0) {
       await wrapWithProgress({ title: t("command.import.progress") }, async () => {
-        const previewChanges = getConfig<boolean>("general.previewChanges", true);
+        const previewChanges = shouldPreviewChange(PREVIEW_CHANGE_SCOPE.excelImport);
         const filePath = fileUri[0].fsPath;
 
         const modeOptions = [

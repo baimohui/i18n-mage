@@ -6,7 +6,7 @@ import { wrapWithProgress } from "@/utils/wrapWithProgress";
 import { registerDisposable } from "@/utils/dispose";
 import { t } from "@/utils/i18n";
 import { NotificationManager } from "@/utils/notification";
-import { getConfig } from "@/utils/config";
+import { PREVIEW_CHANGE_SCOPE, shouldPreviewChange } from "@/utils/preview";
 import { Cell, ExcelData, I18nUpdatePayload } from "@/types";
 import { getLangIntro, getLangText } from "@/utils/langKey";
 import { loadNodeXlsx } from "@/utils/lazyDeps";
@@ -45,7 +45,7 @@ export function registerImportDiffCommand(context: vscode.ExtensionContext) {
     }
 
     await wrapWithProgress({ title: t("command.importDiff.progress") }, async () => {
-      const previewChanges = getConfig<boolean>("general.previewChanges", true);
+      const previewChanges = shouldPreviewChange(PREVIEW_CHANGE_SCOPE.excelImport);
       const xlsx = await loadNodeXlsx();
       const excelData = xlsx.parse(fileUri[0].fsPath) as ExcelData;
       const parsed = parseDiffWorkbook(excelData, mage.langDetail.dictionary, mage.detectedLangList);

@@ -56,10 +56,44 @@
             "description": "%config.enable.desc%"
           },
           "i18n-mage.general.previewChanges": {
-            "order": 4,
+            "order": 3,
             "type": "boolean",
             "default": true,
-            "description": "%config.previewChanges.desc%"
+            "description": "%config.previewChanges.desc%",
+            "deprecationMessage": "%config.previewChanges.deprecated%"
+          },
+          "i18n-mage.general.previewChangeScopes": {
+            "order": 4,
+            "type": "array",
+            "default": [
+              "fix",
+              "rewrite",
+              "retranslate",
+              "excel-import",
+              "paste-entries",
+              "hardcoded-extract"
+            ],
+            "description": "%config.previewChangeScopes.desc%",
+            "items": {
+              "type": "string",
+              "enum": [
+                "fix",
+                "rewrite",
+                "retranslate",
+                "excel-import",
+                "paste-entries",
+                "hardcoded-extract"
+              ],
+              "enumDescriptions": [
+                "%config.previewChangeScopes.fix%",
+                "%config.previewChangeScopes.rewrite%",
+                "%config.previewChangeScopes.retranslate%",
+                "%config.previewChangeScopes.excelImport%",
+                "%config.previewChangeScopes.pasteEntries%",
+                "%config.previewChangeScopes.hardcodedExtract%"
+              ]
+            },
+            "uniqueItems": true
           },
           "i18n-mage.general.enableDiagnostics": {
             "order": 6,

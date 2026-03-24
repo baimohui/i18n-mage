@@ -11,6 +11,7 @@ import { registerDisposable } from "@/utils/dispose";
 import { wrapWithProgress } from "@/utils/wrapWithProgress";
 import { t } from "@/utils/i18n";
 import { NotificationManager } from "@/utils/notification";
+import { PREVIEW_CHANGE_SCOPE, shouldPreviewChange } from "@/utils/preview";
 import { scanHardcodedTextCandidates } from "@/core/extract/astExtractService";
 import {
   genKeyFromText,
@@ -627,7 +628,7 @@ export function registerExtractHardcodedTextsCommand(context: vscode.ExtensionCo
       }
 
       const updatePayloads = Array.from(updatePayloadMap.values());
-      const previewChanges = getConfig<boolean>("general.previewChanges", true);
+      const previewChanges = shouldPreviewChange(PREVIEW_CHANGE_SCOPE.hardcodedExtract);
       const applyExtractionChanges = async () => {
         await mage.execute({ task: "check" });
         mage.setPendingChanges(updatePayloads, {});

@@ -8,6 +8,7 @@ import { t } from "@/utils/i18n";
 import { NotificationManager } from "@/utils/notification";
 import { getConfig, setConfig } from "@/utils/config";
 import { genIdFromText, getCommonFilePaths, getParentKeys, isEnglishVariable, validateLang } from "@/utils/regex";
+import { PREVIEW_CHANGE_SCOPE, shouldPreviewChange } from "@/utils/preview";
 import {
   EXECUTION_RESULT_CODE,
   FixExecutionResult,
@@ -442,7 +443,7 @@ export function registerFixCommand(context: vscode.ExtensionContext) {
       }
       treeInstance.isSyncing = tasks[0].fixQuery?.fillScope || true;
       treeInstance.refresh();
-      const previewChanges = getConfig<boolean>("general.previewChanges", true);
+      const previewChanges = shouldPreviewChange(PREVIEW_CHANGE_SCOPE.fix);
       const resList: FixExecutionResult[] = [];
       tasks = tasks.filter(task => {
         const q = task.fixQuery;

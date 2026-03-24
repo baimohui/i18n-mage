@@ -5,7 +5,7 @@ import previewFixContent from "@/views/fixWebview";
 import { registerDisposable } from "@/utils/dispose";
 import { t } from "@/utils/i18n";
 import { NotificationManager } from "@/utils/notification";
-import { getConfig } from "@/utils/config";
+import { PREVIEW_CHANGE_SCOPE, shouldPreviewChange } from "@/utils/preview";
 import { formatEscapeChar, unescapeString, unFormatEscapeChar } from "@/utils/regex";
 import { wrapWithProgress } from "@/utils/wrapWithProgress";
 import { EXECUTION_RESULT_CODE } from "@/types";
@@ -90,7 +90,7 @@ export function registerRewriteEntryCommand(context: vscode.ExtensionContext) {
               });
             };
 
-            if (getConfig<boolean>("general.previewChanges", true)) {
+            if (shouldPreviewChange(PREVIEW_CHANGE_SCOPE.rewrite)) {
               const publicCtx = mage.getPublicContext();
               previewFixContent(
                 context,

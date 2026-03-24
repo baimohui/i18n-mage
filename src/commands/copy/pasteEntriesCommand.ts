@@ -7,9 +7,10 @@ import { EditValueQuery, I18nUpdatePayload, LANGUAGE_STRUCTURE, NAMESPACE_STRATE
 import { treeInstance } from "@/views/tree";
 import { getLangCode } from "@/utils/langKey";
 import { wrapWithProgress } from "@/utils/wrapWithProgress";
-import { getCacheConfig, getConfig } from "@/utils/config";
+import { getCacheConfig } from "@/utils/config";
 import { getCommonFilePaths, getFileLocationFromId } from "@/utils/regex";
 import previewFixContent from "@/views/fixWebview";
+import { PREVIEW_CHANGE_SCOPE, shouldPreviewChange } from "@/utils/preview";
 
 export function registerPasteEntriesCommand(context: vscode.ExtensionContext) {
   const mage = LangMage.getInstance();
@@ -127,7 +128,7 @@ export function registerPasteEntriesCommand(context: vscode.ExtensionContext) {
             });
           };
 
-          const previewChanges = getConfig<boolean>("general.previewChanges", true);
+          const previewChanges = shouldPreviewChange(PREVIEW_CHANGE_SCOPE.pasteEntries);
           if (previewChanges) {
             const publicCtx = mage.getPublicContext();
             const { countryMap } = mage.langDetail;
