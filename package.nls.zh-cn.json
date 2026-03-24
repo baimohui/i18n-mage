@@ -203,6 +203,7 @@
   "command.import.title": "导入全量翻译",
   "command.importDiff.title": "导入版本差异",
   "command.ignoreFile.title": "忽略文件",
+  "command.ignorePath.title": "忽略路径",
   "command.copyName.title": "复制词条名",
   "command.copyValue.title": "复制词条值",
   "command.copyEntries.title": "复制词条",

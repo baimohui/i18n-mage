@@ -113,6 +113,8 @@
   "command.ignoreDirectory.title": "Select folders to ignore",
   "command.ignoreFile.openLabel": "Select files to ignore",
   "command.ignoreFile.progress": "Refreshing",
+  "command.ignorePath.openLabel": "Select files or folders to ignore",
+  "command.ignorePath.progress": "Refreshing",
   "command.ignoreLang.noIgnoredLang": "No ignored languages",
   "command.import.dialogTitle": "Select Excel file",
   "command.import.langDetected": "Detected valid language columns: {0}",

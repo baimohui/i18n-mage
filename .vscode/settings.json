@@ -20,10 +20,6 @@
   "i18n-mage.writeRules.sortAfterFix": true,
   "i18n-mage.general.displayLanguage": "zh-CN",
   "i18n-mage.workspace.languagePath": "src/locales",
-  "i18n-mage.workspace.ignoredDirectories": [
-    "test",
-    "dist"
-  ],
   "i18n-mage.analysis.fileExtensions": [
     ".ts",
     ".tsx"
@@ -49,5 +45,9 @@
     "[[[SEP]]]",
     "sync~spin"
   ],
-  "i18n-mage.writeRules.keyStyle": "camelCase"
+  "i18n-mage.writeRules.keyStyle": "camelCase",
+  "i18n-mage.workspace.ignoredPaths": [
+    "test",
+    "dist"
+  ]
 }

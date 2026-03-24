@@ -113,6 +113,8 @@
   "command.ignoreDirectory.title": "选择需要忽略的文件夹",
   "command.ignoreFile.openLabel": "选择需要忽略的文件",
   "command.ignoreFile.progress": "刷新中",
+  "command.ignorePath.openLabel": "选择需要忽略的文件或文件夹",
+  "command.ignorePath.progress": "刷新中",
   "command.ignoreLang.noIgnoredLang": "当前没有可忽略的语言",
   "command.import.dialogTitle": "选择 Excel 文件",
   "command.import.langDetected": "检测到表格内有效的语言列为：{0}",

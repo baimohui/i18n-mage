@@ -40,7 +40,7 @@ type RepoMeta = {
   dirty: boolean;
 };
 
-const MAX_COMMIT_OPTIONS = 80;
+const MAX_COMMIT_OPTIONS = 100;
 
 export function registerExportDiffCommand() {
   const mage = LangMage.getInstance();
