@@ -18,7 +18,14 @@ interface VirtualUnitMeta {
   height: number;
 }
 
-const KIND_ORDER: ChangeKind[] = ["new-entry", "new-key-and-patch", "patch-existing-key", "fill-missing", "import-edit"];
+const KIND_ORDER: ChangeKind[] = ["new-entry", "patch-existing-key", "fill-missing", "import-edit"];
+const KIND_ALIAS_ORDER: Record<ChangeKind, ChangeKind> = {
+  "new-entry": "new-entry",
+  "new-key-and-patch": "new-entry",
+  "patch-existing-key": "patch-existing-key",
+  "fill-missing": "fill-missing",
+  "import-edit": "import-edit"
+};
 
 function buildDiff(before: string, after: string) {
   let start = 0;
@@ -37,18 +44,21 @@ function buildDiff(before: string, after: string) {
   };
 }
 
-function getKindLabel(t: (key: string, ...args: unknown[]) => string, kind: ChangeKind) {
+function getKindLabels(t: (key: string, ...args: unknown[]) => string, kind: ChangeKind) {
   switch (kind) {
     case "new-entry":
-      return t("preview.kindNewEntry");
+      return [{ key: "new-entry", label: t("preview.kindNewEntry") }];
     case "new-key-and-patch":
-      return t("preview.kindNewAndPatch");
+      return [
+        { key: "new-entry", label: t("preview.kindNewEntry") },
+        { key: "patch-existing-key", label: t("preview.termIdPatch") }
+      ];
     case "patch-existing-key":
-      return t("preview.kindPatchOnly");
+      return [{ key: "patch-existing-key", label: t("preview.termIdPatch") }];
     case "fill-missing":
-      return t("preview.kindFillMissing");
+      return [{ key: "fill-missing", label: t("preview.kindFillMissing") }];
     default:
-      return t("preview.termValueUpdate");
+      return [{ key: "import-edit", label: t("preview.termValueUpdate") }];
   }
 }
 
@@ -100,7 +110,16 @@ function AppInner() {
   const { units, selectedCount, changedLocales } = ctx;
 
   const filteredUnits = useMemo(() => {
-    const byType = kindFilter === "all" ? units : units.filter(unit => unit.kind === kindFilter);
+    const byType =
+      kindFilter === "all"
+        ? units
+        : units.filter(unit => {
+            if (unit.kind === kindFilter) return true;
+            if (unit.kind === "new-key-and-patch") {
+              return kindFilter === "new-entry" || kindFilter === "patch-existing-key";
+            }
+            return false;
+          });
     return byType
       .filter(unit => {
         if (quickFilters.selectedOnly && !unit.selected) return false;
@@ -116,8 +135,8 @@ function AppInner() {
         return true;
       })
       .sort((a, b) => {
-        const aIdx = KIND_ORDER.indexOf(a.kind);
-        const bIdx = KIND_ORDER.indexOf(b.kind);
+        const aIdx = KIND_ORDER.indexOf(KIND_ALIAS_ORDER[a.kind]);
+        const bIdx = KIND_ORDER.indexOf(KIND_ALIAS_ORDER[b.kind]);
         if (aIdx !== bIdx) return aIdx - bIdx;
         return a.key.localeCompare(b.key);
       });
@@ -277,8 +296,7 @@ function AppInner() {
             >
               <option value="all">{t("preview.filterAll")}</option>
               <option value="new-entry">{t("preview.kindNewEntry")}</option>
-              <option value="new-key-and-patch">{t("preview.kindNewAndPatch")}</option>
-              <option value="patch-existing-key">{t("preview.kindPatchOnly")}</option>
+              <option value="patch-existing-key">{t("preview.termIdPatch")}</option>
               <option value="fill-missing">{t("preview.kindFillMissing")}</option>
               <option value="import-edit">{t("preview.termValueUpdate")}</option>
             </select>
@@ -396,7 +414,11 @@ function AppInner() {
                       disabled={!meta.keyValid}
                       onChange={e => ctx.setUnitSelected(unit.id, (e.target as HTMLInputElement).checked)}
                     />
-                    <span className={`kind-tag kind-${unit.kind}`}>{getKindLabel(t, unit.kind)}</span>
+                    {getKindLabels(t, unit.kind).map(kindMeta => (
+                      <span key={`${unit.id}:${kindMeta.key}`} className={`kind-tag kind-${kindMeta.key}`}>
+                        {kindMeta.label}
+                      </span>
+                    ))}
                     {unit.keyEditable ? (
                       <input
                         className={`key-input${meta.keyValid ? "" : " invalid"}`}
@@ -421,7 +443,7 @@ function AppInner() {
 
                   {!meta.isCollapsed && visibleValues.length > 0 ? (
                     <div className="entry-block">
-                      <div className="block-title">{t("preview.termValueUpdate")}</div>
+                      <div className="block-title">{t("preview.keyValueChange")}</div>
                       {sharedBaseHint ? <div className="entry-source-hint">{t("preview.sourceValue", sharedBaseHint)}</div> : null}
                       <div className="group">
                         {visibleValues.map(value => {
@@ -475,7 +497,7 @@ function AppInner() {
 
                   {!meta.isCollapsed && unit.patches.length > 0 ? (
                     <div className="entry-block">
-                      <div className="block-title">{t("preview.termIdPatch")}</div>
+                      <div className="block-title">{t("preview.keyNameChange")}</div>
                       <div className="group">
                         {unit.patches.map(patch => (
                           <div key={`${unit.id}:${patch.file}:${patch.index}`} className="item patch-item">
