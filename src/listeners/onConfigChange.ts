@@ -1,6 +1,7 @@
 import * as vscode from "vscode";
 import { registerDisposable } from "@/utils/dispose";
 import { DecoratorController } from "@/features/Decorator";
+import { IgnoredPathDecorationProvider } from "@/features/IgnoredPathDecorationProvider";
 import LangMage from "@/core/LangMage";
 import { clearConfigCache } from "@/utils/config";
 import { treeInstance } from "@/views/tree";
@@ -32,6 +33,8 @@ export function registerOnConfigChange() {
               ].includes(key)
             ) {
               vscode.commands.executeCommand("i18nMage.checkUsage");
+            } else if (["workspace.ignoredPaths", "workspace.ignoredFiles", "workspace.ignoredDirectories"].includes(key)) {
+              IgnoredPathDecorationProvider.getInstance().refresh();
             } else if (
               [
                 "general.displayLanguage",

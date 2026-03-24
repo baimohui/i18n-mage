@@ -22,7 +22,7 @@ import { registerImportDiffCommand } from "./excel/importDiffCommand";
 import { registerGoToDefinitionCommand } from "./inspection/goToDefinitionCommand";
 import { registerGoToReferenceCommand } from "./inspection/goToReferenceCommand";
 import { registerFindReferencesCommand } from "./inspection/findReferencesCommand";
-import { registerIgnorePathCommand } from "./ignore/ignorePathCommand";
+import { registerToggleIgnorePathCommand } from "./ignore/toggleIgnorePathCommand";
 import { registerSetDisplayLangCommand } from "./config/setDisplayLangCommand";
 import { registerIgnoreLangCommand } from "./ignore/ignoreLangCommand";
 import { registerUnignoreLangCommand } from "./ignore/unignoreLangCommand";
@@ -69,7 +69,7 @@ export function registerAllCommands(context: vscode.ExtensionContext) {
   registerGoToDefinitionCommand();
   registerGoToReferenceCommand();
   registerFindReferencesCommand();
-  registerIgnorePathCommand();
+  registerToggleIgnorePathCommand();
   registerSetDisplayLangCommand();
   registerIgnoreLangCommand();
   registerUnignoreLangCommand();

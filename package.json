@@ -1403,13 +1403,9 @@
         "enablement": "!i18nMage.readonly"
       },
       {
-        "command": "i18nMage.ignorePath",
+        "command": "i18nMage.toggleIgnorePath",
         "category": "%extension.name%",
-        "title": "%command.ignorePath.title%",
-        "icon": {
-          "light": "./images/ignore-light.svg",
-          "dark": "./images/ignore-dark.svg"
-        }
+        "title": "%command.toggleIgnorePath.title%"
       },
       {
         "command": "i18nMage.openDocs",
@@ -1836,7 +1832,7 @@
           "group": "inline@1"
         },
         {
-          "command": "i18nMage.ignorePath",
+          "command": "i18nMage.toggleIgnorePath",
           "when": "viewItem == fileItem"
         },
         {
@@ -1966,8 +1962,7 @@
           "group": "navigation@6"
         },
         {
-          "command": "i18nMage.ignorePath",
-          "when": "explorerResourceIsFolder",
+          "command": "i18nMage.toggleIgnorePath",
           "group": "navigation@8"
         }
       ]

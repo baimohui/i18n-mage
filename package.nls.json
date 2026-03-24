@@ -203,7 +203,7 @@
   "command.import.title": "Import Translations",
   "command.importDiff.title": "Import Version Diff",
   "command.ignoreFile.title": "Ignore File",
-  "command.ignorePath.title": "Ignore Path",
+  "command.toggleIgnorePath.title": "Ignore Path (Unignore If Already Ignored)",
   "command.copyName.title": "Copy Entry Key",
   "command.copyValue.title": "Copy Entry Value",
   "command.copyEntries.title": "Copy Entry/Entries",

@@ -16,6 +16,7 @@ import { CodeActionProvider } from "./features/CodeActionProvider";
 import { RenameKeyProvider } from "./features/RenameProvider";
 import { KeyDefinitionProvider } from "./features/DefinitionProvider";
 import { KeyReferenceProvider } from "./features/ReferenceProvider";
+import { IgnoredPathDecorationProvider } from "./features/IgnoredPathDecorationProvider";
 import { showUpdateSummaryIfNeeded } from "./utils/updateSummary";
 
 class ExtensionState {
@@ -85,6 +86,9 @@ class ExtensionState {
     registerDisposable(vscode.languages.registerRenameProvider(selector, new RenameKeyProvider()));
     registerDisposable(vscode.languages.registerDefinitionProvider(selector, new KeyDefinitionProvider()));
     registerDisposable(vscode.languages.registerReferenceProvider(selector, new KeyReferenceProvider()));
+    const ignoredPathDecorationProvider = IgnoredPathDecorationProvider.getInstance();
+    registerDisposable(vscode.window.registerFileDecorationProvider(ignoredPathDecorationProvider));
+    registerDisposable(ignoredPathDecorationProvider);
 
     const statusBarItemManager = StatusBarItemManager.getInstance();
     statusBarItemManager.createStatusBarItem();
