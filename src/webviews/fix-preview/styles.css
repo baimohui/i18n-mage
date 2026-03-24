@@ -418,6 +418,10 @@ button:hover:not(:disabled) {
   background: color-mix(in srgb, var(--vscode-terminal-ansiGreen) 78%, var(--border));
 }
 
+.entry-card.kind-new-entry::before {
+  background: color-mix(in srgb, var(--vscode-terminal-ansiMagenta) 78%, var(--border));
+}
+
 .entry-card.kind-patch-existing-key::before {
   background: color-mix(in srgb, var(--vscode-terminal-ansiBlue) 78%, var(--border));
 }
@@ -449,6 +453,10 @@ button:hover:not(:disabled) {
 
 .kind-tag.kind-new-key-and-patch {
   background: color-mix(in srgb, var(--vscode-terminal-ansiGreen) 22%, transparent);
+}
+
+.kind-tag.kind-new-entry {
+  background: color-mix(in srgb, var(--vscode-terminal-ansiMagenta) 20%, transparent);
 }
 
 .kind-tag.kind-patch-existing-key {

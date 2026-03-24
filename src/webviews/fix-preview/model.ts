@@ -80,6 +80,7 @@ export function replaceDisplayKeyInFixedRaw(fixedRaw: string, displayName: strin
 
 function classifyKind(hasAdd: boolean, hasFill: boolean, hasPatch: boolean) {
   if (hasAdd && hasPatch) return "new-key-and-patch" as const;
+  if (hasAdd && !hasPatch) return "new-entry" as const;
   if (!hasAdd && hasPatch) return "patch-existing-key" as const;
   if (hasFill) return "fill-missing" as const;
   return "import-edit" as const;
@@ -182,6 +183,8 @@ export function buildUnits(data: FixPreviewData) {
   });
 
   return units.sort((a, b) => {
+    if (a.kind === "new-entry" && b.kind !== "new-entry") return -1;
+    if (a.kind !== "new-entry" && b.kind === "new-entry") return 1;
     if (a.kind === "new-key-and-patch" && b.kind !== "new-key-and-patch") return -1;
     if (a.kind !== "new-key-and-patch" && b.kind === "new-key-and-patch") return 1;
     return a.key.localeCompare(b.key);

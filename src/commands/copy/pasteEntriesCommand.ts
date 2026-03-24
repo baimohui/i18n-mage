@@ -3,12 +3,13 @@ import { registerDisposable } from "@/utils/dispose";
 import { t } from "@/utils/i18n";
 import { NotificationManager } from "@/utils/notification";
 import LangMage from "@/core/LangMage";
-import { EditValueQuery, LANGUAGE_STRUCTURE, NAMESPACE_STRATEGY } from "@/types";
+import { EditValueQuery, I18nUpdatePayload, LANGUAGE_STRUCTURE, NAMESPACE_STRATEGY } from "@/types";
 import { treeInstance } from "@/views/tree";
 import { getLangCode } from "@/utils/langKey";
 import { wrapWithProgress } from "@/utils/wrapWithProgress";
-import { getCacheConfig } from "@/utils/config";
+import { getCacheConfig, getConfig } from "@/utils/config";
 import { getCommonFilePaths, getFileLocationFromId } from "@/utils/regex";
+import previewFixContent from "@/views/fixWebview";
 
 export function registerPasteEntriesCommand(context: vscode.ExtensionContext) {
   const mage = LangMage.getInstance();
@@ -35,6 +36,7 @@ export function registerPasteEntriesCommand(context: vscode.ExtensionContext) {
         return [key, translation] as [string, Record<string, string>];
       });
       const data: EditValueQuery["data"] = [];
+      const updatePayloads: I18nUpdatePayload[] = [];
       if (entries.length > 0) {
         let missingEntryFile: string | undefined = undefined;
         if (avgFileNestedLevel && publicCtx.fileStructure) {
@@ -94,16 +96,59 @@ export function registerPasteEntriesCommand(context: vscode.ExtensionContext) {
           }
         });
         if (data.length > 0) {
-          await wrapWithProgress({ title: t("command.rewrite.progress") }, async () => {
-            await mage.execute({ task: "modify", modifyQuery: { type: "editValue", data } });
-            await mage.execute({ task: "check" });
-            treeInstance.refresh();
-            setTimeout(() => {
-              NotificationManager.showSuccess(
-                t("command.pasteEntries.success", skipExistedKeys ? entries.length - existedKeys.length : entries.length)
-              );
-            }, 1000);
+          const payloadMap = new Map<string, I18nUpdatePayload>();
+          data.forEach(item => {
+            if (item.lang == undefined) return;
+            const existed = Object.hasOwn(dictionary, item.key);
+            const payload =
+              payloadMap.get(item.key) ??
+              ({
+                type: existed ? "edit" : "add",
+                key: item.key,
+                valueChanges: {}
+              } as I18nUpdatePayload);
+            const before = mage.langDetail.countryMap[item.lang]?.[item.key] ?? "";
+            payload.valueChanges![item.lang] = existed ? { before, after: item.value } : { after: item.value };
+            payloadMap.set(item.key, payload);
           });
+          updatePayloads.push(...payloadMap.values());
+
+          const applyUpdates = async () => {
+            await wrapWithProgress({ title: t("command.rewrite.progress") }, async () => {
+              mage.setPendingChanges(updatePayloads, {});
+              await mage.execute({ task: "rewrite" });
+              await mage.execute({ task: "check" });
+              treeInstance.refresh();
+              setTimeout(() => {
+                NotificationManager.showSuccess(
+                  t("command.pasteEntries.success", skipExistedKeys ? entries.length - existedKeys.length : entries.length)
+                );
+              }, 1000);
+            });
+          };
+
+          const previewChanges = getConfig<boolean>("general.previewChanges", true);
+          if (previewChanges) {
+            const publicCtx = mage.getPublicContext();
+            const { countryMap } = mage.langDetail;
+            mage.setPendingChanges(updatePayloads, {});
+            previewFixContent(
+              context,
+              updatePayloads,
+              {},
+              countryMap,
+              publicCtx.referredLang,
+              async () => {
+                await applyUpdates();
+              },
+              async () => {
+                await mage.execute({ task: "check" });
+                treeInstance.refresh();
+              }
+            );
+          } else {
+            await applyUpdates();
+          }
           return;
         }
       }

@@ -18,7 +18,7 @@ interface VirtualUnitMeta {
   height: number;
 }
 
-const KIND_ORDER: ChangeKind[] = ["new-key-and-patch", "patch-existing-key", "fill-missing", "import-edit"];
+const KIND_ORDER: ChangeKind[] = ["new-entry", "new-key-and-patch", "patch-existing-key", "fill-missing", "import-edit"];
 
 function buildDiff(before: string, after: string) {
   let start = 0;
@@ -39,6 +39,8 @@ function buildDiff(before: string, after: string) {
 
 function getKindLabel(t: (key: string, ...args: unknown[]) => string, kind: ChangeKind) {
   switch (kind) {
+    case "new-entry":
+      return t("preview.kindNewEntry");
     case "new-key-and-patch":
       return t("preview.kindNewAndPatch");
     case "patch-existing-key":
@@ -274,6 +276,7 @@ function AppInner() {
               onChange={e => setKindFilter((e.target as HTMLSelectElement).value as "all" | ChangeKind)}
             >
               <option value="all">{t("preview.filterAll")}</option>
+              <option value="new-entry">{t("preview.kindNewEntry")}</option>
               <option value="new-key-and-patch">{t("preview.kindNewAndPatch")}</option>
               <option value="patch-existing-key">{t("preview.kindPatchOnly")}</option>
               <option value="fill-missing">{t("preview.kindFillMissing")}</option>

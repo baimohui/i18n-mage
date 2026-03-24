@@ -21,7 +21,7 @@ export interface CheckboxState {
   [key: string]: boolean;
 }
 
-export type ChangeKind = "import-edit" | "fill-missing" | "new-key-and-patch" | "patch-existing-key";
+export type ChangeKind = "new-entry" | "import-edit" | "fill-missing" | "new-key-and-patch" | "patch-existing-key";
 
 export interface UnitValueChange {
   locale: string;
