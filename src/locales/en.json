@@ -159,8 +159,8 @@
   "command.pasteEntries.confirm.overwrite": "Overwrite",
   "command.pasteEntries.confirm.skip": "Skip",
   "command.pasteEntries.empty": "No entries pasted",
-  "command.pasteEntries.noChange": "Pasted entries match existing data. No changes applied.",
   "command.pasteEntries.error": "Failed to extract entry data from text ({0})",
+  "command.pasteEntries.noChange": "Pasted entries match existing data. No changes applied.",
   "command.pasteEntries.success": "Successfully pasted {0} entries",
   "command.pick.selectDisplayLang": "Select display language",
   "command.pick.selectKey": "Select entry to mark as used",
@@ -448,7 +448,6 @@
   "updateSummary.actions.disable": "Don't show again",
   "updateSummary.actions.enable": "Re-enable update notifications",
   "updateSummary.actions.viewChangelog": "View full changelog",
-  "updateSummary.missing": "No summary yet for v{0}. Please add it to the locale file.",
   "updateSummary.title": "i18n Mage updated to v{0}",
-  "updateSummary.version.1_3_3": "[AI Configuration]\n1. Added support for Qwen, Hunyuan, and Kimi services.\n2. Supports configuring custom AI services.\n3. Allows configuration of models for OpenAI and DeepSeek.\n\n[New Features]\n1. Added read-only mode.\n2. Added version update pop-up reminders with an update log entry.\n3. Supports deleting 'redundant' type translation entries in the language synchronization module.\n\n[Improved]\n1. Streamlined the preview interface, unifying source language text to entry-level display.\n2. Improved i18next framework namespace recognition and variable curly brace matching.\n3. When configured hardcoded extraction paths are invalid, only a warning is displayed without interrupting the extraction process.\n4. Optimized the handling logic for flat structure keys when selecting AI key prefixes."
+  "updateSummary.version.1_3_4": "[Added]\n1. Added support for previewing pasted term data.\n2. Added support for retranslating a single non-source language copy for individual terms.\n3. Added support for quickly ignoring/unignoring files or directories via right-click in the file explorer.\n4. Added the `workspace.ignoredPaths` configuration to support specifying ignored file and directory paths simultaneously.\n5. Added the `general.previewChangeScopes` configuration to support selecting operation types for preview.\n\n[Improved]\n1. Optimized label categorization in the preview interface.\n2. Optimized term pasting logic to automatically skip content duplicate with existing data, avoiding redundant writes.\n3. When exporting Excel version difference tables, the optional Git commit count increased to 100, and repository Git address information added to the table.\n\n[Fixed]\n1. Fixed an issue where repair data was not cleared when closing the preview interface without applying changes, causing it to still display upon next entry."
 }

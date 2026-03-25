@@ -159,8 +159,8 @@
   "command.pasteEntries.confirm.overwrite": "覆盖",
   "command.pasteEntries.confirm.skip": "跳过",
   "command.pasteEntries.empty": "未粘贴任何词条",
-  "command.pasteEntries.noChange": "粘贴的词条与已有数据一致，无需处理",
   "command.pasteEntries.error": "无法提取文本（{0}）的词条信息",
+  "command.pasteEntries.noChange": "粘贴的词条与已有数据一致，无需处理",
   "command.pasteEntries.success": "成功粘贴 {0} 个词条",
   "command.pick.selectDisplayLang": "选择显示语言",
   "command.pick.selectKey": "选择要标记为已使用的词条",
@@ -448,7 +448,6 @@
   "updateSummary.actions.disable": "不再弹出",
   "updateSummary.actions.enable": "恢复版本更新提醒",
   "updateSummary.actions.viewChangelog": "查看完整更新日志",
-  "updateSummary.missing": "当前版本（v{0}）尚未填写更新摘要，请在语言文件中补充。",
   "updateSummary.title": "i18n Mage 已更新至 v{0}",
-  "updateSummary.version.1_3_3": "【AI 配置扩展】\n1. 新增千问、混元、Kimi 服务支持。\n2. 支持配置自定义的 AI 服务。\n3. 支持对 OpenAI 与 DeepSeek 配置使用模型。\n\n【功能新增】\n1. 新增只读模式。\n2. 新增版本更新弹窗提醒，并添加更新日志入口。\n3. 支持删除语言同步模块“多余”类型的词条翻译。\n\n【优化】\n1. 精简修复预览界面，将源语言文案统一至词条级展示。\n2. 完善 i18next 框架命名空间识别与变量花括号匹配。\n3. 当配置的硬编码提取路径无效时，仅弹出告警，不再中断提取流程。\n4. 优化 AI 选择 key 前缀时对扁平结构 key 的处理逻辑。\n"
+  "updateSummary.version.1_3_4": "【新增】\n1. 支持对所粘贴的词条数据进行预览。\n2. 支持对单个词条的单个非源语言文案进行重译。\n3. 支持在资源管理器中对文件或目录右键快速忽略/取消忽略。\n4. 新增 `workspace.ignoredPaths` 配置，支持同时指定忽略的文件和目录路径。\n5. 新增 `general.previewChangeScopes` 配置，支持选择需要预览的操作类型。\n\n【优化】\n1. 优化预览界面的标签分类。\n2. 优化词条粘贴逻辑，自动跳过与现有数据重复的内容，避免冗余写入。\n3. 导出 Excel 版本差异表时，可选 Git commit 数量提升至 100 条，并在表中补充仓库 Git 地址信息。\n\n【修复】\n1. 修复未应用更改直接关闭预览界面时，修复数据未被清除导致下次进入时仍显示的问题。\n"
 }

@@ -5,6 +5,23 @@ All notable changes to the i18n Mage VS Code extension will be documented in thi
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.3.4] - 2026-03-25
+
+### Added
+- **Single Language Retranslation**: Added support for independent retranslation of individual non-source language entries, enabling more precise translation adjustments.
+- **Unified Ignore Paths Configuration**: Added `i18n-mage.workspace.ignoredPaths` configuration, supporting both file and directory paths to unify ignore rule management, replacing `ignoredFiles` and `ignoredDirectories`.
+- **Smart Path Ignore Command**: Added `i18nMage.toggleIgnorePath` command, enabling quick ignore/unignore of files or directories via context menu in explorer, with visual decoration and hover hints for ignored paths, replacing `ignoreFile` and `ignoreDirectory` commands.
+- **Refined Preview Scope**: Added `i18n-mage.general.previewChangeScopes` configuration to select which operation types to preview, replacing `previewChanges` configuration.
+- **Entry Paste Preview**: Added paste preview functionality, allowing preview of content before writing entries.
+
+### Improved
+- **Change Preview Interface Optimization**: Enhanced change preview interface with improved category labeling for better information hierarchy and operational clarity.
+- **Smart Paste Deduplication**: Optimized entry paste logic to automatically skip content that already exists in the current data, preventing redundant writes.
+- **Version Diff Export Enhancement**: Increased selectable Git commit count from 80 to 100 for Excel version diff export, and added repository Git URL to the exported table's README section.
+
+### Fixed
+- **Preview Data Persistence Issue**: Fixed issue where repair data persisted without being cleared when closing the change preview interface without applying changes, causing residual data to appear on next entry.
+
 ## [1.3.3] - 2026-03-16
 
 ### Added
