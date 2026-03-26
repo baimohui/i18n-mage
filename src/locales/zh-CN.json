@@ -7,6 +7,8 @@
   "command.copyEntries.selectEntry": "选择要复制的词条",
   "command.copyEntries.selectLang": "选择要复制的语言",
   "command.copyEntries.success": "已复制 {0} 个词条到剪贴板，可粘贴到目标项目的词典中",
+  "command.copyEntries.invalidPath": "所选路径不在翻译目录中：{0}",
+  "command.copyEntries.noEntriesInTarget": "所选路径未匹配到可复制的词条：{0}",
   "command.copyName.selectEntry": "选择要复制名称的词条",
   "command.copyValue.selectEntry": "选择要复制文案的词条",
   "command.copyValue.selectLang": "选择要复制文案的语言",

@@ -1,6 +1,7 @@
 {
   "extension.name": "i18n Mage",
   "extension.submenu.pathConfig": "Path Config",
+  "extension.submenu.entryManage": "Entry Management",
   "config.general.title": "General",
   "config.enable.desc": "Enable i18n Mage",
   "config.readonly.desc": "Enable read-only mode: hide write-related UI actions and block write commands",

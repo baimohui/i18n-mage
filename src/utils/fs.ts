@@ -13,6 +13,21 @@ const localeFileRegex = /(^|^\w.*\b)([a-z]{2,3}(?:[-_][a-z]{2,4})?)\.(js|ts|json
 
 const MIN_ENTRIES = 1;
 
+function normalizePathForCompare(targetPath: string): string {
+  const normalizedPath = path.normalize(targetPath);
+  return process.platform === "win32" ? normalizedPath.toLowerCase() : normalizedPath;
+}
+
+function resolvePathFromWorkspace(targetPath: string): string {
+  if (!targetPath) return "";
+  if (path.isAbsolute(targetPath)) {
+    return path.resolve(targetPath);
+  }
+  const root = vscode.workspace.workspaceFolders?.[0].uri.fsPath;
+  if (root === undefined || root.trim() === "" || !path.isAbsolute(root)) return "";
+  return path.resolve(root, targetPath);
+}
+
 export async function deleteFolderRecursive(dirPath: string): Promise<void> {
   try {
     const entries = await fs.readdir(dirPath, { withFileTypes: true });
@@ -77,26 +92,14 @@ export async function getPossibleLangPaths(rootDir: string): Promise<string[]> {
 }
 
 export function isPathInsideDirectory(dir: string, targetPath: string): boolean {
-  // 获取绝对路径
-  // if (!path.isAbsolute(dir) || !path.isAbsolute(targetPath)) {
-  //   throw new Error("Both dir and targetPath must be absolute paths");
-  // }
   if (!dir || !targetPath) {
     return false;
   }
-  if (!path.isAbsolute(dir)) {
-    dir = toAbsolutePath(dir);
-  }
-  if (!path.isAbsolute(targetPath)) {
-    targetPath = toAbsolutePath(targetPath);
-  }
-  const absoluteDir = path.resolve(dir);
-  const absoluteTargetPath = path.resolve(targetPath);
-  // 计算相对路径
-  const relativePath = path.relative(absoluteDir, absoluteTargetPath);
-  // 如果相对路径不以 ".." 开头，则 targetPath 是在 dir 目录下
-  const isInside = !relativePath.startsWith("..") && !path.isAbsolute(relativePath);
-  return isInside;
+  const absoluteDir = resolvePathFromWorkspace(dir);
+  const absoluteTargetPath = resolvePathFromWorkspace(targetPath);
+  if (!absoluteDir || !absoluteTargetPath) return false;
+  const relativePath = path.relative(normalizePathForCompare(absoluteDir), normalizePathForCompare(absoluteTargetPath));
+  return relativePath === "" || (!relativePath.startsWith("..") && !path.isAbsolute(relativePath));
 }
 
 export async function detectI18nProject(dirPath: string): Promise<boolean> {
@@ -248,23 +251,11 @@ export function toRelativePath(absolutePath: string): string {
   return path.relative(root, absolutePath).split(path.sep).join("/");
 }
 
-export function isSamePath(absolutePath: string, relativePath: string): boolean {
-  if (!path.isAbsolute(absolutePath)) {
-    return false;
-    // throw new Error("absolutePath must be an absolute path");
-  }
-  const root = vscode.workspace.workspaceFolders?.[0].uri.fsPath;
-  if (root === undefined) return false;
-  if (!path.isAbsolute(root)) {
-    return false;
-    // throw new Error("rootDir must be an absolute path");
-  }
-  const resolvedPath = path.normalize(path.resolve(root, relativePath));
-  const normalizedAbsolute = path.normalize(absolutePath);
-  if (process.platform === "win32") {
-    return resolvedPath.toLowerCase() === normalizedAbsolute.toLowerCase();
-  }
-  return resolvedPath === normalizedAbsolute;
+export function isSamePath(pathA: string, pathB: string): boolean {
+  const resolvedPathA = resolvePathFromWorkspace(pathA);
+  const resolvedPathB = resolvePathFromWorkspace(pathB);
+  if (!resolvedPathA || !resolvedPathB) return false;
+  return normalizePathForCompare(resolvedPathA) === normalizePathForCompare(resolvedPathB);
 }
 
 // 检测文件大小是否超过 50KB（可调整）

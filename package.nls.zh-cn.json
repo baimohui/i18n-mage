@@ -1,6 +1,7 @@
 {
   "extension.name": "i18n Mage",
   "extension.submenu.pathConfig": "路径配置",
+  "extension.submenu.entryManage": "词条管理",
   "config.general.title": "通用",
   "config.enable.desc": "启用 i18n Mage",
   "config.readonly.desc": "启用只读模式：隐藏写入相关操作入口并阻止写入命令执行",

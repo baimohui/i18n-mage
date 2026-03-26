@@ -18,6 +18,8 @@
     "react",
     "react-i18next",
     "nextjs",
+    "frontend",
+    "前端",
     "翻译",
     "国际化"
   ],
@@ -37,8 +39,12 @@
     "workspaceContains:package.json",
     "onCommand:i18nMage.*",
     "onLanguage:javascript",
+    "onLanguage:javascriptreact",
     "onLanguage:typescript",
+    "onLanguage:typescriptreact",
     "onLanguage:json",
+    "onLanguage:yaml",
+    "onLanguage:html",
     "onLanguage:vue"
   ],
   "main": "dist/extension.js",
@@ -1979,9 +1985,20 @@
       ],
       "explorer/context": [
         {
+          "submenu": "i18nMage.entryManageMenu",
+          "when": "i18nMage.enabled && i18nMage.hasValidLangPath && resourceScheme == file",
+          "group": "3_i18n@1"
+        },
+        {
           "submenu": "i18nMage.pathConfigMenu",
           "when": "i18nMage.enabled",
-          "group": "3_i18n@1"
+          "group": "3_i18n@2"
+        }
+      ],
+      "i18nMage.entryManageMenu": [
+        {
+          "command": "i18nMage.copyEntries",
+          "group": "navigation@2"
         }
       ],
       "i18nMage.pathConfigMenu": [
@@ -2002,6 +2019,10 @@
       ]
     },
     "submenus": [
+      {
+        "id": "i18nMage.entryManageMenu",
+        "label": "%extension.submenu.entryManage%"
+      },
       {
         "id": "i18nMage.pathConfigMenu",
         "label": "%extension.submenu.pathConfig%"

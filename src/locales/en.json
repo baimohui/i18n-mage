@@ -7,6 +7,8 @@
   "command.copyEntries.selectEntry": "Select the entry to copy",
   "command.copyEntries.selectLang": "Select languages to copy",
   "command.copyEntries.success": "Copied {0} entries to clipboard. You can paste them into the target project's dictionary",
+  "command.copyEntries.invalidPath": "The selected path is outside the translation directory: {0}",
+  "command.copyEntries.noEntriesInTarget": "No copyable entries were found in the selected path: {0}",
   "command.copyName.selectEntry": "Select entry to copy key",
   "command.copyValue.selectEntry": "Select entry to copy translation",
   "command.copyValue.selectLang": "Select language to copy",
