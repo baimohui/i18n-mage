@@ -28,7 +28,7 @@ import { t } from "@/utils/i18n";
 import { ExecutionContext } from "@/utils/context";
 import { NotificationManager } from "@/utils/notification";
 import * as pinyin from "tiny-pinyin";
-import { toRelativePath } from "@/utils/fs";
+import { isPathInsideDirectory, isSamePath, toRelativePath } from "@/utils/fs";
 import { generateKeyFromAi } from "@/ai";
 
 export class FixHandler {
@@ -137,7 +137,12 @@ export class FixHandler {
         continue;
       }
       if (entriesToGen !== true) {
-        if (entry.path === undefined || (genScope !== undefined && !genScope.includes(entry.path))) {
+        const entryPath = entry.path;
+        const inGenScope =
+          entryPath !== undefined &&
+          (genScope === undefined ||
+            genScope.some(scopePath => isSamePath(entryPath, scopePath) || isPathInsideDirectory(scopePath, entryPath)));
+        if (!inGenScope) {
           continue;
         } else if (Array.isArray(entriesToGen) && entriesToGen.every(e => e !== entry.nameInfo.text)) {
           continue;

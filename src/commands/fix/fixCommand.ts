@@ -18,7 +18,7 @@ import {
   UNMATCHED_LANGUAGE_ACTION,
   UnmatchedLanguageAction
 } from "@/types";
-import { isSamePath } from "@/utils/fs";
+import { isPathInsideDirectory, isSamePath } from "@/utils/fs";
 import { getLangCode, getLangIntro, LANG_CODE_MAPPINGS } from "@/utils/langKey";
 import { selectPrefixFromAi } from "@/ai";
 
@@ -100,7 +100,11 @@ export function registerFixCommand(context: vscode.ExtensionContext) {
         const { entriesToGen, genScope } = fixQuery;
         return (
           (Array.isArray(entriesToGen) ? entriesToGen.includes(key) : entriesToGen) &&
-          (genScope ? Object.keys(undefinedMap[key]).some(fp => genScope.some(fp2 => isSamePath(fp, fp2))) : true)
+          (genScope
+            ? Object.keys(undefinedMap[key]).some(fp =>
+                genScope.some(scopePath => isSamePath(fp, scopePath) || isPathInsideDirectory(scopePath, fp))
+              )
+            : true)
         );
       });
       const ignorePossibleVariables = getConfig<boolean>("translationServices.ignorePossibleVariables", true);
