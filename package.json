@@ -2017,6 +2017,11 @@
           "command": "i18nMage.fixUndefinedEntries",
           "when": "!i18nMage.readonly",
           "group": "navigation@4"
+        },
+        {
+          "command": "i18nMage.extractHardcodedTexts",
+          "when": "!i18nMage.readonly",
+          "group": "navigation@5"
         }
       ],
       "i18nMage.pathConfigMenu": [

@@ -25,7 +25,7 @@ import {
   getParentKeys,
   validateLang
 } from "@/utils/regex";
-import { toRelativePath } from "@/utils/fs";
+import { isPathInsideDirectory, isSamePath, toRelativePath } from "@/utils/fs";
 import { applyCodePatches } from "@/core/extract/applyCodePatches";
 import { ensureBootstrapConfig, ExtractBootstrapConfig } from "@/core/extract/bootstrapConfig";
 import { planEnglishKeyGeneration, planTextsByLanguage } from "@/core/extract/extractTextPlanner";
@@ -48,6 +48,17 @@ function getPathPrefix(candidateFile: string, keyPrefix: string, stopPrefixes: s
 
 function getSafeKeyLen(maxKeyLength: number, prefix: string) {
   return Math.max(8, maxKeyLength - prefix.length);
+}
+
+function getInitialExtractScopePath(resource: vscode.Uri | undefined, projectPath: string) {
+  if (!resource || resource.scheme !== "file") return "";
+  const absoluteProjectPath = path.resolve(projectPath);
+  const selectedPath = path.resolve(resource.fsPath);
+  const isProjectPath = isSamePath(absoluteProjectPath, selectedPath);
+  if (!isProjectPath && !isPathInsideDirectory(absoluteProjectPath, selectedPath)) {
+    return "";
+  }
+  return path.relative(absoluteProjectPath, selectedPath).split(path.sep).join("/");
 }
 
 function resolveVueTemplateFunctionName(value: string, fallback: string, framework: string) {
@@ -193,8 +204,7 @@ export function registerExtractHardcodedTextsCommand(context: vscode.ExtensionCo
       return;
     }
     const langDetected = mage.detectedLangList.length > 0;
-    const initialExtractScopePath =
-      resource && resource.scheme === "file" ? path.relative(projectPath, resource.fsPath).split(path.sep).join("/") : "";
+    const initialExtractScopePath = getInitialExtractScopePath(resource, projectPath);
     let bootstrapOverride: ExtractBootstrapConfig | undefined;
     let bootstrap: ExtractBootstrapConfig | null = null;
     let selectedCandidates = [] as ReturnType<typeof scanHardcodedTextCandidates>["candidates"];
