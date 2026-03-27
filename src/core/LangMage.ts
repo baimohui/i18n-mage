@@ -199,6 +199,7 @@ class LangMage {
       keyGenerationFillScope: this.ctx.keyGenerationFillScope,
       missingEntryFile: this.ctx.missingEntryFile,
       missingEntryPath: this.ctx.missingEntryPath,
+      exportKeys: this.ctx.exportKeys,
       fixQuery: this.ctx.fixQuery,
       invalidKeyStrategy: this.ctx.invalidKeyStrategy,
       languageStructure: this.ctx.languageStructure

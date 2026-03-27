@@ -208,6 +208,7 @@
   "command.sort.title": "排序",
   "command.excel.title": "Excel",
   "command.export.title": "导出全量翻译",
+  "command.exportEntries.title": "导出词条",
   "command.exportDiff.title": "导出版本差异",
   "command.import.title": "导入全量翻译",
   "command.importDiff.title": "导入版本差异",

@@ -208,6 +208,7 @@
   "command.sort.title": "Sort",
   "command.excel.title": "Excel",
   "command.export.title": "Export Translations",
+  "command.exportEntries.title": "Export Entries",
   "command.exportDiff.title": "Export Version Diff",
   "command.import.title": "Import Translations",
   "command.importDiff.title": "Import Version Diff",

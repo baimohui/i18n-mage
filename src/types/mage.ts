@@ -33,6 +33,7 @@ export interface LangMageOptions {
   importMode?: "key" | "language";
   baselineLanguage?: string;
   exportExcelTo?: string;
+  exportKeys?: string[];
   syncBasedOnReferredEntries?: boolean;
   sortAfterFix?: boolean;
   sortingWriteMode?: SortMode;

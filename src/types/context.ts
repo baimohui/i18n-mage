@@ -65,6 +65,7 @@ export interface LangContextPublic {
   scanStringLiterals: boolean;
   missingEntryFile: string;
   missingEntryPath: string;
+  exportKeys: string[];
   fixQuery: FixQuery;
   invalidKeyStrategy: InvalidKeyStrategy;
   languageStructure: LanguageStructure;
@@ -93,6 +94,7 @@ export interface LangContextInternal extends LangContextPublic {
   importExcelFrom: string;
   importSheetData: string;
   exportExcelTo: string;
+  exportKeys: string[];
   trimKeyList: string[];
   nameSeparator: string;
   importMode: ExcelImportMode;

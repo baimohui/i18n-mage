@@ -1422,6 +1422,15 @@
         }
       },
       {
+        "command": "i18nMage.exportEntries",
+        "category": "%extension.name%",
+        "title": "%command.exportEntries.title%",
+        "icon": {
+          "light": "./images/share-light.svg",
+          "dark": "./images/share-dark.svg"
+        }
+      },
+      {
         "command": "i18nMage.exportDiff",
         "category": "%extension.name%",
         "title": "%command.exportDiff.title%"
@@ -1999,6 +2008,10 @@
         {
           "command": "i18nMage.copyEntries",
           "group": "navigation@2"
+        },
+        {
+          "command": "i18nMage.exportEntries",
+          "group": "navigation@3"
         }
       ],
       "i18nMage.pathConfigMenu": [
