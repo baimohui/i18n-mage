@@ -18,7 +18,7 @@ import {
   UNMATCHED_LANGUAGE_ACTION,
   UnmatchedLanguageAction
 } from "@/types";
-import { isPathInsideDirectory, isSamePath } from "@/utils/fs";
+import { isPathInsideDirectory, isSamePath, toRelativePath } from "@/utils/fs";
 import { getLangCode, getLangIntro, LANG_CODE_MAPPINGS } from "@/utils/langKey";
 import { selectPrefixFromAi } from "@/ai";
 
@@ -26,6 +26,22 @@ const AI_PREFIX_CANDIDATE_LIMIT = 30;
 
 function normalizePrefixList(prefixList: string[] = []) {
   return Array.from(new Set(prefixList.map(item => item.trim()).filter(Boolean)));
+}
+
+function normalizeSourceFilePathList(pathList: string[] = []) {
+  return Array.from(
+    new Set(
+      pathList
+        .map(item => item.trim())
+        .filter(Boolean)
+        .map(item => {
+          const relativePath = toRelativePath(item);
+          const normalized = (relativePath || item).replaceAll("\\", "/").trim();
+          return normalized;
+        })
+        .filter(Boolean)
+    )
+  ).sort((a, b) => a.localeCompare(b));
 }
 
 function collectPrefixUsageMap(prefixes: string[], separator: string) {
@@ -299,6 +315,7 @@ export function registerFixCommand(context: vscode.ExtensionContext) {
         } else if (writeFlag && isAiPrefixSelection && !skipKeyCategorySelection) {
           let fallbackToManualSelection = candidatePrefixes.length === 0;
           const keyPrefixPatch: Record<string, string> = {};
+          const sourceFilePathList = undefinedKeys.map(key => normalizeSourceFilePathList(Object.keys(undefinedMap[key] ?? {})));
           if (!fallbackToManualSelection) {
             let aiCandidates = pickTopPrefixCandidates(candidatePrefixes, candidateUsageMap);
             if (nameSeparator === "\\.") {
@@ -306,6 +323,7 @@ export function registerFixCommand(context: vscode.ExtensionContext) {
             }
             const aiPrefixRes = await selectPrefixFromAi({
               sourceTextList: undefinedKeys,
+              sourceFilePathList,
               prefixCandidates: aiCandidates
             });
             if (aiPrefixRes.success && Array.isArray(aiPrefixRes.data) && aiPrefixRes.data.length === undefinedKeys.length) {

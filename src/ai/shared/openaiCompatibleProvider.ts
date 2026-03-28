@@ -137,7 +137,7 @@ export function createOpenAICompatibleProvider(options: OpenAICompatibleProvider
   }
 
   async function selectPrefix(params: SelectPrefixParams): Promise<SelectPrefixResult> {
-    const { sourceTextList, prefixCandidates, apiId, apiKey } = params;
+    const { sourceTextList, sourceFilePathList = [], prefixCandidates, apiId, apiKey } = params;
     const model = resolveModel(apiId, defaultModel, allowCustomModel);
     if (prefixCandidates.length === 0) {
       return { success: false, message: "No prefix candidates provided" };
@@ -147,14 +147,21 @@ export function createOpenAICompatibleProvider(options: OpenAICompatibleProvider
       return { success: false, message: "No valid prefix candidates provided" };
     }
     try {
-      const sourceText = buildIndexedItems(sourceTextList);
+      const sourceItems = sourceTextList.map((text, index) => ({
+        index,
+        text,
+        filePaths: Array.isArray(sourceFilePathList[index]) ? sourceFilePathList[index] : []
+      }));
+      const sourceText = JSON.stringify(sourceItems);
       const candidatesJson = JSON.stringify(safeCandidates);
       const content = await requestCompletion(apiKey, model, [
         {
           role: "system",
           content:
             `You are selecting i18n key prefixes. ` +
-            `For each input text, choose exactly one prefix from the provided candidate list. ` +
+            `For each input item, choose exactly one prefix from the provided candidate list. ` +
+            `You must consider both the text and its file path list when selecting prefixes. ` +
+            `If one text appears in multiple files, choose the most broadly suitable prefix for all listed files. ` +
             `Do not invent or modify prefixes. ` +
             `Return strict JSON array only, same length and order as input items. ` +
             `No explanation, no markdown.`
@@ -163,7 +170,8 @@ export function createOpenAICompatibleProvider(options: OpenAICompatibleProvider
           role: "user",
           content:
             `Candidate prefixes:\n${candidatesJson}\n` +
-            `Choose one prefix for each item:\n${sourceText}\n` +
+            `Input items (JSON with text and file paths):\n${sourceText}\n` +
+            `Choose one prefix for each item:\n${buildIndexedItems(sourceTextList)}\n` +
             `Output example: ["common.form","tips"]`
         }
       ]);

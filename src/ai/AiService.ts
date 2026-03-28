@@ -86,7 +86,7 @@ export class AiService {
   }
 
   public async selectPrefixFrom(data: SelectPrefixData, startIndex = 0): Promise<SelectPrefixResult> {
-    const { sourceTextList = [], prefixCandidates = [] } = data;
+    const { sourceTextList = [], sourceFilePathList = [], prefixCandidates = [] } = data;
     const availableProviders = this.getAvailableProviders();
 
     if (startIndex >= availableProviders.length) {
@@ -97,6 +97,7 @@ export class AiService {
     const credentialsMap = this.getCredentialsMap();
     const params: SelectPrefixParams = {
       sourceTextList,
+      sourceFilePathList,
       prefixCandidates,
       apiId: credentialsMap[providerId][0] ?? "",
       apiKey: credentialsMap[providerId][1] ?? ""

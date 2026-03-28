@@ -21,6 +21,7 @@ export interface GenKeyResult {
 
 export interface SelectPrefixParams {
   sourceTextList: string[];
+  sourceFilePathList?: string[][];
   prefixCandidates: string[];
   apiId: string;
   apiKey: string;

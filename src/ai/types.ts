@@ -24,5 +24,6 @@ export interface GenerateKeyData {
 
 export interface SelectPrefixData {
   sourceTextList: string[];
+  sourceFilePathList?: string[][];
   prefixCandidates: string[];
 }
