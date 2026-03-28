@@ -384,6 +384,7 @@ export function registerFixCommand(context: vscode.ExtensionContext) {
                 }));
                 const selectValues = await vscode.window.showQuickPick(quickPickItems, {
                   canPickMany: true,
+                  matchOnDescription: true,
                   placeHolder: t("command.fix.selectNoneSourceTexts")
                 });
                 if (selectValues === undefined) return;

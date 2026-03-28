@@ -20,7 +20,10 @@ export function registerSetReferredLangCommand() {
         label: item,
         description: getLangText(item)
       }));
-      const picked = await vscode.window.showQuickPick(quickPickItems, { placeHolder: t("command.pick.selectReferredLang") });
+      const picked = await vscode.window.showQuickPick(quickPickItems, {
+        matchOnDescription: true,
+        placeHolder: t("command.pick.selectReferredLang")
+      });
       target = picked?.label;
     }
     if (target !== undefined) {

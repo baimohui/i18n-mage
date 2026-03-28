@@ -20,7 +20,10 @@ export function registerSetDisplayLangCommand() {
         label: item,
         description: getLangText(item)
       }));
-      const picked = await vscode.window.showQuickPick(quickPickItems, { placeHolder: t("command.pick.selectDisplayLang") });
+      const picked = await vscode.window.showQuickPick(quickPickItems, {
+        matchOnDescription: true,
+        placeHolder: t("command.pick.selectDisplayLang")
+      });
       target = picked?.label;
     }
     if (target !== undefined) {
