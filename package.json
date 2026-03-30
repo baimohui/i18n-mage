@@ -1693,6 +1693,24 @@
         }
       },
       {
+        "command": "i18nMage.toggleSourceLangOnly",
+        "category": "%extension.name%",
+        "title": "%command.toggleSourceLangOnly.title%",
+        "icon": {
+          "light": "./images/s-light.svg",
+          "dark": "./images/s-dark.svg"
+        }
+      },
+      {
+        "command": "i18nMage.toggleSourceLangOnly.active",
+        "category": "%extension.name%",
+        "title": "%command.toggleSourceLangOnly.title%",
+        "icon": {
+          "light": "./images/s-active-light.svg",
+          "dark": "./images/s-active-dark.svg"
+        }
+      },
+      {
         "command": "i18nMage.addLanguage",
         "category": "%extension.name%",
         "title": "%command.addLanguage.title%",
@@ -1769,6 +1787,18 @@
         "key": "alt+c",
         "mac": "alt+c",
         "when": "i18nMage.enabled && i18nMage.hasValidLangPath && i18nMage.isSearching && i18nMage.isCaseSensitive && focusedView == i18nMage.grimoire"
+      },
+      {
+        "command": "i18nMage.toggleSourceLangOnly",
+        "key": "alt+s",
+        "mac": "alt+s",
+        "when": "i18nMage.enabled && i18nMage.hasValidLangPath && i18nMage.isSearching && !i18nMage.isSourceLangOnly && focusedView == i18nMage.grimoire"
+      },
+      {
+        "command": "i18nMage.toggleSourceLangOnly.active",
+        "key": "alt+s",
+        "mac": "alt+s",
+        "when": "i18nMage.enabled && i18nMage.hasValidLangPath && i18nMage.isSearching && i18nMage.isSourceLangOnly && focusedView == i18nMage.grimoire"
       }
     ],
     "menus": {
@@ -1822,6 +1852,16 @@
           "command": "i18nMage.toggleWholeWordMatch.active",
           "when": "view == i18nMage.grimoire && i18nMage.hasValidLangPath && i18nMage.isSearching && i18nMage.isWholeWordMatch",
           "group": "navigation@50"
+        },
+        {
+          "command": "i18nMage.toggleSourceLangOnly",
+          "when": "view == i18nMage.grimoire && i18nMage.hasValidLangPath && i18nMage.isSearching && !i18nMage.isSourceLangOnly",
+          "group": "navigation@51"
+        },
+        {
+          "command": "i18nMage.toggleSourceLangOnly.active",
+          "when": "view == i18nMage.grimoire && i18nMage.hasValidLangPath && i18nMage.isSearching && i18nMage.isSourceLangOnly",
+          "group": "navigation@51"
         },
         {
           "command": "i18nMage.cancelSearch",

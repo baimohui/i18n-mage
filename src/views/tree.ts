@@ -35,6 +35,7 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
   isSearching = false;
   isWholeWordMatch = false;
   isCaseSensitive = false;
+  isSourceLangOnly = false;
 
   private _onDidChangeTreeData = new vscode.EventEmitter<void>();
   readonly onDidChangeTreeData = this._onDidChangeTreeData.event;
@@ -118,6 +119,12 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
   toggleCaseSensitive() {
     this.isCaseSensitive = !this.isCaseSensitive;
     vscode.commands.executeCommand("setContext", "i18nMage.isCaseSensitive", this.isCaseSensitive);
+    this.refresh();
+  }
+
+  toggleSourceLangOnly() {
+    this.isSourceLangOnly = !this.isSourceLangOnly;
+    vscode.commands.executeCommand("setContext", "i18nMage.isSourceLangOnly", this.isSourceLangOnly);
     this.refresh();
   }
 
@@ -217,8 +224,10 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
       isSearching: this.isSearching,
       isCaseSensitive: this.isCaseSensitive,
       isWholeWordMatch: this.isWholeWordMatch,
+      isSourceLangOnly: this.isSourceLangOnly,
       filterText: this.globalFilter.text,
-      dictionary: this.dictionary
+      dictionary: this.dictionary,
+      referredLang: this.publicCtx.referredLang
     });
   }
 

@@ -6,8 +6,10 @@ interface MatchesSearchParams {
   isSearching: boolean;
   isCaseSensitive: boolean;
   isWholeWordMatch: boolean;
+  isSourceLangOnly: boolean;
   filterText: string;
   dictionary: Record<string, { value: Record<string, string> }>;
+  referredLang: string;
 }
 
 export function wholeWordMatch(text: string, searchTerm: string, isCaseSensitive: boolean): boolean {
@@ -26,7 +28,7 @@ export function wholeWordMatch(text: string, searchTerm: string, isCaseSensitive
 }
 
 export function matchesSearch(params: MatchesSearchParams): boolean {
-  const { key, isSearching, isCaseSensitive, isWholeWordMatch, filterText, dictionary } = params;
+  const { key, isSearching, isCaseSensitive, isWholeWordMatch, isSourceLangOnly, filterText, dictionary, referredLang } = params;
   if (!isSearching) return true;
 
   const name = unescapeString(key);
@@ -37,11 +39,14 @@ export function matchesSearch(params: MatchesSearchParams): boolean {
     ? new RegExp(`\\b${filter}\\b`, isCaseSensitive ? "" : "i").test(name)
     : (isCaseSensitive ? name : name.toLowerCase()).includes(filter);
 
-  const matchesValue = Object.values(entryInfo).some(value =>
-    isWholeWordMatch
-      ? wholeWordMatch(isCaseSensitive ? value : value.toLowerCase(), filter, isCaseSensitive)
-      : (isCaseSensitive ? value : value.toLowerCase()).includes(filter)
-  );
+  const valuesToCheck = isSourceLangOnly ? [entryInfo[referredLang]] : Object.values(entryInfo);
+  const matchesValue = valuesToCheck
+    .filter(value => typeof value === "string" && value.length > 0)
+    .some(value =>
+      isWholeWordMatch
+        ? wholeWordMatch(isCaseSensitive ? value : value.toLowerCase(), filter, isCaseSensitive)
+        : (isCaseSensitive ? value : value.toLowerCase()).includes(filter)
+    );
 
   return matchesName || matchesValue;
 }

@@ -42,6 +42,7 @@ import { registerSearchCommand } from "./search/searchCommand";
 import { registerCancelSearchCommand } from "./search/cancelSearchCommand";
 import { registerToggleWholeWordMatchCommand } from "./search/toggleWholeWordMatchCommand";
 import { registerToggleCaseSensitiveCommand } from "./search/toggleCaseSensitiveCommand";
+import { registerToggleSourceLangOnlyCommand } from "./search/toggleSourceLangOnlyCommand";
 import { registerPasteEntriesCommand } from "./copy/pasteEntriesCommand";
 import { registerExtractHardcodedTextsCommand } from "./extract/extractHardcodedTextsCommand";
 
@@ -89,6 +90,7 @@ export function registerAllCommands(context: vscode.ExtensionContext) {
   registerCancelSearchCommand();
   registerToggleWholeWordMatchCommand();
   registerToggleCaseSensitiveCommand();
+  registerToggleSourceLangOnlyCommand();
   registerPasteEntriesCommand(context);
   registerExtractHardcodedTextsCommand(context);
 }

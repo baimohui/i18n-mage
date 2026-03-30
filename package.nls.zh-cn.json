@@ -257,6 +257,7 @@
   "config.translationObjectIdentifiers.desc": "承载翻译数据的对象标识符",
   "command.addLanguage.title": "添加语言",
   "command.toggleWholeWordMatch.title": "全词匹配",
+  "command.toggleSourceLangOnly.title": "仅源语言",
   "command.toggleCaseSensitive.title": "区分大小写",
   "command.pasteEntries.title": "粘贴词条",
   "config.aiCustomPrompt.desc": "AI 翻译时附加的自定义提示词",

@@ -257,6 +257,7 @@
   "config.translationObjectIdentifiers.desc": "Identifiers holding translation data",
   "command.addLanguage.title": "Add Language",
   "command.toggleWholeWordMatch.title": "Whole Word Match",
+  "command.toggleSourceLangOnly.title": "Source Language Only",
   "command.toggleCaseSensitive.title": "Case Sensitive",
   "command.pasteEntries.title": "Paste Entries",
   "config.aiCustomPrompt.desc": "Custom instruction prepended to AI translation context",
