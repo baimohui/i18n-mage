@@ -1977,19 +1977,24 @@
           "group": "2_i18n@1"
         },
         {
-          "command": "i18nMage.browseTranslationsInFile",
+          "command": "i18nMage.exportEntries",
           "when": "i18nMage.hasDefinedEntriesInFile",
           "group": "2_i18n@2"
         },
         {
+          "command": "i18nMage.browseTranslationsInFile",
+          "when": "i18nMage.hasDefinedEntriesInFile",
+          "group": "2_i18n@3"
+        },
+        {
           "command": "i18nMage.fixUndefinedEntries",
           "when": "i18nMage.hasUndefinedEntriesInFile && !i18nMage.readonly",
-          "group": "2_i18n@3"
+          "group": "2_i18n@4"
         },
         {
           "command": "i18nMage.extractHardcodedTexts",
           "when": "i18nMage.enabled && i18nMage.canExtractHardcodedInCurrentFile && !i18nMage.readonly",
-          "group": "2_i18n@4"
+          "group": "2_i18n@5"
         }
       ],
       "explorer/context": [
