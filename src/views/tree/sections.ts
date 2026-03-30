@@ -120,12 +120,19 @@ export function getRootChildren(ctx: TreeSectionContext): ExtendedTreeItem[] {
   const dictionaryCount = ctx.isSearching
     ? countDictionaryLeaves(getFilteredDictionaryTreeNode(ctx.langInfo.tree, key => ctx.matchesSearch(key)))
     : Object.keys(ctx.langInfo.dictionary).length;
+  const dictionaryContextValueList = ["PASTE_ENTRIES"];
+  if (ctx.isSearching) {
+    dictionaryContextValueList.push("COPY_ENTRIES");
+  }
   rootSections.push({
     level: 0,
     label: t("tree.dictionary.title"),
     id: "DICTIONARY",
     root: "DICTIONARY",
-    contextValue: "PASTE_ENTRIES",
+    contextValue: dictionaryContextValueList.join(","),
+    data: ctx.isSearching
+      ? Object.keys(ctx.langInfo.dictionary).filter(key => ctx.matchesSearch(key))
+      : Object.keys(ctx.langInfo.dictionary),
     iconPath: new vscode.ThemeIcon("notebook"),
     collapsibleState: vscode.TreeItemCollapsibleState.Collapsed,
     description: String(dictionaryCount)
@@ -387,6 +394,9 @@ export async function getUsageInfoChildren(ctx: TreeSectionContext, element: Ext
       let description = String(num);
       let tooltip = "";
       const contextValueList = [num === 0 ? `${type}GroupHeader-None` : `${type}GroupHeader`];
+      if (ctx.isSearching && num > 0 && (type === "used" || type === "unused")) {
+        contextValueList.push("COPY_ENTRIES");
+      }
 
       if (type === "undefined" && num > 0) {
         contextValueList.push("IGNORE_UNDEFINED");

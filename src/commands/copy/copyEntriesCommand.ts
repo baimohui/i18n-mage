@@ -7,7 +7,7 @@ import LangMage from "@/core/LangMage";
 import { treeInstance } from "@/views/tree";
 import { isPathInsideDirectory, isSamePath, toRelativePath } from "@/utils/fs";
 
-type CopyEntriesTargetArg = vscode.Uri | { key?: string; meta?: { lang?: string }; stack?: string[] } | undefined;
+type CopyEntriesTargetArg = vscode.Uri | { key?: string; meta?: { lang?: string }; stack?: string[]; data?: string[] } | undefined;
 
 async function isDirectoryUri(uri: vscode.Uri) {
   try {
@@ -100,6 +100,16 @@ export function registerCopyEntriesCommand() {
         Object.entries(dictionary)
           .filter(([key]) => key.startsWith(keyPrefix))
           .map(([key, value]) => [key, value.value])
+      );
+    } else if (!(e instanceof vscode.Uri) && typeof e === "object" && Array.isArray(e.data) && e.data.length > 0) {
+      target = e.data.reduce(
+        (acc, key) => {
+          if (Object.hasOwn(dictionary, key)) {
+            acc[key] = dictionary[key].value;
+          }
+          return acc;
+        },
+        {} as Record<string, Record<string, string>>
       );
     } else if (e instanceof vscode.Uri) {
       target = await getEntriesByUri(e);
