@@ -4,6 +4,7 @@ import fs from "fs";
 import LangMage from "@/core/LangMage";
 import previewFixContent from "@/views/fixWebview";
 import { treeInstance } from "@/views/tree";
+import launchExtractSetupWebview from "@/views/extractSetupWebview";
 import { I18nUpdatePayload, FixedTEntry, DirNode, NAMESPACE_STRATEGY } from "@/types";
 import { UNMATCHED_LANGUAGE_ACTION, UnmatchedLanguageAction } from "@/types";
 import { clearConfigCache, getConfig, setConfig } from "@/utils/config";
@@ -203,6 +204,11 @@ export function registerExtractHardcodedTextsCommand(context: vscode.ExtensionCo
       NotificationManager.showWarning(t("command.extractHardcodedTexts.noProjectPath"));
       return;
     }
+    const uiLanguage = vscode.env.language || "en";
+    const setupStore = {
+      get: (key: string) => context.workspaceState.get<boolean>(key),
+      set: (key: string, value: boolean) => context.workspaceState.update(key, value)
+    };
     const langDetected = mage.detectedLangList.length > 0;
     const initialExtractScopePath = getInitialExtractScopePath(resource, projectPath);
     let bootstrapOverride: ExtractBootstrapConfig | undefined;
@@ -212,11 +218,13 @@ export function registerExtractHardcodedTextsCommand(context: vscode.ExtensionCo
     let awaitingSetup = true;
     while (awaitingSetup) {
       bootstrap = await ensureBootstrapConfig({
-        context,
         projectPath,
         hasDetectedLangs: langDetected,
         initialExtractScopePath,
-        overrideDefaults: bootstrapOverride
+        overrideDefaults: bootstrapOverride,
+        uiLanguage,
+        setupStore,
+        launchSetup: params => launchExtractSetupWebview(context, params)
       });
       if (bootstrap === null) return;
 

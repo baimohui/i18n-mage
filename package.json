@@ -43,6 +43,7 @@
     "onLanguage:typescript",
     "onLanguage:typescriptreact",
     "onLanguage:json",
+    "onLanguage:json5",
     "onLanguage:yaml",
     "onLanguage:html",
     "onLanguage:vue"

@@ -1,13 +1,11 @@
-import * as vscode from "vscode";
 import fs from "fs";
 import path from "path";
-import { clearConfigCache, getCacheConfig, getConfig, setConfig } from "@/utils/config";
+import { clearConfigCache, getConfig, setConfig } from "@/utils/config";
 import { toRelativePath } from "@/utils/fs";
 import { t } from "@/utils/i18n";
-import { getLangCode, LANG_CODE_MAPPINGS } from "@/utils/langKey";
-import { NotificationManager } from "@/utils/notification";
+import { getLangCode } from "@/utils/langKey";
 
-type BootstrapRaw = Partial<ExtractBootstrapConfig> & {
+export type BootstrapRaw = Partial<ExtractBootstrapConfig> & {
   fileExtensionsText?: string;
   stopWordsText?: string;
   stopPrefixesText?: string;
@@ -64,13 +62,26 @@ export interface ExtractBootstrapConfig {
   translationFailureStrategy: "skip" | "fill-with-source" | "abort";
 }
 
-function getDefaultTargetLanguages() {
-  const uiLangCode = getLangCode(vscode.env.language) ?? "";
+export interface BootstrapSetupStore {
+  get: (key: string) => boolean | undefined;
+  set: (key: string, value: boolean) => Promise<void> | Thenable<void> | void;
+}
+
+export type BootstrapSetupLauncher = (params: {
+  defaults: ExtractBootstrapConfig;
+  hasDetectedLangs: boolean;
+  projectPath: string;
+  isFirstSetup: boolean;
+  uiLanguage: string;
+}) => Promise<BootstrapRaw | null>;
+
+function getDefaultTargetLanguages(uiLanguage: string) {
+  const uiLangCode = getLangCode(uiLanguage) ?? "";
   const values = ["en", uiLangCode].filter((item): item is string => item.trim().length > 0);
   return Array.from(new Set(values));
 }
 
-function defaultBootstrapConfig(): ExtractBootstrapConfig {
+function defaultBootstrapConfig(uiLanguage: string): ExtractBootstrapConfig {
   return {
     framework: "none",
     languagePath: "src/i18n",
@@ -98,11 +109,11 @@ function defaultBootstrapConfig(): ExtractBootstrapConfig {
     stopWords: [],
     stopPrefixes: [],
     onlyExtractSourceLanguageText: true,
-    referenceLanguage: vscode.env.language || "en",
+    referenceLanguage: uiLanguage || "en",
     translationFileType: "json",
     extractScopePaths: [],
     ignoreExtractScopePaths: [],
-    targetLanguages: getDefaultTargetLanguages(),
+    targetLanguages: getDefaultTargetLanguages(uiLanguage),
     vueTemplateIncludeAttrs: [],
     vueTemplateExcludeAttrs: ["key", "ref", "prop", "value", "class", "style", "id", "for", "type", "name", "src", "href", "to"],
     ignoreTexts: [],
@@ -143,7 +154,7 @@ function isShallowEqual(a: unknown, b: unknown) {
   return a === b;
 }
 
-function getApplyValidationError(params: {
+export function getApplyValidationError(params: {
   hasDetectedLangs: boolean;
   fileExtensions: string[];
   framework: string;
@@ -176,8 +187,8 @@ function getApplyValidationError(params: {
   return "";
 }
 
-function sanitizeBootstrapConfig(raw: BootstrapRaw | undefined): ExtractBootstrapConfig {
-  const defaults = defaultBootstrapConfig();
+export function sanitizeBootstrapConfig(raw: BootstrapRaw | undefined, uiLanguage: string): ExtractBootstrapConfig {
+  const defaults = defaultBootstrapConfig(uiLanguage);
   if (!raw) return defaults;
 
   const fileExtensions = Array.isArray(raw.fileExtensions)
@@ -316,41 +327,58 @@ function sanitizeBootstrapConfig(raw: BootstrapRaw | undefined): ExtractBootstra
 }
 
 export async function ensureBootstrapConfig(params: {
-  context: vscode.ExtensionContext;
   projectPath: string;
   hasDetectedLangs: boolean;
   initialExtractScopePath?: string;
   overrideDefaults?: ExtractBootstrapConfig;
+  uiLanguage: string;
+  setupStore: BootstrapSetupStore;
+  launchSetup: BootstrapSetupLauncher;
 }): Promise<ExtractBootstrapConfig | null> {
   const seenKey = getSetupSeenKey(params.projectPath);
-  const isFirstSetup = params.context.workspaceState.get<boolean>(seenKey) !== true;
+  const isFirstSetup = params.setupStore.get(seenKey) !== true;
   if (isFirstSetup) {
-    await params.context.workspaceState.update(seenKey, true);
+    await params.setupStore.set(seenKey, true);
   }
   const scopedDefaults = (defaults: ExtractBootstrapConfig) =>
-    sanitizeBootstrapConfig({
-      ...defaults,
-      extractScopePaths:
-        typeof params.initialExtractScopePath === "string" && params.initialExtractScopePath.trim().length > 0
-          ? [params.initialExtractScopePath.trim()]
-          : defaults.extractScopePaths
-    });
+    sanitizeBootstrapConfig(
+      {
+        ...defaults,
+        extractScopePaths:
+          typeof params.initialExtractScopePath === "string" && params.initialExtractScopePath.trim().length > 0
+            ? [params.initialExtractScopePath.trim()]
+            : defaults.extractScopePaths
+      },
+      params.uiLanguage
+    );
 
   if (params.hasDetectedLangs) {
-    const defaults = scopedDefaults(params.overrideDefaults ?? getDetectedProjectDefaults(params.projectPath));
-    const raw = await openBootstrapWebview(params.context, defaults, true, params.projectPath, isFirstSetup);
+    const defaults = scopedDefaults(params.overrideDefaults ?? getDetectedProjectDefaults(params.projectPath, params.uiLanguage));
+    const raw = await params.launchSetup({
+      defaults,
+      hasDetectedLangs: true,
+      projectPath: params.projectPath,
+      isFirstSetup,
+      uiLanguage: params.uiLanguage
+    });
     if (raw === null) return null;
-    const config = sanitizeBootstrapConfig(raw);
+    const config = sanitizeBootstrapConfig(raw, params.uiLanguage);
     if (config.syncToWorkspaceConfig === true) {
       await applyDetectedConfigs(config);
     }
     return config;
   }
 
-  const defaults = scopedDefaults(params.overrideDefaults ?? getUndetectedProjectDefaults(params.projectPath));
-  const raw = await openBootstrapWebview(params.context, defaults, false, params.projectPath, isFirstSetup);
+  const defaults = scopedDefaults(params.overrideDefaults ?? getUndetectedProjectDefaults(params.projectPath, params.uiLanguage));
+  const raw = await params.launchSetup({
+    defaults,
+    hasDetectedLangs: false,
+    projectPath: params.projectPath,
+    isFirstSetup,
+    uiLanguage: params.uiLanguage
+  });
   if (raw === null) return null;
-  const config = sanitizeBootstrapConfig(raw);
+  const config = sanitizeBootstrapConfig(raw, params.uiLanguage);
 
   if (config.syncToWorkspaceConfig === true) {
     await applyKnownConfigs(config, params.projectPath);
@@ -359,12 +387,12 @@ export async function ensureBootstrapConfig(params: {
   return config;
 }
 
-function getDetectedProjectDefaults(projectPath: string): ExtractBootstrapConfig {
-  return inferBootstrapConfigFromCurrent(projectPath);
+function getDetectedProjectDefaults(projectPath: string, uiLanguage: string): ExtractBootstrapConfig {
+  return inferBootstrapConfigFromCurrent(projectPath, uiLanguage);
 }
 
-function getUndetectedProjectDefaults(projectPath: string): ExtractBootstrapConfig {
-  return inferBootstrapConfigFromCurrent(projectPath);
+function getUndetectedProjectDefaults(projectPath: string, uiLanguage: string): ExtractBootstrapConfig {
+  return inferBootstrapConfigFromCurrent(projectPath, uiLanguage);
 }
 
 function getSetupSeenKey(projectPath: string) {
@@ -378,52 +406,55 @@ async function setConfigIfChanged<T>(key: string, value: T, targetScope: "global
   await setConfig(key, value, targetScope);
 }
 
-function inferBootstrapConfigFromCurrent(projectPath: string): ExtractBootstrapConfig {
-  const defaults = defaultBootstrapConfig();
+function inferBootstrapConfigFromCurrent(projectPath: string, uiLanguage: string): ExtractBootstrapConfig {
+  const defaults = defaultBootstrapConfig(uiLanguage);
   const languagePath = getConfig<string>("workspace.languagePath", defaults.languagePath);
   const languagePathAbs = path.isAbsolute(languagePath) ? languagePath : path.join(projectPath, languagePath);
 
-  return sanitizeBootstrapConfig({
-    ...defaults,
-    framework: getConfig<string>("i18nFeatures.framework", defaults.framework),
-    languagePath: toRelativePath(languagePathAbs),
-    fileExtensions: getConfig<string[]>("extract.fileExtensions", defaults.fileExtensions),
-    vueTemplateFunctionName: getConfig<string>("extract.vueTemplateFunctionName", defaults.vueTemplateFunctionName),
-    vueScriptFunctionName: getConfig<string>("extract.vueScriptFunctionName", defaults.vueScriptFunctionName),
-    jsTsFunctionName: getConfig<string>("extract.jsTsFunctionName", defaults.jsTsFunctionName),
-    vueScriptImportLines: getConfig<string[]>("extract.vueScriptImportLines", defaults.vueScriptImportLines),
-    vueScriptSetupLines: getConfig<string[]>("extract.vueScriptSetupLines", defaults.vueScriptSetupLines),
-    jsTsImportLines: getConfig<string[]>("extract.jsTsImportLines", defaults.jsTsImportLines),
-    jsTsSetupLines: getConfig<string[]>("extract.jsTsSetupLines", defaults.jsTsSetupLines),
-    skipJsTsInjection: getConfig<boolean>("extract.skipJsTsInjection", defaults.skipJsTsInjection),
-    skipVueScriptInjection: getConfig<boolean>("extract.skipVueScriptInjection", defaults.skipVueScriptInjection),
-    onlyExtractSourceLanguageText: getConfig<boolean>("extract.onlyExtractSourceLanguageText", defaults.onlyExtractSourceLanguageText),
-    vueTemplateIncludeAttrs: getConfig<string[]>("extract.vueTemplateIncludeAttrs", defaults.vueTemplateIncludeAttrs),
-    vueTemplateExcludeAttrs: getConfig<string[]>("extract.vueTemplateExcludeAttrs", defaults.vueTemplateExcludeAttrs),
-    ignoreTexts: getConfig<string[]>("extract.ignoreTexts", defaults.ignoreTexts),
-    ignoreCallExpressionCallees: getConfig<string[]>("extract.ignoreCallExpressionCallees", defaults.ignoreCallExpressionCallees),
-    translationFailureStrategy: getConfig<"skip" | "fill-with-source" | "abort">(
-      "extract.translationFailureStrategy",
-      defaults.translationFailureStrategy
-    ),
-    extractScopePaths: getConfig<string[]>("workspace.extractScopeWhitelist", defaults.extractScopePaths),
-    ignoreExtractScopePaths: getConfig<string[]>("workspace.extractScopeBlacklist", defaults.ignoreExtractScopePaths),
-    keyPrefix: getConfig<"none" | "auto-path">("writeRules.keyPrefix", defaults.keyPrefix),
-    languageStructure: getConfig<"flat" | "nested">("writeRules.languageStructure", defaults.languageStructure),
-    sortRule: getConfig<"none" | "byKey" | "byPosition">("writeRules.sortRule", defaults.sortRule),
-    keyStrategy: getConfig<"english" | "pinyin">("writeRules.keyStrategy", defaults.keyStrategy),
-    keyStyle: getConfig<"camelCase" | "PascalCase" | "snake_case" | "kebab-case" | "raw">("writeRules.keyStyle", defaults.keyStyle),
-    maxKeyLength: getConfig<number>("writeRules.maxKeyLength", defaults.maxKeyLength),
-    invalidKeyStrategy: getConfig<"fallback" | "ai">("writeRules.invalidKeyStrategy", defaults.invalidKeyStrategy),
-    indentType: getConfig<"auto" | "space" | "tab">("writeRules.indentType", defaults.indentType),
-    indentSize: getConfig<number | null>("writeRules.indentSize", defaults.indentSize),
-    quoteStyleForKey: getConfig<"none" | "single" | "double" | "auto">("writeRules.quoteStyleForKey", defaults.quoteStyleForKey),
-    quoteStyleForValue: getConfig<"single" | "double" | "auto">("writeRules.quoteStyleForValue", defaults.quoteStyleForValue),
-    stopWords: getConfig<string[]>("writeRules.stopWords", defaults.stopWords),
-    stopPrefixes: getConfig<string[]>("writeRules.stopPrefixes", defaults.stopPrefixes),
-    referenceLanguage: getConfig<string>("translationServices.referenceLanguage", defaults.referenceLanguage),
-    targetLanguages: defaults.targetLanguages
-  });
+  return sanitizeBootstrapConfig(
+    {
+      ...defaults,
+      framework: getConfig<string>("i18nFeatures.framework", defaults.framework),
+      languagePath: toRelativePath(languagePathAbs),
+      fileExtensions: getConfig<string[]>("extract.fileExtensions", defaults.fileExtensions),
+      vueTemplateFunctionName: getConfig<string>("extract.vueTemplateFunctionName", defaults.vueTemplateFunctionName),
+      vueScriptFunctionName: getConfig<string>("extract.vueScriptFunctionName", defaults.vueScriptFunctionName),
+      jsTsFunctionName: getConfig<string>("extract.jsTsFunctionName", defaults.jsTsFunctionName),
+      vueScriptImportLines: getConfig<string[]>("extract.vueScriptImportLines", defaults.vueScriptImportLines),
+      vueScriptSetupLines: getConfig<string[]>("extract.vueScriptSetupLines", defaults.vueScriptSetupLines),
+      jsTsImportLines: getConfig<string[]>("extract.jsTsImportLines", defaults.jsTsImportLines),
+      jsTsSetupLines: getConfig<string[]>("extract.jsTsSetupLines", defaults.jsTsSetupLines),
+      skipJsTsInjection: getConfig<boolean>("extract.skipJsTsInjection", defaults.skipJsTsInjection),
+      skipVueScriptInjection: getConfig<boolean>("extract.skipVueScriptInjection", defaults.skipVueScriptInjection),
+      onlyExtractSourceLanguageText: getConfig<boolean>("extract.onlyExtractSourceLanguageText", defaults.onlyExtractSourceLanguageText),
+      vueTemplateIncludeAttrs: getConfig<string[]>("extract.vueTemplateIncludeAttrs", defaults.vueTemplateIncludeAttrs),
+      vueTemplateExcludeAttrs: getConfig<string[]>("extract.vueTemplateExcludeAttrs", defaults.vueTemplateExcludeAttrs),
+      ignoreTexts: getConfig<string[]>("extract.ignoreTexts", defaults.ignoreTexts),
+      ignoreCallExpressionCallees: getConfig<string[]>("extract.ignoreCallExpressionCallees", defaults.ignoreCallExpressionCallees),
+      translationFailureStrategy: getConfig<"skip" | "fill-with-source" | "abort">(
+        "extract.translationFailureStrategy",
+        defaults.translationFailureStrategy
+      ),
+      extractScopePaths: getConfig<string[]>("workspace.extractScopeWhitelist", defaults.extractScopePaths),
+      ignoreExtractScopePaths: getConfig<string[]>("workspace.extractScopeBlacklist", defaults.ignoreExtractScopePaths),
+      keyPrefix: getConfig<"none" | "auto-path">("writeRules.keyPrefix", defaults.keyPrefix),
+      languageStructure: getConfig<"flat" | "nested">("writeRules.languageStructure", defaults.languageStructure),
+      sortRule: getConfig<"none" | "byKey" | "byPosition">("writeRules.sortRule", defaults.sortRule),
+      keyStrategy: getConfig<"english" | "pinyin">("writeRules.keyStrategy", defaults.keyStrategy),
+      keyStyle: getConfig<"camelCase" | "PascalCase" | "snake_case" | "kebab-case" | "raw">("writeRules.keyStyle", defaults.keyStyle),
+      maxKeyLength: getConfig<number>("writeRules.maxKeyLength", defaults.maxKeyLength),
+      invalidKeyStrategy: getConfig<"fallback" | "ai">("writeRules.invalidKeyStrategy", defaults.invalidKeyStrategy),
+      indentType: getConfig<"auto" | "space" | "tab">("writeRules.indentType", defaults.indentType),
+      indentSize: getConfig<number | null>("writeRules.indentSize", defaults.indentSize),
+      quoteStyleForKey: getConfig<"none" | "single" | "double" | "auto">("writeRules.quoteStyleForKey", defaults.quoteStyleForKey),
+      quoteStyleForValue: getConfig<"single" | "double" | "auto">("writeRules.quoteStyleForValue", defaults.quoteStyleForValue),
+      stopWords: getConfig<string[]>("writeRules.stopWords", defaults.stopWords),
+      stopPrefixes: getConfig<string[]>("writeRules.stopPrefixes", defaults.stopPrefixes),
+      referenceLanguage: getConfig<string>("translationServices.referenceLanguage", defaults.referenceLanguage),
+      targetLanguages: defaults.targetLanguages
+    },
+    uiLanguage
+  );
 }
 
 async function applyKnownConfigs(config: ExtractBootstrapConfig, projectPath: string) {
@@ -516,159 +547,4 @@ async function ensureTranslationFiles(config: ExtractBootstrapConfig, projectPat
     if (fs.existsSync(filePath)) continue;
     await fs.promises.writeFile(filePath, "{}\n", "utf8");
   }
-}
-
-function openBootstrapWebview(
-  context: vscode.ExtensionContext,
-  defaults: ExtractBootstrapConfig,
-  hasDetectedLangs: boolean,
-  projectPath: string,
-  isFirstSetup: boolean
-): Promise<BootstrapRaw | null> {
-  return new Promise(resolve => {
-    const panel = vscode.window.createWebviewPanel("i18nMage.extractSetup", t("command.fix.i18nMageSetup"), vscode.ViewColumn.One, {
-      enableScripts: true,
-      retainContextWhenHidden: false,
-      localResourceRoots: [vscode.Uri.file(path.join(context.extensionPath, "dist", "webviews"))]
-    });
-    panel.iconPath = vscode.Uri.file(path.join(context.extensionPath, "images", "icon.png"));
-
-    const nonce = Math.random().toString(36).slice(2);
-    const scriptPath = vscode.Uri.file(path.join(context.extensionPath, "dist", "webviews", "extract-setup.js"));
-    const scriptSrc = panel.webview.asWebviewUri(scriptPath).toString();
-
-    panel.webview.html = `<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline' ${panel.webview.cspSource}; script-src 'nonce-${nonce}' ${panel.webview.cspSource};">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Extract Setup</title>
-</head>
-<body>
-  <div id="root"></div>
-  <script nonce="${nonce}">
-    window.webviewData = ${JSON.stringify({
-      language: vscode.env.language,
-      hasDetectedLangs,
-      isFirstSetup,
-      defaults,
-      langAliasCustomMappings: getCacheConfig<Record<string, string[]>>("translationServices.langAliasCustomMappings", {}),
-      availableLanguages: Array.from(
-        new Map(
-          Object.entries(LANG_CODE_MAPPINGS).map(([key, info]) => {
-            const code = info.ggCode || key;
-            return [code, { code, label: `${info.cnName} (${code})` }];
-          })
-        ).values()
-      )
-    }).replace(/</g, "\\u003c")};
-    window.addEventListener('load', () => {
-      setTimeout(() => {
-        const root = document.getElementById('root');
-        if (root) {
-          root.setAttribute('tabindex', '-1');
-          root.focus();
-        }
-        document.body.setAttribute('tabindex', '-1');
-        document.body.focus();
-        window.focus();
-      }, 100);
-    });
-  </script>
-  <script nonce="${nonce}" type="module" src="${scriptSrc}"></script>
-</body>
-</html>`;
-
-    let settled = false;
-    const dispose = panel.webview.onDidReceiveMessage((msg: { type: string; value?: unknown }) => {
-      if (msg.type === "save") {
-        const raw = (msg.value ?? null) as BootstrapRaw | null;
-        if (raw === null) {
-          NotificationManager.showError(t("command.fix.invalidFormValue"));
-          return;
-        }
-        const parsed = sanitizeBootstrapConfig(raw);
-        const validationError = getApplyValidationError({
-          hasDetectedLangs,
-          fileExtensions: parsed.fileExtensions,
-          framework: parsed.framework,
-          languagePath: parsed.languagePath,
-          targetLanguages: parsed.targetLanguages,
-          jsTsFunctionName: parsed.jsTsFunctionName,
-          jsTsImportLines: parsed.jsTsImportLines,
-          vueScriptImportLines: parsed.vueScriptImportLines,
-          skipJsTsInjection: parsed.skipJsTsInjection,
-          skipVueScriptInjection: parsed.skipVueScriptInjection
-        });
-        if (validationError.length > 0) {
-          NotificationManager.showError(validationError);
-          return;
-        }
-        if (parsed.extractScopePaths.length > 0) {
-          const invalidScopePaths: string[] = [];
-          const validScopePaths: string[] = [];
-          for (const scopePath of parsed.extractScopePaths) {
-            const absoluteScopePath = path.isAbsolute(scopePath) ? scopePath : path.join(projectPath, scopePath);
-            if (!fs.existsSync(absoluteScopePath)) {
-              invalidScopePaths.push(scopePath);
-              continue;
-            }
-            validScopePaths.push(scopePath);
-          }
-          if (invalidScopePaths.length > 0) {
-            NotificationManager.showWarning(t("extractSetup.errorExtractScopePathInvalid", invalidScopePaths.join(", ")));
-            if (Array.isArray(raw.extractScopePaths)) {
-              raw.extractScopePaths = validScopePaths;
-            } else if (typeof raw.extractScopePathsText === "string") {
-              raw.extractScopePathsText = validScopePaths.join(", ");
-            } else {
-              raw.extractScopePaths = validScopePaths;
-            }
-          }
-        }
-        if (parsed.ignoreExtractScopePaths.length > 0) {
-          const invalidIgnorePaths: string[] = [];
-          const validIgnorePaths: string[] = [];
-          for (const ignorePath of parsed.ignoreExtractScopePaths) {
-            const absoluteIgnorePath = path.isAbsolute(ignorePath) ? ignorePath : path.join(projectPath, ignorePath);
-            if (!fs.existsSync(absoluteIgnorePath)) {
-              invalidIgnorePaths.push(ignorePath);
-              continue;
-            }
-            validIgnorePaths.push(ignorePath);
-          }
-          if (invalidIgnorePaths.length > 0) {
-            NotificationManager.showWarning(t("extractSetup.errorIgnoreScopePathInvalid", invalidIgnorePaths.join(", ")));
-            if (Array.isArray(raw.ignoreExtractScopePaths)) {
-              raw.ignoreExtractScopePaths = validIgnorePaths;
-            } else if (typeof raw.ignoreExtractScopePathsText === "string") {
-              raw.ignoreExtractScopePathsText = validIgnorePaths.join(", ");
-            } else {
-              raw.ignoreExtractScopePaths = validIgnorePaths;
-            }
-          }
-        }
-        settled = true;
-        panel.dispose();
-        resolve(raw);
-      } else if (msg.type === "cancel") {
-        settled = true;
-        panel.dispose();
-        resolve(null);
-      } else if (msg.type === "error") {
-        const detail = typeof msg.value === "string" ? msg.value : t("command.fix.invalidFormValue");
-        NotificationManager.showError(detail);
-      }
-    });
-
-    panel.onDidDispose(() => {
-      dispose.dispose();
-      if (!settled) {
-        resolve(null);
-      }
-    });
-
-    panel.reveal(vscode.ViewColumn.One);
-  });
 }
