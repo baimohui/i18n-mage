@@ -57,6 +57,7 @@ export interface TEntry {
     text: string;
     regex: RegExp;
     name: string;
+    key: string;
     boundPrefix: string;
     boundKey: string;
     vars: string[];
@@ -75,6 +76,7 @@ export interface FixedTEntry {
 
 export interface PEntry {
   name: string;
+  key: string;
   value: string;
   pos: string;
 }

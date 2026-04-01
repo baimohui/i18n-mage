@@ -3,7 +3,7 @@ import * as path from "path";
 import LangMage from "@/core/LangMage";
 import { wrapWithProgress } from "@/utils/wrapWithProgress";
 import { registerDisposable } from "@/utils/dispose";
-import { getValueByAmbiguousEntryName } from "@/utils/regex";
+import { resolveEntryKeyFromName } from "@/utils/regex";
 import { isPathInsideDirectory, isSamePath, toRelativePath } from "@/utils/fs";
 import { t } from "@/utils/i18n";
 import { NotificationManager } from "@/utils/notification";
@@ -30,7 +30,7 @@ export function registerExportCommand() {
     }, [] as string[]);
 
     const matchedKeys = matchedEntryNames.reduce((acc, entryName) => {
-      const key = getValueByAmbiguousEntryName(tree, entryName);
+      const key = resolveEntryKeyFromName(tree, entryName);
       if (typeof key === "string" && Object.hasOwn(dictionary, key)) {
         acc.push(key);
       }

@@ -14,7 +14,7 @@ import { getLangCode } from "@/utils/langKey";
 import { TEntry, I18N_FRAMEWORK } from "@/types";
 import {
   genKeyFromText,
-  getValueByAmbiguousEntryName,
+  resolveEntryKeyFromName,
   internalToDisplayName,
   generateKey,
   unescapeString,
@@ -223,7 +223,7 @@ export class FixHandler {
       namePrefix = this.ctx.keyPrefix;
     }
     const newIdSet = new Set<string>();
-    const checkExisted = (key: string) => Boolean(getValueByAmbiguousEntryName(this.ctx.entryTree, key)) || newIdSet.has(key);
+    const checkExisted = (key: string) => Boolean(resolveEntryKeyFromName(this.ctx.entryTree, key)) || newIdSet.has(key);
     needTranslateList.forEach((entry, index) => {
       if (genNameList[index] === "") return;
       const id = genNameList[index];

@@ -17,7 +17,7 @@ import {
   catchTEntries,
   catchLiteralEntries,
   extractLangDataFromDir,
-  getValueByAmbiguousEntryName,
+  resolveEntryKeyFromName,
   flattenNestedObj,
   escapeString,
   getPathSegsFromId,
@@ -109,7 +109,7 @@ export class ReadHandler {
     const ambiguousNameCache = new Map<string, string | undefined>();
     const resolveAmbiguousName = (name: string) => {
       if (!ambiguousNameCache.has(name)) {
-        ambiguousNameCache.set(name, getValueByAmbiguousEntryName(this.ctx.entryTree, name));
+        ambiguousNameCache.set(name, resolveEntryKeyFromName(this.ctx.entryTree, name));
       }
       return ambiguousNameCache.get(name);
     };
@@ -140,7 +140,7 @@ export class ReadHandler {
         cacheHitCount++;
       } else {
         const fileContent = fs.readFileSync(filePath, "utf8");
-        tItems = catchTEntries(fileContent, Object.keys(this.ctx.entryTree));
+        tItems = catchTEntries(fileContent, this.ctx.entryTree);
         if (this.ctx.scanStringLiterals) {
           literalItems = catchLiteralEntries(fileContent, this.ctx.entryTree, path.basename(filePath));
         }
@@ -190,7 +190,7 @@ export class ReadHandler {
           }
           usedEntryNameList = dynamicEntryMatchCache.get(dynamicCacheKey) ?? [];
         } else {
-          usedEntryNameList = resolveAmbiguousName(nameInfo.name) === undefined ? [] : [nameInfo.name];
+          usedEntryNameList = nameInfo.key ? [unescapeString(nameInfo.key)] : [];
         }
         if (usedEntryNameList.length === 0) {
           if (this.ctx.ignoredUndefinedEntries.includes(nameInfo.text)) continue;

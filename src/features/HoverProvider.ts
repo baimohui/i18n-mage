@@ -1,7 +1,7 @@
 import * as vscode from "vscode";
 import LangMage from "@/core/LangMage";
 import path from "path";
-import { getValueByAmbiguousEntryName, displayToInternalName, escapeMarkdown, formatEscapeChar, unescapeString } from "@/utils/regex";
+import { resolveEntryKeyFromName, displayToInternalName, escapeMarkdown, formatEscapeChar, unescapeString } from "@/utils/regex";
 import { ActiveEditorState } from "@/utils/activeEditorState";
 import { isFileTooLarge, isPathInsideDirectory } from "@/utils/fs";
 import { t } from "@/utils/i18n";
@@ -27,11 +27,11 @@ export class HoverProvider implements vscode.HoverProvider {
       const entryName = entry.nameInfo.name;
       if (entry.dynamic) {
         const matchedNames = dynamicMatchInfo.get(entryName) || [];
-        const matchedKeys = matchedNames.map(name => getValueByAmbiguousEntryName(tree, name));
+        const matchedKeys = matchedNames.map(name => resolveEntryKeyFromName(tree, name));
         entryKeys.push(...matchedKeys.filter((key): key is string => key !== undefined));
       } else {
-        const entryKey = getValueByAmbiguousEntryName(tree, entryName);
-        if (entryKey !== undefined) {
+        const entryKey = entry.nameInfo.key || resolveEntryKeyFromName(tree, entryName);
+        if (typeof entryKey === "string" && entryKey.length > 0) {
           entryKeys.push(entryKey);
         }
       }

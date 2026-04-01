@@ -3,7 +3,7 @@ import LangMage from "@/core/LangMage";
 import { LangContextPublic, TEntry, UnmatchedLanguageAction } from "@/types";
 import { getCacheConfig } from "@/utils/config";
 import { getLangCode } from "@/utils/langKey";
-import { getValueByAmbiguousEntryName } from "@/utils/regex";
+import { resolveEntryKeyFromName } from "@/utils/regex";
 import { ActiveEditorState } from "@/utils/activeEditorState";
 import { DecoratorController } from "@/features/Decorator";
 import { Diagnostics } from "@/features/Diagnostics";
@@ -61,7 +61,10 @@ export function refreshTreeWithDeps(deps: RefreshTreeDeps): void {
         const matchedNames = ActiveEditorState.dynamicMatchInfo.get(entry.nameInfo.name) || [];
         matchedNames.forEach(name => {
           if (!definedEntriesInCurrentFile.find(item => item.nameInfo.name === name)) {
-            const newEntry = { ...entry, nameInfo: { ...entry.nameInfo, text: name, name: name, id: name } };
+            const newEntry = {
+              ...entry,
+              nameInfo: { ...entry.nameInfo, text: name, name: name, key: resolveEntryKeyFromName(mage.langDetail.tree, name) ?? "" }
+            };
             definedEntriesInCurrentFile.push(newEntry);
           }
         });
@@ -71,9 +74,8 @@ export function refreshTreeWithDeps(deps: RefreshTreeDeps): void {
     }
     undefinedEntriesInCurrentFile = Array.from(ActiveEditorState.undefinedEntries.values()).map(item => item[0]);
     if (isSearching) {
-      const tree = mage.langDetail.tree;
       definedEntriesInCurrentFile = definedEntriesInCurrentFile.filter(item => {
-        const key = getValueByAmbiguousEntryName(tree, item.nameInfo.name) ?? item.nameInfo.name;
+        const key = item.nameInfo.key || item.nameInfo.name;
         return matchesSearch(key);
       });
       undefinedEntriesInCurrentFile = undefinedEntriesInCurrentFile.filter(item => matchesSearch(item.nameInfo.text));

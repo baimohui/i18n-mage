@@ -1,5 +1,5 @@
 import * as vscode from "vscode";
-import { getValueByAmbiguousEntryName, internalToDisplayName, unescapeString } from "@/utils/regex";
+import { internalToDisplayName, unescapeString } from "@/utils/regex";
 import { registerDisposable } from "@/utils/dispose";
 import { t } from "@/utils/i18n";
 import LangMage from "@/core/LangMage";
@@ -44,7 +44,7 @@ export function registerBrowseTranslationsInFileCommand() {
   const mage = LangMage.getInstance();
   const disposable = vscode.commands.registerCommand("i18nMage.browseTranslationsInFile", async () => {
     const definedEntries = Array.from(ActiveEditorState.definedEntries.values());
-    const { dictionary, tree } = mage.langDetail;
+    const { dictionary } = mage.langDetail;
     const publicCtx = mage.getPublicContext();
 
     const displayLanguageSource = getCacheConfig<CompletionDisplayLanguageSource>(
@@ -59,8 +59,8 @@ export function registerBrowseTranslationsInFileCommand() {
 
     definedEntries.forEach(entries => {
       const entry = entries[0];
-      const entryKey = getValueByAmbiguousEntryName(tree, entry.nameInfo.name);
-      if (entryKey === undefined || visitedKeySet.has(entryKey)) return;
+      const entryKey = entry.nameInfo.key;
+      if (!entryKey || visitedKeySet.has(entryKey)) return;
 
       const valueByTargetLanguage = dictionary[entryKey]?.value?.[valueLanguage] ?? "";
       const fallbackValue = dictionary[entryKey]?.value?.[publicCtx.referredLang] ?? "";

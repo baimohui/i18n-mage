@@ -82,6 +82,7 @@ describe("core/handlers/FixHandler", () => {
           text: "Hello",
           regex: /^Hello$/,
           name: "Hello",
+          key: "",
           boundPrefix: "",
           boundKey: "",
           vars: []
@@ -201,6 +202,7 @@ describe("core/handlers/FixHandler", () => {
           text: "Hello",
           regex: /^Hello$/,
           name: "Hello",
+          key: "",
           boundPrefix: "",
           boundKey: "",
           vars: []
@@ -250,6 +252,7 @@ describe("core/handlers/FixHandler", () => {
           text: "Hello",
           regex: /^Hello$/,
           name: "Hello",
+          key: "",
           boundPrefix: "",
           boundKey: "",
           vars: []

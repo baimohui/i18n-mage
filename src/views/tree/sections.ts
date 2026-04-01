@@ -3,14 +3,7 @@ import { EntryTree, LangContextPublic, TEntry, UNMATCHED_LANGUAGE_ACTION, Unmatc
 import { t } from "@/utils/i18n";
 import { getLangText } from "@/utils/langKey";
 import { toRelativePath } from "@/utils/fs";
-import {
-  escapeMarkdown,
-  getValueByAmbiguousEntryName,
-  internalToDisplayName,
-  isEnglishVariable,
-  unescapeString,
-  validateLang
-} from "@/utils/regex";
+import { escapeMarkdown, internalToDisplayName, isEnglishVariable, unescapeString, validateLang } from "@/utils/regex";
 import { ExtendedTreeItem, FileItem } from "./models";
 import { countDictionaryLeaves, getFilteredDictionaryTreeNode } from "./searchHelpers";
 import { checkLangSyncInfo, getSyncInfo } from "./syncHelpers";
@@ -199,7 +192,7 @@ export function getCurrentFileChildren(ctx: TreeSectionContext, element: Extende
   if (element.level === 1) {
     const entries = element.type === "defined" ? ctx.definedEntriesInCurrentFile : ctx.undefinedEntriesInCurrentFile;
     return entries.map(entry => {
-      const key = getValueByAmbiguousEntryName(ctx.langInfo.tree, entry.nameInfo.name) ?? entry.nameInfo.name;
+      const key = entry.nameInfo.key || entry.nameInfo.name;
       const entryInfo = ctx.langInfo.dictionary[key]?.value ?? {};
       const contextValueList = ["COPY_NAME"];
       let description = "";

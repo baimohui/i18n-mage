@@ -1,7 +1,7 @@
 import * as vscode from "vscode";
 import { ActiveEditorState } from "@/utils/activeEditorState";
 import LangMage from "@/core/LangMage";
-import { getFileLocationFromId, getValueByAmbiguousEntryName } from "@/utils/regex";
+import { getFileLocationFromId } from "@/utils/regex";
 import { NotificationManager } from "@/utils/notification";
 import { t } from "@/utils/i18n";
 import { treeInstance } from "@/views/tree";
@@ -49,15 +49,14 @@ export class RenameKeyProvider implements vscode.RenameProvider {
     return workspaceEdit;
   }
   prepareRename(document: vscode.TextDocument, position: vscode.Position) {
-    const mage = LangMage.getInstance();
     const definedEntries = Array.from(ActiveEditorState.definedEntries.values()).flat();
     for (const entry of definedEntries) {
       if (entry.dynamic || !entry.visible || !entry.funcCall) continue;
       const [startPos, endPos] = entry.pos.split(",").map(pos => document.positionAt(+pos));
       const range = new vscode.Range(startPos, endPos);
       if (range.contains(position)) {
-        const entryKey = getValueByAmbiguousEntryName(mage.langDetail.tree, entry.nameInfo.name);
-        if (entryKey === undefined) return null;
+        const entryKey = entry.nameInfo.key;
+        if (!entryKey) return null;
         return { range, placeholder: entryKey };
       }
     }

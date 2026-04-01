@@ -7,7 +7,7 @@ import {
   getFileLocationFromId,
   getLangTree,
   getParentKeys,
-  getValueByAmbiguousEntryName,
+  resolveEntryKeyFromName,
   setValueByEscapedEntryName,
   traverseLangTree
 } from "@/utils/regex/treeUtils";
@@ -42,9 +42,9 @@ describe("utils/regex/treeUtils", () => {
     assert.deepStrictEqual(tree, { "a.b": { c: "x" } });
   });
 
-  it("getValueByAmbiguousEntryName 应尝试不同切分", () => {
+  it("resolveEntryKeyFromName 应尝试不同切分", () => {
     const tree = { "a.b": "x", a: { c: "y" } };
-    assert.strictEqual(getValueByAmbiguousEntryName(tree, "a.b"), "x");
+    assert.strictEqual(resolveEntryKeyFromName(tree, "a.b"), "x");
   });
 
   it("getCommonFilePaths 应返回所有文件路径", () => {

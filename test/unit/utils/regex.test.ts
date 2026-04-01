@@ -184,5 +184,11 @@ describe("regex.js 正则方法", () => {
       const entries = catchTEntries(`const msg = t("这是\n多行文本");`);
       assert.strictEqual(entries[0].nameInfo.text, "这是\n多行文本");
     });
+
+    it("应为静态词条提前绑定解析后的 key", () => {
+      const entries = catchTEntries('const msg = t("a.b");', { "a.b": "a\\.b" });
+      assert.strictEqual(entries[0].nameInfo.name, "a.b");
+      assert.strictEqual(entries[0].nameInfo.key, "a\\.b");
+    });
   });
 });

@@ -56,21 +56,38 @@ export function setValueByEscapedEntryName(EntryTree: EntryTree, escapedPath: st
   current[pathParts[pathParts.length - 1]] = value as string;
 }
 
-export function getValueByAmbiguousEntryName(EntryTree: EntryTree, ambiguousPath: string): string | undefined {
-  if (typeof EntryTree !== "object" || EntryTree === null) {
+export function resolveEntryKeyFromName(entryTree: EntryTree, entryName: string): string | undefined {
+  // 增加健壮性检查
+  if (typeof entryTree !== "object" || entryTree === null) {
     return undefined;
   }
-  const parts = ambiguousPath.split(".");
+  if (typeof entryName !== "string" || !entryName.trim()) {
+    return undefined;
+  }
+
+  // 清理 entryName，移除可能的多行文本和无效字符
+  const cleanedEntryName = entryName.trim().replace(/\s+/g, " ");
+
+  const parts = cleanedEntryName.split(".");
   const m = parts.length;
   if (m === 0) {
     return undefined;
   }
-  const numCombinations = 1 << (m - 1);
+
+  // 限制组合数，避免处理过长的 entryName 时性能问题
+  const maxCombinations = 1000;
+  const numCombinations = Math.min(1 << (m - 1), maxCombinations);
+
   for (let i = 0; i < numCombinations; i++) {
-    const split = buildSplit(parts, i, m);
-    const value = accessPath(EntryTree, split);
-    if (typeof value === "string") {
-      return value;
+    try {
+      const split = buildSplit(parts, i, m);
+      const value = accessPath(entryTree, split);
+      if (typeof value === "string") {
+        return value;
+      }
+    } catch {
+      // 捕获并忽略处理过程中的错误，继续尝试其他组合
+      continue;
     }
   }
   return undefined;

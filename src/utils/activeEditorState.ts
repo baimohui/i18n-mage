@@ -1,5 +1,5 @@
 import * as vscode from "vscode";
-import { catchLiteralEntries, catchTEntries, getValueByAmbiguousEntryName, isValidI18nCallablePath } from "./regex";
+import { catchLiteralEntries, catchTEntries, isValidI18nCallablePath, resolveEntryKeyFromName } from "./regex";
 import LangMage from "@/core/LangMage";
 import { getCacheConfig } from "./config";
 import path from "path";
@@ -56,10 +56,10 @@ export class ActiveEditorState {
     if (isValidI18nCallablePath(filePath)) {
       const mage = LangMage.getInstance();
       const text = editor.document.getText();
-      const entries = catchTEntries(text, Object.keys(mage.langDetail.tree));
+      const entries = catchTEntries(text, mage.langDetail.tree);
       const tEntryKeyPosSet = new Set(entries.map(entry => entry.pos.split(",").slice(0, 2).join(",")));
       const publicCtx = mage.getPublicContext();
-      const { used: usedEntryMap, tree } = mage.langDetail;
+      const { used: usedEntryMap } = mage.langDetail;
       const usedEntryNames = Object.keys(usedEntryMap);
       for (const entry of entries) {
         const [startPos, endPos] = entry.pos.split(",").map(pos => editor.document.positionAt(+pos - 1));
@@ -76,8 +76,8 @@ export class ActiveEditorState {
           this.dynamicMatchInfo.set(name, matchKeys);
           continue;
         }
-        const key = getValueByAmbiguousEntryName(tree, name);
-        if (key === undefined && !publicCtx.ignoredUndefinedEntries.includes(name)) {
+        const key = entry.nameInfo.key;
+        if (!key && !publicCtx.ignoredUndefinedEntries.includes(name)) {
           this.setUndefinedEntry(name, { ...entry, visible });
         }
       }
@@ -98,6 +98,7 @@ export class ActiveEditorState {
               text: entry.name,
               regex: new RegExp(entry.name),
               name: entry.name,
+              key: entry.key,
               boundKey: "",
               boundPrefix: "",
               vars: []
@@ -153,7 +154,9 @@ export class ActiveEditorState {
     if (!editor) return;
     const mage = LangMage.getInstance();
     const entry = this.getEntryAtPosition(editor.document, editor.selection.active);
-    const keyAtCursor = entry ? (getValueByAmbiguousEntryName(mage.langDetail.tree, entry.nameInfo.name) ?? "") : "";
+    const resolvedKey =
+      entry === undefined ? undefined : entry.nameInfo.key || resolveEntryKeyFromName(mage.langDetail.tree, entry.nameInfo.name);
+    const keyAtCursor = typeof resolvedKey === "string" ? resolvedKey : "";
     vscode.commands.executeCommand("setContext", "i18nMage.inKey", !!keyAtCursor);
     this.keyAtCursor = keyAtCursor ?? "";
   }

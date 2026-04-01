@@ -17,7 +17,7 @@ import { scanHardcodedTextCandidates } from "@/core/extract/astExtractService";
 import {
   genKeyFromText,
   genIdFromText,
-  getValueByAmbiguousEntryName,
+  resolveEntryKeyFromName,
   internalToDisplayName,
   unescapeString,
   generateKey,
@@ -588,7 +588,7 @@ export function registerExtractHardcodedTextsCommand(context: vscode.ExtensionCo
               keyPrefix === "manual-selection" ? manualPrefix : getPathPrefix(candidate.file, keyPrefix, stopPrefixes, nameSeparator);
             const baseName = generatedNameMap.get(text) ?? "";
             const checkExisted = (currentKey: string) =>
-              usedKeys.has(currentKey) || getValueByAmbiguousEntryName(langDetail.tree, currentKey) !== undefined;
+              usedKeys.has(currentKey) || resolveEntryKeyFromName(langDetail.tree, currentKey) !== undefined;
             key = `${prefix}${baseName}`;
             const invalid = baseName.length === 0 || baseName.length > maxKeyLength || checkExisted(key);
             if (invalid) {

@@ -1,11 +1,11 @@
 import * as vscode from "vscode";
-import { getValueByAmbiguousEntryName } from "@/utils/regex";
 import { registerDisposable } from "@/utils/dispose";
 import { t } from "@/utils/i18n";
 import { NotificationManager } from "@/utils/notification";
 import LangMage from "@/core/LangMage";
 import { treeInstance } from "@/views/tree";
 import { isPathInsideDirectory, isSamePath, toRelativePath } from "@/utils/fs";
+import { resolveEntryKeyFromName } from "@/utils/regex";
 
 type CopyEntriesTargetArg = vscode.Uri | { key?: string; meta?: { lang?: string }; stack?: string[]; data?: string[] } | undefined;
 
@@ -21,10 +21,10 @@ async function isDirectoryUri(uri: vscode.Uri) {
 export function registerCopyEntriesCommand() {
   const mage = LangMage.getInstance();
   const getEntriesFromCurrentFile = () => {
-    const { dictionary, tree } = mage.langDetail;
+    const { dictionary } = mage.langDetail;
     return treeInstance.definedEntriesInCurrentFile.reduce(
       (acc, item) => {
-        const key = getValueByAmbiguousEntryName(tree, item.nameInfo.name) as string;
+        const key = item.nameInfo.key;
         if (Object.hasOwn(dictionary, key)) {
           acc[key] = dictionary[key].value;
         }
@@ -51,7 +51,7 @@ export function registerCopyEntriesCommand() {
 
     const target = matchedEntryNames.reduce(
       (acc, entryName) => {
-        const key = getValueByAmbiguousEntryName(tree, entryName);
+        const key = resolveEntryKeyFromName(tree, entryName);
         if (typeof key === "string" && Object.hasOwn(dictionary, key)) {
           acc[key] = dictionary[key].value;
         }

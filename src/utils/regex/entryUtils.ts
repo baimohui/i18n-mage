@@ -10,7 +10,7 @@ import {
   AccessMode
 } from "@/types";
 import { escapeRegExp } from "./stringUtils";
-import { getValueByAmbiguousEntryName } from "./treeUtils";
+import { resolveEntryKeyFromName } from "./treeUtils";
 import { getCacheConfig } from "../config";
 
 export function catchLiteralEntries(fileContent: string, entryTree: EntryTree, fileName: string): PEntry[] {
@@ -23,49 +23,55 @@ export function catchLiteralEntries(fileContent: string, entryTree: EntryTree, f
       if (!tFuncNames.includes(name)) tFuncNames.push(name);
     });
   }
+  const regexLiteral = /\/(?![/*])(?:\\.|[^/\\\n])+\/[gimsuy]*/g;
+  const step1 = fileContent.replace(regexLiteral, match => {
+    return "*".repeat(match.length);
+  });
   const funcNamePattern = tFuncNames.map(fn => `\\b${fn}\\b`).join("|");
-  const withoutTRegex = new RegExp(`(\\b(?:${funcNamePattern})\\s*\\()(["'\`])((?:\\\\[\\s\\S]|(?!\\2)[^\\\\])*?\\2)`, "g");
-  const withoutTContent = fileContent.replace(withoutTRegex, (match, prefix, quote, content: string) => {
-    // 计算原字符串内容的长度
-    const contentLength = content.length + 1;
-    // 创建相同长度的占位符（使用*号）
-    const placeholder = "*".repeat(contentLength);
-    // 返回相同长度的替换结果
+  const withoutTRegex = new RegExp(`(\\b(?:${funcNamePattern})\\s*\\()(["'\`])((?:\\\\.|(?!\\2).)*?)\\2`, "g");
+  const result = step1.replace(withoutTRegex, (match, prefix, quote, content: string) => {
+    // +2 是包含前后引号
+    const placeholder = "*".repeat(content.length + 2);
     return `${prefix}${placeholder}`;
   });
   let res: RegExpExecArray | null = null;
   const entryInfoList: PEntry[] = [];
-  const regex = /(["'`])(?:\\[\s\S]|(?!\1)[^\\])*?\1/g;
   const commentRanges = getCommentRanges(fileContent);
-  while ((res = regex.exec(withoutTContent)) !== null) {
+
+  // 改进的正则表达式，能够处理正则表达式中的引号
+  const regex = /(["'`])(?:\\[\s\S]|(?!\1)[^\\])*?\1/g;
+
+  while ((res = regex.exec(result)) !== null) {
+    // 检查匹配是否在正则表达式中
     let entryName = displayToInternalName(res[0].slice(1, -1), Object.keys(entryTree));
     let entryValue = "";
+    let entryKey = "";
     const framework = getCacheConfig<I18nFramework>("i18nFeatures.framework");
     if (framework === I18N_FRAMEWORK.vscodeL10n && fileName === "package.json") {
       const match = entryName.match(/%(.*?)%(.*)/);
       if (match) {
         entryName = match[1];
         entryValue = match[2];
+        entryKey = match[1];
       }
     }
-    if (
-      !entryValue &&
-      (isPositionInComment(fileContent, res.index, commentRanges) ||
-        !isValidI18nVarName(entryName) ||
-        getValueByAmbiguousEntryName(entryTree, entryName) === undefined)
-    )
+    if (!entryValue) {
+      entryKey = resolveEntryKeyFromName(entryTree, entryName) ?? "";
+    }
+    if (!entryValue && (isPositionInComment(fileContent, res.index, commentRanges) || !isValidI18nVarName(entryName) || !entryKey))
       continue;
     const startPos = res.index;
     const endPos = startPos + res[0].length;
-    entryInfoList.push({ name: entryName, value: entryValue, pos: `${startPos},${endPos}` });
+    entryInfoList.push({ name: entryName, key: entryKey, value: entryValue, pos: `${startPos},${endPos}` });
   }
   return entryInfoList;
 }
 
-export function catchTEntries(fileContent: string, namespaces: string[] = []): TEntry[] {
+export function catchTEntries(fileContent: string, entryTree: EntryTree = {}): TEntry[] {
   const tFuncNames = getCacheConfig<string[]>("i18nFeatures.translationFunctionNames", []);
   const accessMode = getCacheConfig<AccessMode>("i18nFeatures.accessMode", ACCESS_MODE.function);
   const framework = getCacheConfig<I18nFramework>("i18nFeatures.framework", I18N_FRAMEWORK.none);
+  const namespaces = Object.keys(entryTree);
   if (!tFuncNames.length) tFuncNames.push("t");
   if (framework === I18N_FRAMEWORK.vueI18n) {
     ["t", "tc"].forEach(name => {
@@ -89,7 +95,7 @@ export function catchTEntries(fileContent: string, namespaces: string[] = []): T
   while ((tRes = tReg.exec(fileContent)) !== null) {
     const startPos = tRes.index - 1; // 起始位
     const offset = tRes[0].length; // 起始位离 t 函数内首个有效字符的距离
-    const entry = parseTEntry(fileContent, startPos, offset, commentRanges, namespaces);
+    const entry = parseTEntry(fileContent, startPos, offset, commentRanges, namespaces, entryTree);
     if (entry) {
       entryInfoList.push(entry);
     }
@@ -97,14 +103,14 @@ export function catchTEntries(fileContent: string, namespaces: string[] = []): T
   return entryInfoList;
 }
 
-/** 捕获对象属性访问形式的国际化键  前缀rootNames */
+/** 捕获对象属性访问形式的国际化键  前缀 rootNames */
 export function catchVariableEntries(fileContent: string, rootNames: string[], commentRanges?: [number, number][]): TEntry[] {
   const entries: TEntry[] = [];
 
-  /** 匹配对象属性访问形式  前缀rootNames */
+  /** 匹配对象属性访问形式  前缀 rootNames */
   const rootPattern = rootNames.map(fn => `\\b${escapeRegExp(fn)}`).join("|");
 
-  /** 正则 匹配对象属性访问形式  前缀rootNames 支持按.换行识别*/
+  /** 正则 匹配对象属性访问形式  前缀 rootNames 支持按。换行识别*/
   const propertyReg = new RegExp(
     `(?<=[$\\s.[({:="']{1})${rootPattern ? rootPattern + "\\s*\\." : ""}\\s*([a-zA-Z0-9_]+(?:\\s*\\.\\s*[a-zA-Z0-9_]+)*)`,
     "g"
@@ -146,6 +152,7 @@ export function catchVariableEntries(fileContent: string, rootNames: string[], c
         text: fullMatch,
         regex: new RegExp(`^${escapeRegExp(fullMatch)}$`),
         name: keyPath,
+        key: keyPath,
         /** 对象属性访问本身就是确定的层级结构，不支持也不需要这种 #...# 的标记语法 */
         boundPrefix: "",
         /** 对象属性访问形式中，属性路径本身就是键名，不需要额外通过 %...% 来指定 */
@@ -211,7 +218,8 @@ export function parseTEntry(
   startPos: number,
   offset: number,
   commentRanges?: [number, number][],
-  namespaces: string[] = []
+  namespaces: string[] = [],
+  entryTree?: EntryTree
 ): TEntry | null {
   let curPos = startPos + offset;
   const nameStartPos = curPos;
@@ -274,7 +282,7 @@ export function parseTEntry(
   if (entryNameForm.some(item => item.type === "logic")) return null;
   const entryRaw = fileContent.slice(startPos, curPos + 1);
   if (isPositionInComment(fileContent, startPos, commentRanges)) return null;
-  const nameInfo = getEntryNameInfoByForm(entryNameForm, entryVarList, namespaces);
+  const nameInfo = getEntryNameInfoByForm(entryNameForm, entryVarList, namespaces, entryTree);
   if (!nameInfo) return null;
   return {
     raw: entryRaw,
@@ -287,7 +295,8 @@ export function parseTEntry(
 export function getEntryNameInfoByForm(
   nameForm: { type: TEntryPartType; value: string }[],
   entryVarList: string[],
-  namespaces: string[] = []
+  namespaces: string[] = [],
+  entryTree?: EntryTree
 ) {
   let entryIndex = 0;
   let entryText = "";
@@ -393,11 +402,13 @@ export function getEntryNameInfoByForm(
   } else if (framework === I18N_FRAMEWORK.vueI18n) {
     entryReg = entryReg.replace(/\\\[([^\]]+)\\\]/g, "\\.\\d+");
   }
+  const internalName = displayToInternalName(entryText, namespaces);
   return {
     text: entryText,
     regex: new RegExp(`^${entryReg}$`),
     vars: varList,
-    name: displayToInternalName(entryText, namespaces),
+    name: internalName,
+    key: !entryTree || varList.length > 0 ? "" : (resolveEntryKeyFromName(entryTree, internalName) ?? ""),
     boundKey: entryKey,
     boundPrefix: entryPrefix
   };

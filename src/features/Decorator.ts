@@ -2,7 +2,7 @@ import * as vscode from "vscode";
 import path from "path";
 import LangMage from "@/core/LangMage";
 import { treeInstance } from "@/views/tree";
-import { getValueByAmbiguousEntryName, formatEscapeChar } from "@/utils/regex";
+import { formatEscapeChar, resolveEntryKeyFromName } from "@/utils/regex";
 import { getCacheConfig } from "@/utils/config";
 import { INLINE_HINTS_DISPLAY_MODE, InlineHintsDisplayMode } from "@/types";
 import { ActiveEditorState } from "@/utils/activeEditorState";
@@ -125,12 +125,10 @@ export class DecoratorController implements vscode.Disposable {
         if (!enableLooseKeyMatch) return;
         isLooseMatch = true;
         const matchedNames = dynamicMatchInfo.get(entry.nameInfo.name) || [];
-        const matchedKeys = matchedNames
-          .map(name => getValueByAmbiguousEntryName(tree, name))
-          .filter((key): key is string => key !== undefined);
+        const matchedKeys = matchedNames.map(name => resolveEntryKeyFromName(tree, name)).filter((key): key is string => key !== undefined);
         entryValue = matchedKeys.map(key => translations[key]).join(" | ");
       } else {
-        entryKey = getValueByAmbiguousEntryName(tree, entry.nameInfo.name) ?? "";
+        entryKey = entry.nameInfo.key;
         entryValue = entryKey ? translations[entryKey] : "";
       }
 
