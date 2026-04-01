@@ -209,7 +209,35 @@ export function exportPreviewData(
       const payload = nextPayloads[index];
       if (payload === undefined) return;
       if (!includeUnit) return;
-      payload.key = key;
+
+      // 保存旧的键名
+      const oldKey = payload.key;
+
+      // 确保 payload.keyChange 存在，以便 RewriteHandler 能够正确处理键名变更
+      if (!payload.keyChange) {
+        // 如果 payload.keyChange 不存在，创建一个新的
+        payload.keyChange = {
+          key: {
+            before: oldKey,
+            after: key
+          },
+          filePos: {
+            before: "",
+            after: ""
+          },
+          fullPath: {
+            before: oldKey,
+            after: key
+          }
+        };
+      } else {
+        // 如果 payload.keyChange 存在，更新 after 值
+        payload.keyChange.key.after = key;
+        payload.keyChange.fullPath.after = key;
+      }
+
+      // 注意：不要更新 payload.key，因为 RewriteHandler 会使用它作为 oldKey
+      // payload.key 应该保持为旧的键名，而 payload.keyChange.key.after 为新的键名
     });
 
     Object.entries(unit.localePayloadRefs).forEach(([locale, refs]) => {
