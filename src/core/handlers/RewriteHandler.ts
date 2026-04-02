@@ -87,7 +87,7 @@ export class RewriteHandler {
           const oldKey = payload.key;
           const { key, filePos, fullPath } = payload.keyChange;
           const newKey = key.after;
-          if (newKey === undefined) continue;
+          if (newKey === undefined || newKey === oldKey) continue;
           for (const lang of Object.keys(this.ctx.langCountryMap)) {
             if (Object.hasOwn(this.ctx.langCountryMap[lang], oldKey)) {
               const val = this.ctx.langCountryMap[lang][oldKey];

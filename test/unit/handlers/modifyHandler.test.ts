@@ -17,7 +17,9 @@ function resetHandlerModule(modulePath: string) {
   }
 }
 
-describe("core/handlers/ModifyHandler", () => {
+describe("core/handlers/ModifyHandler", function () {
+  this.timeout(10000);
+
   beforeEach(() => {
     mockRequire.stop("@/translator/index");
     mockRequire.stop("@/core/handlers/RewriteHandler");

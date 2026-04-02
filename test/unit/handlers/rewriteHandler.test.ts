@@ -25,6 +25,14 @@ describe("core/handlers/RewriteHandler", () => {
     resetHandlerModule("@/core/handlers/RewriteHandler");
   });
 
+  afterEach(() => {
+    mockRequire.stop("fs");
+    mockRequire.stop("@/utils/fs");
+    mockRequire.stop("@/utils/regex");
+    mockRequire.stop("@/core/handlers/RewriteHandler");
+    resetHandlerModule("@/core/handlers/RewriteHandler");
+  });
+
   it("add payload 应更新字典并写入文件", async () => {
     const writes: Array<{ path: string; content: string }> = [];
     mockRequire("fs", {

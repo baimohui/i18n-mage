@@ -201,43 +201,46 @@ export function exportPreviewData(
 
   units.forEach(unit => {
     const key = unit.keyDraft.trim() || unit.key;
+    const originalKey = unit.key;
     const keyValid = isValidEntryKey(key);
     const displayName = getDisplayNameFromKey(initialData, key);
     const includeUnit = unit.selected && keyValid;
+    const shouldRenameKey = includeUnit && unit.keyEditable && key !== originalKey;
+    const primaryPayloadIndex = shouldRenameKey ? unit.payloadIndices[0] : -1;
 
     unit.payloadIndices.forEach(index => {
       const payload = nextPayloads[index];
       if (payload === undefined) return;
       if (!includeUnit) return;
 
-      // 保存旧的键名
-      const oldKey = payload.key;
+      if (!shouldRenameKey) {
+        if (payload.keyChange?.key.before === payload.keyChange?.key.after) {
+          delete payload.keyChange;
+        }
+        return;
+      }
 
-      // 确保 payload.keyChange 存在，以便 RewriteHandler 能够正确处理键名变更
-      if (!payload.keyChange) {
-        // 如果 payload.keyChange 不存在，创建一个新的
+      if (index === primaryPayloadIndex) {
+        payload.key = originalKey;
         payload.keyChange = {
           key: {
-            before: oldKey,
+            before: originalKey,
             after: key
           },
           filePos: {
-            before: "",
-            after: ""
+            before: payload.keyChange?.filePos.before ?? "",
+            after: payload.keyChange?.filePos.after ?? ""
           },
           fullPath: {
-            before: oldKey,
+            before: payload.keyChange?.fullPath.before ?? originalKey,
             after: key
           }
         };
-      } else {
-        // 如果 payload.keyChange 存在，更新 after 值
-        payload.keyChange.key.after = key;
-        payload.keyChange.fullPath.after = key;
+        return;
       }
 
-      // 注意：不要更新 payload.key，因为 RewriteHandler 会使用它作为 oldKey
-      // payload.key 应该保持为旧的键名，而 payload.keyChange.key.after 为新的键名
+      payload.key = key;
+      delete payload.keyChange;
     });
 
     Object.entries(unit.localePayloadRefs).forEach(([locale, refs]) => {
@@ -271,7 +274,7 @@ export function exportPreviewData(
   });
 
   const filteredPayloads = nextPayloads.filter(payload => {
-    if (payload.keyChange) return true;
+    if (payload.keyChange && payload.keyChange.key.before !== payload.keyChange.key.after) return true;
     const count = Object.keys(payload.valueChanges ?? {}).length;
     return count > 0;
   });
