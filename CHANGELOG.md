@@ -5,6 +5,19 @@ All notable changes to the i18n Mage VS Code extension will be documented in thi
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.3.5] - 2026-04-02
+
+### Added
+- **Explorer Entry Management Menu**: Added "Entry Management" aggregate action to file/directory context menus in explorer, featuring four quick operations: Copy Entries, Export Entries, Extract Undefined Texts, and Extract Hard-coded Texts.
+- **Language File Decoration Enhancement**: Added inline decorations and hover information for translation content in language files, improving browsing experience.
+- **AI Prefix Selection Context Enhancement**: When using AI to select key prefixes during key generation, the file path is now passed along with the text content, providing richer context for better selection decisions.
+- **File Translation Browser Enhancement**: Enhanced file translation browsing with key display alongside translation content, with search functionality supporting key matching.
+- **Batch Search Results Copy**: Entry search now supports batch copying of all defined entries, all undefined entries, or all search results.
+- **Source Language Filtering**: Added source language-only matching filter option for entry search.
+
+### Fixed
+- **Preview Key Edit Persistence Issue**: Fixed issue where old key names persisted and were written to source language files after editing and applying key changes in the repair preview interface.
+
 ## [1.3.4] - 2026-03-25
 
 ### Added

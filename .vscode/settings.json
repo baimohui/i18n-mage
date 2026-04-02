@@ -49,5 +49,6 @@
   "i18n-mage.workspace.ignoredPaths": [
     "test",
     "dist"
-  ]
+  ],
+  "i18n-mage.translationServices.aiCustomPrompt": "You must follow strict terminology rules: “词条” → “entry” (use correct singular or plural forms: entry / entries based on context)"
 }
