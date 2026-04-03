@@ -20,7 +20,7 @@ export class IgnoredPathDecorationProvider implements vscode.FileDecorationProvi
     const isIgnored = ignoredPaths.some(item => isSamePath(uri.fsPath, item));
     if (!isIgnored) return undefined;
     return {
-      badge: "I",
+      badge: "👻",
       tooltip: t("common.ignoredPathDecoration"),
       color: new vscode.ThemeColor("gitDecoration.ignoredResourceForeground")
     };

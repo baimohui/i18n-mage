@@ -91,7 +91,9 @@ export default function launchExtractSetupWebview(
           jsTsImportLines: parsed.jsTsImportLines,
           vueScriptImportLines: parsed.vueScriptImportLines,
           skipJsTsInjection: parsed.skipJsTsInjection,
-          skipVueScriptInjection: parsed.skipVueScriptInjection
+          skipVueScriptInjection: parsed.skipVueScriptInjection,
+          keyPrefix: parsed.keyPrefix,
+          prefixCandidates: parsed.prefixCandidates
         });
         if (validationError.length > 0) {
           NotificationManager.showError(validationError);

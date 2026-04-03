@@ -118,7 +118,7 @@
   "config.enableKeyTagRule.desc": "启用 %key% 命名规则",
   "config.enablePrefixTagRule.desc": "启用 #prefix# 前缀规则",
   "config.analysis.title": "检查规则",
-  "config.extract.title": "硬编码文案提取",
+  "config.extract.title": "硬编码提取",
   "config.extract.fileExtensions.desc": "用于提取硬编码文案的扫描文件后缀",
   "config.extract.jsTsFunctionName.desc": "JS/TS 文件使用的国际化函数名",
   "config.extract.jsTsImportLines.desc": "JS/TS 文件导入语句（数组，多行）",

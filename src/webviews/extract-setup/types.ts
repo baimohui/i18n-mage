@@ -17,7 +17,8 @@ export interface ExtractSetupWebviewData {
     jsTsSetupLines: string[];
     skipJsTsInjection: boolean;
     skipVueScriptInjection: boolean;
-    keyPrefix: "none" | "auto-path";
+    keyPrefix: "none" | "auto-path" | "ai-selection";
+    prefixCandidates: string[];
     languageStructure: "flat" | "nested";
     sortRule: "none" | "byKey" | "byPosition";
     keyStrategy: "english" | "pinyin";

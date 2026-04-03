@@ -118,7 +118,7 @@
   "config.enableKeyTagRule.desc": "Enable %key% naming rule",
   "config.enablePrefixTagRule.desc": "Enable #prefix# rule",
   "config.analysis.title": "Analysis Rules",
-  "config.extract.title": "Hardcoded Text Extraction",
+  "config.extract.title": "Hardcoded Extraction",
   "config.extract.fileExtensions.desc": "File extensions for hardcoded text extraction scanning",
   "config.extract.jsTsFunctionName.desc": "i18n function name used in JS/TS files",
   "config.extract.jsTsImportLines.desc": "Import statements for JS/TS files (array, multi-line)",

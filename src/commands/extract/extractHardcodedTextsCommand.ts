@@ -33,8 +33,10 @@ import { planEnglishKeyGeneration, planTextsByLanguage } from "@/core/extract/ex
 import { getLangCode } from "@/utils/langKey";
 import translateTo from "@/translator";
 import * as pinyin from "tiny-pinyin";
-import { generateKeyFromAi } from "@/ai";
+import { generateKeyFromAi, selectPrefixFromAi } from "@/ai";
 import launchExtractScanConfirmWebview from "@/views/extractScanConfirmWebview";
+
+const AI_PREFIX_CANDIDATE_LIMIT = 30;
 
 function getPathPrefix(candidateFile: string, keyPrefix: string, stopPrefixes: string[], nameSeparator: string) {
   if (keyPrefix !== "auto-path") return "";
@@ -95,6 +97,56 @@ async function ensureBootstrapLangFiles(
 
 function toUnique(values: string[]) {
   return Array.from(new Set(values.map(item => item.trim()).filter(Boolean)));
+}
+
+function normalizeSourceFilePathList(pathList: string[] = []) {
+  return Array.from(
+    new Set(
+      pathList
+        .map(item => item.trim())
+        .filter(Boolean)
+        .map(item => {
+          const relativePath = toRelativePath(item);
+          const normalized = (relativePath || item).replaceAll("\\", "/").trim();
+          return normalized;
+        })
+        .filter(Boolean)
+    )
+  ).sort((a, b) => a.localeCompare(b));
+}
+
+function collectPrefixUsageMap(prefixes: string[], separator: string) {
+  const usageMap: Record<string, number> = {};
+  const sep = separator || ".";
+  prefixes.forEach(prefix => {
+    usageMap[prefix] = 0;
+  });
+  prefixes.forEach(prefix => {
+    const token = `${prefix}${sep}`;
+    prefixes.forEach(key => {
+      if (key === prefix || key.startsWith(token)) {
+        usageMap[prefix]++;
+      }
+    });
+  });
+  return usageMap;
+}
+
+function pickTopPrefixCandidates(prefixes: string[], usageMap: Record<string, number>, limit = AI_PREFIX_CANDIDATE_LIMIT) {
+  if (prefixes.length <= limit) return prefixes;
+  return [...prefixes]
+    .sort((a, b) => {
+      const diff = (usageMap[b] ?? 0) - (usageMap[a] ?? 0);
+      return diff !== 0 ? diff : a.localeCompare(b);
+    })
+    .slice(0, limit);
+}
+
+function normalizeAiSelectedPrefix(selectedPrefix: string, candidates: string[]) {
+  const normalized = selectedPrefix.trim();
+  if (candidates.includes(normalized)) return normalized;
+  const lower = normalized.toLowerCase();
+  return candidates.find(item => item.toLowerCase() === lower) ?? "";
 }
 
 function getExtractionFillLangs(allLangs: string[], referredLang: string, keyGenerationFillScope: "minimal" | "all") {
@@ -321,7 +373,8 @@ export function registerExtractHardcodedTextsCommand(context: vscode.ExtensionCo
       const generatedTextKeyMap = new Map<string, string>();
       const updatePayloadMap = new Map<string, I18nUpdatePayload>();
       const codePatches: Record<string, FixedTEntry[]> = {};
-      const keyPrefix = getConfig<string>("writeRules.keyPrefix", bootstrap.keyPrefix);
+      const keyPrefix: string = bootstrap.keyPrefix;
+      const prefixCandidates = toUnique(bootstrap.prefixCandidates);
       const nameSeparator = langDetail.nameSeparator || ".";
       const stopPrefixes = bootstrap.stopPrefixes;
       const stopWords = bootstrap.stopWords;
@@ -427,6 +480,56 @@ export function registerExtractHardcodedTextsCommand(context: vscode.ExtensionCo
       if (uniqueTexts.length === 0 || selectedCandidates.length === 0) {
         NotificationManager.showWarning(t("command.extractHardcodedTexts.empty", scannedFiles));
         return;
+      }
+      const aiPrefixByTextId = new Map<string, string>();
+      if (keyPrefix === "ai-selection") {
+        let fallbackToAutoPath = prefixCandidates.length === 0;
+        if (fallbackToAutoPath) {
+          setTimeout(() => {
+            NotificationManager.showWarning(t("extractSetup.errorPrefixCandidatesRequired"));
+          }, 800);
+        } else {
+          const candidateUsageMap = collectPrefixUsageMap(prefixCandidates, nameSeparator || ".");
+          let aiCandidates = pickTopPrefixCandidates(prefixCandidates, candidateUsageMap);
+          if (nameSeparator === "\\.") {
+            aiCandidates = aiCandidates.map(item => item.replaceAll("\\.", "."));
+          }
+          const sourceFileMap = new Map<string, string[]>();
+          selectedCandidates.forEach(item => {
+            const list = sourceFileMap.get(item.text) ?? [];
+            list.push(item.file);
+            sourceFileMap.set(item.text, list);
+          });
+          const aiPrefixRes = await selectPrefixFromAi({
+            sourceTextList: uniqueTexts,
+            sourceFilePathList: uniqueTexts.map(text => normalizeSourceFilePathList(sourceFileMap.get(text) ?? [])),
+            prefixCandidates: aiCandidates
+          });
+          if (aiPrefixRes.success && Array.isArray(aiPrefixRes.data) && aiPrefixRes.data.length === uniqueTexts.length) {
+            uniqueTexts.forEach((text, index) => {
+              let normalized = normalizeAiSelectedPrefix(aiPrefixRes.data?.[index] ?? "", aiCandidates);
+              if (!normalized) return;
+              if (nameSeparator === "\\.") {
+                normalized = normalized.replaceAll(".", "\\.");
+              }
+              const finalPrefix = normalized.endsWith(nameSeparator) ? normalized : `${normalized}${nameSeparator}`;
+              aiPrefixByTextId.set(genIdFromText(text), finalPrefix);
+            });
+            if (aiPrefixByTextId.size === 0) {
+              fallbackToAutoPath = true;
+            }
+          } else {
+            fallbackToAutoPath = true;
+            setTimeout(() => {
+              NotificationManager.showWarning(aiPrefixRes.message ?? t("translator.noAvailableApi"));
+            }, 800);
+          }
+        }
+        if (fallbackToAutoPath) {
+          setTimeout(() => {
+            NotificationManager.showWarning(t("extractSetup.warnAiPrefixFallbackAutoPath"));
+          }, 1200);
+        }
       }
 
       const keySourceNames = new Array<string>(uniqueTexts.length).fill("");
@@ -585,7 +688,11 @@ export function registerExtractHardcodedTextsCommand(context: vscode.ExtensionCo
             key = matched[0];
           } else {
             const prefix =
-              keyPrefix === "manual-selection" ? manualPrefix : getPathPrefix(candidate.file, keyPrefix, stopPrefixes, nameSeparator);
+              keyPrefix === "manual-selection"
+                ? manualPrefix
+                : keyPrefix === "ai-selection"
+                  ? (aiPrefixByTextId.get(textId) ?? getPathPrefix(candidate.file, "auto-path", stopPrefixes, nameSeparator))
+                  : getPathPrefix(candidate.file, keyPrefix, stopPrefixes, nameSeparator);
             const baseName = generatedNameMap.get(text) ?? "";
             const checkExisted = (currentKey: string) =>
               usedKeys.has(currentKey) || resolveEntryKeyFromName(langDetail.tree, currentKey) !== undefined;

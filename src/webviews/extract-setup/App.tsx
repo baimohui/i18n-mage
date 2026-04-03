@@ -32,6 +32,7 @@ type FormState = {
   targetLanguages: string[];
   referenceLanguage: string;
   keyPrefix: Defaults["keyPrefix"];
+  prefixCandidatesText: string;
   languageStructure: Defaults["languageStructure"];
   sortRule: Defaults["sortRule"];
   keyStrategy: Defaults["keyStrategy"];
@@ -60,6 +61,8 @@ type PreviewValue = string | PreviewBranch;
 
 const SOURCE_LANGUAGE_FILTER_CODES = new Set(["zh-CN", "zh-TW", "ja", "ko", "ru", "ar", "th", "hi", "vi"]);
 const AUTO_PATH_SEGMENTS = ["src", "views", "app"];
+const AI_SEMANTIC_PREVIEW_PREFIXES = ["action", "status", "label", "message"];
+const PREFIX_CANDIDATES_PLACEHOLDER = "action, status, label, message";
 const PREVIEW_SAMPLES = [
   { sourceZh: "文本一", sourceEn: "Text One", englishWords: ["text", "one"], pinyinWords: ["wen", "ben", "yi"] },
   { sourceZh: "文本二", sourceEn: "Text Two", englishWords: ["text", "two"], pinyinWords: ["wen", "ben", "er"] },
@@ -109,6 +112,9 @@ function getFormValidationError(form: FormState, hasDetectedLangs: boolean, t: (
   }
   if (hasVueFiles && form.framework === "vue-i18n" && !form.skipVueScriptInjection && form.vueScriptImportLinesText.trim().length === 0) {
     return `${t("extractSetup.labelVueScriptImportLines")} ${t("common.validate.required")}`;
+  }
+  if (form.keyPrefix === "ai-selection" && form.prefixCandidatesText.trim().length === 0) {
+    return t("extractSetup.errorPrefixCandidatesRequired");
   }
   return "";
 }
@@ -170,6 +176,17 @@ function trimPathByStopPrefixes(pathSegments: string[], stopPrefixesText: string
     const normalizedSegment = segment.toLowerCase();
     return !stopPrefixes.includes(normalizedSegment);
   });
+}
+
+function parsePrefixCandidates(input: string) {
+  return Array.from(
+    new Set(
+      input
+        .split(",")
+        .map(item => item.trim())
+        .filter(Boolean)
+    )
+  );
 }
 
 function sortEntryPaths(paths: string[][], sortRule: FormState["sortRule"]) {
@@ -275,10 +292,25 @@ function stringifyYamlPreview(
 }
 
 function buildWriteRulePreview(form: FormState, previewLanguage: PreviewLanguage) {
-  const pathSegments =
-    form.keyPrefix === "auto-path" ? trimPathByStopPrefixes(AUTO_PATH_SEGMENTS, form.stopPrefixesText).filter(Boolean) : [];
   const sampleEntries = getSampleEntries(form, previewLanguage);
-  const basePaths = sampleEntries.map(entry => [...pathSegments, entry.leafKey]);
+  const basePaths = sampleEntries.map((entry, index) => {
+    if (form.keyPrefix === "auto-path") {
+      const pathSegments = trimPathByStopPrefixes(AUTO_PATH_SEGMENTS, form.stopPrefixesText).filter(Boolean);
+      return [...pathSegments, entry.leafKey];
+    }
+    if (form.keyPrefix === "ai-selection") {
+      const candidates = parsePrefixCandidates(form.prefixCandidatesText);
+      const fallbackPrefixes = AI_SEMANTIC_PREVIEW_PREFIXES;
+      const source = candidates.length > 0 ? candidates : fallbackPrefixes;
+      const chosenPrefix = source[index % source.length];
+      const prefixSegments = chosenPrefix
+        .split(".")
+        .map(item => item.trim())
+        .filter(Boolean);
+      return [...prefixSegments, entry.leafKey];
+    }
+    return [entry.leafKey];
+  });
   const sortedPaths = sortEntryPaths(basePaths, form.sortRule);
   const entryMap = new Map(basePaths.map((entryPath, index) => [entryPath.join("."), sampleEntries[index]]));
 
@@ -353,10 +385,15 @@ function getRuleBadges(form: FormState, t: (key: string) => string) {
     raw: "raw"
   };
   const fallbackLabel = form.invalidKeyStrategy === "ai" ? t("extractSetup.badgeFallbackAi") : t("extractSetup.badgeFallbackDefault");
+  const keyPrefixLabelMap: Record<FormState["keyPrefix"], string> = {
+    none: "extractSetup.option.keyPrefix.none",
+    "auto-path": "extractSetup.option.keyPrefix.autoPath",
+    "ai-selection": "extractSetup.option.keyPrefix.aiSelection"
+  };
   return [
     `${t("extractSetup.labelFileType")}: ${t(`extractSetup.option.fileType.${form.translationFileType}`)}`,
     `${t("extractSetup.labelLanguageStructure")}: ${t(`extractSetup.option.languageStructure.${form.languageStructure}`)}`,
-    `${t("extractSetup.labelKeyPrefix")}: ${t(`extractSetup.option.keyPrefix.${form.keyPrefix === "auto-path" ? "autoPath" : "none"}`)}`,
+    `${t("extractSetup.labelKeyPrefix")}: ${t(keyPrefixLabelMap[form.keyPrefix])}`,
     `${t("extractSetup.labelSortRule")}: ${t(`extractSetup.option.sortRule.${form.sortRule}`)}`,
     `${t("extractSetup.labelKeyStrategy")}: ${t(`extractSetup.option.keyStrategy.${form.keyStrategy}`)}`,
     `${t("extractSetup.labelKeyStyle")}: ${t(`extractSetup.option.keyStyle.${keyStyleKeyMap[form.keyStyle]}`)}`,
@@ -390,6 +427,7 @@ function toInitialState(data: ExtractSetupWebviewData): FormState {
     targetLanguages: d.targetLanguages,
     referenceLanguage: d.referenceLanguage,
     keyPrefix: d.keyPrefix,
+    prefixCandidatesText: Array.isArray(d.prefixCandidates) ? d.prefixCandidates.join(", ") : "",
     languageStructure: d.languageStructure,
     sortRule: d.sortRule,
     keyStrategy: d.keyStrategy,
@@ -460,6 +498,7 @@ function FieldSection(props: {
   const jsSetupPlaceholder = "const { t } = useI18n();";
   const vueImportPlaceholder = "import { useI18n } from 'vue-i18n';";
   const vueSetupPlaceholder = "const { t } = useI18n();";
+  const prefixCandidatesPlaceholder = PREFIX_CANDIDATES_PLACEHOLDER;
   const [previewLanguage, setPreviewLanguage] = useState<PreviewLanguage>("zh");
   const previewText = useMemo(() => buildWriteRulePreview(form, previewLanguage), [form, previewLanguage]);
   const ruleBadges = useMemo(() => getRuleBadges(form, t), [form, t]);
@@ -576,9 +615,20 @@ function FieldSection(props: {
           >
             {renderOptions(t, [
               { value: "none", key: "extractSetup.option.keyPrefix.none" },
-              { value: "auto-path", key: "extractSetup.option.keyPrefix.autoPath" }
+              { value: "auto-path", key: "extractSetup.option.keyPrefix.autoPath" },
+              { value: "ai-selection", key: "extractSetup.option.keyPrefix.aiSelection" }
             ])}
           </select>
+          {form.keyPrefix === "ai-selection" ? (
+            <>
+              <label>{t("extractSetup.labelPrefixCandidates")}</label>
+              <input
+                value={form.prefixCandidatesText}
+                placeholder={prefixCandidatesPlaceholder}
+                onInput={e => update("prefixCandidatesText", (e.target as HTMLInputElement).value)}
+              />
+            </>
+          ) : null}
           <label>{t("extractSetup.labelLanguageStructure")}</label>
           <select
             value={form.languageStructure}

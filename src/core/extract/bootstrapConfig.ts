@@ -9,6 +9,7 @@ export type BootstrapRaw = Partial<ExtractBootstrapConfig> & {
   fileExtensionsText?: string;
   stopWordsText?: string;
   stopPrefixesText?: string;
+  prefixCandidatesText?: string;
   targetLanguagesText?: string;
   vueTemplateIncludeAttrsText?: string;
   vueTemplateExcludeAttrsText?: string;
@@ -36,7 +37,8 @@ export interface ExtractBootstrapConfig {
   jsTsSetupLines: string[];
   skipJsTsInjection: boolean;
   skipVueScriptInjection: boolean;
-  keyPrefix: "none" | "auto-path";
+  keyPrefix: "none" | "auto-path" | "ai-selection";
+  prefixCandidates: string[];
   languageStructure: "flat" | "nested";
   sortRule: "none" | "byKey" | "byPosition";
   keyStrategy: "english" | "pinyin";
@@ -96,6 +98,7 @@ function defaultBootstrapConfig(uiLanguage: string): ExtractBootstrapConfig {
     skipJsTsInjection: false,
     skipVueScriptInjection: false,
     keyPrefix: "auto-path",
+    prefixCandidates: [],
     languageStructure: "flat",
     sortRule: "byKey",
     keyStrategy: "english",
@@ -165,6 +168,8 @@ export function getApplyValidationError(params: {
   vueScriptImportLines: string[];
   skipJsTsInjection: boolean;
   skipVueScriptInjection: boolean;
+  keyPrefix: ExtractBootstrapConfig["keyPrefix"];
+  prefixCandidates: string[];
 }) {
   const normalizedExts = params.fileExtensions.map(item => item.trim().toLowerCase());
   const hasJsTsFiles = normalizedExts.some(item => [".js", ".ts", ".jsx", ".tsx", ".mjs", ".cjs"].includes(item));
@@ -184,6 +189,9 @@ export function getApplyValidationError(params: {
   if (hasVueFiles && params.framework === "vue-i18n" && !params.skipVueScriptInjection && params.vueScriptImportLines.length === 0) {
     return `${t("extractSetup.labelVueScriptImportLines")} ${t("common.validate.required")}`;
   }
+  if (params.keyPrefix === "ai-selection" && params.prefixCandidates.length === 0) {
+    return t("extractSetup.errorPrefixCandidatesRequired");
+  }
   return "";
 }
 
@@ -197,6 +205,7 @@ export function sanitizeBootstrapConfig(raw: BootstrapRaw | undefined, uiLanguag
 
   const stopWords = Array.isArray(raw.stopWords) ? raw.stopWords : parseCsvText(raw.stopWordsText);
   const stopPrefixes = Array.isArray(raw.stopPrefixes) ? raw.stopPrefixes : parseCsvText(raw.stopPrefixesText);
+  const prefixCandidates = Array.isArray(raw.prefixCandidates) ? raw.prefixCandidates : parseCsvText(raw.prefixCandidatesText);
   const targetLanguages = Array.isArray(raw.targetLanguages) ? raw.targetLanguages : parseCsvText(raw.targetLanguagesText);
   const ignoreExtractScopePaths = Array.isArray(raw.ignoreExtractScopePaths)
     ? raw.ignoreExtractScopePaths
@@ -246,7 +255,9 @@ export function sanitizeBootstrapConfig(raw: BootstrapRaw | undefined, uiLanguag
     jsTsSetupLines: jsTsSetupLines.length > 0 ? jsTsSetupLines : defaults.jsTsSetupLines,
     skipJsTsInjection: typeof raw.skipJsTsInjection === "boolean" ? raw.skipJsTsInjection : defaults.skipJsTsInjection,
     skipVueScriptInjection: typeof raw.skipVueScriptInjection === "boolean" ? raw.skipVueScriptInjection : defaults.skipVueScriptInjection,
-    keyPrefix: raw.keyPrefix === "none" || raw.keyPrefix === "auto-path" ? raw.keyPrefix : defaults.keyPrefix,
+    keyPrefix:
+      raw.keyPrefix === "none" || raw.keyPrefix === "auto-path" || raw.keyPrefix === "ai-selection" ? raw.keyPrefix : defaults.keyPrefix,
+    prefixCandidates: prefixCandidates.map(item => item.trim()).filter(Boolean),
     languageStructure:
       raw.languageStructure === "nested" || raw.languageStructure === "flat" ? raw.languageStructure : defaults.languageStructure,
     sortRule: raw.sortRule === "none" || raw.sortRule === "byKey" || raw.sortRule === "byPosition" ? raw.sortRule : defaults.sortRule,
@@ -437,7 +448,8 @@ function inferBootstrapConfigFromCurrent(projectPath: string, uiLanguage: string
       ),
       extractScopePaths: getConfig<string[]>("workspace.extractScopeWhitelist", defaults.extractScopePaths),
       ignoreExtractScopePaths: getConfig<string[]>("workspace.extractScopeBlacklist", defaults.ignoreExtractScopePaths),
-      keyPrefix: getConfig<"none" | "auto-path">("writeRules.keyPrefix", defaults.keyPrefix),
+      keyPrefix: getConfig<"none" | "auto-path" | "ai-selection">("writeRules.keyPrefix", defaults.keyPrefix),
+      prefixCandidates: getConfig<string[]>("writeRules.prefixCandidates", defaults.prefixCandidates),
       languageStructure: getConfig<"flat" | "nested">("writeRules.languageStructure", defaults.languageStructure),
       sortRule: getConfig<"none" | "byKey" | "byPosition">("writeRules.sortRule", defaults.sortRule),
       keyStrategy: getConfig<"english" | "pinyin">("writeRules.keyStrategy", defaults.keyStrategy),
@@ -485,6 +497,7 @@ async function applyKnownConfigs(config: ExtractBootstrapConfig, projectPath: st
   );
   await setConfigIfChanged("i18nFeatures.translationFunctionNames", functionNames);
   await setConfigIfChanged("writeRules.keyPrefix", config.keyPrefix);
+  await setConfigIfChanged("writeRules.prefixCandidates", config.prefixCandidates);
   await setConfigIfChanged("writeRules.languageStructure", config.languageStructure);
   await setConfigIfChanged("writeRules.sortRule", config.sortRule);
   await setConfigIfChanged("writeRules.keyStrategy", config.keyStrategy);
