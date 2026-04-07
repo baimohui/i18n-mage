@@ -340,24 +340,15 @@ export function registerExtractHardcodedTextsCommand(context: vscode.ExtensionCo
     });
     publicCtx = mage.getPublicContext();
     langDetail = mage.langDetail;
-    if (mage.detectedLangList.length === 0 || publicCtx.referredLang.trim().length === 0) {
-      await ensureBootstrapLangFiles(projectPath, bootstrap);
-      await mage.execute({
-        task: "check",
-        projectPath,
-        langPath: bootstrapLangPath,
-        referredLang: bootstrap.referenceLanguage
-      });
-      publicCtx = mage.getPublicContext();
-      langDetail = mage.langDetail;
-    }
-    if (mage.detectedLangList.length === 0 || publicCtx.referredLang.trim().length === 0) {
+    const fallbackReferredLang = bootstrap.referenceLanguage.trim();
+    const initialReferredLang = publicCtx.referredLang.trim() || fallbackReferredLang;
+    if (initialReferredLang.length === 0) {
       NotificationManager.showWarning(t("command.extractHardcodedTexts.noLangPath"));
       return;
     }
 
     await wrapWithProgress({ title: t("command.extractHardcodedTexts.progress") }, async () => {
-      const referredLang = publicCtx.referredLang;
+      const referredLang = publicCtx.referredLang.trim() || fallbackReferredLang;
       const referredMap = langDetail.countryMap[referredLang] ?? {};
       const valueKeyMap = Object.entries(referredMap).reduce(
         (prev, [key, value]) => {
@@ -584,7 +575,7 @@ export function registerExtractHardcodedTextsCommand(context: vscode.ExtensionCo
           keySourceNames[index] = pinyin.convertToPinyin(name, " ").replace(/\s+/g, " ").trim();
         });
       }
-      const detectedLangs = [...mage.detectedLangList];
+      const detectedLangs = mage.detectedLangList.length > 0 ? [...mage.detectedLangList] : [...bootstrap.targetLanguages];
       const translatedValuesByLang = new Map<string, Map<string, string>>();
       const enLang = detectedLangs.find(lang => getLangCode(lang) === "en") ?? "";
       const fillLangs = getExtractionFillLangs(detectedLangs, referredLang, keyGenerationFillScope);
@@ -755,7 +746,20 @@ export function registerExtractHardcodedTextsCommand(context: vscode.ExtensionCo
       const updatePayloads = Array.from(updatePayloadMap.values());
       const previewChanges = shouldPreviewChange(PREVIEW_CHANGE_SCOPE.hardcodedExtract);
       const applyExtractionChanges = async () => {
-        await mage.execute({ task: "check" });
+        const currentReferredLang = mage.getPublicContext().referredLang.trim();
+        const shouldEnsureBootstrapLangFiles =
+          updatePayloads.length > 0 && (mage.detectedLangList.length === 0 || currentReferredLang.length === 0);
+        if (shouldEnsureBootstrapLangFiles) {
+          await ensureBootstrapLangFiles(projectPath, bootstrap);
+          await mage.execute({
+            task: "check",
+            projectPath,
+            langPath: bootstrapLangPath,
+            referredLang
+          });
+        } else {
+          await mage.execute({ task: "check" });
+        }
         mage.setPendingChanges(updatePayloads, {});
         await mage.execute({ task: "rewrite" });
         await applyCodePatches(codePatches, {

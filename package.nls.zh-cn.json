@@ -71,6 +71,7 @@
   "config.sortBy.none": "不排序",
   "config.sortBy.byKey": "按键名排序",
   "config.sortBy.byPosition": "按首次出现位置排序（仅支持扁平结构）",
+  "config.sortBy.byPositionOnExport": "按首次出现位置排序",
   "config.sorting.writeCode": "语言文件写入排序规则",
   "config.sorting.exportMode": "导出 Excel 时的排序规则",
   "config.i18nFeatures.title": "国际化特性",

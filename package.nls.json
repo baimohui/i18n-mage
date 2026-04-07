@@ -71,6 +71,7 @@
   "config.sortBy.none": "No sorting",
   "config.sortBy.byKey": "Sort by key",
   "config.sortBy.byPosition": "Sort by first occurrence (flat structure only)",
+  "config.sortBy.byPositionOnExport": "Sort by first occurrence",
   "config.sorting.writeCode": "Sorting rule when writing language files",
   "config.sorting.exportMode": "Sorting rule when exporting to Excel",
   "config.i18nFeatures.title": "I18n Features",

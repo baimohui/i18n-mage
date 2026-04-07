@@ -1,4 +1,3 @@
-import fs from "fs";
 import path from "path";
 import { clearConfigCache, getConfig, setConfig } from "@/utils/config";
 import { toRelativePath } from "@/utils/fs";
@@ -394,7 +393,6 @@ export async function ensureBootstrapConfig(params: {
   if (config.syncToWorkspaceConfig === true) {
     await applyKnownConfigs(config, params.projectPath);
   }
-  await ensureTranslationFiles(config, params.projectPath);
   return config;
 }
 
@@ -548,16 +546,4 @@ async function applyDetectedConfigs(config: ExtractBootstrapConfig) {
   clearConfigCache("workspace.extractScopeWhitelist");
   clearConfigCache("workspace.extractScopeBlacklist");
   clearConfigCache("i18nFeatures.translationFunctionNames");
-}
-
-async function ensureTranslationFiles(config: ExtractBootstrapConfig, projectPath: string) {
-  const langDir = path.isAbsolute(config.languagePath) ? config.languagePath : path.join(projectPath, config.languagePath);
-  await fs.promises.mkdir(langDir, { recursive: true });
-
-  const langs = config.targetLanguages.length > 0 ? config.targetLanguages : [config.referenceLanguage || "en"];
-  for (const lang of langs) {
-    const filePath = path.join(langDir, `${lang}.${config.translationFileType}`);
-    if (fs.existsSync(filePath)) continue;
-    await fs.promises.writeFile(filePath, "{}\n", "utf8");
-  }
 }

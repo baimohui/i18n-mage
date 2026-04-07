@@ -138,7 +138,7 @@
             "enumDescriptions": [
               "%config.sortBy.none%",
               "%config.sortBy.byKey%",
-              "%config.sortBy.byPosition%"
+              "%config.sortBy.byPositionOnExport%"
             ],
             "description": "%config.sorting.exportMode%"
           }
