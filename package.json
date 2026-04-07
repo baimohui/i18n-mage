@@ -1649,6 +1649,42 @@
         }
       },
       {
+        "command": "i18nMage.searchPreviousFile",
+        "category": "%extension.name%",
+        "title": "%command.searchPreviousFile.title%",
+        "icon": {
+          "light": "./images/previousFile-light.svg",
+          "dark": "./images/previousFile-dark.svg"
+        }
+      },
+      {
+        "command": "i18nMage.searchPreviousEntry",
+        "category": "%extension.name%",
+        "title": "%command.searchPreviousEntry.title%",
+        "icon": {
+          "light": "./images/previousEntry-light.svg",
+          "dark": "./images/previousEntry-dark.svg"
+        }
+      },
+      {
+        "command": "i18nMage.searchNextEntry",
+        "category": "%extension.name%",
+        "title": "%command.searchNextEntry.title%",
+        "icon": {
+          "light": "./images/nextEntry-light.svg",
+          "dark": "./images/nextEntry-dark.svg"
+        }
+      },
+      {
+        "command": "i18nMage.searchNextFile",
+        "category": "%extension.name%",
+        "title": "%command.searchNextFile.title%",
+        "icon": {
+          "light": "./images/nextFile-light.svg",
+          "dark": "./images/nextFile-dark.svg"
+        }
+      },
+      {
         "command": "i18nMage.cancelSearch",
         "category": "%extension.name%",
         "title": "%command.cancelSearch.title%",
@@ -1763,6 +1799,30 @@
         "command": "i18nMage.cancelSearch",
         "key": "escape",
         "mac": "escape",
+        "when": "i18nMage.enabled && i18nMage.hasValidLangPath && i18nMage.isSearching && focusedView == i18nMage.grimoire"
+      },
+      {
+        "command": "i18nMage.searchPreviousEntry",
+        "key": "up",
+        "mac": "up",
+        "when": "i18nMage.enabled && i18nMage.hasValidLangPath && i18nMage.isSearching && focusedView == i18nMage.grimoire"
+      },
+      {
+        "command": "i18nMage.searchNextEntry",
+        "key": "down",
+        "mac": "down",
+        "when": "i18nMage.enabled && i18nMage.hasValidLangPath && i18nMage.isSearching && focusedView == i18nMage.grimoire"
+      },
+      {
+        "command": "i18nMage.searchPreviousFile",
+        "key": "ctrl+up",
+        "mac": "ctrl+up",
+        "when": "i18nMage.enabled && i18nMage.hasValidLangPath && i18nMage.isSearching && focusedView == i18nMage.grimoire"
+      },
+      {
+        "command": "i18nMage.searchNextFile",
+        "key": "ctrl+down",
+        "mac": "ctrl+down",
         "when": "i18nMage.enabled && i18nMage.hasValidLangPath && i18nMage.isSearching && focusedView == i18nMage.grimoire"
       },
       {
@@ -1924,6 +1984,26 @@
         {
           "command": "i18nMage.toggleIgnorePath",
           "when": "viewItem == fileItem"
+        },
+        {
+          "command": "i18nMage.searchPreviousFile",
+          "when": "viewItem =~ /SEARCH_NAV/",
+          "group": "inline@1"
+        },
+        {
+          "command": "i18nMage.searchPreviousEntry",
+          "when": "viewItem =~ /SEARCH_NAV/",
+          "group": "inline@2"
+        },
+        {
+          "command": "i18nMage.searchNextEntry",
+          "when": "viewItem =~ /SEARCH_NAV/",
+          "group": "inline@3"
+        },
+        {
+          "command": "i18nMage.searchNextFile",
+          "when": "viewItem =~ /SEARCH_NAV/",
+          "group": "inline@4"
         },
         {
           "command": "i18nMage.copyName",
