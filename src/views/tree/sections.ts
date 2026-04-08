@@ -41,7 +41,6 @@ export interface TreeSectionContext {
   getSyncPercent: () => string;
   getUsagePercent: () => string;
   genId: (element: ExtendedTreeItem, name: string) => string;
-  getSearchNavigationDescription: () => string;
   hasSearchNavigationResult: () => boolean;
 }
 
@@ -50,8 +49,6 @@ export function getRootChildren(ctx: TreeSectionContext): ExtendedTreeItem[] {
 
   if (ctx.isSearching) {
     const hasSearchNavigationResult = ctx.hasSearchNavigationResult();
-    const navigationDescription = ctx.getSearchNavigationDescription();
-    const tooltip = hasSearchNavigationResult ? `${t("tree.search.tooltip")}\n${navigationDescription}` : t("tree.search.tooltip");
     rootSections.push({
       level: 0,
       label: `${t("tree.search.label")}: ${ctx.globalFilterText}`,
@@ -60,8 +57,8 @@ export function getRootChildren(ctx: TreeSectionContext): ExtendedTreeItem[] {
       contextValue: hasSearchNavigationResult ? "SEARCH_STATUS,SEARCH_NAV" : "SEARCH_STATUS",
       iconPath: new vscode.ThemeIcon("search"),
       collapsibleState: vscode.TreeItemCollapsibleState.None,
-      description: navigationDescription,
-      tooltip,
+      description: "",
+      tooltip: t("tree.search.tooltip"),
       command: {
         command: "i18nMage.search",
         title: t("tree.search.title")

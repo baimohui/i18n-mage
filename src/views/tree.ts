@@ -202,7 +202,6 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
       getSyncPercent: () => this.getSyncPercent(),
       getUsagePercent: () => this.getUsagePercent(),
       genId: (element, name) => this.genId(element, name),
-      getSearchNavigationDescription: () => this.getSearchNavigationDescription(),
       hasSearchNavigationResult: () => this.searchNavigationLocations.length > 0
     };
   }
@@ -261,16 +260,6 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
     this.searchNavigationCursor = location.globalIndex;
     void this.openSearchNavigationLocation(location);
     this._onDidChangeTreeData.fire();
-  }
-
-  private getSearchNavigationDescription(): string {
-    const total = this.searchNavigationLocations.length;
-    if (!this.isSearching || total === 0) return "";
-
-    const safeCursor = this.searchNavigationCursor >= 0 ? this.searchNavigationCursor % total : 0;
-    const current = this.searchNavigationLocations[safeCursor];
-
-    return t("tree.search.navigationPosition", current.fileEntryIndex + 1, current.fileEntryCount, safeCursor + 1, total);
   }
 
   private updateSearchNavigationLocations(): void {
@@ -400,7 +389,7 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
     const [start, end] = location.range;
     const selection = new vscode.Range(document.positionAt(start), document.positionAt(end));
     this.showSearchNavigationStatusBarMessage(location);
-    await vscode.window.showTextDocument(fileUri, { selection, preserveFocus: true, preview: false });
+    await vscode.window.showTextDocument(fileUri, { selection, preserveFocus: true, preview: true });
   }
 
   private getEditorSearchNavigationAnchor(): SearchNavigationAnchor | undefined {
