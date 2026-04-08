@@ -203,7 +203,8 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
       getSyncPercent: () => this.getSyncPercent(),
       getUsagePercent: () => this.getUsagePercent(),
       genId: (element, name) => this.genId(element, name),
-      hasSearchNavigationResult: () => this.searchNavigationLocations.length > 0
+      hasSearchNavigationResult: () => this.searchNavigationLocations.length > 0,
+      hasCurrentFileSearchNavigationResult: () => this.hasCurrentFileSearchNavigationResult()
     };
   }
 
@@ -521,6 +522,13 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
     const fileCompare = location.filePath.localeCompare(anchor.filePath);
     if (fileCompare !== 0) return fileCompare;
     return location.range[0] - anchor.offset;
+  }
+
+  private hasCurrentFileSearchNavigationResult(): boolean {
+    if (!this.isSearching || this.searchNavigationLocations.length === 0) return false;
+    const currentFilePath = vscode.window.activeTextEditor?.document.uri.fsPath;
+    if (currentFilePath === null || currentFilePath === undefined) return false;
+    return this.searchNavigationLocations.some(item => item.filePath === currentFilePath);
   }
 
   private getUsagePercent(): string {

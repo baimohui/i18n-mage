@@ -42,6 +42,7 @@ export interface TreeSectionContext {
   getUsagePercent: () => string;
   genId: (element: ExtendedTreeItem, name: string) => string;
   hasSearchNavigationResult: () => boolean;
+  hasCurrentFileSearchNavigationResult: () => boolean;
 }
 
 export function getRootChildren(ctx: TreeSectionContext): ExtendedTreeItem[] {
@@ -71,6 +72,7 @@ export function getRootChildren(ctx: TreeSectionContext): ExtendedTreeItem[] {
     label: t("tree.currentFile.title"),
     id: "CURRENT_FILE",
     root: "CURRENT_FILE",
+    contextValue: ctx.isSearching && ctx.hasCurrentFileSearchNavigationResult() ? "CURRENT_FILE_SEARCH_NAV" : undefined,
     iconPath: new vscode.ThemeIcon("file"),
     collapsibleState: vscode.TreeItemCollapsibleState.Expanded,
     description: String(ctx.definedEntriesInCurrentFile.length + ctx.undefinedEntriesInCurrentFile.length)

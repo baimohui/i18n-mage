@@ -1660,12 +1660,20 @@
       {
         "command": "i18nMage.searchPreviousInFileEntry",
         "category": "%extension.name%",
-        "title": "%command.searchPreviousInFileEntry.title%"
+        "title": "%command.searchPreviousInFileEntry.title%",
+        "icon": {
+          "light": "./images/previousEntry-light.svg",
+          "dark": "./images/previousEntry-dark.svg"
+        }
       },
       {
         "command": "i18nMage.searchNextInFileEntry",
         "category": "%extension.name%",
-        "title": "%command.searchNextInFileEntry.title%"
+        "title": "%command.searchNextInFileEntry.title%",
+        "icon": {
+          "light": "./images/nextEntry-light.svg",
+          "dark": "./images/nextEntry-dark.svg"
+        }
       },
       {
         "command": "i18nMage.searchPreviousGlobalEntry",
@@ -2008,23 +2016,33 @@
           "when": "viewItem == fileItem"
         },
         {
+          "command": "i18nMage.searchPreviousInFileEntry",
+          "when": "viewItem =~ /(^|,)CURRENT_FILE_SEARCH_NAV(,|$)/",
+          "group": "inline@1"
+        },
+        {
+          "command": "i18nMage.searchNextInFileEntry",
+          "when": "viewItem =~ /(^|,)CURRENT_FILE_SEARCH_NAV(,|$)/",
+          "group": "inline@2"
+        },
+        {
           "command": "i18nMage.searchPreviousFile",
-          "when": "viewItem =~ /SEARCH_NAV/",
+          "when": "viewItem =~ /(^|,)SEARCH_NAV(,|$)/",
           "group": "inline@1"
         },
         {
           "command": "i18nMage.searchPreviousGlobalEntry",
-          "when": "viewItem =~ /SEARCH_NAV/",
+          "when": "viewItem =~ /(^|,)SEARCH_NAV(,|$)/",
           "group": "inline@2"
         },
         {
           "command": "i18nMage.searchNextGlobalEntry",
-          "when": "viewItem =~ /SEARCH_NAV/",
+          "when": "viewItem =~ /(^|,)SEARCH_NAV(,|$)/",
           "group": "inline@3"
         },
         {
           "command": "i18nMage.searchNextFile",
-          "when": "viewItem =~ /SEARCH_NAV/",
+          "when": "viewItem =~ /(^|,)SEARCH_NAV(,|$)/",
           "group": "inline@4"
         },
         {
