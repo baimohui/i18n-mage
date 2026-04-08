@@ -1658,18 +1658,28 @@
         }
       },
       {
-        "command": "i18nMage.searchPreviousEntry",
+        "command": "i18nMage.searchPreviousInFileEntry",
         "category": "%extension.name%",
-        "title": "%command.searchPreviousEntry.title%",
+        "title": "%command.searchPreviousInFileEntry.title%"
+      },
+      {
+        "command": "i18nMage.searchNextInFileEntry",
+        "category": "%extension.name%",
+        "title": "%command.searchNextInFileEntry.title%"
+      },
+      {
+        "command": "i18nMage.searchPreviousGlobalEntry",
+        "category": "%extension.name%",
+        "title": "%command.searchPreviousGlobalEntry.title%",
         "icon": {
           "light": "./images/previousEntry-light.svg",
           "dark": "./images/previousEntry-dark.svg"
         }
       },
       {
-        "command": "i18nMage.searchNextEntry",
+        "command": "i18nMage.searchNextGlobalEntry",
         "category": "%extension.name%",
-        "title": "%command.searchNextEntry.title%",
+        "title": "%command.searchNextGlobalEntry.title%",
         "icon": {
           "light": "./images/nextEntry-light.svg",
           "dark": "./images/nextEntry-dark.svg"
@@ -1802,27 +1812,39 @@
         "when": "i18nMage.enabled && i18nMage.hasValidLangPath && i18nMage.isSearching && focusedView == i18nMage.grimoire"
       },
       {
-        "command": "i18nMage.searchPreviousEntry",
-        "key": "up",
-        "mac": "up",
+        "command": "i18nMage.searchPreviousInFileEntry",
+        "key": "shift+f3",
+        "mac": "shift+f3",
         "when": "i18nMage.enabled && i18nMage.hasValidLangPath && i18nMage.isSearching && focusedView == i18nMage.grimoire"
       },
       {
-        "command": "i18nMage.searchNextEntry",
-        "key": "down",
-        "mac": "down",
+        "command": "i18nMage.searchNextInFileEntry",
+        "key": "f3",
+        "mac": "f3",
+        "when": "i18nMage.enabled && i18nMage.hasValidLangPath && i18nMage.isSearching && focusedView == i18nMage.grimoire"
+      },
+      {
+        "command": "i18nMage.searchPreviousGlobalEntry",
+        "key": "shift+f4",
+        "mac": "shift+f4",
+        "when": "i18nMage.enabled && i18nMage.hasValidLangPath && i18nMage.isSearching && focusedView == i18nMage.grimoire"
+      },
+      {
+        "command": "i18nMage.searchNextGlobalEntry",
+        "key": "f4",
+        "mac": "f4",
         "when": "i18nMage.enabled && i18nMage.hasValidLangPath && i18nMage.isSearching && focusedView == i18nMage.grimoire"
       },
       {
         "command": "i18nMage.searchPreviousFile",
-        "key": "ctrl+up",
-        "mac": "ctrl+up",
+        "key": "ctrl+shift+tab",
+        "mac": "cmd+shift+[",
         "when": "i18nMage.enabled && i18nMage.hasValidLangPath && i18nMage.isSearching && focusedView == i18nMage.grimoire"
       },
       {
         "command": "i18nMage.searchNextFile",
-        "key": "ctrl+down",
-        "mac": "ctrl+down",
+        "key": "ctrl+tab",
+        "mac": "cmd+shift+]",
         "when": "i18nMage.enabled && i18nMage.hasValidLangPath && i18nMage.isSearching && focusedView == i18nMage.grimoire"
       },
       {
@@ -1991,12 +2013,12 @@
           "group": "inline@1"
         },
         {
-          "command": "i18nMage.searchPreviousEntry",
+          "command": "i18nMage.searchPreviousGlobalEntry",
           "when": "viewItem =~ /SEARCH_NAV/",
           "group": "inline@2"
         },
         {
-          "command": "i18nMage.searchNextEntry",
+          "command": "i18nMage.searchNextGlobalEntry",
           "when": "viewItem =~ /SEARCH_NAV/",
           "group": "inline@3"
         },

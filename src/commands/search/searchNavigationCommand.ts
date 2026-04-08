@@ -4,9 +4,11 @@ import { treeInstance } from "@/views/tree";
 
 export function registerSearchNavigationCommand() {
   const commandMap = [
+    { id: "i18nMage.searchPreviousInFileEntry", direction: "previousInFileEntry" },
+    { id: "i18nMage.searchNextInFileEntry", direction: "nextInFileEntry" },
+    { id: "i18nMage.searchPreviousGlobalEntry", direction: "previousGlobalEntry" },
+    { id: "i18nMage.searchNextGlobalEntry", direction: "nextGlobalEntry" },
     { id: "i18nMage.searchPreviousFile", direction: "previousFile" },
-    { id: "i18nMage.searchPreviousEntry", direction: "previousEntry" },
-    { id: "i18nMage.searchNextEntry", direction: "nextEntry" },
     { id: "i18nMage.searchNextFile", direction: "nextFile" }
   ] as const;
 

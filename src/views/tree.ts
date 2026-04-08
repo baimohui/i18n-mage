@@ -39,6 +39,7 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
   isSourceLangOnly = false;
   searchNavigationLocations: SearchNavigationLocation[] = [];
   searchNavigationCursor = -1;
+  #lastNavigationDirection: SearchNavigationDirection | undefined;
 
   private _onDidChangeTreeData = new vscode.EventEmitter<void>();
   readonly onDidChangeTreeData = this._onDidChangeTreeData.event;
@@ -257,7 +258,18 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
     const location = this.getNextSearchNavigationLocation(direction, editorAnchor);
     if (!location) return;
 
+    const anchorGlobalIndex =
+      editorAnchor === undefined
+        ? -1
+        : this.searchNavigationLocations.findIndex(
+            item => item.filePath === editorAnchor.filePath && editorAnchor.offset >= item.range[0] && editorAnchor.offset <= item.range[1]
+          );
+    NotificationManager.logDebug(
+      `[search-nav] direction=${direction}; anchorFile=${editorAnchor?.filePath ?? ""}; anchorOffset=${editorAnchor?.offset ?? -1}; anchorGlobalIndex=${anchorGlobalIndex}; targetGlobalIndex=${location.globalIndex}; targetFileEntry=${location.fileEntryIndex + 1}/${location.fileEntryCount}`
+    );
+
     this.searchNavigationCursor = location.globalIndex;
+    this.#lastNavigationDirection = direction;
     void this.openSearchNavigationLocation(location);
     this._onDidChangeTreeData.fire();
   }
@@ -364,12 +376,17 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
       return (((index + delta) % size) + size) % size;
     };
 
-    if (direction === "nextEntry" || direction === "previousEntry") {
+    if (direction === "nextInFileEntry" || direction === "previousInFileEntry") {
       const currentFileItems = this.searchNavigationLocations.filter(item => item.filePath === current.filePath);
       if (currentFileItems.length === 0) return current;
       const fileIndex = current.fileEntryIndex;
-      const nextFileIndex = offsetIndex(fileIndex, direction === "nextEntry" ? 1 : -1, currentFileItems.length);
+      const nextFileIndex = offsetIndex(fileIndex, direction === "nextInFileEntry" ? 1 : -1, currentFileItems.length);
       return currentFileItems[nextFileIndex];
+    }
+
+    if (direction === "nextGlobalEntry" || direction === "previousGlobalEntry") {
+      const delta = direction === "nextGlobalEntry" ? 1 : -1;
+      return this.searchNavigationLocations[offsetIndex(currentIndex, delta, total)];
     }
 
     const currentFileIndex = uniqueFiles.findIndex(file => file === current.filePath);
@@ -398,18 +415,40 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
     if (!editor) return undefined;
     return {
       filePath: editor.document.uri.fsPath,
-      offset: editor.document.offsetAt(editor.selection.active)
+      offset: editor.document.offsetAt(editor.selection.start)
     };
   }
 
   private showSearchNavigationStatusBarMessage(location: SearchNavigationLocation): void {
-    const total = this.searchNavigationLocations.length;
-    if (total === 0) return;
+    const totalEntries = this.searchNavigationLocations.length;
+    if (totalEntries === 0) return;
+    const direction = this.#lastNavigationDirection;
+    if (direction === undefined) return;
 
-    NotificationManager.setStatusBarMessage(
-      t("tree.search.navigationStatusBar", location.fileEntryIndex + 1, location.fileEntryCount, location.globalIndex + 1, total),
-      4500
-    );
+    if (direction === "nextInFileEntry" || direction === "previousInFileEntry") {
+      NotificationManager.setStatusBarMessage(
+        t("tree.search.navigationStatusBar.inFileEntry", location.fileEntryIndex + 1, location.fileEntryCount),
+        4500
+      );
+      return;
+    }
+
+    if (direction === "nextGlobalEntry" || direction === "previousGlobalEntry") {
+      NotificationManager.setStatusBarMessage(
+        t("tree.search.navigationStatusBar.globalEntry", location.globalIndex + 1, totalEntries),
+        4500
+      );
+      return;
+    }
+
+    const fileList = this.getSearchNavigationFileList();
+    const fileIndex = fileList.findIndex(filePath => filePath === location.filePath);
+    if (fileIndex >= 0) {
+      NotificationManager.setStatusBarMessage(t("tree.search.navigationStatusBar.file", fileIndex + 1, fileList.length), 4500);
+      return;
+    }
+
+    NotificationManager.setStatusBarMessage(t("tree.search.navigationStatusBar.file", 1, fileList.length || 1), 4500);
   }
 
   private getAnchoredSearchNavigationLocation(
@@ -423,13 +462,38 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
     };
 
     const currentFileItems = this.searchNavigationLocations.filter(item => item.filePath === anchor.filePath);
+    const anchorGlobalIndex = this.searchNavigationLocations.findIndex(
+      item => item.filePath === anchor.filePath && anchor.offset >= item.range[0] && anchor.offset <= item.range[1]
+    );
 
-    if (direction === "nextEntry" || direction === "previousEntry") {
+    if (direction === "nextInFileEntry" || direction === "previousInFileEntry") {
       if (currentFileItems.length === 0) return undefined;
-      if (direction === "nextEntry") {
+      if (anchorGlobalIndex >= 0) {
+        const anchorLocation = this.searchNavigationLocations[anchorGlobalIndex];
+        const nextFileIndex = offsetIndex(anchorLocation.fileEntryIndex, direction === "nextInFileEntry" ? 1 : -1, currentFileItems.length);
+        return currentFileItems[nextFileIndex];
+      }
+      if (direction === "nextInFileEntry") {
         return currentFileItems.find(item => item.range[0] > anchor.offset) ?? currentFileItems[0];
       }
-      return [...currentFileItems].reverse().find(item => item.range[1] <= anchor.offset) ?? currentFileItems[currentFileItems.length - 1];
+      return [...currentFileItems].reverse().find(item => item.range[0] < anchor.offset) ?? currentFileItems[currentFileItems.length - 1];
+    }
+
+    if (direction === "nextGlobalEntry" || direction === "previousGlobalEntry") {
+      const total = this.searchNavigationLocations.length;
+      if (total === 0) return undefined;
+      if (anchorGlobalIndex >= 0) {
+        const delta = direction === "nextGlobalEntry" ? 1 : -1;
+        return this.searchNavigationLocations[offsetIndex(anchorGlobalIndex, delta, total)];
+      }
+      const insertIndex = this.searchNavigationLocations.findIndex(item => this.compareLocationWithAnchor(item, anchor) > 0);
+      if (direction === "nextGlobalEntry") {
+        return insertIndex === -1 ? this.searchNavigationLocations[0] : this.searchNavigationLocations[insertIndex];
+      }
+      if (insertIndex === -1) {
+        return this.searchNavigationLocations[total - 1];
+      }
+      return insertIndex === 0 ? this.searchNavigationLocations[total - 1] : this.searchNavigationLocations[insertIndex - 1];
     }
 
     const currentFileIndex = uniqueFiles.findIndex(filePath => filePath === anchor.filePath);
@@ -451,6 +515,12 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
       }
     });
     return uniqueFiles;
+  }
+
+  private compareLocationWithAnchor(location: SearchNavigationLocation, anchor: SearchNavigationAnchor): number {
+    const fileCompare = location.filePath.localeCompare(anchor.filePath);
+    if (fileCompare !== 0) return fileCompare;
+    return location.range[0] - anchor.offset;
   }
 
   private getUsagePercent(): string {
@@ -478,7 +548,13 @@ const treeInstance = new TreeProvider();
 
 export { treeInstance };
 
-type SearchNavigationDirection = "previousFile" | "previousEntry" | "nextEntry" | "nextFile";
+type SearchNavigationDirection =
+  | "previousFile"
+  | "nextFile"
+  | "previousInFileEntry"
+  | "nextInFileEntry"
+  | "previousGlobalEntry"
+  | "nextGlobalEntry";
 
 type SearchNavigationLocation = {
   id: string;
