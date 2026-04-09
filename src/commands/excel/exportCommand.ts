@@ -7,6 +7,7 @@ import { resolveEntryKeyFromName } from "@/utils/regex";
 import { isPathInsideDirectory, isSamePath, toRelativePath } from "@/utils/fs";
 import { t } from "@/utils/i18n";
 import { NotificationManager } from "@/utils/notification";
+import { getWorkspaceRootPath } from "@/utils/workspace";
 
 type ExportScope = "full" | "entries";
 type ExportTargetArg = vscode.Uri | undefined;
@@ -79,7 +80,8 @@ export function registerExportCommand() {
     }
 
     const publicCtx = mage.getPublicContext();
-    const baseDir = pickFirstNonEmptyPath([publicCtx.projectPath, publicCtx.langPath, vscode.workspace.workspaceFolders?.[0]?.uri.fsPath]);
+    const workspacePath = getWorkspaceRootPath(targetUri ?? vscode.window.activeTextEditor?.document.uri);
+    const baseDir = pickFirstNonEmptyPath([publicCtx.projectPath, publicCtx.langPath, workspacePath]);
     const projectName = getProjectName(pickFirstNonEmptyPath([baseDir, publicCtx.projectPath, publicCtx.langPath]) ?? "project");
     const dateText = formatDate(new Date());
     const targetName =

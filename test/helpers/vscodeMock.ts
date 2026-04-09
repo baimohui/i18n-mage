@@ -1,3 +1,5 @@
+import path from "path";
+
 type ConfigValue = unknown;
 
 const configStore = new Map<string, ConfigValue>();
@@ -5,7 +7,28 @@ const filesConfigStore = new Map<string, ConfigValue>();
 const updateCalls: { key: string; value: ConfigValue; target: number; scope?: unknown }[] = [];
 let activeEditorText: string | null = null;
 let activeEditorEol: number | null = null;
-let workspaceRoot: string | null = null;
+let activeEditorPath: string | null = null;
+let workspaceRoots: string[] = [];
+
+function normalizePathForCompare(targetPath: string): string {
+  const normalizedPath = path.normalize(path.resolve(targetPath));
+  return process.platform === "win32" ? normalizedPath.toLowerCase() : normalizedPath;
+}
+
+function resolveWorkspaceFolder(filePath: string) {
+  const normalizedTarget = normalizePathForCompare(filePath);
+  let matchedRoot = "";
+  for (const root of workspaceRoots) {
+    const normalizedRoot = normalizePathForCompare(root);
+    const isSame = normalizedTarget === normalizedRoot;
+    const isChild = normalizedTarget.startsWith(`${normalizedRoot}${path.sep}`);
+    if ((isSame || isChild) && normalizedRoot.length > matchedRoot.length) {
+      matchedRoot = root;
+    }
+  }
+  if (!matchedRoot) return undefined;
+  return { uri: { scheme: "file", fsPath: matchedRoot } };
+}
 
 export function resetConfigStore() {
   configStore.clear();
@@ -13,7 +36,8 @@ export function resetConfigStore() {
   updateCalls.length = 0;
   activeEditorText = null;
   activeEditorEol = null;
-  workspaceRoot = null;
+  activeEditorPath = null;
+  workspaceRoots = [];
 }
 
 export function seedDefaultConfig() {
@@ -35,18 +59,24 @@ export function setFilesConfigValue(key: string, value: ConfigValue) {
   filesConfigStore.set(key, value);
 }
 
-export function setActiveEditor(text: string, eol: number) {
+export function setActiveEditor(text: string, eol: number, filePath?: string) {
   activeEditorText = text;
   activeEditorEol = eol;
+  activeEditorPath = filePath ?? null;
 }
 
 export function clearActiveEditor() {
   activeEditorText = null;
   activeEditorEol = null;
+  activeEditorPath = null;
 }
 
 export function setWorkspaceRoot(root: string) {
-  workspaceRoot = root;
+  workspaceRoots = [root];
+}
+
+export function setWorkspaceRoots(roots: string[]) {
+  workspaceRoots = [...roots];
 }
 
 export function getUpdateCalls() {
@@ -86,8 +116,13 @@ export const vscodeMock = {
       }
     }),
     get workspaceFolders() {
-      if (workspaceRoot === null || workspaceRoot === "") return undefined;
-      return [{ uri: { fsPath: workspaceRoot } }];
+      if (workspaceRoots.length === 0) return undefined;
+      return workspaceRoots.map(root => ({ uri: { scheme: "file", fsPath: root } }));
+    },
+    getWorkspaceFolder: (uri: { fsPath?: string }) => {
+      const fsPath = uri?.fsPath;
+      if (typeof fsPath !== "string" || fsPath.trim() === "") return undefined;
+      return resolveWorkspaceFolder(fsPath);
     },
     onDidChangeConfiguration: () => ({
       dispose: () => undefined
@@ -116,8 +151,10 @@ export const vscodeMock = {
     setStatusBarMessage: () => undefined,
     get activeTextEditor() {
       if (activeEditorText === null || activeEditorEol === null) return undefined;
+      const filePath = activeEditorPath ?? workspaceRoots[0];
       return {
         document: {
+          uri: { scheme: "file", fsPath: filePath ?? "" },
           eol: activeEditorEol,
           getText: () => activeEditorText
         }

@@ -1,3 +1,4 @@
+import * as vscode from "vscode";
 import { getCacheConfig, getConfig } from "./config";
 
 function mergeIgnoredPaths(current: string[] = [], legacyFiles: string[] = [], legacyDirectories: string[] = []): string[] {
@@ -10,16 +11,16 @@ function mergeIgnoredPaths(current: string[] = [], legacyFiles: string[] = [], l
   return merged;
 }
 
-export function getIgnoredPathsFromCache(): string[] {
-  const ignoredPaths = getCacheConfig<string[]>("workspace.ignoredPaths", []) ?? [];
-  const ignoredFiles = getCacheConfig<string[]>("workspace.ignoredFiles", []) ?? [];
-  const ignoredDirectories = getCacheConfig<string[]>("workspace.ignoredDirectories", []) ?? [];
+export function getIgnoredPathsFromCache(scope?: vscode.ConfigurationScope): string[] {
+  const ignoredPaths = getCacheConfig<string[]>("workspace.ignoredPaths", [], scope) ?? [];
+  const ignoredFiles = getCacheConfig<string[]>("workspace.ignoredFiles", [], scope) ?? [];
+  const ignoredDirectories = getCacheConfig<string[]>("workspace.ignoredDirectories", [], scope) ?? [];
   return mergeIgnoredPaths(ignoredPaths, ignoredFiles, ignoredDirectories);
 }
 
-export function getIgnoredPathsFromConfig(): string[] {
-  const ignoredPaths = getConfig<string[]>("workspace.ignoredPaths", []) ?? [];
-  const ignoredFiles = getConfig<string[]>("workspace.ignoredFiles", []) ?? [];
-  const ignoredDirectories = getConfig<string[]>("workspace.ignoredDirectories", []) ?? [];
+export function getIgnoredPathsFromConfig(scope?: vscode.ConfigurationScope): string[] {
+  const ignoredPaths = getConfig<string[]>("workspace.ignoredPaths", [], scope) ?? [];
+  const ignoredFiles = getConfig<string[]>("workspace.ignoredFiles", [], scope) ?? [];
+  const ignoredDirectories = getConfig<string[]>("workspace.ignoredDirectories", [], scope) ?? [];
   return mergeIgnoredPaths(ignoredPaths, ignoredFiles, ignoredDirectories);
 }

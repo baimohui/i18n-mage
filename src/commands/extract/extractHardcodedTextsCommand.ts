@@ -35,6 +35,7 @@ import translateTo from "@/translator";
 import * as pinyin from "tiny-pinyin";
 import { generateKeyFromAi, selectPrefixFromAi } from "@/ai";
 import launchExtractScanConfirmWebview from "@/views/extractScanConfirmWebview";
+import { getWorkspaceRootPath } from "@/utils/workspace";
 
 const AI_PREFIX_CANDIDATE_LIMIT = 30;
 
@@ -250,8 +251,14 @@ export function registerExtractHardcodedTextsCommand(context: vscode.ExtensionCo
     await mage.execute({ task: "check" });
     let publicCtx = mage.getPublicContext();
     let langDetail = mage.langDetail;
-    const workspacePath = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath ?? "";
-    const projectPath = publicCtx.projectPath.trim().length > 0 ? publicCtx.projectPath : workspacePath;
+    const workspacePath = getWorkspaceRootPath(resource ?? vscode.window.activeTextEditor?.document.uri);
+    const publicProjectPath = publicCtx.projectPath.trim();
+    const usePublicProjectPath =
+      publicProjectPath.length > 0 &&
+      (workspacePath.trim() === "" ||
+        isSamePath(workspacePath, publicProjectPath) ||
+        isPathInsideDirectory(workspacePath, publicProjectPath));
+    const projectPath = usePublicProjectPath ? publicProjectPath : workspacePath || publicProjectPath;
     if (projectPath.trim() === "") {
       NotificationManager.showWarning(t("command.extractHardcodedTexts.noProjectPath"));
       return;

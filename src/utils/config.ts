@@ -1,4 +1,5 @@
 import * as vscode from "vscode";
+import { getWorkspaceScope, getWorkspaceScopeKey } from "@/utils/workspace";
 
 const NAMESPACE = "i18n-mage";
 
@@ -6,6 +7,7 @@ type Scope = "global" | "workspace" | "workspaceFolder";
 
 const cachedConfig: Record<string, any> = {};
 let configWriteQueue: Promise<void> = Promise.resolve();
+const CACHE_KEY_SEPARATOR = "||";
 
 const RETRY_DELAYS_MS = [100, 300];
 
@@ -35,8 +37,19 @@ async function updateConfigWithRetry<T = any>(
   }
 }
 
+function getScopedCacheKey(key: string, scope?: vscode.ConfigurationScope): string {
+  return `${getWorkspaceScopeKey(scope)}${CACHE_KEY_SEPARATOR}${key}`;
+}
+
+function getRawCacheKey(scopedCacheKey: string): string {
+  const separatorIndex = scopedCacheKey.indexOf(CACHE_KEY_SEPARATOR);
+  if (separatorIndex < 0) return scopedCacheKey;
+  return scopedCacheKey.slice(separatorIndex + CACHE_KEY_SEPARATOR.length);
+}
+
 export function getConfig<T = any>(key: string, defaultValue?: T, scope?: vscode.ConfigurationScope): T {
-  return vscode.workspace.getConfiguration(NAMESPACE, scope).get<T>(key, defaultValue as T);
+  const resolvedScope = getWorkspaceScope(scope);
+  return vscode.workspace.getConfiguration(NAMESPACE, resolvedScope).get<T>(key, defaultValue as T);
 }
 
 export async function setConfig<T = any>(
@@ -45,6 +58,7 @@ export async function setConfig<T = any>(
   targetScope: Scope = "workspace", // 默认写入当前项目
   scope?: vscode.ConfigurationScope // 可选传入 workspaceFolder 或 Uri
 ): Promise<void> {
+  const resolvedScope = getWorkspaceScope(scope);
   const configTarget =
     targetScope === "global"
       ? vscode.ConfigurationTarget.Global
@@ -52,7 +66,7 @@ export async function setConfig<T = any>(
         ? vscode.ConfigurationTarget.Workspace
         : vscode.ConfigurationTarget.WorkspaceFolder;
   const task = async () => {
-    const config = vscode.workspace.getConfiguration(NAMESPACE, scope);
+    const config = vscode.workspace.getConfiguration(NAMESPACE, resolvedScope);
     await updateConfigWithRetry(config, key, value, configTarget);
   };
   const queuedTask = configWriteQueue.then(task, task);
@@ -60,25 +74,23 @@ export async function setConfig<T = any>(
   await queuedTask;
 }
 
-export function getCacheConfig<T = any>(key: string, defaultValue?: T) {
-  if (!Object.hasOwn(cachedConfig, key)) {
-    cachedConfig[key] = getConfig<T>(key, defaultValue as T);
+export function getCacheConfig<T = any>(key: string, defaultValue?: T, scope?: vscode.ConfigurationScope) {
+  const scopedKey = getScopedCacheKey(key, scope);
+  if (!Object.hasOwn(cachedConfig, scopedKey)) {
+    cachedConfig[scopedKey] = getConfig<T>(key, defaultValue as T, scope);
   }
-  return cachedConfig[key] as T;
+  return cachedConfig[scopedKey] as T;
 }
 
-export function setCacheConfig<T = any>(key: string, value: T) {
-  cachedConfig[key] = value;
+export function setCacheConfig<T = any>(key: string, value: T, scope?: vscode.ConfigurationScope) {
+  cachedConfig[getScopedCacheKey(key, scope)] = value;
 }
 
 export function clearConfigCache(key: string) {
-  if (Object.hasOwn(cachedConfig, key)) {
-    delete cachedConfig[key];
-  } else {
-    for (const k in cachedConfig) {
-      if (k.startsWith(key)) {
-        delete cachedConfig[k];
-      }
+  for (const scopedKey in cachedConfig) {
+    const rawKey = getRawCacheKey(scopedKey);
+    if (key === "" || rawKey === key || rawKey.startsWith(key)) {
+      delete cachedConfig[scopedKey];
     }
   }
 }

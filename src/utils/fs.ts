@@ -6,6 +6,7 @@ import { t } from "@/utils/i18n";
 import { NotificationManager } from "@/utils/notification";
 import { isValidI18nCallablePath } from "@/utils/regex";
 import { getCacheConfig } from "./config";
+import { getWorkspaceFolderByPath, getWorkspaceRootPath } from "./workspace";
 
 const langPathRegex = /^(lang|language|i18n|l10n|locale|translation|translate|message|intl|fanyi)s?$/i;
 const localeCodeRegex = /(^|^\w.*\b)[a-z]{2,3}([-_][a-z]{2,4})?$/i;
@@ -18,12 +19,14 @@ function normalizePathForCompare(targetPath: string): string {
   return process.platform === "win32" ? normalizedPath.toLowerCase() : normalizedPath;
 }
 
-function resolvePathFromWorkspace(targetPath: string): string {
+type ScopeLike = vscode.ConfigurationScope | string | undefined;
+
+function resolvePathFromWorkspace(targetPath: string, scope?: ScopeLike): string {
   if (!targetPath) return "";
   if (path.isAbsolute(targetPath)) {
     return path.resolve(targetPath);
   }
-  const root = vscode.workspace.workspaceFolders?.[0].uri.fsPath;
+  const root = getWorkspaceRootPath(scope);
   if (root === undefined || root.trim() === "" || !path.isAbsolute(root)) return "";
   return path.resolve(root, targetPath);
 }
@@ -95,8 +98,8 @@ export function isPathInsideDirectory(dir: string, targetPath: string): boolean 
   if (!dir || !targetPath) {
     return false;
   }
-  const absoluteDir = resolvePathFromWorkspace(dir);
-  const absoluteTargetPath = resolvePathFromWorkspace(targetPath);
+  const absoluteTargetPath = resolvePathFromWorkspace(targetPath, targetPath);
+  const absoluteDir = resolvePathFromWorkspace(dir, absoluteTargetPath || targetPath);
   if (!absoluteDir || !absoluteTargetPath) return false;
   const relativePath = path.relative(normalizePathForCompare(absoluteDir), normalizePathForCompare(absoluteTargetPath));
   return relativePath === "" || (!relativePath.startsWith("..") && !path.isAbsolute(relativePath));
@@ -229,31 +232,30 @@ export async function detectI18nProject(dirPath: string): Promise<boolean> {
  * 将相对路径（相对于工作区根目录）解析为绝对路径。
  * @param relativePath 相对路径
  */
-export function toAbsolutePath(relativePath: string): string {
+export function toAbsolutePath(relativePath: string, scope?: ScopeLike): string {
   if (path.isAbsolute(relativePath)) {
     return relativePath;
   }
-  const root = vscode.workspace.workspaceFolders?.[0].uri.fsPath;
-  if (root === undefined) return "";
-  return path.resolve(root, relativePath);
+  return resolvePathFromWorkspace(relativePath, scope);
 }
 
 /**
  * 将绝对路径转换为相对于当前 workspace 的相对路径。
  * @param absolutePath 要转换的绝对路径
  */
-export function toRelativePath(absolutePath: string): string {
+export function toRelativePath(absolutePath: string, scope?: ScopeLike): string {
   if (!path.isAbsolute(absolutePath)) {
     return absolutePath;
   }
-  const root = vscode.workspace.workspaceFolders?.[0].uri.fsPath;
-  if (root === undefined) return "";
+  const workspaceFolder = getWorkspaceFolderByPath(absolutePath);
+  const root = workspaceFolder?.uri.fsPath ?? getWorkspaceRootPath(scope);
+  if (root.trim() === "") return "";
   return path.relative(root, absolutePath).split(path.sep).join("/");
 }
 
 export function isSamePath(pathA: string, pathB: string): boolean {
-  const resolvedPathA = resolvePathFromWorkspace(pathA);
-  const resolvedPathB = resolvePathFromWorkspace(pathB);
+  const resolvedPathA = resolvePathFromWorkspace(pathA, pathB);
+  const resolvedPathB = resolvePathFromWorkspace(pathB, pathA);
   if (!resolvedPathA || !resolvedPathB) return false;
   return normalizePathForCompare(resolvedPathA) === normalizePathForCompare(resolvedPathB);
 }
