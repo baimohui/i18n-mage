@@ -1,7 +1,7 @@
 import LangMage from "@/core/LangMage";
 import { getCacheConfig } from "@/utils/config";
 import { t } from "@/utils/i18n";
-import { ActiveEditorState } from "@/utils/activeEditorState";
+import { getDefinedEntriesWithDynamicMatches } from "@/utils/definedEntries";
 import * as vscode from "vscode";
 
 export class StatusBarItemManager {
@@ -52,7 +52,7 @@ export class StatusBarItemManager {
       this.hideReferenceLanguageItem();
     }
 
-    const definedCount = ActiveEditorState.definedEntries.size;
+    const definedCount = getDefinedEntriesWithDynamicMatches(mage.langDetail.tree).length;
     if (this.currentFileDefinedCountItem && definedCount > 0) {
       this.currentFileDefinedCountItem.text = `$(symbol-key) ${definedCount}`;
       this.currentFileDefinedCountItem.tooltip = `${t("tree.currentFile.defined")}: ${definedCount}`;

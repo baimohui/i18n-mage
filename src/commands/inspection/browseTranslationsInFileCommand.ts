@@ -3,10 +3,11 @@ import { internalToDisplayName, unescapeString } from "@/utils/regex";
 import { registerDisposable } from "@/utils/dispose";
 import { t } from "@/utils/i18n";
 import LangMage from "@/core/LangMage";
-import { ActiveEditorState, DefinedEntryInEditor } from "@/utils/activeEditorState";
+import { DefinedEntryInEditor } from "@/utils/activeEditorState";
 import { treeInstance } from "@/views/tree";
 import { getCacheConfig } from "@/utils/config";
 import { COMPLETION_DISPLAY_LANGUAGE_SOURCE, COMPLETION_MATCH_SCOPE, CompletionDisplayLanguageSource, CompletionMatchScope } from "@/types";
+import { getDefinedEntriesWithDynamicMatches } from "@/utils/definedEntries";
 
 interface BrowseTranslationQuickPickItem extends vscode.QuickPickItem {
   entry: DefinedEntryInEditor;
@@ -43,7 +44,7 @@ function createQuickPickItem(
 export function registerBrowseTranslationsInFileCommand() {
   const mage = LangMage.getInstance();
   const disposable = vscode.commands.registerCommand("i18nMage.browseTranslationsInFile", async () => {
-    const definedEntries = Array.from(ActiveEditorState.definedEntries.values());
+    const definedEntries = getDefinedEntriesWithDynamicMatches(mage.langDetail.tree);
     const { dictionary } = mage.langDetail;
     const publicCtx = mage.getPublicContext();
 
@@ -57,8 +58,7 @@ export function registerBrowseTranslationsInFileCommand() {
     const visitedKeySet = new Set<string>();
     const quickPickItems: BrowseTranslationQuickPickItem[] = [];
 
-    definedEntries.forEach(entries => {
-      const entry = entries[0];
+    definedEntries.forEach(entry => {
       const entryKey = entry.nameInfo.key;
       if (!entryKey || visitedKeySet.has(entryKey)) return;
 

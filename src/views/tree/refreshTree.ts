@@ -3,11 +3,11 @@ import LangMage from "@/core/LangMage";
 import { LangContextPublic, TEntry, UnmatchedLanguageAction } from "@/types";
 import { getCacheConfig } from "@/utils/config";
 import { getLangCode } from "@/utils/langKey";
-import { resolveEntryKeyFromName } from "@/utils/regex";
 import { ActiveEditorState } from "@/utils/activeEditorState";
 import { DecoratorController } from "@/features/Decorator";
 import { Diagnostics } from "@/features/Diagnostics";
 import { StatusBarItemManager } from "@/features/StatusBarItemManager";
+import { getDefinedEntriesWithDynamicMatches } from "@/utils/definedEntries";
 
 interface RefreshTreeDeps {
   mage: LangMage;
@@ -55,23 +55,7 @@ export function refreshTreeWithDeps(deps: RefreshTreeDeps): void {
   const editor = vscode.window.activeTextEditor;
   if (editor) {
     ActiveEditorState.update(editor);
-    const definedEntries = Array.from(ActiveEditorState.definedEntries.values()).map(item => item[0]);
-    for (const entry of definedEntries) {
-      if (entry.dynamic) {
-        const matchedNames = ActiveEditorState.dynamicMatchInfo.get(entry.nameInfo.name) || [];
-        matchedNames.forEach(name => {
-          if (!definedEntriesInCurrentFile.find(item => item.nameInfo.name === name)) {
-            const newEntry = {
-              ...entry,
-              nameInfo: { ...entry.nameInfo, text: name, name: name, key: resolveEntryKeyFromName(mage.langDetail.tree, name) ?? "" }
-            };
-            definedEntriesInCurrentFile.push(newEntry);
-          }
-        });
-      } else {
-        definedEntriesInCurrentFile.push(entry);
-      }
-    }
+    definedEntriesInCurrentFile = getDefinedEntriesWithDynamicMatches(mage.langDetail.tree);
     undefinedEntriesInCurrentFile = Array.from(ActiveEditorState.undefinedEntries.values()).map(item => item[0]);
     if (isSearching) {
       definedEntriesInCurrentFile = definedEntriesInCurrentFile.filter(item => {
