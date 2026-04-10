@@ -228,8 +228,11 @@ export function registerFixCommand(context: vscode.ExtensionContext) {
             undefinedKeys = undefinedKeys.filter(key => !currentNonSourceKeys.includes(key));
           }
         }
-        fixQuery.entriesToGen = undefinedKeys;
-        const writeFlag = tasks.length > 1 || undefinedKeys.length > 0;
+        fixQuery.entriesToGen = undefinedKeys.length > 0 ? undefinedKeys : false;
+        const generationKeys = [
+          ...new Set(tasks.map(task => (Array.isArray(task.fixQuery?.entriesToGen) ? task.fixQuery.entriesToGen : [])).flat())
+        ];
+        const writeFlag = generationKeys.length > 0;
         let missingEntryFile: string | undefined = undefined;
         if (writeFlag && avgFileNestedLevel && publicCtx.fileStructure) {
           const commonFiles = getCommonFilePaths(publicCtx.fileStructure);
@@ -282,7 +285,11 @@ export function registerFixCommand(context: vscode.ExtensionContext) {
         }
         const candidatePrefixes = customPrefixCandidates.length > 0 ? customPrefixCandidates : commonKeys;
         const candidateUsageMap = collectPrefixUsageMap(candidatePrefixes, nameSeparator || ".");
-        fixQuery.keyPrefixPatch = undefined;
+        tasks.forEach(task => {
+          if (task.fixQuery) {
+            task.fixQuery.keyPrefixPatch = undefined;
+          }
+        });
         const pickManualMissingEntryPath = async () => {
           let missingEntryPath: string | undefined = "";
           if (candidatePrefixes.length > 0) {
@@ -306,7 +313,11 @@ export function registerFixCommand(context: vscode.ExtensionContext) {
           missingEntryPath = missingEntryPath.trim();
           await context.workspaceState.update("lastPickedKey", missingEntryPath);
           mage.setOptions({ missingEntryPath });
-          fixQuery.keyPrefixPatch = undefined;
+          tasks.forEach(task => {
+            if (task.fixQuery) {
+              task.fixQuery.keyPrefixPatch = undefined;
+            }
+          });
           return missingEntryPath;
         };
         if (writeFlag && keyPrefix === "manual-selection" && !skipKeyCategorySelection) {
@@ -315,18 +326,18 @@ export function registerFixCommand(context: vscode.ExtensionContext) {
         } else if (writeFlag && isAiPrefixSelection && !skipKeyCategorySelection) {
           let fallbackToManualSelection = candidatePrefixes.length === 0;
           const keyPrefixPatch: Record<string, string> = {};
-          const sourceFilePathList = undefinedKeys.map(key => normalizeSourceFilePathList(Object.keys(undefinedMap[key] ?? {})));
+          const sourceFilePathList = generationKeys.map(key => normalizeSourceFilePathList(Object.keys(undefinedMap[key] ?? {})));
           if (!fallbackToManualSelection) {
             let aiCandidates = pickTopPrefixCandidates(candidatePrefixes, candidateUsageMap);
             if (nameSeparator === "\\.") {
               aiCandidates = aiCandidates.map(item => item.replaceAll("\\.", "."));
             }
             const aiPrefixRes = await selectPrefixFromAi({
-              sourceTextList: undefinedKeys,
+              sourceTextList: generationKeys,
               sourceFilePathList,
               prefixCandidates: aiCandidates
             });
-            if (aiPrefixRes.success && Array.isArray(aiPrefixRes.data) && aiPrefixRes.data.length === undefinedKeys.length) {
+            if (aiPrefixRes.success && Array.isArray(aiPrefixRes.data) && aiPrefixRes.data.length === generationKeys.length) {
               const namespacePrefix = getNamespacePrefix(missingEntryFile, publicCtx.namespaceStrategy);
               aiPrefixRes.data.forEach((item, index) => {
                 let normalized = normalizeAiSelectedPrefix(item, aiCandidates);
@@ -334,7 +345,7 @@ export function registerFixCommand(context: vscode.ExtensionContext) {
                   if (nameSeparator === "\\." && normalized.includes(".")) {
                     normalized = normalized.replaceAll(".", "\\.");
                   }
-                  keyPrefixPatch[genIdFromText(undefinedKeys[index])] = `${namespacePrefix}${normalized}`;
+                  keyPrefixPatch[genIdFromText(generationKeys[index])] = `${namespacePrefix}${normalized}`;
                 }
               });
               if (Object.keys(keyPrefixPatch).length === 0) {
@@ -348,7 +359,21 @@ export function registerFixCommand(context: vscode.ExtensionContext) {
             const selectedPath = await pickManualMissingEntryPath();
             if (selectedPath === undefined) return;
           } else {
-            fixQuery.keyPrefixPatch = keyPrefixPatch;
+            tasks.forEach(task => {
+              const taskGenKeys = Array.isArray(task.fixQuery?.entriesToGen) ? task.fixQuery.entriesToGen : [];
+              if (!task.fixQuery || taskGenKeys.length === 0) return;
+              const taskKeyPrefixPatch = taskGenKeys.reduce(
+                (prev, key) => {
+                  const id = genIdFromText(key);
+                  if (Object.hasOwn(keyPrefixPatch, id)) {
+                    prev[id] = keyPrefixPatch[id];
+                  }
+                  return prev;
+                },
+                {} as Record<string, string>
+              );
+              task.fixQuery.keyPrefixPatch = Object.keys(taskKeyPrefixPatch).length > 0 ? taskKeyPrefixPatch : undefined;
+            });
             mage.setOptions({ missingEntryPath: "" });
           }
         }
