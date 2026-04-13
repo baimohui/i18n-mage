@@ -113,7 +113,7 @@ function getFormValidationError(form: FormState, hasDetectedLangs: boolean, t: (
   if (hasVueFiles && form.framework === "vue-i18n" && !form.skipVueScriptInjection && form.vueScriptImportLinesText.trim().length === 0) {
     return `${t("extractSetup.labelVueScriptImportLines")} ${t("common.validate.required")}`;
   }
-  if (form.keyPrefix === "ai-selection" && form.prefixCandidatesText.trim().length === 0) {
+  if (!hasDetectedLangs && form.keyPrefix === "ai-selection" && form.prefixCandidatesText.trim().length === 0) {
     return t("extractSetup.errorPrefixCandidatesRequired");
   }
   return "";

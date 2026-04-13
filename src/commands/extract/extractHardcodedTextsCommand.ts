@@ -100,6 +100,12 @@ function toUnique(values: string[]) {
   return Array.from(new Set(values.map(item => item.trim()).filter(Boolean)));
 }
 
+function collectClassTreePrefixCandidates(classTree: Array<{ filePos: string; data: Record<string, unknown> }>, separator: string) {
+  if (separator.trim().length === 0) return [];
+  const prefixes = classTree.flatMap(item => getParentKeys(item.data, separator));
+  return toUnique(prefixes);
+}
+
 function normalizeSourceFilePathList(pathList: string[] = []) {
   return Array.from(
     new Set(
@@ -374,6 +380,11 @@ export function registerExtractHardcodedTextsCommand(context: vscode.ExtensionCo
       const keyPrefix: string = bootstrap.keyPrefix;
       const prefixCandidates = toUnique(bootstrap.prefixCandidates);
       const nameSeparator = langDetail.nameSeparator || ".";
+      const shouldDerivePrefixCandidatesFromClassTree = keyPrefix === "ai-selection" && langDetected && prefixCandidates.length === 0;
+      const derivedPrefixCandidates = shouldDerivePrefixCandidatesFromClassTree
+        ? collectClassTreePrefixCandidates(langDetail.classTree, nameSeparator)
+        : [];
+      const effectivePrefixCandidates = prefixCandidates.length > 0 ? prefixCandidates : derivedPrefixCandidates;
       const stopPrefixes = bootstrap.stopPrefixes;
       const stopWords = bootstrap.stopWords;
       const keyStyle = bootstrap.keyStyle;
@@ -480,15 +491,22 @@ export function registerExtractHardcodedTextsCommand(context: vscode.ExtensionCo
         return;
       }
       const aiPrefixByTextId = new Map<string, string>();
+      let aiPrefixFallbackMode: "auto-path" | "none" = "auto-path";
       if (keyPrefix === "ai-selection") {
-        let fallbackToAutoPath = prefixCandidates.length === 0;
+        const shouldRequirePrefixCandidates = !langDetected;
+        if (shouldDerivePrefixCandidatesFromClassTree) {
+          aiPrefixFallbackMode = "none";
+        }
+        let fallbackToAutoPath = effectivePrefixCandidates.length === 0 && aiPrefixFallbackMode === "auto-path";
         if (fallbackToAutoPath) {
-          setTimeout(() => {
-            NotificationManager.showWarning(t("extractSetup.errorPrefixCandidatesRequired"));
-          }, 800);
+          if (shouldRequirePrefixCandidates) {
+            setTimeout(() => {
+              NotificationManager.showWarning(t("extractSetup.errorPrefixCandidatesRequired"));
+            }, 800);
+          }
         } else {
-          const candidateUsageMap = collectPrefixUsageMap(prefixCandidates, nameSeparator || ".");
-          let aiCandidates = pickTopPrefixCandidates(prefixCandidates, candidateUsageMap);
+          const candidateUsageMap = collectPrefixUsageMap(effectivePrefixCandidates, nameSeparator || ".");
+          let aiCandidates = pickTopPrefixCandidates(effectivePrefixCandidates, candidateUsageMap);
           if (nameSeparator === "\\.") {
             aiCandidates = aiCandidates.map(item => item.replaceAll("\\.", "."));
           }
@@ -514,16 +532,16 @@ export function registerExtractHardcodedTextsCommand(context: vscode.ExtensionCo
               aiPrefixByTextId.set(genIdFromText(text), finalPrefix);
             });
             if (aiPrefixByTextId.size === 0) {
-              fallbackToAutoPath = true;
+              fallbackToAutoPath = aiPrefixFallbackMode === "auto-path";
             }
           } else {
-            fallbackToAutoPath = true;
+            fallbackToAutoPath = aiPrefixFallbackMode === "auto-path";
             setTimeout(() => {
               NotificationManager.showWarning(aiPrefixRes.message ?? t("translator.noAvailableApi"));
             }, 800);
           }
         }
-        if (fallbackToAutoPath) {
+        if (fallbackToAutoPath && (shouldRequirePrefixCandidates || effectivePrefixCandidates.length > 0)) {
           setTimeout(() => {
             NotificationManager.showWarning(t("extractSetup.warnAiPrefixFallbackAutoPath"));
           }, 1200);
@@ -689,7 +707,8 @@ export function registerExtractHardcodedTextsCommand(context: vscode.ExtensionCo
               keyPrefix === "manual-selection"
                 ? manualPrefix
                 : keyPrefix === "ai-selection"
-                  ? (aiPrefixByTextId.get(textId) ?? getPathPrefix(candidate.file, "auto-path", stopPrefixes, nameSeparator))
+                  ? (aiPrefixByTextId.get(textId) ??
+                    (aiPrefixFallbackMode === "none" ? "" : getPathPrefix(candidate.file, "auto-path", stopPrefixes, nameSeparator)))
                   : getPathPrefix(candidate.file, keyPrefix, stopPrefixes, nameSeparator);
             const baseName = generatedNameMap.get(text) ?? "";
             const checkExisted = (currentKey: string) =>

@@ -188,7 +188,7 @@ export function getApplyValidationError(params: {
   if (hasVueFiles && params.framework === "vue-i18n" && !params.skipVueScriptInjection && params.vueScriptImportLines.length === 0) {
     return `${t("extractSetup.labelVueScriptImportLines")} ${t("common.validate.required")}`;
   }
-  if (params.keyPrefix === "ai-selection" && params.prefixCandidates.length === 0) {
+  if (!params.hasDetectedLangs && params.keyPrefix === "ai-selection" && params.prefixCandidates.length === 0) {
     return t("extractSetup.errorPrefixCandidatesRequired");
   }
   return "";
