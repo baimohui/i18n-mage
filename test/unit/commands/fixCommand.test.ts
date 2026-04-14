@@ -40,6 +40,16 @@ describe("commands/fix/fixCommand", () => {
   });
 
   afterEach(() => {
+    mockRequire.stop("@/commands/fix/fixCommand");
+    mockRequire.stop("@/core/LangMage");
+    mockRequire.stop("@/views/tree");
+    mockRequire.stop("@/views/fixWebview");
+    mockRequire.stop("@/utils/wrapWithProgress");
+    mockRequire.stop("@/utils/preview");
+    mockRequire.stop("@/utils/notification");
+    mockRequire.stop("@/ai");
+    resetModule("@/commands/fix/fixCommand");
+
     vscodeAny.commands.registerCommand = originalRegisterCommand;
     vscodeAny.window.showQuickPick = originalShowQuickPick;
     vscodeAny.window.showInputBox = originalShowInputBox;
