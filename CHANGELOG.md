@@ -5,6 +5,18 @@ All notable changes to the i18n Mage VS Code extension will be documented in thi
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.3.6] - 2026-04-14
+
+### Added
+- **Search Quick Navigation**: Added fast navigation for search results. Use F4/Shift+F4 to navigate up/down through global results, F3/Shift+F3 to navigate within current file results, and Ctrl+Tab/Ctrl+Shift+Tab to switch between files. Corresponding buttons have been added to the search view.
+- **Multi-root Workspace Support**: Added full support for VS Code multi-root workspaces, enabling plugin functionality across multiple root directories simultaneously.
+- **AI Prefix Configuration for Hard-coded Extraction**: When extracting hard-coded texts for the first time, added support for AI-powered key prefix selection with configurable prefix candidate list.
+
+### Fixed
+- **Dynamic Entry Browsing**: Fixed file translation browsing functionality to properly display entries associated with dynamically concatenated keys.
+- **Hard-coded Empty File Generation**: Resolved issue where navigating from hard-coded configuration interface to extraction confirmation interface would inadvertently generate empty language files.
+- **AI Prefix Selection for Non-source Languages**: Fixed issue where newly generated entry keys could not apply AI-powered automatic prefix selection when fixing undefined entries for non-source languages.
+
 ## [1.3.5] - 2026-04-02
 
 ### Added
