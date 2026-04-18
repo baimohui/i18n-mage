@@ -886,13 +886,15 @@
             "order": 34,
             "type": "boolean",
             "default": false,
-            "description": "%config.enableKeyTagRule.desc%"
+            "description": "%config.enableKeyTagRule.desc%",
+            "deprecationMessage": "%config.enableKeyTagRule.deprecated%"
           },
           "i18n-mage.writeRules.enablePrefixTagRule": {
             "order": 35,
             "type": "boolean",
             "default": false,
-            "description": "%config.enablePrefixTagRule.desc%"
+            "description": "%config.enablePrefixTagRule.desc%",
+            "deprecationMessage": "%config.enablePrefixTagRule.deprecated%"
           }
         }
       },
