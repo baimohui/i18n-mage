@@ -255,6 +255,7 @@
   "command.searchNextFile.title": "下一个文件",
   "command.searchEntry.placeHolder": "输入搜索关键词",
   "command.searchEntry.prompt": "在所有语言中搜索词条",
+  "command.searchInFiles.title": "在文件中搜索",
   "command.cancelSearch.title": "退出搜索",
   "view.welcome.title": "未检测到翻译文件目录\n[选择翻译文件目录](command:i18nMage.selectLangPath)",
   "view.search.title": "搜索",

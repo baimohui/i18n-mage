@@ -49,13 +49,12 @@ export function getRootChildren(ctx: TreeSectionContext): ExtendedTreeItem[] {
   const rootSections: ExtendedTreeItem[] = [];
 
   if (ctx.isSearching) {
-    const hasSearchNavigationResult = ctx.hasSearchNavigationResult();
     rootSections.push({
       level: 0,
       label: `${t("tree.search.label")}: ${ctx.globalFilterText}`,
       id: "SEARCH_STATUS",
       root: "SEARCH_STATUS",
-      contextValue: hasSearchNavigationResult ? "SEARCH_STATUS,SEARCH_NAV" : "SEARCH_STATUS",
+      contextValue: "SEARCH_STATUS,SEARCH_NAV",
       iconPath: new vscode.ThemeIcon("search"),
       collapsibleState: vscode.TreeItemCollapsibleState.None,
       description: "",

@@ -1714,6 +1714,15 @@
         }
       },
       {
+        "command": "i18nMage.searchInFiles",
+        "category": "%extension.name%",
+        "title": "%command.searchInFiles.title%",
+        "icon": {
+          "light": "./images/search-line-light.svg",
+          "dark": "./images/search-line-dark.svg"
+        }
+      },
+      {
         "command": "i18nMage.toggleWholeWordMatch",
         "category": "%extension.name%",
         "title": "%command.toggleWholeWordMatch.title%",
@@ -1819,6 +1828,12 @@
         "command": "i18nMage.cancelSearch",
         "key": "escape",
         "mac": "escape",
+        "when": "i18nMage.enabled && i18nMage.hasValidLangPath && i18nMage.isSearching && focusedView == i18nMage.grimoire"
+      },
+      {
+        "command": "i18nMage.searchInFiles",
+        "key": "ctrl+shift+f",
+        "mac": "cmd+shift+f",
         "when": "i18nMage.enabled && i18nMage.hasValidLangPath && i18nMage.isSearching && focusedView == i18nMage.grimoire"
       },
       {

@@ -255,6 +255,7 @@
   "command.searchNextFile.title": "Next File",
   "command.searchEntry.placeHolder": "Enter search keyword",
   "command.searchEntry.prompt": "Search entries across all languages",
+  "command.searchInFiles.title": "Search in Files",
   "command.cancelSearch.title": "Exit Search",
   "view.welcome.title": "No translation directory detected\n[Select Translation Directory](command:i18nMage.selectLangPath)",
   "view.search.title": "Search",
