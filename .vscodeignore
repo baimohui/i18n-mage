@@ -37,6 +37,7 @@ dist/**/*.map
 .claude/**
 .husky/**
 .vscode/**
+.clinerules/**
 
 # Optional: local artifacts
 *.vsix
