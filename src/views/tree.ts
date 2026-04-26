@@ -285,18 +285,19 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
 
     const previousLocationId = this.searchNavigationLocations[this.searchNavigationCursor]?.id;
     const perFile: Record<string, Omit<SearchNavigationLocation, "globalIndex" | "fileEntryIndex" | "fileEntryCount">[]> = {};
+    const seenIds = new Set<string>();
     const appendLocation = (filePath: string, pos: string) => {
       const [startRaw, endRaw] = pos.split(",");
       const start = Number(startRaw);
       const end = Number(endRaw);
       if (Number.isNaN(start) || Number.isNaN(end)) return;
 
+      const id = `${filePath}:${start},${end}`;
+      if (seenIds.has(id)) return;
+      seenIds.add(id);
+
       perFile[filePath] ??= [];
-      perFile[filePath].push({
-        id: `${filePath}:${start},${end}`,
-        filePath,
-        range: [start, end]
-      });
+      perFile[filePath].push({ id, filePath, range: [start, end] });
     };
 
     const usedMap = this.usedEntryMap;
