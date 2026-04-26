@@ -1828,85 +1828,85 @@
         "command": "i18nMage.cancelSearch",
         "key": "escape",
         "mac": "escape",
-        "when": "i18nMage.enabled && i18nMage.hasValidLangPath && i18nMage.isSearching && focusedView == i18nMage.grimoire"
+        "when": "i18nMage.enabled && i18nMage.hasValidLangPath && i18nMage.isSearching"
       },
       {
         "command": "i18nMage.searchInFiles",
         "key": "ctrl+shift+f",
         "mac": "cmd+shift+f",
-        "when": "i18nMage.enabled && i18nMage.hasValidLangPath && i18nMage.isSearching && focusedView == i18nMage.grimoire"
+        "when": "i18nMage.enabled && i18nMage.hasValidLangPath && i18nMage.isSearching"
       },
       {
         "command": "i18nMage.searchPreviousInFileEntry",
         "key": "shift+f3",
         "mac": "shift+f3",
-        "when": "i18nMage.enabled && i18nMage.hasValidLangPath && i18nMage.isSearching && focusedView == i18nMage.grimoire"
+        "when": "i18nMage.enabled && i18nMage.hasValidLangPath && i18nMage.isSearching"
       },
       {
         "command": "i18nMage.searchNextInFileEntry",
         "key": "f3",
         "mac": "f3",
-        "when": "i18nMage.enabled && i18nMage.hasValidLangPath && i18nMage.isSearching && focusedView == i18nMage.grimoire"
+        "when": "i18nMage.enabled && i18nMage.hasValidLangPath && i18nMage.isSearching"
       },
       {
         "command": "i18nMage.searchPreviousGlobalEntry",
         "key": "shift+f4",
         "mac": "shift+f4",
-        "when": "i18nMage.enabled && i18nMage.hasValidLangPath && i18nMage.isSearching && focusedView == i18nMage.grimoire"
+        "when": "i18nMage.enabled && i18nMage.hasValidLangPath && i18nMage.isSearching"
       },
       {
         "command": "i18nMage.searchNextGlobalEntry",
         "key": "f4",
         "mac": "f4",
-        "when": "i18nMage.enabled && i18nMage.hasValidLangPath && i18nMage.isSearching && focusedView == i18nMage.grimoire"
+        "when": "i18nMage.enabled && i18nMage.hasValidLangPath && i18nMage.isSearching"
       },
       {
         "command": "i18nMage.searchPreviousFile",
         "key": "ctrl+shift+tab",
         "mac": "cmd+shift+[",
-        "when": "i18nMage.enabled && i18nMage.hasValidLangPath && i18nMage.isSearching && focusedView == i18nMage.grimoire"
+        "when": "i18nMage.enabled && i18nMage.hasValidLangPath && i18nMage.isSearching"
       },
       {
         "command": "i18nMage.searchNextFile",
         "key": "ctrl+tab",
         "mac": "cmd+shift+]",
-        "when": "i18nMage.enabled && i18nMage.hasValidLangPath && i18nMage.isSearching && focusedView == i18nMage.grimoire"
+        "when": "i18nMage.enabled && i18nMage.hasValidLangPath && i18nMage.isSearching"
       },
       {
         "command": "i18nMage.toggleWholeWordMatch",
         "key": "alt+w",
         "mac": "alt+w",
-        "when": "i18nMage.enabled && i18nMage.hasValidLangPath && i18nMage.isSearching && !i18nMage.isWholeWordMatch && focusedView == i18nMage.grimoire"
+        "when": "i18nMage.enabled && i18nMage.hasValidLangPath && i18nMage.isSearching && !i18nMage.isWholeWordMatch"
       },
       {
         "command": "i18nMage.toggleWholeWordMatch.active",
         "key": "alt+w",
         "mac": "alt+w",
-        "when": "i18nMage.enabled && i18nMage.hasValidLangPath && i18nMage.isSearching && i18nMage.isWholeWordMatch && focusedView == i18nMage.grimoire"
+        "when": "i18nMage.enabled && i18nMage.hasValidLangPath && i18nMage.isSearching && i18nMage.isWholeWordMatch"
       },
       {
         "command": "i18nMage.toggleCaseSensitive",
         "key": "alt+c",
         "mac": "alt+c",
-        "when": "i18nMage.enabled && i18nMage.hasValidLangPath && i18nMage.isSearching && !i18nMage.isCaseSensitive && focusedView == i18nMage.grimoire"
+        "when": "i18nMage.enabled && i18nMage.hasValidLangPath && i18nMage.isSearching && !i18nMage.isCaseSensitive"
       },
       {
         "command": "i18nMage.toggleCaseSensitive.active",
         "key": "alt+c",
         "mac": "alt+c",
-        "when": "i18nMage.enabled && i18nMage.hasValidLangPath && i18nMage.isSearching && i18nMage.isCaseSensitive && focusedView == i18nMage.grimoire"
+        "when": "i18nMage.enabled && i18nMage.hasValidLangPath && i18nMage.isSearching && i18nMage.isCaseSensitive"
       },
       {
         "command": "i18nMage.toggleSourceLangOnly",
         "key": "alt+s",
         "mac": "alt+s",
-        "when": "i18nMage.enabled && i18nMage.hasValidLangPath && i18nMage.isSearching && !i18nMage.isSourceLangOnly && focusedView == i18nMage.grimoire"
+        "when": "i18nMage.enabled && i18nMage.hasValidLangPath && i18nMage.isSearching && !i18nMage.isSourceLangOnly"
       },
       {
         "command": "i18nMage.toggleSourceLangOnly.active",
         "key": "alt+s",
         "mac": "alt+s",
-        "when": "i18nMage.enabled && i18nMage.hasValidLangPath && i18nMage.isSearching && i18nMage.isSourceLangOnly && focusedView == i18nMage.grimoire"
+        "when": "i18nMage.enabled && i18nMage.hasValidLangPath && i18nMage.isSearching && i18nMage.isSourceLangOnly"
       }
     ],
     "menus": {

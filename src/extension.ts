@@ -1,4 +1,4 @@
-﻿import * as vscode from "vscode";
+import * as vscode from "vscode";
 import { treeInstance } from "@/views/tree";
 import { DecoratorController } from "@/features/Decorator";
 import { wrapWithProgress } from "@/utils/wrapWithProgress";
@@ -18,6 +18,7 @@ import { KeyDefinitionProvider } from "./features/DefinitionProvider";
 import { KeyReferenceProvider } from "./features/ReferenceProvider";
 import { IgnoredPathDecorationProvider } from "./features/IgnoredPathDecorationProvider";
 import { showUpdateSummaryIfNeeded } from "./utils/updateSummary";
+import { initSearchQuickPick } from "./features/SearchQuickPick";
 
 class ExtensionState {
   private static instance: ExtensionState | null = null;
@@ -99,6 +100,7 @@ class ExtensionState {
     await wrapWithProgress({ title: "" }, async () => {
       await treeInstance.initTree();
     });
+    initSearchQuickPick(this._context);
     this.scheduleStartupDecorationRefresh();
   }
 
