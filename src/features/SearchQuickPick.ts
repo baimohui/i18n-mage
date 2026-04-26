@@ -198,9 +198,11 @@ class SearchQuickPick {
       const value = this.qp?.value?.trim() ?? "";
       if (value !== "") {
         this.addHistoryEntry(value);
-        if (this.isSearching) {
-          treeInstance.navigateSearchResult("nextGlobalEntry");
+        if (!this.isSearching) {
+          treeInstance.setSearch(value);
+          this.isSearching = true;
         }
+        treeInstance.navigateSearchResult("nextGlobalEntry");
       }
     });
 

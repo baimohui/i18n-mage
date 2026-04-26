@@ -8,6 +8,7 @@ import { ExtendedTreeItem, FileItem } from "./models";
 import { countDictionaryLeaves, getFilteredDictionaryTreeNode } from "./searchHelpers";
 import { checkLangSyncInfo, getSyncInfo } from "./syncHelpers";
 import { createUsageTreeItem, getUsageData } from "./usageHelpers";
+import { stripQuotesFromRange } from "@/utils/range";
 
 type LangDetailView = {
   dictionary: Record<string, { value: Record<string, string> }>;
@@ -462,8 +463,9 @@ export async function getUsageInfoChildren(ctx: TreeSectionContext, element: Ext
         const fileUri = vscode.Uri.file(filePath);
         const document = await vscode.workspace.openTextDocument(fileUri);
         entryUsedInfo[filePath].forEach(offset => {
-          const [startPos, endPos] = offset.split(",").map(pos => document.positionAt(+pos));
-          const range = new vscode.Range(startPos, endPos);
+          const [startOffset, endOffset] = offset.split(",").map(pos => +pos);
+          const [strippedStart, strippedEnd] = stripQuotesFromRange(document.getText(), startOffset, endOffset);
+          const range = new vscode.Range(document.positionAt(strippedStart), document.positionAt(strippedEnd));
           list.push(new FileItem(fileUri, range));
         });
       }

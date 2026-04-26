@@ -3,6 +3,7 @@ import { registerDisposable } from "@/utils/dispose";
 import { t } from "@/utils/i18n";
 import { NotificationManager } from "@/utils/notification";
 import LangMage from "@/core/LangMage";
+import { stripQuotesFromRange } from "@/utils/range";
 
 export function registerGoToReferenceCommand() {
   const mage = LangMage.getInstance();
@@ -41,8 +42,10 @@ export function registerGoToReferenceCommand() {
         const set = usedInfo[matchedPath!];
         const pos = set.size > 0 ? set.values().next().value : undefined;
         if (pos !== undefined) {
-          const [startPos, endPos] = pos.split(",").map(pos => document.positionAt(+pos));
-          const selection = new vscode.Range(startPos, endPos);
+          const [startPos, endPos] = pos.split(",").map(Number);
+          const text = document.getText();
+          const [startOffset, endOffset] = stripQuotesFromRange(text, startPos, endPos);
+          const selection = new vscode.Range(document.positionAt(startOffset), document.positionAt(endOffset));
           vscode.window.showTextDocument(resourceUri, { selection });
         }
       }

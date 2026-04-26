@@ -8,6 +8,7 @@ import { matchesSearch as matchesSearchHelper } from "./tree/searchHelpers";
 import { getSyncPercent } from "./tree/syncHelpers";
 import { getUsageData } from "./tree/usageHelpers";
 import { resolveEntryKeyFromName } from "@/utils/regex";
+import { stripQuotesFromRange } from "@/utils/range";
 import {
   getCurrentFileChildren as getCurrentFileChildrenSection,
   getDictionaryChildren as getDictionaryChildrenSection,
@@ -405,7 +406,9 @@ class TreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
     const fileUri = vscode.Uri.file(location.filePath);
     const document = await vscode.workspace.openTextDocument(fileUri);
     const [start, end] = location.range;
-    const selection = new vscode.Range(document.positionAt(start), document.positionAt(end));
+    const text = document.getText();
+    const [startOffset, endOffset] = stripQuotesFromRange(text, start, end);
+    const selection = new vscode.Range(document.positionAt(startOffset), document.positionAt(endOffset));
     this.showSearchNavigationStatusBarMessage(location);
     await vscode.window.showTextDocument(fileUri, { selection, preserveFocus: true, preview: true });
   }
