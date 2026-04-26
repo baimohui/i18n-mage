@@ -1825,12 +1825,6 @@
         "when": "i18nMage.enabled && i18nMage.hasValidLangPath && i18nMage.hasDefinedEntriesInFile"
       },
       {
-        "command": "i18nMage.cancelSearch",
-        "key": "escape",
-        "mac": "escape",
-        "when": "i18nMage.enabled && i18nMage.hasValidLangPath && i18nMage.isSearching"
-      },
-      {
         "command": "i18nMage.searchInFiles",
         "key": "ctrl+shift+f",
         "mac": "cmd+shift+f",

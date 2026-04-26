@@ -113,7 +113,13 @@ class SearchQuickPick {
     if (this.qp.value === "" && this.history.length > 0) {
       this.qp.items = this.history.map(text => ({
         label: text,
-        description: ""
+        description: "",
+        buttons: [
+          {
+            iconPath: new vscode.ThemeIcon("trash"),
+            tooltip: t("tree.search.deleteThisSearchHistory")
+          }
+        ]
       }));
     } else {
       this.qp.items = [];
@@ -196,6 +202,14 @@ class SearchQuickPick {
           treeInstance.navigateSearchResult("nextGlobalEntry");
         }
       }
+    });
+
+    // 历史记录项的按钮（删除）
+    this.qp.onDidTriggerItemButton(e => {
+      const text = e.item.label;
+      this.history = this.history.filter(entry => entry !== text);
+      this.saveHistory();
+      this.updateHistoryItems();
     });
 
     // 切换按钮

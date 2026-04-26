@@ -472,5 +472,6 @@
   "tree.search.wholeWordMatching": "全词匹配",
   "tree.search.wholeWordMatchingEnabled": "全词匹配 (已启用)",
   "tree.search.sourceLanguageOnly": "仅源语言",
-  "tree.search.sourceLanguageOnlyEnabled": "仅源语言 (已启用)"
+  "tree.search.sourceLanguageOnlyEnabled": "仅源语言 (已启用)",
+  "tree.search.deleteThisSearchHistory": "删除此搜索记录"
 }

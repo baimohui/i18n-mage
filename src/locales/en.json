@@ -472,5 +472,6 @@
   "tree.search.wholeWordMatching": "Whole word matching",
   "tree.search.wholeWordMatchingEnabled": "Whole word matching (enabled)",
   "tree.search.sourceLanguageOnly": "Source language only",
-  "tree.search.sourceLanguageOnlyEnabled": "Source language only (enabled)"
+  "tree.search.sourceLanguageOnlyEnabled": "Source language only (enabled)",
+  "tree.search.deleteThisSearchHistory": "Delete this search history"
 }

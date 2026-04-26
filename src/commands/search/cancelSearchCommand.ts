@@ -1,6 +1,7 @@
 import * as vscode from "vscode";
 import { treeInstance } from "@/views/tree";
 import { registerDisposable } from "@/utils/dispose";
+import { getSearchQuickPick } from "@/features/SearchQuickPick";
 
 /**
  * 注册清除搜索命令
@@ -9,6 +10,7 @@ import { registerDisposable } from "@/utils/dispose";
 export function registerCancelSearchCommand() {
   const disposable = vscode.commands.registerCommand("i18nMage.cancelSearch", () => {
     treeInstance.cancelSearch();
+    getSearchQuickPick().hide();
   });
   registerDisposable(disposable);
 }
