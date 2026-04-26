@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "module": "commonjs",
+    "module": "esnext",
     "target": "ES2022",
     "outDir": "dist",
     "sourceMap": true,
@@ -10,7 +10,7 @@
     "allowJs": true,
     "checkJs": true,
     "esModuleInterop": true,
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
     "resolveJsonModule": true,
     "jsx": "react-jsx",
     "jsxImportSource": "preact",
@@ -19,10 +19,9 @@
       "mocha"
     ],
     "skipLibCheck": true,
-    "baseUrl": "./",
     "paths": {
       "@/*": [
-        "src/*"
+        "./src/*"
       ]
     }
   },
