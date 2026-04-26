@@ -4,11 +4,7 @@
     {
       "label": "watch-all",
       "type": "shell",
-      "command": "npm run build:webviews:watch",
-      "dependsOrder": "parallel",
-      "dependsOn": [
-        "watch-extension"
-      ],
+      "command": "npm run build:webviews:watch & npx esbuild src/extension.ts --bundle --outfile=dist/extension.js --platform=node --target=node18 --external:vscode --sourcemap --watch",
       "isBackground": true,
       "problemMatcher": {
         "owner": "custom",
@@ -24,31 +20,6 @@
           "activeOnStart": true,
           "beginsPattern": ".",
           "endsPattern": "watching for changes|watching for file changes"
-        }
-      },
-      "presentation": {
-        "reveal": "never"
-      }
-    },
-    {
-      "label": "watch-extension",
-      "type": "shell",
-      "command": "npx esbuild src/extension.ts --bundle --outfile=dist/extension.js --platform=node --target=node18 --external:vscode --sourcemap --watch",
-      "isBackground": true,
-      "problemMatcher": {
-        "owner": "custom",
-        "pattern": [
-          {
-            "regexp": ".*",
-            "file": 1,
-            "location": 2,
-            "message": 3
-          }
-        ],
-        "background": {
-          "activeOnStart": true,
-          "beginsPattern": ".",
-          "endsPattern": "watching for changes"
         }
       },
       "presentation": {
