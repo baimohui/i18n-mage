@@ -79,6 +79,14 @@ class SearchQuickPick {
   private toggleButtons: ToggleButtonConfig[];
   private isSearching = false;
 
+  get isOpen(): boolean {
+    return this.qp !== null;
+  }
+
+  get currentValue(): string {
+    return this.qp?.value?.trim() ?? "";
+  }
+
   constructor(context: vscode.ExtensionContext) {
     this.context = context;
     this.toggleButtons = getToggleButtons();
@@ -242,9 +250,9 @@ class SearchQuickPick {
 
   focus(): void {
     if (this.qp) {
-      this.qp.value = this.getDefaultValue();
-      this.qp.show();
-      return;
+      // 销毁旧的 QuickPick，重新创建以确保输入框获得焦点
+      this.qp.dispose();
+      this.qp = null;
     }
     this.show();
   }
