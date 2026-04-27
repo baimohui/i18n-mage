@@ -2,6 +2,7 @@ import * as vscode from "vscode";
 import { treeInstance } from "@/views/tree";
 import { t } from "@/utils/i18n";
 import { registerDisposable } from "@/utils/dispose";
+import { debounce } from "@/utils/common";
 
 const MAX_HISTORY = 50;
 const HISTORY_KEY = "i18nMage.searchHistory";
@@ -78,6 +79,10 @@ class SearchQuickPick {
   private history: string[] = [];
   private toggleButtons: ToggleButtonConfig[];
   private isSearching = false;
+  private debouncedSearch = debounce((value: string) => {
+    treeInstance.setSearch(value);
+    this.isSearching = true;
+  }, 200);
 
   get isOpen(): boolean {
     return this.qp !== null;
@@ -173,11 +178,12 @@ class SearchQuickPick {
     // 打开搜索时切换到侧边栏插件视图
     vscode.commands.executeCommand("workbench.view.extension.i18nMage");
 
-    // 实时输入过滤
+    // 实时输入过滤（防抖 200ms）
     this.qp.onDidChangeValue(value => {
       if (!this.qp) return;
       if (value.trim() === "") {
         // 输入为空时显示历史记录
+        this.debouncedSearch.cancel();
         this.updateHistoryItems();
         if (this.isSearching) {
           treeInstance.cancelSearch();
@@ -185,8 +191,7 @@ class SearchQuickPick {
         }
       } else {
         this.qp.items = [];
-        treeInstance.setSearch(value.trim());
-        this.isSearching = true;
+        void this.debouncedSearch(value.trim());
       }
     });
 
@@ -195,6 +200,7 @@ class SearchQuickPick {
       const selectedItem = this.qp?.selectedItems?.[0];
       if (selectedItem && this.qp?.value === "") {
         // 从历史记录中选择了一项
+        this.debouncedSearch.cancel();
         const historyText = selectedItem.label;
         this.qp.value = historyText;
         this.qp.items = [];
@@ -205,6 +211,7 @@ class SearchQuickPick {
 
       const value = this.qp?.value?.trim() ?? "";
       if (value !== "") {
+        this.debouncedSearch.cancel();
         this.addHistoryEntry(value);
         if (!this.isSearching) {
           treeInstance.setSearch(value);
