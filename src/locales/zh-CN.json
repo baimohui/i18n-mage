@@ -120,7 +120,7 @@
   "command.ignoreFile.openLabel": "选择需要忽略的文件",
   "command.ignoreFile.progress": "刷新中",
   "command.ignoreLang.noIgnoredLang": "当前没有可忽略的语言",
-  "command.ignorePath.langPathBlocked": "翻译目录及其子目录/文件不可忽略",
+  "command.ignorePath.langPathBlocked": "翻译目录本身不可忽略",
   "command.import.dialogTitle": "选择 Excel 文件",
   "command.import.langDetected": "检测到表格内有效的语言列为：{0}",
   "command.import.modeKey": "以 key 为基准导入",

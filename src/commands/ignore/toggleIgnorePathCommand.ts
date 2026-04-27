@@ -5,7 +5,7 @@ import { wrapWithProgress } from "@/utils/wrapWithProgress";
 import { registerDisposable } from "@/utils/dispose";
 import { t } from "@/utils/i18n";
 import { getCacheConfig, setConfig } from "@/utils/config";
-import { isPathInsideDirectory, toRelativePath } from "@/utils/fs";
+import { isSamePath, toRelativePath } from "@/utils/fs";
 import { getIgnoredPathsFromConfig } from "@/utils/ignorePaths";
 import { IgnoredPathDecorationProvider } from "@/features/IgnoredPathDecorationProvider";
 import { NotificationManager } from "@/utils/notification";
@@ -42,7 +42,7 @@ export function registerToggleIgnorePathCommand() {
 
     if (!isIgnored) {
       const languagePath = getCacheConfig<string>("workspace.languagePath", "");
-      if (languagePath && isPathInsideDirectory(languagePath, uri.fsPath)) {
+      if (languagePath && isSamePath(languagePath, uri.fsPath)) {
         NotificationManager.showWarning(t("command.ignorePath.langPathBlocked"));
         return;
       }

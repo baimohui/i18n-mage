@@ -120,7 +120,7 @@
   "command.ignoreFile.openLabel": "Select files to ignore",
   "command.ignoreFile.progress": "Refreshing",
   "command.ignoreLang.noIgnoredLang": "No ignored languages",
-  "command.ignorePath.langPathBlocked": "The translation directory and its contents cannot be ignored",
+  "command.ignorePath.langPathBlocked": "The translation directory itself cannot be ignored",
   "command.import.dialogTitle": "Select Excel file",
   "command.import.langDetected": "Detected valid language columns: {0}",
   "command.import.modeKey": "Import by key",

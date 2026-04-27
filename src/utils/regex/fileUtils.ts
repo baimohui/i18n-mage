@@ -359,6 +359,7 @@ export interface ExtractResult {
 }
 
 export function extractLangDataFromDir(langPath: string): ExtractResult | null {
+  const ignoredPaths = getIgnoredPathsFromCache();
   let validFileType = "";
   const fileExtraInfo: Record<string, FileExtraInfo> = {};
   let fileNestedLevel = 0;
@@ -379,6 +380,10 @@ export function extractLangDataFromDir(langPath: string): ExtractResult | null {
 
     for (const dirent of fs.readdirSync(dir, { withFileTypes: true })) {
       const fullPath = path.join(dir, dirent.name);
+      const normalizedPath = path.normalize(fullPath);
+      if (ignoredPaths.some(ignoredPath => isSamePath(normalizedPath, ignoredPath) || isPathInsideDirectory(ignoredPath, normalizedPath))) {
+        continue;
+      }
 
       if (dirent.isDirectory()) {
         const subPathSegs = [...pathSegs, dirent.name];
