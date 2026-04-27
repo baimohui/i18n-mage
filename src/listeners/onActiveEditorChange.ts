@@ -3,6 +3,7 @@ import { treeInstance } from "@/views/tree";
 import { registerDisposable } from "@/utils/dispose";
 import { debounce } from "@/utils/common";
 import { isFileTooLarge } from "@/utils/fs";
+import { isValidI18nCallablePath } from "@/utils/regex";
 import { NotificationManager } from "@/utils/notification";
 import { t } from "@/utils/i18n";
 import { getCacheConfig } from "@/utils/config";
@@ -19,12 +20,15 @@ export function registerOnActiveEditorChange() {
       return;
     }
 
-    const largeFileFlag = isFileTooLarge(editor?.document.uri.fsPath ?? "");
-    if (largeFileFlag) {
-      const fileSizeSkipThresholdKB = getCacheConfig<number>("analysis.fileSizeSkipThresholdKB");
-      NotificationManager.setStatusBarMessage(t("command.check.fileSizeExceedsThresholdSkipParsing", fileSizeSkipThresholdKB));
-    }
     if (treeInstance.isInitialized) {
+      const filePath = editor?.document.uri.fsPath ?? "";
+      if (isValidI18nCallablePath(filePath)) {
+        const largeFileFlag = isFileTooLarge(filePath);
+        if (largeFileFlag) {
+          const fileSizeSkipThresholdKB = getCacheConfig<number>("analysis.fileSizeSkipThresholdKB");
+          NotificationManager.setStatusBarMessage(t("command.check.fileSizeExceedsThresholdSkipParsing", fileSizeSkipThresholdKB));
+        }
+      }
       treeInstance.refresh();
     }
   }, 300);
