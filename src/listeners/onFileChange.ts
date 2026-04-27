@@ -3,7 +3,6 @@ import { registerDisposable } from "@/utils/dispose";
 import { DecoratorController } from "@/features/Decorator";
 import { Diagnostics } from "@/features/Diagnostics";
 import { throttle } from "@/utils/common";
-import { ActiveEditorState } from "@/utils/activeEditorState";
 
 export function registerOnFileChange() {
   const decorator = DecoratorController.getInstance();
@@ -13,7 +12,8 @@ export function registerOnFileChange() {
     if (vscode.window.activeTextEditor?.document !== event.document) return;
     // 过滤掉空变更（有时 diagnostics 或 decoration 也会触发）
     if (event.contentChanges.length === 0) return;
-    ActiveEditorState.update(vscode.window.activeTextEditor);
+    // 优化：不再在此处调用 ActiveEditorState.update()，
+    // handleDocumentChange 内部会根据需要自行调用，避免重复解析
     decorator.handleDocumentChange(event);
     diagnostics.update(event.document);
   }, 500);

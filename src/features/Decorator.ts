@@ -14,6 +14,9 @@ type DecorationData = {
   endPos: number;
   value: string;
   isLooseMatch: boolean;
+  /** 缓存 positionAt 结果，避免在 applyDecorations 中重复计算 */
+  startPosition?: vscode.Position;
+  endPosition?: vscode.Position;
 };
 
 export class DecoratorController implements vscode.Disposable {
@@ -134,11 +137,16 @@ export class DecoratorController implements vscode.Disposable {
 
       if (!entryValue) return;
 
+      // 优化：在构建 DecorationData 时缓存 positionAt 结果
+      const startPosition = editor.document.positionAt(startPos);
+      const endPosition = editor.document.positionAt(endPos);
       currentDecorations.push({
         startPos,
         endPos,
         value: this.formatEntryValue(entryValue, maxLen),
-        isLooseMatch
+        isLooseMatch,
+        startPosition,
+        endPosition
       });
     });
 
@@ -151,8 +159,9 @@ export class DecoratorController implements vscode.Disposable {
     const editor = event.textEditor;
     const editorKey = this.getEditorKey(editor);
     const cursorLine = event.selections[0].active.line;
+    const prevCursorLine = this.lastCursorLineByEditor.get(editorKey);
 
-    if (cursorLine === this.lastCursorLineByEditor.get(editorKey)) return;
+    if (cursorLine === prevCursorLine) return;
 
     this.lastCursorLineByEditor.set(editorKey, cursorLine);
     const decorations = this.decorationsByEditor.get(editorKey);
@@ -162,7 +171,9 @@ export class DecoratorController implements vscode.Disposable {
     if (mode === "langFile") {
       this.applyLanguageFileDecorations(editor, decorations);
     } else {
-      this.applyDecorations(editor, decorations);
+      // 优化：增量更新，只重新计算受光标移动影响的装饰项
+      // 只有上一行和当前行的装饰渲染模式可能改变（overlay ↔ inline）
+      this.applyDecorationsIncremental(editor, decorations, prevCursorLine, cursorLine);
     }
   }
 
@@ -208,7 +219,9 @@ export class DecoratorController implements vscode.Disposable {
   }
 
   public handleVisibleRangesChange(event: vscode.TextEditorVisibleRangesChangeEvent): void {
-    ActiveEditorState.update(event.textEditor);
+    // 优化：滚动时只更新可见性标记，不触发全量重解析（ActiveEditorState.update）
+    // 文件内容未变，仅可视区域变化，无需重新解析整个文件
+    ActiveEditorState.updateVisibleEntries(event.textEditor);
     this.update(event.textEditor);
   }
 
@@ -235,6 +248,125 @@ export class DecoratorController implements vscode.Disposable {
     return formattedEntryValue.slice(0, maxLen) + "...";
   }
 
+  /**
+   * 增量更新装饰：只重新计算受光标移动影响的行（上一行和当前行）的装饰渲染模式。
+   * 其他行的装饰保持不变，避免全量重建 DecorationOptions 数组。
+   */
+  private applyDecorationsIncremental(
+    editor: vscode.TextEditor,
+    decorations: DecorationData[],
+    prevCursorLine: number | undefined,
+    cursorLine: number
+  ): void {
+    const isInline = getCacheConfig<InlineHintsDisplayMode>("translationHints.displayMode") === INLINE_HINTS_DISPLAY_MODE.inline;
+    if (isInline) {
+      // inline 模式下所有装饰都是 appended 模式，不受光标影响，无需增量更新
+      this.applyDecorations(editor, decorations);
+      return;
+    }
+
+    const isItalic = getCacheConfig<boolean>("translationHints.italic");
+    const translationDecorations: vscode.DecorationOptions[] = [];
+    const looseTranslationDecorations: vscode.DecorationOptions[] = [];
+    const hiddenKeyDecorations: vscode.DecorationOptions[] = [];
+
+    // 只处理上一行和当前行范围内的装饰项
+    const affectedLines = new Set<number>();
+    if (prevCursorLine !== undefined) affectedLines.add(prevCursorLine);
+    affectedLines.add(cursorLine);
+
+    decorations.forEach(({ startPos, endPos, value, isLooseMatch, startPosition, endPosition }) => {
+      let adjStartPos = startPos;
+      let adjEndPos = endPos;
+      if (isLooseMatch) {
+        adjStartPos = startPos - 1;
+        adjEndPos = endPos + 1;
+      }
+
+      const globalStartPos = startPosition && !isLooseMatch ? startPosition : editor.document.positionAt(adjStartPos);
+      let globalEndPos = endPosition && !isLooseMatch ? endPosition : editor.document.positionAt(adjEndPos);
+
+      // 判断该装饰是否在受影响的行范围内
+      const isAffected = affectedLines.has(globalStartPos.line) || affectedLines.has(globalEndPos.line);
+      const isOnCursorLine = globalStartPos.line <= cursorLine && globalEndPos.line >= cursorLine;
+
+      if (isAffected) {
+        // 受影响的行：根据光标位置重新决定渲染模式
+        if (isOnCursorLine) {
+          if (isLooseMatch) {
+            const document = editor.document;
+            const text = document.getText();
+            const searchStart = Math.max(adjStartPos, 0);
+            const searchEnd = Math.min(adjEndPos - 1, text.length - 1);
+            let quotePosition: number | null = null;
+            for (let i = searchEnd; i >= searchStart; i--) {
+              if (text[i] === '"' || text[i] === "'" || text[i] === "`") {
+                quotePosition = i;
+                break;
+              }
+            }
+            if (quotePosition !== null) {
+              globalEndPos = document.positionAt(quotePosition);
+            }
+          }
+
+          const range = new vscode.Range(globalEndPos, globalEndPos);
+          const appendedDec: vscode.DecorationOptions = {
+            range,
+            renderOptions: { before: { contentText: ` → ${value}`, fontStyle: isItalic ? "italic" : "normal" } }
+          };
+          if (isLooseMatch) {
+            looseTranslationDecorations.push(appendedDec);
+          } else {
+            translationDecorations.push(appendedDec);
+          }
+        } else {
+          const range = new vscode.Range(globalStartPos, globalEndPos);
+          const overlayDec: vscode.DecorationOptions = {
+            range,
+            renderOptions: { before: { contentText: isLooseMatch ? `"${value}"` : value, fontStyle: isItalic ? "italic" : "normal" } }
+          };
+          if (isLooseMatch) {
+            looseTranslationDecorations.push(overlayDec);
+          } else {
+            translationDecorations.push(overlayDec);
+          }
+          hiddenKeyDecorations.push({ range: new vscode.Range(globalStartPos, globalEndPos) });
+        }
+      } else {
+        // 不受影响的行：保持原有渲染模式（根据当前光标位置判断）
+        if (isOnCursorLine) {
+          const range = new vscode.Range(globalEndPos, globalEndPos);
+          const appendedDec: vscode.DecorationOptions = {
+            range,
+            renderOptions: { before: { contentText: ` → ${value}`, fontStyle: isItalic ? "italic" : "normal" } }
+          };
+          if (isLooseMatch) {
+            looseTranslationDecorations.push(appendedDec);
+          } else {
+            translationDecorations.push(appendedDec);
+          }
+        } else {
+          const range = new vscode.Range(globalStartPos, globalEndPos);
+          const overlayDec: vscode.DecorationOptions = {
+            range,
+            renderOptions: { before: { contentText: isLooseMatch ? `"${value}"` : value, fontStyle: isItalic ? "italic" : "normal" } }
+          };
+          if (isLooseMatch) {
+            looseTranslationDecorations.push(overlayDec);
+          } else {
+            translationDecorations.push(overlayDec);
+          }
+          hiddenKeyDecorations.push({ range: new vscode.Range(globalStartPos, globalEndPos) });
+        }
+      }
+    });
+
+    editor.setDecorations(this.translationDecoration, translationDecorations);
+    editor.setDecorations(this.looseTranslationDecoration, looseTranslationDecorations);
+    editor.setDecorations(this.hiddenKeyDecoration, hiddenKeyDecorations);
+  }
+
   private applyDecorations(editor: vscode.TextEditor, decorations: DecorationData[]): void {
     const cursorLine = editor.selection.active.line;
     const translationDecorations: vscode.DecorationOptions[] = [];
@@ -243,22 +375,26 @@ export class DecoratorController implements vscode.Disposable {
     const isInline = getCacheConfig<InlineHintsDisplayMode>("translationHints.displayMode") === INLINE_HINTS_DISPLAY_MODE.inline;
     const isItalic = getCacheConfig<boolean>("translationHints.italic");
 
-    decorations.forEach(({ startPos, endPos, value, isLooseMatch }) => {
+    decorations.forEach(({ startPos, endPos, value, isLooseMatch, startPosition, endPosition }) => {
+      // 优化：使用缓存的 positionAt 结果
+      let adjStartPos = startPos;
+      let adjEndPos = endPos;
       if (isLooseMatch) {
-        startPos--;
-        endPos++;
+        adjStartPos = startPos - 1;
+        adjEndPos = endPos + 1;
       }
 
-      const globalStartPos = editor.document.positionAt(startPos);
-      let globalEndPos = editor.document.positionAt(endPos);
+      // 如果缓存了 Position 且不是 looseMatch（looseMatch 需要调整 offset），直接使用缓存
+      const globalStartPos = startPosition && !isLooseMatch ? startPosition : editor.document.positionAt(adjStartPos);
+      let globalEndPos = endPosition && !isLooseMatch ? endPosition : editor.document.positionAt(adjEndPos);
       const isOnCursorLine = globalStartPos.line <= cursorLine && globalEndPos.line >= cursorLine;
 
       if (isInline || isOnCursorLine) {
         if (isLooseMatch) {
           const document = editor.document;
           const text = document.getText();
-          const searchStart = Math.max(startPos, 0);
-          const searchEnd = Math.min(endPos - 1, text.length - 1);
+          const searchStart = Math.max(adjStartPos, 0);
+          const searchEnd = Math.min(adjEndPos - 1, text.length - 1);
           let quotePosition: number | null = null;
           for (let i = searchEnd; i >= searchStart; i--) {
             if (text[i] === '"' || text[i] === "'" || text[i] === "`") {
