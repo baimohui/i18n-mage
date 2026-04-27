@@ -25,11 +25,16 @@
       ]
     }
   },
+  "ts-node": {
+    "compilerOptions": {
+      "module": "commonjs"
+    }
+  },
   "include": [
     "src",
     "test",
     "scripts",
     "vite.config.ts",
     "esbuild.config.ts"
-  ],
+  ]
 }
