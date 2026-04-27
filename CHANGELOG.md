@@ -5,6 +5,22 @@ All notable changes to the i18n Mage VS Code extension will be documented in thi
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.3.7] - 2026-04-28
+
+### Added
+- **Persistent Search Input**: Redesigned the entry search interface from a trigger-based model (press Enter to search) to a persistent search input box with real-time filtering. Includes search history management, case-sensitive/whole-word matching toggles, keyboard navigation (F4/Shift+F4), and QuickPick integration for faster access.
+- **Quote Stripping**: Enhanced reference and navigation features to automatically strip quotes from selected ranges for more accurate key matching.
+
+### Fixed
+- **Dynamic Entry Navigation in Search**: Fixed search result navigation for dynamic entries (pointing to multiple definitions) to stop only once per entry, consistent with normal entry behavior.
+- **Ignore Sub-files in Translation Directory**: Added support for ignoring sub-files/directories within the translation directory.
+- **Source Language-only Search**: Fixed source language-only search to match source text exclusively, excluding entry keys.
+- **Large File Detection Logic**: Fixed large file detection to apply only to i18n-related paths.
+
+
+### Improved
+- **Decoration Performance**: Optimized decoration rendering with incremental updates and position caching for smoother scrolling and editing experience.
+
 ## [1.3.6] - 2026-04-14
 
 ### Added

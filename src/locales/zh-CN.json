@@ -466,7 +466,7 @@
   "updateSummary.actions.enable": "恢复版本更新提醒",
   "updateSummary.actions.viewChangelog": "查看完整更新日志",
   "updateSummary.title": "i18n Mage 已更新至 v{0}",
-  "updateSummary.version.1_3_6": "【新增】\n1. 支持多工作区模式。\n2. 搜索词条时支持快速跳转浏览搜索结果。支持 F4/Shift+F4 在全局结果中上下跳转，F3/Shift+F3 在当前文件结果中上下跳转，Ctrl+Tab/Ctrl+Shift+Tab 在不同文件间跳转。搜索视图同步添加了对应的操作按钮。\n3. 首次提取硬编码文案时，支持配置使用 AI 选择 key 前缀，并开放前缀候选列表配置项。\n\n【修复】\n1. 修正浏览当前文件翻译功能，现已支持正常浏览动态拼接 key 相关的词条内容。\n2. 解决从硬编码配置界面跳转到提取确认界面时，会直接生成空语言文件的问题。\n3. 修复修正非源语言的未定义词条时，新生成的词条 key 无法应用 AI 自动选择前缀功能的问题。\n",
+  "updateSummary.version.1_3_7": "【新增】\n1. 词条搜索改为常驻输入框，支持实时筛选、搜索历史管理和键盘导航。\n2. 引用和导航功能自动去除选中范围的引号。\n\n【修复】\n1. 修复搜索结果中动态词条（指向多个定义）的导航行为，现与普通词条一致，每次导航仅停留一次。\n2. 支持对翻译目录中的子文件/子目录进行忽略。\n3. 修复仅匹配源语言时，搜索范围限定为源语言文案，不再匹配词条 key。\n4. 修复大文件检测仅适用于 i18n 相关路径。\n\n【优化】\n1. 优化装饰渲染，支持增量更新和位置缓存。",
   "tree.search.caseSensitiveMatching": "大小写匹配",
   "tree.search.caseSensitiveMatchingEnabled": "大小写匹配 (已启用)",
   "tree.search.wholeWordMatching": "全词匹配",
