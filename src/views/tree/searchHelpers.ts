@@ -48,7 +48,7 @@ export function matchesSearch(params: MatchesSearchParams): boolean {
         : (isCaseSensitive ? value : value.toLowerCase()).includes(filter)
     );
 
-  return matchesName || matchesValue;
+  return isSourceLangOnly ? matchesValue : matchesName || matchesValue;
 }
 
 export function getFilteredDictionaryTreeNode(
