@@ -2306,7 +2306,7 @@
     "@babel/core": "^7.27.1",
     "@babel/eslint-parser": "^7.27.1",
     "@babel/preset-env": "^7.24.8",
-    "@preact/preset-vite": "^2.10.2",
+    "@preact/preset-vite": "^2.10.5",
     "@types/chai": "^5.2.2",
     "@types/js-yaml": "^4.0.9",
     "@types/mocha": "^10.0.10",
@@ -2319,7 +2319,7 @@
     "@vscode/test-cli": "^0.0.9",
     "@vscode/test-electron": "^2.5.2",
     "chai": "^5.2.0",
-    "esbuild": "^0.25.4",
+    "esbuild": "^0.28.1",
     "eslint": "^8.57.1",
     "eslint-config-prettier": "^10.1.5",
     "eslint-plugin-prettier": "^5.4.0",
@@ -2333,6 +2333,6 @@
     "ts-node": "^10.9.2",
     "tsconfig-paths": "^4.2.0",
     "typescript": "^5.8.3",
-    "vite": "^7.3.2"
+    "vite": "^8.0.16"
   }
 }
