@@ -2295,7 +2295,7 @@
     "@vitalets/google-translate-api": "^9.2.0",
     "axios": "^1.16.0",
     "js-md5": "^0.7.3",
-    "js-yaml": "^4.1.1",
+    "js-yaml": "^4.3.0",
     "json5": "^2.2.3",
     "node-xlsx": "^0.24.0",
     "tencentcloud-sdk-nodejs-tmt": "^4.0.791",
